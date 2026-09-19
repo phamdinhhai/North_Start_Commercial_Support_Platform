@@ -1,0 +1,35 @@
+{
+  "agents": {
+    "agent-1789818088952-vrk8am": {
+      "agentId": "agent-1789818088952-vrk8am",
+      "agentType": "coordinator",
+      "status": "idle",
+      "health": 1,
+      "taskCount": 0,
+      "config": {
+        "provider": "anthropic",
+        "timeout": 300,
+        "autoTools": true
+      },
+      "createdAt": "2026-09-19T11:41:28.952Z",
+      "model": "sonnet",
+      "modelRoutedBy": "default"
+    },
+    "agent-1789818132617-cwh2uh": {
+      "agentId": "agent-1789818132617-cwh2uh",
+      "agentType": "security-architect",
+      "status": "idle",
+      "health": 1,
+      "taskCount": 0,
+      "config": {
+        "provider": "anthropic",
+        "timeout": 300,
+        "autoTools": true
+      },
+      "createdAt": "2026-09-19T11:42:12.617Z",
+      "model": "opus",
+      "modelRoutedBy": "default"
+    }
+  },
+  "version": "3.0.0"
+}
