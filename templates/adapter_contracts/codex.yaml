@@ -1,0 +1,45 @@
+# Contract for the OpenAI Codex CLI (adapter: codex).
+#
+# Always-passed surface from src/bernstein/adapters/codex.py:
+# ``codex exec <sandbox-argv> -m <model> --json -o <path> <prompt>``.
+#
+# The sandbox argv is one of two forms, chosen by the adapter's declared
+# dangerous-mode strategy, so each flag is required of the *binary* rather
+# than of every spawn:
+#
+#   ``--sandbox workspace-write``  default; keeps the vendor sandbox.
+#   ``--dangerously-bypass-approvals-and-sandbox``  declared ALWAYS_ON only;
+#     for a runner that already isolates the process. ``--sandbox
+#     workspace-write`` is implemented with bubblewrap and cannot start
+#     without an unprivileged user namespace, which such runners deny.
+adapter: codex
+binary: codex
+install:
+  method: npm
+  spec: "@openai/codex@latest"
+auth:
+  required_for_help: false
+  required_for_models: false
+  secret_env: "OPENAI_API_KEY"
+  basis: api_key
+required_flags:
+  - "--sandbox"
+  - "--dangerously-bypass-approvals-and-sandbox"
+  - "-m"
+  - "--json"
+  - "-o"
+required_subcommands:
+  - "exec"
+# Codex sub-flags live under ``codex exec --help``, not ``codex --help``.
+help_command: ["codex", "exec", "--help"]
+# No deterministic session-id binding: ``codex exec`` exposes no flag that
+# accepts a caller-supplied session id. Its only session surface is the
+# ``resume <SESSION_ID>`` subcommand, which reattaches to a session that
+# already exists and so cannot bind one at spawn time. Declaring a flag here
+# makes ``CLIAdapter.session_id_args`` emit it into every codex spawn, and
+# codex exits immediately with ``unexpected argument '--session-id' found``
+# (issue #4135). The derived id is still recorded in orchestrator state for
+# cross-reference. See docs/adapters/session_isolation.md.
+expected_models:
+  command: []
+  required_present: []

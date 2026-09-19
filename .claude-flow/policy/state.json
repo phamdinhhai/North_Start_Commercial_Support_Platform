@@ -1,0 +1,12 @@
+{
+  "version": 1,
+  "mode": "legacy",
+  "migratedFrom": "pre-ADR-324; capabilities=none-detected",
+  "migratedAt": 1789807597077,
+  "rules": [],
+  "budgets": [],
+  "usage": [],
+  "approvals": [],
+  "receipts": [],
+  "configuredMode": "legacy"
+}

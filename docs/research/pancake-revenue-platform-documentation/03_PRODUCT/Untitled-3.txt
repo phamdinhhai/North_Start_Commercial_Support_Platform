@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <title>Pancake API Docs</title>
+
+  <script src="/static/web-components.min.js"></script>
+  <link rel="stylesheet" href="/static/styles.min.css">
+  <link rel="icon" type="image/png" href="static/images/pancake_logo_white_blue.png">
+
+  <style>
+    .doc-tabs {
+      display: flex;
+      align-items: center;
+      background: #0f1318;
+      padding: 0 24px;
+      border-bottom: 1px solid #2a2f3a;
+      gap: 4px;
+    }
+
+    .doc-tabs a {
+      display: inline-block;
+      padding: 12px 18px;
+      font-size: 13px;
+      font-weight: 500;
+      font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+      color: #8a9bb0;
+      text-decoration: none;
+      border-bottom: 2px solid transparent;
+      transition: color 0.15s, border-color 0.15s;
+    }
+
+    .doc-tabs a:hover {
+      color: #e2e8f0;
+    }
+
+    .doc-tabs a.active {
+      color: #ffffff;
+      border-bottom-color: #4a90d9;
+    }
+  </style>
+</head>
+
+<body>
+
+  <nav class="doc-tabs">
+    <a href="/" class="active">API Reference</a>
+    <a href="/webhook">Webhooks</a>
+  </nav>
+
+  <elements-api apiDescriptionUrl="/openapi/openapi.yaml" router="hash" />
+
+</body>
+
+</html>

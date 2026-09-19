@@ -1,0 +1,72 @@
+{
+    "version":  1,
+    "story_id":  "BOOT-001",
+    "product_domain":  "platform",
+    "canonical_refs":  [
+                           "docs/canonical/PRODUCT_CONSTITUTION.md",
+                           "docs/canonical/ARCHITECTURE_CONSTITUTION.md",
+                           "docs/canonical/DOMAIN_INVARIANTS.md",
+                           "docs/canonical/INTEGRATION_PRINCIPLES.md",
+                           "docs/canonical/OPEN_DECISIONS.md"
+                       ],
+    "role":  "backend",
+    "allowed_skills":  [
+                           "backend-development/*",
+                           "developer-essentials/*",
+                           "unit-testing",
+                           "database-design/postgresql-table-design"
+                       ],
+    "mcp_profile":  "none",
+    "write_scope":  [
+                        "product/**"
+                    ],
+    "allowed_paths":  [
+                          "product/**"
+                      ],
+    "forbidden_paths":  [
+                            "docs/canonical/**",
+                            "src/bernstein/**",
+                            "ai-team/**",
+                            "templates/**",
+                            ".github/**",
+                            ".sdd/**",
+                            "production/**"
+                        ],
+    "acceptance_gates":  [
+                             "exec_contract",
+                             "path_permission",
+                             "canonical_unchanged",
+                             "secrets_scan",
+                             "lint_typecheck_when_available",
+                             "domain_invariants",
+                             "no_prod_mutation",
+                             "no_auto_merge",
+                             "human_gate"
+                         ],
+    "required_gates":  [
+                           "exec_contract",
+                           "path_permission",
+                           "canonical_unchanged",
+                           "secrets_scan",
+                           "lint_typecheck_when_available",
+                           "domain_invariants",
+                           "no_prod_mutation",
+                           "no_auto_merge",
+                           "human_gate"
+                       ],
+    "external_mutation_level":  "none",
+    "handoff_target":  "integration",
+    "open_decisions_not_to_resolve":  [
+                                          "CE-1",
+                                          "CE-2",
+                                          "MM-1",
+                                          "ID-1",
+                                          "ID-2",
+                                          "PM-1",
+                                          "LG-1"
+                                      ],
+    "merge_strategy":  "pr",
+    "auto_merge":  false,
+    "human_gate":  true,
+    "notes":  "Bootstrap TypeScript/product foundation only. No persistence or commercial-domain semantics."
+}

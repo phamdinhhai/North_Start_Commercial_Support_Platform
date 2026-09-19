@@ -1,0 +1,115 @@
+{
+    "version":  1,
+    "story_id":  "BOOT-001",
+    "product_domain":  "platform",
+    "canonical_refs":  [
+                           "docs/canonical/PRODUCT_CONSTITUTION.md",
+                           "docs/canonical/ARCHITECTURE_CONSTITUTION.md",
+                           "docs/canonical/DOMAIN_INVARIANTS.md",
+                           "docs/canonical/INTEGRATION_PRINCIPLES.md",
+                           "docs/canonical/OPEN_DECISIONS.md"
+                       ],
+    "role":  "manager",
+    "allowed_skills":  [
+
+                       ],
+    "mcp_profile":  "none",
+    "write_scope":  [
+
+                    ],
+    "allowed_paths":  [
+
+                      ],
+    "forbidden_paths":  [
+                            "product/**",
+                            "docs/canonical/**",
+                            "src/**",
+                            "tests/**",
+                            "scripts/**",
+                            "templates/**",
+                            "ai-team/**",
+                            ".github/**",
+                            "production/**"
+                        ],
+    "acceptance_gates":  [
+                             "exec_contract",
+                             "manager_no_impl",
+                             "manager_roles",
+                             "manager_children",
+                             "canonical_unchanged",
+                             "no_prod_mutation",
+                             "no_auto_merge",
+                             "human_gate"
+                         ],
+    "required_gates":  [
+                           "exec_contract",
+                           "manager_no_impl",
+                           "manager_roles",
+                           "manager_children",
+                           "canonical_unchanged",
+                           "no_prod_mutation",
+                           "no_auto_merge",
+                           "human_gate"
+                       ],
+    "external_mutation_level":  "none",
+    "handoff_target":  "backend",
+    "open_decisions_not_to_resolve":  [
+                                          "CE-1",
+                                          "CE-2",
+                                          "MM-1",
+                                          "ID-1",
+                                          "ID-2",
+                                          "PM-1",
+                                          "LG-1"
+                                      ],
+    "children":  [
+                     {
+                         "key":  "backend",
+                         "role":  "backend",
+                         "title":  "Bootstrap TypeScript product runtime",
+                         "contract_ref":  "docs/delivery/contracts/BOOT-001.backend.json",
+                         "scope":  "medium",
+                         "complexity":  "medium",
+                         "depends_on":  [
+
+                                        ]
+                     },
+                     {
+                         "key":  "integration",
+                         "role":  "integration",
+                         "title":  "Add minimal NestJS Fastify adapter shell",
+                         "contract_ref":  "docs/delivery/contracts/BOOT-001.integration.json",
+                         "scope":  "small",
+                         "complexity":  "medium",
+                         "depends_on":  [
+                                            "backend"
+                                        ]
+                     },
+                     {
+                         "key":  "qa",
+                         "role":  "qa",
+                         "title":  "Verify BOOT-001 product bootstrap",
+                         "contract_ref":  "docs/delivery/contracts/BOOT-001.qa.json",
+                         "scope":  "small",
+                         "complexity":  "medium",
+                         "depends_on":  [
+                                            "integration"
+                                        ]
+                     },
+                     {
+                         "key":  "reviewer",
+                         "role":  "reviewer",
+                         "title":  "Review BOOT-001 for Human Gate",
+                         "contract_ref":  "docs/delivery/contracts/BOOT-001.reviewer.json",
+                         "scope":  "small",
+                         "complexity":  "medium",
+                         "depends_on":  [
+                                            "qa"
+                                        ]
+                     }
+                 ],
+    "merge_strategy":  "pr",
+    "auto_merge":  false,
+    "human_gate":  true,
+    "notes":  "Planning/validation only. Manager MUST NOT implement BOOT-001 product code."
+}

@@ -1,0 +1,1901 @@
+[Skip to main content](https://developer.chrome.com/docs/extensions/develop/concepts/service-workers/lifecycle#main-content)
+[Docs](https://developer.chrome.com/docs)
+- Build with Chrome
+- Learn how Chrome works, participate in origin trials, and build with Chrome everywhere.
+
+- 
+                  [Web Platform](https://developer.chrome.com/docs/web-platform)
+
+- 
+                  [Isolated Web Apps (IWA)](https://developer.chrome.com/docs/iwa)
+
+- 
+                  [Capabilities](https://developer.chrome.com/docs/capabilities)
+
+- 
+                  [Automation and testing](https://developer.chrome.com/docs/automation-and-testing)
+
+- 
+                  [ChromeDriver](https://developer.chrome.com/docs/chromedriver)
+
+- 
+                  [Extensions](https://developer.chrome.com/docs/extensions)
+
+- 
+                  [Chrome Web Store](https://developer.chrome.com/docs/webstore)
+
+- 
+                  [Chromium](https://developer.chrome.com/docs/chromium)
+
+- 
+                  [Web on Android](https://developer.chrome.com/docs/android)
+
+- 
+                  [Origin trials](https://developer.chrome.com/origintrials/)
+
+- 
+                  [Release notes](https://developer.chrome.com/release-notes)
+
+[Web Platform](https://developer.chrome.com/docs/web-platform)
+[Isolated Web Apps (IWA)](https://developer.chrome.com/docs/iwa)
+[Capabilities](https://developer.chrome.com/docs/capabilities)
+[Automation and testing](https://developer.chrome.com/docs/automation-and-testing)
+[ChromeDriver](https://developer.chrome.com/docs/chromedriver)
+[Extensions](https://developer.chrome.com/docs/extensions)
+[Chrome Web Store](https://developer.chrome.com/docs/webstore)
+[Chromium](https://developer.chrome.com/docs/chromium)
+[Web on Android](https://developer.chrome.com/docs/android)
+[Origin trials](https://developer.chrome.com/origintrials/)
+[Release notes](https://developer.chrome.com/release-notes)
+- Productivity
+- Create the best experience for your users with the web's best tools.
+- 
+                  [DevTools](https://developer.chrome.com/docs/devtools)
+
+- 
+                  [Lighthouse](https://developer.chrome.com/docs/lighthouse)
+
+- 
+                  [Chrome UX Report](https://developer.chrome.com/docs/crux)
+
+- 
+                  [Accessibility](https://developer.chrome.com/docs/accessibility)
+
+- 
+                  [Modern Web Guidance](https://developer.chrome.com/docs/modern-web-guidance)
+
+[DevTools](https://developer.chrome.com/docs/devtools)
+[Lighthouse](https://developer.chrome.com/docs/lighthouse)
+[Chrome UX Report](https://developer.chrome.com/docs/crux)
+[Accessibility](https://developer.chrome.com/docs/accessibility)
+[Modern Web Guidance](https://developer.chrome.com/docs/modern-web-guidance)
+- Get things done quicker and neater, with our ready-made libraries.
+
+- 
+                  [Workbox](https://developer.chrome.com/docs/workbox)
+
+- 
+                  [Puppeteer](https://developer.chrome.com/docs/puppeteer)
+
+[Workbox](https://developer.chrome.com/docs/workbox)
+[Puppeteer](https://developer.chrome.com/docs/puppeteer)
+- Experience
+- Design a beautiful and performant web with Chrome.
+
+- 
+                  [AI](https://developer.chrome.com/docs/ai)
+
+- 
+                  [Performance](https://developer.chrome.com/docs/performance)
+
+- 
+                  [CSS and UI](https://developer.chrome.com/docs/css-ui)
+
+- 
+                  [Identity](https://developer.chrome.com/docs/identity)
+
+- 
+                  [Payments](https://developer.chrome.com/docs/payments)
+
+- 
+                  [Privacy and security](https://developer.chrome.com/docs/privacy-security)
+
+[AI](https://developer.chrome.com/docs/ai)
+[Performance](https://developer.chrome.com/docs/performance)
+[CSS and UI](https://developer.chrome.com/docs/css-ui)
+[Identity](https://developer.chrome.com/docs/identity)
+[Payments](https://developer.chrome.com/docs/payments)
+[Privacy and security](https://developer.chrome.com/docs/privacy-security)
+- Resources
+- More from Chrome and Google.
+
+- 
+                  [All documentation](https://developer.chrome.com/docs)
+
+- 
+                  [Baseline open_in_new](https://web.dev/baseline)
+
+- 
+                  [web.dev open_in_new](https://web.dev)
+
+- 
+                  [PageSpeed Insights audit open_in_new](https://pagespeed.web.dev)
+
+[All documentation](https://developer.chrome.com/docs)
+[Baseline open_in_new](https://web.dev/baseline)
+[web.dev open_in_new](https://web.dev)
+
+[PageSpeed Insights audit open_in_new](https://pagespeed.web.dev)
+[Case studies](https://developer.chrome.com/case-studies)
+[Blog](https://developer.chrome.com/blog)
+[New in Chrome](https://developer.chrome.com/new)
+- 
+      [English](https://developer.chrome.com/docs/extensions/develop/concepts/service-workers/lifecycle)
+
+- 
+      [Deutsch](https://developer.chrome.com/docs/extensions/develop/concepts/service-workers/lifecycle)
+
+- 
+      [Español – América Latina](https://developer.chrome.com/docs/extensions/develop/concepts/service-workers/lifecycle)
+
+- 
+      [Français](https://developer.chrome.com/docs/extensions/develop/concepts/service-workers/lifecycle)
+
+- 
+      [Indonesia](https://developer.chrome.com/docs/extensions/develop/concepts/service-workers/lifecycle)
+
+- 
+      [Italiano](https://developer.chrome.com/docs/extensions/develop/concepts/service-workers/lifecycle)
+
+- 
+      [Nederlands](https://developer.chrome.com/docs/extensions/develop/concepts/service-workers/lifecycle)
+
+- 
+      [Polski](https://developer.chrome.com/docs/extensions/develop/concepts/service-workers/lifecycle)
+
+- 
+      [Português – Brasil](https://developer.chrome.com/docs/extensions/develop/concepts/service-workers/lifecycle)
+
+- 
+      [Tiếng Việt](https://developer.chrome.com/docs/extensions/develop/concepts/service-workers/lifecycle)
+
+- 
+      [Türkçe](https://developer.chrome.com/docs/extensions/develop/concepts/service-workers/lifecycle)
+
+- 
+      [Русский](https://developer.chrome.com/docs/extensions/develop/concepts/service-workers/lifecycle)
+
+- 
+      [עברית](https://developer.chrome.com/docs/extensions/develop/concepts/service-workers/lifecycle)
+
+- 
+      [العربيّة](https://developer.chrome.com/docs/extensions/develop/concepts/service-workers/lifecycle)
+
+- 
+      [فارسی](https://developer.chrome.com/docs/extensions/develop/concepts/service-workers/lifecycle)
+
+- 
+      [हिंदी](https://developer.chrome.com/docs/extensions/develop/concepts/service-workers/lifecycle)
+
+- 
+      [বাংলা](https://developer.chrome.com/docs/extensions/develop/concepts/service-workers/lifecycle)
+
+- 
+      [ภาษาไทย](https://developer.chrome.com/docs/extensions/develop/concepts/service-workers/lifecycle)
+
+- 
+      [中文 – 简体](https://developer.chrome.com/docs/extensions/develop/concepts/service-workers/lifecycle)
+
+- 
+      [中文 – 繁體](https://developer.chrome.com/docs/extensions/develop/concepts/service-workers/lifecycle)
+
+- 
+      [日本語](https://developer.chrome.com/docs/extensions/develop/concepts/service-workers/lifecycle)
+
+- 
+      [한국어](https://developer.chrome.com/docs/extensions/develop/concepts/service-workers/lifecycle)
+
+[English](https://developer.chrome.com/docs/extensions/develop/concepts/service-workers/lifecycle)
+[Deutsch](https://developer.chrome.com/docs/extensions/develop/concepts/service-workers/lifecycle)
+[Español – América Latina](https://developer.chrome.com/docs/extensions/develop/concepts/service-workers/lifecycle)
+[Français](https://developer.chrome.com/docs/extensions/develop/concepts/service-workers/lifecycle)
+[Indonesia](https://developer.chrome.com/docs/extensions/develop/concepts/service-workers/lifecycle)
+[Italiano](https://developer.chrome.com/docs/extensions/develop/concepts/service-workers/lifecycle)
+[Nederlands](https://developer.chrome.com/docs/extensions/develop/concepts/service-workers/lifecycle)
+[Polski](https://developer.chrome.com/docs/extensions/develop/concepts/service-workers/lifecycle)
+[Português – Brasil](https://developer.chrome.com/docs/extensions/develop/concepts/service-workers/lifecycle)
+[Tiếng Việt](https://developer.chrome.com/docs/extensions/develop/concepts/service-workers/lifecycle)
+[Türkçe](https://developer.chrome.com/docs/extensions/develop/concepts/service-workers/lifecycle)
+[Русский](https://developer.chrome.com/docs/extensions/develop/concepts/service-workers/lifecycle)
+[עברית](https://developer.chrome.com/docs/extensions/develop/concepts/service-workers/lifecycle)
+[العربيّة](https://developer.chrome.com/docs/extensions/develop/concepts/service-workers/lifecycle)
+[فارسی](https://developer.chrome.com/docs/extensions/develop/concepts/service-workers/lifecycle)
+[हिंदी](https://developer.chrome.com/docs/extensions/develop/concepts/service-workers/lifecycle)
+
+[বাংলা](https://developer.chrome.com/docs/extensions/develop/concepts/service-workers/lifecycle)
+[ภาษาไทย](https://developer.chrome.com/docs/extensions/develop/concepts/service-workers/lifecycle)
+[中文 – 简体](https://developer.chrome.com/docs/extensions/develop/concepts/service-workers/lifecycle)
+[中文 – 繁體](https://developer.chrome.com/docs/extensions/develop/concepts/service-workers/lifecycle)
+[日本語](https://developer.chrome.com/docs/extensions/develop/concepts/service-workers/lifecycle)
+[한국어](https://developer.chrome.com/docs/extensions/develop/concepts/service-workers/lifecycle)
+- 
+
+
+
+
+
+  [Docs](https://developer.chrome.com/docs)
+
+
+
+
+- 
+
+
+
+
+
+
+
+
+  [Chrome Extensions](https://developer.chrome.com/docs/extensions)
+
+
+
+
+- 
+
+
+
+
+
+
+
+
+  [Develop](https://developer.chrome.com/docs/extensions/develop)
+
+
+
+
+[Docs](https://developer.chrome.com/docs)
+[Chrome Extensions](https://developer.chrome.com/docs/extensions)
+[Develop](https://developer.chrome.com/docs/extensions/develop)
+[Overview](https://developer.chrome.com/docs/extensions)
+[Get Started](https://developer.chrome.com/docs/extensions/get-started)
+[Develop](https://developer.chrome.com/docs/extensions/develop)
+[How To](https://developer.chrome.com/docs/extensions/how-to)
+[AI](https://developer.chrome.com/docs/extensions/ai)
+[Reference](https://developer.chrome.com/docs/extensions/reference)
+- 
+                  [API](https://developer.chrome.com/docs/extensions/reference/api)
+
+- 
+                  [Permissions](https://developer.chrome.com/docs/extensions/reference/permissions-list)
+
+- 
+                  [Manifest](https://developer.chrome.com/docs/extensions/reference/manifest)
+
+[API](https://developer.chrome.com/docs/extensions/reference/api)
+[Permissions](https://developer.chrome.com/docs/extensions/reference/permissions-list)
+[Manifest](https://developer.chrome.com/docs/extensions/reference/manifest)
+[Samples](https://developer.chrome.com/docs/extensions/samples)
+[Chrome Web Store](https://developer.chrome.com/docs/webstore)
+- 
+                  [Prepare your Extension](https://developer.chrome.com/docs/webstore/prepare)
+
+- 
+                  [Publish in the Chrome Web Store](https://developer.chrome.com/docs/webstore/publish)
+
+- 
+                  [Program Policies](https://developer.chrome.com/docs/webstore/program-policies)
+
+[Prepare your Extension](https://developer.chrome.com/docs/webstore/prepare)
+[Publish in the Chrome Web Store](https://developer.chrome.com/docs/webstore/publish)
+[Program Policies](https://developer.chrome.com/docs/webstore/program-policies)
+- 
+
+
+  [Docs](https://developer.chrome.com/docs)
+
+
+
+
+
+
+
+
+
+
+
+      More
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  [Overview](https://developer.chrome.com/docs/extensions)
+
+
+
+
+
+
+
+
+
+
+
+  [Get Started](https://developer.chrome.com/docs/extensions/get-started)
+
+
+
+
+
+
+
+
+
+
+
+  [Develop](https://developer.chrome.com/docs/extensions/develop)
+
+
+
+
+
+
+
+
+
+
+
+  [How To](https://developer.chrome.com/docs/extensions/how-to)
+
+
+
+
+
+
+
+
+
+
+
+  [AI](https://developer.chrome.com/docs/extensions/ai)
+
+
+
+
+
+
+
+
+
+
+
+  [Reference](https://developer.chrome.com/docs/extensions/reference)
+
+
+
+
+
+
+
+
+
+
+
+      More
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  [Samples](https://developer.chrome.com/docs/extensions/samples)
+
+
+
+
+
+
+
+
+
+
+
+  [Chrome Web Store](https://developer.chrome.com/docs/webstore)
+
+
+
+
+
+
+
+
+
+
+
+      More
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+- 
+
+
+
+
+
+      More
+
+
+
+
+
+
+
+
+
+
+- 
+
+
+  [Overview](https://developer.chrome.com/docs/extensions)
+
+
+
+
+- 
+
+
+  [Get Started](https://developer.chrome.com/docs/extensions/get-started)
+
+
+
+
+- 
+
+
+  [Develop](https://developer.chrome.com/docs/extensions/develop)
+
+
+
+
+- 
+
+
+  [How To](https://developer.chrome.com/docs/extensions/how-to)
+
+
+
+
+- 
+
+
+  [AI](https://developer.chrome.com/docs/extensions/ai)
+
+
+
+
+- 
+
+
+  [Reference](https://developer.chrome.com/docs/extensions/reference)
+
+
+
+
+
+
+
+
+
+
+
+      More
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+- 
+
+
+
+
+
+      More
+
+
+
+
+
+
+
+
+
+
+- 
+
+
+  [Samples](https://developer.chrome.com/docs/extensions/samples)
+
+
+
+
+- 
+
+
+  [Chrome Web Store](https://developer.chrome.com/docs/webstore)
+
+
+
+
+
+
+
+
+
+
+
+      More
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+- 
+
+
+
+
+
+      More
+
+
+
+
+
+
+
+
+
+
+- 
+
+
+  [Case studies](https://developer.chrome.com/case-studies)
+
+
+
+
+
+- 
+
+
+  [Blog](https://developer.chrome.com/blog)
+
+
+
+
+
+- 
+
+
+  [New in Chrome](https://developer.chrome.com/new)
+
+
+
+
+
+[Docs](https://developer.chrome.com/docs)
+- 
+
+
+
+
+
+      More
+
+
+
+
+
+
+
+
+
+
+- 
+
+
+  [Overview](https://developer.chrome.com/docs/extensions)
+
+
+
+
+-
+
+[Get Started](https://developer.chrome.com/docs/extensions/get-started)
+
+
+
+
+- 
+
+
+  [Develop](https://developer.chrome.com/docs/extensions/develop)
+
+
+
+
+- 
+
+
+  [How To](https://developer.chrome.com/docs/extensions/how-to)
+
+
+
+
+- 
+
+
+  [AI](https://developer.chrome.com/docs/extensions/ai)
+
+
+
+
+- 
+
+
+  [Reference](https://developer.chrome.com/docs/extensions/reference)
+
+
+
+
+
+
+
+
+
+
+
+      More
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+- 
+
+
+
+
+
+      More
+
+
+
+
+
+
+
+
+
+
+- 
+
+
+  [Samples](https://developer.chrome.com/docs/extensions/samples)
+
+
+
+
+- 
+
+
+  [Chrome Web Store](https://developer.chrome.com/docs/webstore)
+
+
+
+
+
+
+
+
+
+
+
+      More
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+- 
+
+
+
+
+
+      More
+
+
+
+
+
+
+
+
+
+
+[Overview](https://developer.chrome.com/docs/extensions)
+[Get Started](https://developer.chrome.com/docs/extensions/get-started)
+[Develop](https://developer.chrome.com/docs/extensions/develop)
+[How To](https://developer.chrome.com/docs/extensions/how-to)
+[AI](https://developer.chrome.com/docs/extensions/ai)
+[Reference](https://developer.chrome.com/docs/extensions/reference)
+- 
+
+
+
+
+
+      More
+
+
+
+
+
+
+
+
+
+
+[Samples](https://developer.chrome.com/docs/extensions/samples)
+[Chrome Web Store](https://developer.chrome.com/docs/webstore)
+- 
+
+
+
+
+
+      More
+
+
+
+
+
+
+
+
+
+
+[Case studies](https://developer.chrome.com/case-studies)
+[Blog](https://developer.chrome.com/blog)
+[New in Chrome](https://developer.chrome.com/new)
+- [Introduction](https://developer.chrome.com/docs/extensions/develop)
+- https://developer.chrome.com/docs/extensions/develop/concepts/service-workers/lifecycle
+
+        Design the user interface
+      [User interface components](https://developer.chrome.com/docs/extensions/develop/ui)[Add a popup](https://developer.chrome.com/docs/extensions/develop/ui/add-popup)[Implement an action](https://developer.chrome.com/docs/extensions/develop/ui/implement-action)[Build a context menu](https://developer.chrome.com/docs/extensions/develop/ui/context-menu)[Override Chrome pages](https://developer.chrome.com/docs/extensions/develop/ui/override-chrome-pages)[Trigger actions from the omnibox](https://developer.chrome.com/docs/extensions/develop/ui/omnibox-triggers)[Give users options](https://developer.chrome.com/docs/extensions/develop/ui/options-page)[Notify users](https://developer.chrome.com/docs/extensions/develop/ui/notify-users)[Respond to commands](https://developer.chrome.com/docs/extensions/develop/ui/respond-to-commands)[What are themes?](https://developer.chrome.com/docs/extensions/develop/ui/themes)[Configure extension icons](https://developer.chrome.com/docs/extensions/develop/ui/configure-icons)[Make your extension accessible](https://developer.chrome.com/docs/extensions/develop/ui/a11y)[Internationalize the interface](https://developer.chrome.com/docs/extensions/develop/ui/i18n)
+- [User interface components](https://developer.chrome.com/docs/extensions/develop/ui)
+- [Add a popup](https://developer.chrome.com/docs/extensions/develop/ui/add-popup)
+- [Implement an action](https://developer.chrome.com/docs/extensions/develop/ui/implement-action)
+- [Build a context menu](https://developer.chrome.com/docs/extensions/develop/ui/context-menu)
+- [Override Chrome pages](https://developer.chrome.com/docs/extensions/develop/ui/override-chrome-pages)
+- [Trigger actions from the omnibox](https://developer.chrome.com/docs/extensions/develop/ui/omnibox-triggers)
+- [Give users options](https://developer.chrome.com/docs/extensions/develop/ui/options-page)
+- [Notify users](https://developer.chrome.com/docs/extensions/develop/ui/notify-users)
+- [Respond to commands](https://developer.chrome.com/docs/extensions/develop/ui/respond-to-commands)
+- [What are themes?](https://developer.chrome.com/docs/extensions/develop/ui/themes)
+- [Configure extension icons](https://developer.chrome.com/docs/extensions/develop/ui/configure-icons)
+- [Make your extension accessible](https://developer.chrome.com/docs/extensions/develop/ui/a11y)
+- [Internationalize the interface](https://developer.chrome.com/docs/extensions/develop/ui/i18n)
+- https://developer.chrome.com/docs/extensions/develop/concepts/service-workers/lifecycle
+
+        Core concepts
+
+[The browser namespace](https://developer.chrome.com/docs/extensions/develop/concepts/browser-namespace)[Content scripts](https://developer.chrome.com/docs/extensions/develop/concepts/content-scripts)[Message passing](https://developer.chrome.com/docs/extensions/develop/concepts/messaging)[Match patterns](https://developer.chrome.com/docs/extensions/develop/concepts/match-patterns)[Storage and cookies](https://developer.chrome.com/docs/extensions/develop/concepts/storage-and-cookies)[Content filtering](https://developer.chrome.com/docs/extensions/develop/concepts/content-filtering)[The activeTab permission](https://developer.chrome.com/docs/extensions/develop/concepts/activeTab)[Declare permissions](https://developer.chrome.com/docs/extensions/develop/concepts/declare-permissions)[Permission warning guidelines](https://developer.chrome.com/docs/extensions/develop/concepts/permission-warnings)[Native messaging](https://developer.chrome.com/docs/extensions/develop/concepts/native-messaging)[Cross-origin network requests](https://developer.chrome.com/docs/extensions/develop/concepts/network-requests)[Cross-origin isolation](https://developer.chrome.com/docs/extensions/develop/concepts/cross-origin-isolation)[Service worker introduction](https://developer.chrome.com/docs/extensions/develop/concepts/service-workers)[Extension service worker basics](https://developer.chrome.com/docs/extensions/develop/concepts/service-workers/basics)[The extension service worker lifecycle](https://developer.chrome.com/docs/extensions/develop/concepts/service-workers/lifecycle)[Events in service workers](https://developer.chrome.com/docs/extensions/develop/concepts/service-workers/events)[Real Time updates](https://developer.chrome.com/docs/extensions/develop/concepts/real-time)
+- [The browser namespace](https://developer.chrome.com/docs/extensions/develop/concepts/browser-namespace)
+- [Content scripts](https://developer.chrome.com/docs/extensions/develop/concepts/content-scripts)
+- [Message passing](https://developer.chrome.com/docs/extensions/develop/concepts/messaging)
+- [Match patterns](https://developer.chrome.com/docs/extensions/develop/concepts/match-patterns)
+- [Storage and cookies](https://developer.chrome.com/docs/extensions/develop/concepts/storage-and-cookies)
+- [Content filtering](https://developer.chrome.com/docs/extensions/develop/concepts/content-filtering)
+- [The activeTab permission](https://developer.chrome.com/docs/extensions/develop/concepts/activeTab)
+- [Declare permissions](https://developer.chrome.com/docs/extensions/develop/concepts/declare-permissions)
+- [Permission warning guidelines](https://developer.chrome.com/docs/extensions/develop/concepts/permission-warnings)
+- [Native messaging](https://developer.chrome.com/docs/extensions/develop/concepts/native-messaging)
+- [Cross-origin network requests](https://developer.chrome.com/docs/extensions/develop/concepts/network-requests)
+- [Cross-origin isolation](https://developer.chrome.com/docs/extensions/develop/concepts/cross-origin-isolation)
+- [Service worker introduction](https://developer.chrome.com/docs/extensions/develop/concepts/service-workers)
+- [Extension service worker basics](https://developer.chrome.com/docs/extensions/develop/concepts/service-workers/basics)
+- [The extension service worker lifecycle](https://developer.chrome.com/docs/extensions/develop/concepts/service-workers/lifecycle)
+- [Events in service workers](https://developer.chrome.com/docs/extensions/develop/concepts/service-workers/events)
+- [Real Time updates](https://developer.chrome.com/docs/extensions/develop/concepts/real-time)
+- https://developer.chrome.com/docs/extensions/develop/concepts/service-workers/lifecycle
+
+        Migrate to Manifest V3
+
+[What is Manifest V3](https://developer.chrome.com/docs/extensions/develop/migrate/what-is-mv3)[Manifest V2 support timeline](https://developer.chrome.com/docs/extensions/develop/migrate/mv2-deprecation-timeline)[Known issues when migrating to Manifest V3](https://developer.chrome.com/docs/extensions/develop/migrate/known-issues)[Migration overview](https://developer.chrome.com/docs/extensions/develop/migrate)[Manifest V3 migration checklist](https://developer.chrome.com/docs/extensions/develop/migrate/checklist)[Update the manifest](https://developer.chrome.com/docs/extensions/develop/migrate/manifest)[Migrate to a service worker](https://developer.chrome.com/docs/extensions/develop/migrate/to-service-workers)[Update your code](https://developer.chrome.com/docs/extensions/develop/migrate/api-calls)[Replace blocking web request listeners](https://developer.chrome.com/docs/extensions/develop/migrate/blocking-web-requests)[Improve extension security](https://developer.chrome.com/docs/extensions/develop/migrate/improve-security)[Deal with remote hosted code violations](https://developer.chrome.com/docs/extensions/develop/migrate/remote-hosted-code)[Publish your extension](https://developer.chrome.com/docs/extensions/develop/migrate/publish-mv3)
+- [What is Manifest V3](https://developer.chrome.com/docs/extensions/develop/migrate/what-is-mv3)
+- [Manifest V2 support timeline](https://developer.chrome.com/docs/extensions/develop/migrate/mv2-deprecation-timeline)
+- [Known issues when migrating to Manifest V3](https://developer.chrome.com/docs/extensions/develop/migrate/known-issues)
+- [Migration overview](https://developer.chrome.com/docs/extensions/develop/migrate)
+- [Manifest V3 migration checklist](https://developer.chrome.com/docs/extensions/develop/migrate/checklist)
+- [Update the manifest](https://developer.chrome.com/docs/extensions/develop/migrate/manifest)
+- [Migrate to a service worker](https://developer.chrome.com/docs/extensions/develop/migrate/to-service-workers)
+- [Update your code](https://developer.chrome.com/docs/extensions/develop/migrate/api-calls)
+- [Replace blocking web request listeners](https://developer.chrome.com/docs/extensions/develop/migrate/blocking-web-requests)
+- [Improve extension security](https://developer.chrome.com/docs/extensions/develop/migrate/improve-security)
+- [Deal with remote hosted code violations](https://developer.chrome.com/docs/extensions/develop/migrate/remote-hosted-code)
+- [Publish your extension](https://developer.chrome.com/docs/extensions/develop/migrate/publish-mv3)
+- https://developer.chrome.com/docs/extensions/develop/concepts/service-workers/lifecycle
+
+        Security and privacy
+      [Stay secure](https://developer.chrome.com/docs/extensions/develop/security-privacy/stay-secure)[Protect user privacy](https://developer.chrome.com/docs/extensions/develop/security-privacy/user-privacy)
+- [Stay secure](https://developer.chrome.com/docs/extensions/develop/security-privacy/stay-secure)
+- [Protect user privacy](https://developer.chrome.com/docs/extensions/develop/security-privacy/user-privacy)
+[Introduction](https://developer.chrome.com/docs/extensions/develop)
+- [User interface components](https://developer.chrome.com/docs/extensions/develop/ui)
+- [Add a popup](https://developer.chrome.com/docs/extensions/develop/ui/add-popup)
+- [Implement an action](https://developer.chrome.com/docs/extensions/develop/ui/implement-action)
+- [Build a context menu](https://developer.chrome.com/docs/extensions/develop/ui/context-menu)
+- [Override Chrome pages](https://developer.chrome.com/docs/extensions/develop/ui/override-chrome-pages)
+- [Trigger actions from the omnibox](https://developer.chrome.com/docs/extensions/develop/ui/omnibox-triggers)
+- [Give users options](https://developer.chrome.com/docs/extensions/develop/ui/options-page)
+- [Notify users](https://developer.chrome.com/docs/extensions/develop/ui/notify-users)
+- [Respond to commands](https://developer.chrome.com/docs/extensions/develop/ui/respond-to-commands)
+- [What are themes?](https://developer.chrome.com/docs/extensions/develop/ui/themes)
+- [Configure extension icons](https://developer.chrome.com/docs/extensions/develop/ui/configure-icons)
+- [Make your extension accessible](https://developer.chrome.com/docs/extensions/develop/ui/a11y)
+- [Internationalize the interface](https://developer.chrome.com/docs/extensions/develop/ui/i18n)
+[User interface components](https://developer.chrome.com/docs/extensions/develop/ui)
+
+[Add a popup](https://developer.chrome.com/docs/extensions/develop/ui/add-popup)
+[Implement an action](https://developer.chrome.com/docs/extensions/develop/ui/implement-action)
+[Build a context menu](https://developer.chrome.com/docs/extensions/develop/ui/context-menu)
+[Override Chrome pages](https://developer.chrome.com/docs/extensions/develop/ui/override-chrome-pages)
+[Trigger actions from the omnibox](https://developer.chrome.com/docs/extensions/develop/ui/omnibox-triggers)
+[Give users options](https://developer.chrome.com/docs/extensions/develop/ui/options-page)
+[Notify users](https://developer.chrome.com/docs/extensions/develop/ui/notify-users)
+[Respond to commands](https://developer.chrome.com/docs/extensions/develop/ui/respond-to-commands)
+[What are themes?](https://developer.chrome.com/docs/extensions/develop/ui/themes)
+[Configure extension icons](https://developer.chrome.com/docs/extensions/develop/ui/configure-icons)
+[Make your extension accessible](https://developer.chrome.com/docs/extensions/develop/ui/a11y)
+[Internationalize the interface](https://developer.chrome.com/docs/extensions/develop/ui/i18n)
+- [The browser namespace](https://developer.chrome.com/docs/extensions/develop/concepts/browser-namespace)
+- [Content scripts](https://developer.chrome.com/docs/extensions/develop/concepts/content-scripts)
+- [Message passing](https://developer.chrome.com/docs/extensions/develop/concepts/messaging)
+- [Match patterns](https://developer.chrome.com/docs/extensions/develop/concepts/match-patterns)
+- [Storage and cookies](https://developer.chrome.com/docs/extensions/develop/concepts/storage-and-cookies)
+- [Content filtering](https://developer.chrome.com/docs/extensions/develop/concepts/content-filtering)
+- [The activeTab permission](https://developer.chrome.com/docs/extensions/develop/concepts/activeTab)
+- [Declare permissions](https://developer.chrome.com/docs/extensions/develop/concepts/declare-permissions)
+- [Permission warning guidelines](https://developer.chrome.com/docs/extensions/develop/concepts/permission-warnings)
+- [Native messaging](https://developer.chrome.com/docs/extensions/develop/concepts/native-messaging)
+- [Cross-origin network requests](https://developer.chrome.com/docs/extensions/develop/concepts/network-requests)
+- [Cross-origin isolation](https://developer.chrome.com/docs/extensions/develop/concepts/cross-origin-isolation)
+- [Service worker introduction](https://developer.chrome.com/docs/extensions/develop/concepts/service-workers)
+- [Extension service worker basics](https://developer.chrome.com/docs/extensions/develop/concepts/service-workers/basics)
+- [The extension service worker lifecycle](https://developer.chrome.com/docs/extensions/develop/concepts/service-workers/lifecycle)
+- [Events in service workers](https://developer.chrome.com/docs/extensions/develop/concepts/service-workers/events)
+- [Real Time updates](https://developer.chrome.com/docs/extensions/develop/concepts/real-time)
+[The browser namespace](https://developer.chrome.com/docs/extensions/develop/concepts/browser-namespace)
+[Content scripts](https://developer.chrome.com/docs/extensions/develop/concepts/content-scripts)
+[Message passing](https://developer.chrome.com/docs/extensions/develop/concepts/messaging)
+[Match patterns](https://developer.chrome.com/docs/extensions/develop/concepts/match-patterns)
+[Storage and cookies](https://developer.chrome.com/docs/extensions/develop/concepts/storage-and-cookies)
+[Content filtering](https://developer.chrome.com/docs/extensions/develop/concepts/content-filtering)
+[The activeTab permission](https://developer.chrome.com/docs/extensions/develop/concepts/activeTab)
+[Declare permissions](https://developer.chrome.com/docs/extensions/develop/concepts/declare-permissions)
+[Permission warning guidelines](https://developer.chrome.com/docs/extensions/develop/concepts/permission-warnings)
+[Native messaging](https://developer.chrome.com/docs/extensions/develop/concepts/native-messaging)
+[Cross-origin network requests](https://developer.chrome.com/docs/extensions/develop/concepts/network-requests)
+[Cross-origin isolation](https://developer.chrome.com/docs/extensions/develop/concepts/cross-origin-isolation)
+[Service worker introduction](https://developer.chrome.com/docs/extensions/develop/concepts/service-workers)
+[Extension service worker basics](https://developer.chrome.com/docs/extensions/develop/concepts/service-workers/basics)
+
+[The extension service worker lifecycle](https://developer.chrome.com/docs/extensions/develop/concepts/service-workers/lifecycle)
+[Events in service workers](https://developer.chrome.com/docs/extensions/develop/concepts/service-workers/events)
+[Real Time updates](https://developer.chrome.com/docs/extensions/develop/concepts/real-time)
+- [What is Manifest V3](https://developer.chrome.com/docs/extensions/develop/migrate/what-is-mv3)
+- [Manifest V2 support timeline](https://developer.chrome.com/docs/extensions/develop/migrate/mv2-deprecation-timeline)
+- [Known issues when migrating to Manifest V3](https://developer.chrome.com/docs/extensions/develop/migrate/known-issues)
+- [Migration overview](https://developer.chrome.com/docs/extensions/develop/migrate)
+- [Manifest V3 migration checklist](https://developer.chrome.com/docs/extensions/develop/migrate/checklist)
+- [Update the manifest](https://developer.chrome.com/docs/extensions/develop/migrate/manifest)
+- [Migrate to a service worker](https://developer.chrome.com/docs/extensions/develop/migrate/to-service-workers)
+- [Update your code](https://developer.chrome.com/docs/extensions/develop/migrate/api-calls)
+- [Replace blocking web request listeners](https://developer.chrome.com/docs/extensions/develop/migrate/blocking-web-requests)
+- [Improve extension security](https://developer.chrome.com/docs/extensions/develop/migrate/improve-security)
+- [Deal with remote hosted code violations](https://developer.chrome.com/docs/extensions/develop/migrate/remote-hosted-code)
+- [Publish your extension](https://developer.chrome.com/docs/extensions/develop/migrate/publish-mv3)
+[What is Manifest V3](https://developer.chrome.com/docs/extensions/develop/migrate/what-is-mv3)
+[Manifest V2 support timeline](https://developer.chrome.com/docs/extensions/develop/migrate/mv2-deprecation-timeline)
+[Known issues when migrating to Manifest V3](https://developer.chrome.com/docs/extensions/develop/migrate/known-issues)
+[Migration overview](https://developer.chrome.com/docs/extensions/develop/migrate)
+[Manifest V3 migration checklist](https://developer.chrome.com/docs/extensions/develop/migrate/checklist)
+[Update the manifest](https://developer.chrome.com/docs/extensions/develop/migrate/manifest)
+[Migrate to a service worker](https://developer.chrome.com/docs/extensions/develop/migrate/to-service-workers)
+[Update your code](https://developer.chrome.com/docs/extensions/develop/migrate/api-calls)
+[Replace blocking web request listeners](https://developer.chrome.com/docs/extensions/develop/migrate/blocking-web-requests)
+[Improve extension security](https://developer.chrome.com/docs/extensions/develop/migrate/improve-security)
+[Deal with remote hosted code violations](https://developer.chrome.com/docs/extensions/develop/migrate/remote-hosted-code)
+[Publish your extension](https://developer.chrome.com/docs/extensions/develop/migrate/publish-mv3)
+- [Stay secure](https://developer.chrome.com/docs/extensions/develop/security-privacy/stay-secure)
+- [Protect user privacy](https://developer.chrome.com/docs/extensions/develop/security-privacy/user-privacy)
+[Stay secure](https://developer.chrome.com/docs/extensions/develop/security-privacy/stay-secure)
+[Protect user privacy](https://developer.chrome.com/docs/extensions/develop/security-privacy/user-privacy)
+- 
+
+
+
+
+
+      Build with Chrome
+
+
+
+
+
+
+
+- 
+
+
+  [Web Platform](https://developer.chrome.com/docs/web-platform)
+
+
+
+- 
+
+
+  [Isolated Web Apps (IWA)](https://developer.chrome.com/docs/iwa)
+
+
+
+- 
+
+
+  [Capabilities](https://developer.chrome.com/docs/capabilities)
+
+
+
+- 
+
+
+  [Automation and testing](https://developer.chrome.com/docs/automation-and-testing)
+
+
+
+- 
+
+
+  [ChromeDriver](https://developer.chrome.com/docs/chromedriver)
+
+
+
+- 
+
+
+  [Extensions](https://developer.chrome.com/docs/extensions)
+
+
+
+- 
+
+
+  [Chrome Web Store](https://developer.chrome.com/docs/webstore)
+
+
+
+- 
+
+
+  [Chromium](https://developer.chrome.com/docs/chromium)
+
+
+
+- 
+
+
+  [Web on Android](https://developer.chrome.com/docs/android)
+
+
+
+- 
+
+
+  [Origin trials](https://developer.chrome.com/origintrials/)
+
+
+
+- 
+
+
+  [Release notes](https://developer.chrome.com/release-notes)
+
+
+
+- 
+
+
+
+
+
+      Productivity
+
+
+
+
+
+
+
+- 
+
+
+  [DevTools](https://developer.chrome.com/docs/devtools)
+
+
+
+- 
+
+
+  [Lighthouse](https://developer.chrome.com/docs/lighthouse)
+
+
+
+- 
+
+
+  [Chrome UX Report](https://developer.chrome.com/docs/crux)
+
+
+
+- 
+
+
+  [Accessibility](https://developer.chrome.com/docs/accessibility)
+
+
+
+-
+
+[Modern Web Guidance](https://developer.chrome.com/docs/modern-web-guidance)
+
+
+
+- 
+
+
+  [Workbox](https://developer.chrome.com/docs/workbox)
+
+
+
+- 
+
+
+  [Puppeteer](https://developer.chrome.com/docs/puppeteer)
+
+
+
+- 
+
+
+
+
+
+      Experience
+
+
+
+
+
+
+
+- 
+
+
+  [AI](https://developer.chrome.com/docs/ai)
+
+
+
+- 
+
+
+  [Performance](https://developer.chrome.com/docs/performance)
+
+
+
+- 
+
+
+  [CSS and UI](https://developer.chrome.com/docs/css-ui)
+
+
+
+- 
+
+
+  [Identity](https://developer.chrome.com/docs/identity)
+
+
+
+- 
+
+
+  [Payments](https://developer.chrome.com/docs/payments)
+
+
+
+- 
+
+
+  [Privacy and security](https://developer.chrome.com/docs/privacy-security)
+
+
+
+- 
+
+
+
+
+
+      Resources
+
+
+
+
+
+
+
+- 
+
+
+  [All documentation](https://developer.chrome.com/docs)
+
+
+
+- 
+
+
+  [Baseline <span class="material-icons" style="font-size: 12px;" aria-hidden="true" translate="no">open_in_new</span>](https://web.dev/baseline)
+
+
+
+- 
+
+
+  [web.dev <span class="material-icons" style="font-size: 12px;" aria-hidden="true" translate="no">open_in_new</span>](https://web.dev)
+
+
+
+- 
+
+
+  [PageSpeed Insights audit <span class="material-icons" style="font-size: 12px;" aria-hidden="true" translate="no">open_in_new</span>](https://pagespeed.web.dev)
+
+
+
+[Web Platform](https://developer.chrome.com/docs/web-platform)
+[Isolated Web Apps (IWA)](https://developer.chrome.com/docs/iwa)
+[Capabilities](https://developer.chrome.com/docs/capabilities)
+[Automation and testing](https://developer.chrome.com/docs/automation-and-testing)
+[ChromeDriver](https://developer.chrome.com/docs/chromedriver)
+[Extensions](https://developer.chrome.com/docs/extensions)
+[Chrome Web Store](https://developer.chrome.com/docs/webstore)
+[Chromium](https://developer.chrome.com/docs/chromium)
+[Web on Android](https://developer.chrome.com/docs/android)
+[Origin trials](https://developer.chrome.com/origintrials/)
+[Release notes](https://developer.chrome.com/release-notes)
+[DevTools](https://developer.chrome.com/docs/devtools)
+[Lighthouse](https://developer.chrome.com/docs/lighthouse)
+[Chrome UX Report](https://developer.chrome.com/docs/crux)
+[Accessibility](https://developer.chrome.com/docs/accessibility)
+[Modern Web Guidance](https://developer.chrome.com/docs/modern-web-guidance)
+[Workbox](https://developer.chrome.com/docs/workbox)
+[Puppeteer](https://developer.chrome.com/docs/puppeteer)
+[AI](https://developer.chrome.com/docs/ai)
+[Performance](https://developer.chrome.com/docs/performance)
+[CSS and UI](https://developer.chrome.com/docs/css-ui)
+[Identity](https://developer.chrome.com/docs/identity)
+[Payments](https://developer.chrome.com/docs/payments)
+[Privacy and security](https://developer.chrome.com/docs/privacy-security)
+[All documentation](https://developer.chrome.com/docs)
+[Baseline <span class="material-icons" style="font-size: 12px;" aria-hidden="true" translate="no">open_in_new</span>](https://web.dev/baseline)
+[web.dev <span class="material-icons" style="font-size: 12px;" aria-hidden="true" translate="no">open_in_new</span>](https://web.dev)
+[PageSpeed Insights audit <span class="material-icons" style="font-size: 12px;" aria-hidden="true" translate="no">open_in_new</span>](https://pagespeed.web.dev)
+- 
+
+
+  [API](https://developer.chrome.com/docs/extensions/reference/api)
+
+
+
+- 
+
+
+  [Permissions](https://developer.chrome.com/docs/extensions/reference/permissions-list)
+
+
+
+- 
+
+
+  [Manifest](https://developer.chrome.com/docs/extensions/reference/manifest)
+
+
+
+[API](https://developer.chrome.com/docs/extensions/reference/api)
+[Permissions](https://developer.chrome.com/docs/extensions/reference/permissions-list)
+[Manifest](https://developer.chrome.com/docs/extensions/reference/manifest)
+- 
+
+
+  [Prepare your Extension](https://developer.chrome.com/docs/webstore/prepare)
+
+
+
+- 
+
+
+  [Publish in the Chrome Web Store](https://developer.chrome.com/docs/webstore/publish)
+
+
+
+- 
+
+
+  [Program Policies](https://developer.chrome.com/docs/webstore/program-policies)
+
+
+
+[Prepare your Extension](https://developer.chrome.com/docs/webstore/prepare)
+[Publish in the Chrome Web Store](https://developer.chrome.com/docs/webstore/publish)
+[Program Policies](https://developer.chrome.com/docs/webstore/program-policies)
+- 
+
+
+
+
+
+  [Home](https://developer.chrome.com/)
+
+
+
+
+- 
+
+
+
+
+
+
+
+
+  [Docs](https://developer.chrome.com/docs)
+
+
+
+
+- 
+
+
+
+
+
+
+
+
+  [Chrome Extensions](https://developer.chrome.com/docs/extensions)
+
+
+
+
+- 
+
+
+
+
+
+
+
+
+  [Develop](https://developer.chrome.com/docs/extensions/develop)
+
+
+
+
+[Home](https://developer.chrome.com/)
+
+[Docs](https://developer.chrome.com/docs)
+[Chrome Extensions](https://developer.chrome.com/docs/extensions)
+[Develop](https://developer.chrome.com/docs/extensions/develop)
+
+# The extension service worker lifecycle Stay organized with collections Save and categorize content based on your preferences.
+
+Extension service workers respond to both the [standard service worker events](https://developer.mozilla.org/docs/Web/API/ServiceWorkerGlobalScope#events) and to events in extension namespaces. They are presented together because often one type follows another during an extension's use.
+
+## Installation
+
+Installation occurs when the user installs or updates a service worker from the Chrome Web Store or when they [load or update an unpacked extension](https://developer.chrome.com/docs/extensions/get-started/tutorial/hello-world#load-unpacked) using the chrome://extensions page. Three events occur, in this order:
+
+```
+chrome://extensions
+```
+
+1. install (service worker event)
+2. chrome.runtime.onInstalled (extension event)
+3. activate (service worker event)
+
+```
+install
+```
+
+
+```
+chrome.runtime.onInstalled
+```
+
+
+```
+activate
+```
+
+### ServiceWorkerRegistration.install
+The first event fired during [install](https://developer.mozilla.org/docs/Web/API/ServiceWorkerGlobalScope/install_event)ation is a web service worker's install event.
+
+### chrome.runtime.onInstalled
+Next is the extension's [onInstalled](https://developer.chrome.com/docs/extensions/reference/api/runtime#event-onInstalled) event, which is fired when the extension (not the service worker) is first installed, when the extension is updated to a new version, and when Chrome is updated to a new version. Use this event to set a state or for one-time initialization, such as a [context menu](https://developer.chrome.com/docs/extensions/reference/api/contextMenus).
+
+```
+onInstalled
+```
+
+
+```
+chrome.runtime.onInstalled.addListener((details) => { if(details.reason !== "install" && details.reason !== "update") return; chrome.contextMenus.create({ "id": "sampleContextMenu", "title": "Sample Context Menu", "contexts": ["selection"] }); });
+```
+
+
+```
+chrome.runtime.onInstalled.addListener((details) => { if(details.reason !== "install" && details.reason !== "update") return; chrome.contextMenus.create({ "id": "sampleContextMenu", "title": "Sample Context Menu", "contexts": ["selection"] }); });
+```
+
+### ServiceWorkerRegistration.active
+Finally, the service worker's [activate](https://developer.mozilla.org/docs/Web/API/ServiceWorkerGlobalScope/activate_event) event is fired. Note that unlike web service workers, this event is fired immediately after installation of an extension because there is nothing comparable to a page reload in an extension.
+
+## Extension startup
+When a user profile starts, the [chrome.runtime.onStartup](https://developer.chrome.com/docs/extensions/reference/api/runtime#event-onStartup) event fires but no service worker events are invoked.
+
+```
+chrome.runtime.onStartup
+```
+
+## Idle and shutdown
+Normally, Chrome terminates a service worker when one of the following conditions is met:
+- After 30 seconds of inactivity. Receiving an event or calling an extension API resets this timer.
+- When a single request, such as an event or API call, takes longer than 5 minutes to process.
+- When a [fetch()](https://developer.mozilla.org/docs/Web/API/fetch) response takes more than 30 seconds to arrive.
+[fetch()](https://developer.mozilla.org/docs/Web/API/fetch)
+
+```
+fetch()
+```
+
+Events and calls to extension APIs reset these timers, and if the service worker has gone dormant, an incoming event will revive them. Nevertheless, you should design your service worker to be resilient against unexpected termination.
+To optimize the resource consumption of your extension, avoid keeping your service worker alive indefinitely if possible. Test your extensions to ensure that you're not doing this unintentionally.
+
+### Persist data rather than using global variables
+
+Any global variables you set will be lost if the service worker shuts down. Instead of using global variables, save values to storage. Your options are listed.
+[chrome.storage API](https://developer.chrome.com/docs/extensions/reference/api/storage)
+[IndexedDB API](https://developer.mozilla.org/docs/Web/API/IndexedDB_API)
+[third-party](https://developer.mozilla.org/docs/Web/API/IndexedDB_API#see_also)
+[CacheStorage API](https://developer.mozilla.org/docs/Web/API/CacheStorage)
+[The Offline Cookbook](https://web.dev/articles/offline-cookbook)
+
+```
+chrome.storage
+```
+
+### Choose a minimum Chrome version
+
+Since the release of Manifest V3, we've made several improvements to service worker lifetimes. This means that if your Manifest V3 extension supports earlier versions of Chrome, there are conditions you will need to be aware of. If these conditions don't affect your extension, you can move on from this section. If they do, consider specifying a [minimum Chrome version](https://developer.chrome.com/docs/extensions/reference/manifest/minimum-chrome-version) in your manifest.
+
+#### Chrome 120
+Alarms can now be set to a minimum period of 30s to match the service worker lifecycle. See [chrome.alarms](https://developer.chrome.com/docs/extensions/reference/api/alarms) for more details.
+
+```
+chrome.alarms
+```
+
+
+#### Chrome 118
+Active debugger sessions created using the [chrome.debugger](https://developer.chrome.com/docs/extensions/reference/api/debugger) API now keep the service worker alive. This prevents service workers from timing out during calls for this API.
+
+```
+chrome.debugger
+```
+
+
+#### Chrome 116
+Chrome 116 introduced the following service worker lifetime improvements:
+- Active [WebSocket](https://developer.mozilla.org/docs/Web/API/WebSockets_API) connections now extend extension service worker lifetimes. Sending or receiving messages across a WebSocket in an extension service worker resets the service worker's idle timer.
+- Additional extension APIs are allowed to go past the five-minute timeout period for extension service workers. These APIs display a user prompt and thus may reasonably take longer than five minutes to resolve. These include [desktopCapture.chooseDesktopMedia()](https://developer.chrome.com/docs/extensions/reference/api/desktopCapture#method-chooseDesktopMedia), [identity.launchWebAuthFlow()](https://developer.chrome.com/docs/extensions/reference/api/identity#method-launchWebAuthFlow), [management.uninstall()](https://developer.chrome.com/docs/extensions/reference/api/management#method-uninstall), and [permissions.request()](https://developer.chrome.com/docs/extensions/reference/api/permissions#method-request).
+Active [WebSocket](https://developer.mozilla.org/docs/Web/API/WebSockets_API) connections now extend extension service worker lifetimes. Sending or receiving messages across a WebSocket in an extension service worker resets the service worker's idle timer.
+
+```
+WebSocket
+```
+
+
+```
+WebSocket
+```
+
+Additional extension APIs are allowed to go past the five-minute timeout period for extension service workers. These APIs display a user prompt and thus may reasonably take longer than five minutes to resolve. These include [desktopCapture.chooseDesktopMedia()](https://developer.chrome.com/docs/extensions/reference/api/desktopCapture#method-chooseDesktopMedia), [identity.launchWebAuthFlow()](https://developer.chrome.com/docs/extensions/reference/api/identity#method-launchWebAuthFlow), [management.uninstall()](https://developer.chrome.com/docs/extensions/reference/api/management#method-uninstall), and [permissions.request()](https://developer.chrome.com/docs/extensions/reference/api/permissions#method-request).
+
+```
+desktopCapture.chooseDesktopMedia()
+```
+
+
+```
+identity.launchWebAuthFlow()
+```
+
+
+```
+management.uninstall()
+```
+
+
+```
+permissions.request()
+```
+
+
+#### Chrome 114
+Sending a message with [long-lived messaging](https://developer.chrome.com/docs/extensions/develop/concepts/messaging#connect) keeps the service worker alive. Opening a port no longer resets the timers.
+
+#### Chrome 110
+Extension API calls reset the timers. Before this, only running event handlers would keep a service worker alive. Any events that were queued, but for which a handler had not been called wouldn't cause a reset.
+
+#### Chrome 109
+Messages sent from an offscreen document reset the timers.
+
+#### Chrome 105
+Connecting to a native messaging host using [chrome.runtime.connectNative()](https://developer.chrome.com/docs/extensions/reference/api/runtime#method-connectNative) will keep a service worker alive. If the host process crashes or is shut down, the port is closed and the service worker will terminate after timers complete. Guard against this by calling chrome.runtime.connectNative() in the port's onDisconnect event handler.
+
+```
+chrome.runtime.connectNative()
+```
+
+
+```
+chrome.runtime.connectNative()
+```
+
+### Choose a minimum Chrome version
+Except as otherwise noted, the content of this page is licensed under the [Creative Commons Attribution 4.0 License](https://creativecommons.org/licenses/by/4.0/), and code samples are licensed under the [Apache 2.0 License](https://www.apache.org/licenses/LICENSE-2.0). For details, see the [Google Developers Site Policies](https://developers.google.com/site-policies). Java is a registered trademark of Oracle and/or its affiliates.
+Last updated 2023-05-02 UTC.
+- 
+    Contribute
+
+
+
+
+          [File a bug](https://issuetracker.google.com/issues/new?component=1400036&template=1897236)
+
+
+
+
+
+
+          [See open issues](https://issuetracker.google.com/issues?q=status:open%20componentid:1400036&s=created_time:desc)
+
+
+
+
+
+
+- 
+
+          [File a bug](https://issuetracker.google.com/issues/new?component=1400036&template=1897236)
+
+
+
+- 
+
+          [See open issues](https://issuetracker.google.com/issues?q=status:open%20componentid:1400036&s=created_time:desc)
+
+
+
+- 
+    Related content
+
+
+
+
+          [Chromium updates](https://blog.chromium.org/)
+
+
+
+
+
+
+          [Case studies](https://developer.chrome.com/case-studies)
+
+
+
+
+
+
+          [Archive](https://developer.chrome.com/deprecated)
+
+
+
+
+
+
+          [Podcasts & shows](https://web.dev/shows)
+
+
+
+
+
+
+- 
+
+          [Chromium updates](https://blog.chromium.org/)
+
+
+
+- 
+
+          [Case studies](https://developer.chrome.com/case-studies)
+
+
+
+- 
+
+          [Archive](https://developer.chrome.com/deprecated)
+
+
+
+- 
+
+          [Podcasts & shows](https://web.dev/shows)
+
+
+
+- 
+    Follow
+
+
+
+
+          [@ChromiumDev on X](https://twitter.com/ChromiumDev)
+
+
+
+
+
+
+          [YouTube](https://www.youtube.com/user/ChromeDevelopers)
+
+
+
+
+
+
+          [Chrome for Developers on LinkedIn](https://www.linkedin.com/showcase/chrome-for-developers)
+
+
+
+
+
+
+          [RSS](https://developer.chrome.com/static/blog/feed.xml)
+
+
+
+
+
+
+- 
+
+          [@ChromiumDev on X](https://twitter.com/ChromiumDev)
+
+
+
+- 
+
+          [YouTube](https://www.youtube.com/user/ChromeDevelopers)
+
+
+
+- 
+
+          [Chrome for Developers on LinkedIn](https://www.linkedin.com/showcase/chrome-for-developers)
+
+
+
+- 
+
+          [RSS](https://developer.chrome.com/static/blog/feed.xml)
+
+### Contribute
+- 
+
+          [File a bug](https://issuetracker.google.com/issues/new?component=1400036&template=1897236)
+
+
+
+- 
+
+          [See open issues](https://issuetracker.google.com/issues?q=status:open%20componentid:1400036&s=created_time:desc)
+
+
+
+[File a bug](https://issuetracker.google.com/issues/new?component=1400036&template=1897236)
+[See open issues](https://issuetracker.google.com/issues?q=status:open%20componentid:1400036&s=created_time:desc)
+
+### Related content
+- 
+
+          [Chromium updates](https://blog.chromium.org/)
+
+
+
+- 
+
+          [Case studies](https://developer.chrome.com/case-studies)
+
+
+
+- 
+
+          [Archive](https://developer.chrome.com/deprecated)
+
+
+
+- 
+
+          [Podcasts & shows](https://web.dev/shows)
+
+
+
+[Chromium updates](https://blog.chromium.org/)
+[Case studies](https://developer.chrome.com/case-studies)
+[Archive](https://developer.chrome.com/deprecated)
+[Podcasts & shows](https://web.dev/shows)
+
+### Follow
+
+- 
+
+          [@ChromiumDev on X](https://twitter.com/ChromiumDev)
+
+
+
+- 
+
+          [YouTube](https://www.youtube.com/user/ChromeDevelopers)
+
+
+
+- 
+
+          [Chrome for Developers on LinkedIn](https://www.linkedin.com/showcase/chrome-for-developers)
+
+
+
+- 
+
+          [RSS](https://developer.chrome.com/static/blog/feed.xml)
+
+
+
+[@ChromiumDev on X](https://twitter.com/ChromiumDev)
+[YouTube](https://www.youtube.com/user/ChromeDevelopers)
+[Chrome for Developers on LinkedIn](https://www.linkedin.com/showcase/chrome-for-developers)
+[RSS](https://developer.chrome.com/static/blog/feed.xml)
+- 
+
+
+        [Terms](https://policies.google.com/terms)
+
+
+- 
+
+
+        [Privacy](https://policies.google.com/privacy)
+
+
+- 
+
+
+        [Manage cookies](https://developer.chrome.com/docs/extensions/develop/concepts/service-workers/lifecycle)
+
+
+[Terms](https://policies.google.com/terms)
+[Privacy](https://policies.google.com/privacy)
+[Manage cookies](https://developer.chrome.com/docs/extensions/develop/concepts/service-workers/lifecycle)
+- 
+      [English](https://developer.chrome.com/docs/extensions/develop/concepts/service-workers/lifecycle)
+
+- 
+      [Deutsch](https://developer.chrome.com/docs/extensions/develop/concepts/service-workers/lifecycle)
+
+- 
+      [Español – América Latina](https://developer.chrome.com/docs/extensions/develop/concepts/service-workers/lifecycle)
+
+- 
+      [Français](https://developer.chrome.com/docs/extensions/develop/concepts/service-workers/lifecycle)
+
+- 
+      [Indonesia](https://developer.chrome.com/docs/extensions/develop/concepts/service-workers/lifecycle)
+
+- 
+      [Italiano](https://developer.chrome.com/docs/extensions/develop/concepts/service-workers/lifecycle)
+
+- 
+      [Nederlands](https://developer.chrome.com/docs/extensions/develop/concepts/service-workers/lifecycle)
+
+- 
+      [Polski](https://developer.chrome.com/docs/extensions/develop/concepts/service-workers/lifecycle)
+
+- 
+      [Português – Brasil](https://developer.chrome.com/docs/extensions/develop/concepts/service-workers/lifecycle)
+
+- 
+      [Tiếng Việt](https://developer.chrome.com/docs/extensions/develop/concepts/service-workers/lifecycle)
+
+- 
+      [Türkçe](https://developer.chrome.com/docs/extensions/develop/concepts/service-workers/lifecycle)
+
+- 
+      [Русский](https://developer.chrome.com/docs/extensions/develop/concepts/service-workers/lifecycle)
+
+- 
+      [עברית](https://developer.chrome.com/docs/extensions/develop/concepts/service-workers/lifecycle)
+
+- 
+      [العربيّة](https://developer.chrome.com/docs/extensions/develop/concepts/service-workers/lifecycle)
+
+- 
+      [فارسی](https://developer.chrome.com/docs/extensions/develop/concepts/service-workers/lifecycle)
+
+- 
+      [हिंदी](https://developer.chrome.com/docs/extensions/develop/concepts/service-workers/lifecycle)
+
+- 
+      [বাংলা](https://developer.chrome.com/docs/extensions/develop/concepts/service-workers/lifecycle)
+
+- 
+      [ภาษาไทย](https://developer.chrome.com/docs/extensions/develop/concepts/service-workers/lifecycle)
+
+- 
+      [中文 – 简体](https://developer.chrome.com/docs/extensions/develop/concepts/service-workers/lifecycle)
+
+- 
+      [中文 – 繁體](https://developer.chrome.com/docs/extensions/develop/concepts/service-workers/lifecycle)
+
+- 
+      [日本語](https://developer.chrome.com/docs/extensions/develop/concepts/service-workers/lifecycle)
+
+- 
+      [한국어](https://developer.chrome.com/docs/extensions/develop/concepts/service-workers/lifecycle)
+
+[English](https://developer.chrome.com/docs/extensions/develop/concepts/service-workers/lifecycle)
+[Deutsch](https://developer.chrome.com/docs/extensions/develop/concepts/service-workers/lifecycle)
+[Español – América Latina](https://developer.chrome.com/docs/extensions/develop/concepts/service-workers/lifecycle)
+[Français](https://developer.chrome.com/docs/extensions/develop/concepts/service-workers/lifecycle)
+[Indonesia](https://developer.chrome.com/docs/extensions/develop/concepts/service-workers/lifecycle)
+[Italiano](https://developer.chrome.com/docs/extensions/develop/concepts/service-workers/lifecycle)
+[Nederlands](https://developer.chrome.com/docs/extensions/develop/concepts/service-workers/lifecycle)
+[Polski](https://developer.chrome.com/docs/extensions/develop/concepts/service-workers/lifecycle)
+[Português – Brasil](https://developer.chrome.com/docs/extensions/develop/concepts/service-workers/lifecycle)
+
+### Follow
+
+[Tiếng Việt](https://developer.chrome.com/docs/extensions/develop/concepts/service-workers/lifecycle)
+[Türkçe](https://developer.chrome.com/docs/extensions/develop/concepts/service-workers/lifecycle)
+[Русский](https://developer.chrome.com/docs/extensions/develop/concepts/service-workers/lifecycle)
+[עברית](https://developer.chrome.com/docs/extensions/develop/concepts/service-workers/lifecycle)
+[العربيّة](https://developer.chrome.com/docs/extensions/develop/concepts/service-workers/lifecycle)
+[فارسی](https://developer.chrome.com/docs/extensions/develop/concepts/service-workers/lifecycle)
+[हिंदी](https://developer.chrome.com/docs/extensions/develop/concepts/service-workers/lifecycle)
+[বাংলা](https://developer.chrome.com/docs/extensions/develop/concepts/service-workers/lifecycle)
+[ภาษาไทย](https://developer.chrome.com/docs/extensions/develop/concepts/service-workers/lifecycle)
+[中文 – 简体](https://developer.chrome.com/docs/extensions/develop/concepts/service-workers/lifecycle)
+[中文 – 繁體](https://developer.chrome.com/docs/extensions/develop/concepts/service-workers/lifecycle)
+[日本語](https://developer.chrome.com/docs/extensions/develop/concepts/service-workers/lifecycle)
+[한국어](https://developer.chrome.com/docs/extensions/develop/concepts/service-workers/lifecycle)

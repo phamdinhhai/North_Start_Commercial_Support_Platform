@@ -1,0 +1,79 @@
+{
+    "version":  1,
+    "story_id":  "BOOT-001",
+    "product_domain":  "platform",
+    "canonical_refs":  [
+                           "docs/canonical/PRODUCT_CONSTITUTION.md",
+                           "docs/canonical/ARCHITECTURE_CONSTITUTION.md",
+                           "docs/canonical/DOMAIN_INVARIANTS.md",
+                           "docs/canonical/INTEGRATION_PRINCIPLES.md",
+                           "docs/canonical/OPEN_DECISIONS.md"
+                       ],
+    "role":  "integration",
+    "allowed_skills":  [
+                           "backend-development/api-design-principles",
+                           "backend-development/microservices-patterns",
+                           "developer-essentials/error-handling-patterns",
+                           "unit-testing",
+                           "database-design/postgresql-table-design"
+                       ],
+    "mcp_profile":  "none",
+    "write_scope":  [
+                        "product/src/adapters/**",
+                        "product/tests/integration/**"
+                    ],
+    "allowed_paths":  [
+                          "product/src/adapters/**",
+                          "product/tests/integration/**"
+                      ],
+    "forbidden_paths":  [
+                            "product/src/domain/**",
+                            "product/src/application/**",
+                            "product/src/infrastructure/**",
+                            "product/package.json",
+                            "product/package-lock.json",
+                            "product/tsconfig.json",
+                            "product/vitest.config.ts",
+                            "product/nest-cli.json",
+                            "docs/canonical/**",
+                            "src/bernstein/**",
+                            "ai-team/**",
+                            "templates/**",
+                            ".github/**",
+                            ".sdd/**",
+                            "production/**"
+                        ],
+    "acceptance_gates":  [
+                             "exec_contract",
+                             "path_permission",
+                             "canonical_unchanged",
+                             "lint_typecheck_when_available",
+                             "no_prod_mutation",
+                             "no_auto_merge",
+                             "human_gate"
+                         ],
+    "required_gates":  [
+                           "exec_contract",
+                           "path_permission",
+                           "canonical_unchanged",
+                           "lint_typecheck_when_available",
+                           "no_prod_mutation",
+                           "no_auto_merge",
+                           "human_gate"
+                       ],
+    "external_mutation_level":  "none",
+    "handoff_target":  "qa",
+    "open_decisions_not_to_resolve":  [
+                                          "CE-1",
+                                          "CE-2",
+                                          "MM-1",
+                                          "ID-1",
+                                          "ID-2",
+                                          "PM-1",
+                                          "LG-1"
+                                      ],
+    "merge_strategy":  "pr",
+    "auto_merge":  false,
+    "human_gate":  true,
+    "notes":  "Own only the NestJS/Fastify HTTP adapter boundary and integration verification."
+}

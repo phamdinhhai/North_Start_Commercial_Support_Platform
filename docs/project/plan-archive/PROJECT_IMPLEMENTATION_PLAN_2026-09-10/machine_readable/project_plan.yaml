@@ -1,0 +1,2224 @@
+metadata:
+  title: Kế hoạch triển khai sản phẩm mới - bản dành cho AI
+  source_file: Losa247 Khách hàng và Công việc - Chatbot  - Kế hoạch triển khai sản phẩm mới.pdf
+  source_type: PDF
+  source_pages: 4
+  extracted_on: '2026-09-10'
+  snapshot_date: '2026-09-10'
+  language: vi
+  task_count: 119
+  phase_count: 11
+  status_note: Giữ nguyên trạng thái từ PDF nguồn. Tại snapshot, toàn bộ task được ghi Chưa bắt đầu.
+  planning_note: Đây là baseline quản trị, không phải cam kết rằng mọi deadline hay scope đã được xác thực 100%.
+  source_gap_note: PDF nguồn bắt đầu với các task có lịch từ 19/10/2026; không mô tả công việc từ 10/09/2026 đến 18/10/2026.
+    AI không được suy diễn rằng giai đoạn này không có việc.
+phase_summaries:
+- phase: 1. Định nghĩa sản phẩm & trải nghiệm người dùng
+  task_count: 15
+  planned_start: '2026-10-26'
+  planned_end: '2026-11-20'
+  effort_person_days: 32.5
+  p0_tasks: 12
+- phase: 2. Khả thi kỹ thuật & kiến trúc
+  task_count: 15
+  planned_start: '2026-10-19'
+  planned_end: '2026-11-20'
+  effort_person_days: 39.5
+  p0_tasks: 11
+- phase: 3. Xây dựng MVP — Nền tảng
+  task_count: 10
+  planned_start: '2026-11-23'
+  planned_end: '2026-12-21'
+  effort_person_days: 46.0
+  p0_tasks: 7
+- phase: 4. Xây dựng MVP — Luồng cốt lõi
+  task_count: 10
+  planned_start: '2026-12-14'
+  planned_end: '2027-01-22'
+  effort_person_days: 48.0
+  p0_tasks: 7
+- phase: 5. Xây dựng MVP — Đo lường & trí tuệ
+  task_count: 8
+  planned_start: '2027-01-04'
+  planned_end: '2027-01-29'
+  effort_person_days: 41.0
+  p0_tasks: 3
+- phase: 6. Kiểm thử, bảo mật & sẵn sàng Alpha
+  task_count: 14
+  planned_start: '2027-01-04'
+  planned_end: '2027-02-12'
+  effort_person_days: 49.0
+  p0_tasks: 12
+- phase: 7. Pilot với đối tác thiết kế — Đợt 1
+  task_count: 15
+  planned_start: '2027-02-15'
+  planned_end: '2027-04-02'
+  effort_person_days: 61.0
+  p0_tasks: 15
+- phase: 8. Chuẩn hoá sản phẩm v0.2
+  task_count: 7
+  planned_start: '2027-04-05'
+  planned_end: '2027-04-16'
+  effort_person_days: 26.0
+  p0_tasks: 6
+- phase: 9. Pilot trả phí — Đợt 2
+  task_count: 7
+  planned_start: '2027-04-05'
+  planned_end: '2027-05-28'
+  effort_person_days: 34.0
+  p0_tasks: 7
+- phase: 10. Sẵn sàng thương mại
+  task_count: 12
+  planned_start: '2027-05-17'
+  planned_end: '2027-06-07'
+  effort_person_days: 29.0
+  p0_tasks: 7
+- phase: 11. Ra mắt thương mại giới hạn & ổn định
+  task_count: 6
+  planned_start: '2027-06-07'
+  planned_end: '2027-06-30'
+  effort_person_days: 16.0
+  p0_tasks: 5
+decision_gates_and_milestones:
+- task_id: '1.14'
+  task: Sửa phạm vi theo khả dụng + khả thi
+  deadline: '2026-11-19'
+  gate_or_milestone: Cổng 2
+  deliverable: MVP phạm vi candidate
+  description: Cắt những flow khó hiểu/giá trị thấp; giữ tính đầy đủ đầu-cuối.
+- task_id: '1.15'
+  task: Chốt PRD MVP v0.1
+  deadline: '2026-11-20'
+  gate_or_milestone: Cổng 2 - 20/11
+  deliverable: PRD MVP v0.1
+  description: Câu chuyện người dùng, quy tắc, tiêu chí chấp nhận, sự kiện phân tích, trường hợp biên, nội dung loại trừ rõ
+    ràng.
+- task_id: '2.14'
+  task: Rà soát kiến trúc + ước lượng công sức
+  deadline: '2026-11-19'
+  gate_or_milestone: Cổng 2
+  deliverable: Kiến trúc + ước lượng
+  description: Rà soát đầu-cuối, xác định trở ngại cứng, ước lượng xây dựng theo khối công việc và xác nhận phần để sau.
+- task_id: '2.15'
+  task: 'Cổng 2: Xây / Thu hẹp / Thử nghiệm lại'
+  deadline: '2026-11-20'
+  gate_or_milestone: Cổng 2 - 20/11
+  deliverable: Quyết định xây dựng
+  description: Chỉ tiếp tục nếu nạp dữ liệu Pancake + định danh + dòng liên kết đầu-cuối đủ khả thi cho Pilot và phạm vi MVP
+    phù hợp năng lực đội ngũ.
+- task_id: '6.14'
+  task: 'Cổng 3: Sẵn sàng Alpha?'
+  deadline: '2027-02-12'
+  gate_or_milestone: Cổng 3 - 12/02
+  deliverable: Quyết định Alpha đi/không đi
+  description: Cho Pilot chạy nếu E2E P0 đạt, không có lỗi bảo mật nghiêm trọng, sổ tay/đào tạo sẵn sàng và kết nối đủ ổn
+    định.
+- task_id: '7.6'
+  task: Đợt 1 vận hành thật
+  deadline: '2027-02-24'
+  gate_or_milestone: 'Mốc: Đợt 1 vận hành thật'
+  deliverable: Pilot vận hành thật
+  description: Bắt đầu xử lý Lead thật; hỗ trợ hàng ngày trong tuần đầu; nhóm sản phẩm theo dõi chỉ số trọng yếu.
+- task_id: '7.14'
+  task: Tổng kết kinh doanh Đợt 1
+  deadline: '2027-04-02'
+  gate_or_milestone: Cổng 4 - 02/04
+  deliverable: Tổng kết kinh doanh Đợt 1
+  description: Trình bày trước/sau, lưu ý về sức khoẻ dữ liệu, giá trị thu hồi, mức sử dụng, trở ngại chưa giải quyết và trích
+    dẫn/quyết định của khách hàng.
+- task_id: '7.15'
+  task: 'Cổng 4: giá trị có lặp lại?'
+  deadline: '2027-04-02'
+  gate_or_milestone: Cổng 4 - 02/04
+  deliverable: Quyết định Đợt 2
+  description: 'Quyết định tiếp tục/thu hẹp/chuyên sâu theo ngành. Gợi ý đạt: 3+ đối tác cho thấy giá trị rõ, quy trình phần
+    lớn lặp lại, công sức triển khai giảm và người bảo trợ sẵn sàng trả tiền/tiếp tục.'
+- task_id: '10.12'
+  task: 'Cổng 5: Sẵn sàng thương mại?'
+  deadline: '2027-06-04'
+  gate_or_milestone: Cổng 5 - 04/06
+  deliverable: Ra mắt giới hạn decision
+  description: Đạt nếu giá trị lặp lại, khách sẵn sàng trả phí, hiệu quả kinh tế triển khai chấp nhận được, độ tin cậy dữ
+    liệu/bảo mật đủ mức và sổ tay hỗ trợ sẵn sàng.
+- task_id: '11.2'
+  task: Ra mắt giới hạn
+  deadline: '2027-06-14'
+  gate_or_milestone: 'Mốc: 14/06/2027'
+  deliverable: v1 thương mại giới hạn
+  description: Chỉ mở bán cho ICP đạt chuẩn; mặc định vẫn tạo tài khoản thủ công + triển khai có hướng dẫn.
+- task_id: '11.6'
+  task: Quyết định hướng mở rộng
+  deadline: '2027-06-30'
+  gate_or_milestone: 'Mốc: Rà soát tháng 6'
+  deliverable: Quyết định chiến lược nửa cuối 2027
+  description: 'Rà soát cuối tháng 6: tiếp tục bán có Sales dẫn dắt, chuyên sâu hơn theo ngành, thêm kết nối nguồn thu hút
+    khách, đầu tư tự phục vụ hoặc lùi lại theo bằng chứng.'
+tasks:
+- task_id: '1.1'
+  phase: 1. Định nghĩa sản phẩm & trải nghiệm người dùng
+  workstream: Sản phẩm
+  work_group: Chiến lược sản phẩm
+  task: Cập nhật luận điểm sản phẩm
+  description: Viết lời hứa sản phẩm, ICP, wedge, nội dung không làm theo bằng chứng mới; lưu giả định bị bác bỏ.
+  suggested_owner: null
+  priority: P0
+  status: Chưa bắt đầu
+  start_date: '2026-10-26'
+  deadline: '2026-10-27'
+  duration_days: 2
+  effort_person_days: 1.0
+  gate_or_milestone: null
+  deliverable: Luận điểm sản phẩm v0.2
+  risk_note: null
+  source_page: 1
+- task_id: '1.2'
+  phase: 1. Định nghĩa sản phẩm & trải nghiệm người dùng
+  workstream: Sản phẩm
+  work_group: Phạm vi MVP
+  task: Chốt kết quả MVP
+  description: 'MVP phải chứng minh vòng: Pancake Hội thoại -> Bàn giao -> Sales theo dõi tiếp -> Kết quả -> Phản hồi cho
+    Quản lý.'
+  suggested_owner: null
+  priority: P0
+  status: Chưa bắt đầu
+  start_date: '2026-10-27'
+  deadline: '2026-10-28'
+  duration_days: 2
+  effort_person_days: 1.0
+  gate_or_milestone: null
+  deliverable: MVP kết quả trạng tháiment
+  risk_note: null
+  source_page: 1
+- task_id: '1.3'
+  phase: 1. Định nghĩa sản phẩm & trải nghiệm người dùng
+  workstream: Sản phẩm
+  work_group: Phạm vi MVP
+  task: Lập Bắt buộc / Nên có / Để sau / Không làm
+  description: 'Bắt buộc: connector, lead/handoff, sales queue, theo dõi tiếp, kết quả, phễu. Để sau: AI nâng cao, kết nối
+    nhiều nền tảng quảng cáo, đối chiếu sự thật CRM, định tuyến.'
+  suggested_owner: null
+  priority: P0
+  status: Chưa bắt đầu
+  start_date: '2026-10-28'
+  deadline: '2026-10-30'
+  duration_days: 3
+  effort_person_days: 1.5
+  gate_or_milestone: null
+  deliverable: Ma trận phạm vi
+  risk_note: null
+  source_page: 1
+- task_id: '1.4'
+  phase: 1. Định nghĩa sản phẩm & trải nghiệm người dùng
+  workstream: Sản phẩm
+  work_group: Quy tắc nghiệp vụ
+  task: Định nghĩa đối tượng cốt lõi & ngữ nghĩa
+  description: Phác thảo Khách hàng, Lead/Lần thu hút khách, Bàn giao, Người phụ trách, Hoạt động, Cam kết, Kết quả, Doanh
+    thu, Bằng chứng; Khách hàng != Lead.
+  suggested_owner: null
+  priority: P0
+  status: Chưa bắt đầu
+  start_date: '2026-10-28'
+  deadline: '2026-11-03'
+  duration_days: 7
+  effort_person_days: 3.0
+  gate_or_milestone: null
+  deliverable: Domain ngữ nghĩa v0.1
+  risk_note: null
+  source_page: 1
+- task_id: '1.5'
+  phase: 1. Định nghĩa sản phẩm & trải nghiệm người dùng
+  workstream: Sản phẩm
+  work_group: Đo lường
+  task: Định nghĩa dữ liệu Sales tối thiểu bắt buộc
+  description: 'Chốt dữ liệu tối thiểu bắt buộc: kết quả liên hệ, đạt/không đạt chuẩn, trạng thái, Won/Lost, doanh thu/lý
+    do mất; kiểm tra ma sát nhập liệu.'
+  suggested_owner: null
+  priority: P0
+  status: Chưa bắt đầu
+  start_date: '2026-10-29'
+  deadline: '2026-11-03'
+  duration_days: 6
+  effort_person_days: 1.5
+  gate_or_milestone: null
+  deliverable: Hợp đồng dữ liệu tối thiểu
+  risk_note: null
+  source_page: 1
+- task_id: '1.6'
+  phase: 1. Định nghĩa sản phẩm & trải nghiệm người dùng
+  workstream: Sản phẩm
+  work_group: Đo lường
+  task: Thiết kế Thiết lập sẵn sàng đo lường
+  description: Luồng cấu hình định nghĩa Lead/Đạt chuẩn/Không liên hệ được/Won/Lost/Doanh thu và SLA theo từng khách hàng.
+  suggested_owner: null
+  priority: P1
+  status: Chưa bắt đầu
+  start_date: '2026-11-02'
+  deadline: '2026-11-06'
+  duration_days: 5
+  effort_person_days: 2.0
+  gate_or_milestone: null
+  deliverable: Đặc tả thiết lập đo lường
+  risk_note: null
+  source_page: 1
+- task_id: '1.7'
+  phase: 1. Định nghĩa sản phẩm & trải nghiệm người dùng
+  workstream: Thiết kế
+  work_group: Kiến trúc thông tin
+  task: Thiết kế bản đồ không gian làm việc theo vai trò
+  description: Marketing tiếp tục làm việc gần Pancake; hàng đợi công việc thương mại của Sales; màn hình chú ý/phễu của Quản
+    lý; thiết lập Quản trị.
+  suggested_owner: null
+  priority: P0
+  status: Chưa bắt đầu
+  start_date: '2026-10-29'
+  deadline: '2026-11-03'
+  duration_days: 6
+  effort_person_days: 2.0
+  gate_or_milestone: null
+  deliverable: Kiến trúc thông tin
+  risk_note: null
+  source_page: 1
+- task_id: '1.8'
+  phase: 1. Định nghĩa sản phẩm & trải nghiệm người dùng
+  workstream: Thiết kế
+  work_group: Luồng người dùng
+  task: Vẽ Marketing -> luồng bàn giao
+  description: Từ hội thoại tới đạt chuẩn/tạo Lead/giao Sales; hiển thị nguồn/bối cảnh; xử lý trùng/khách quay lại.
+  suggested_owner: null
+  priority: P0
+  status: Chưa bắt đầu
+  start_date: '2026-11-02'
+  deadline: '2026-11-06'
+  duration_days: 5
+  effort_person_days: 3.0
+  gate_or_milestone: null
+  deliverable: Luồng bàn giao
+  risk_note: null
+  source_page: 1
+- task_id: '1.9'
+  phase: 1. Định nghĩa sản phẩm & trải nghiệm người dùng
+  workstream: Thiết kế
+  work_group: Luồng người dùng
+  task: Vẽ luồng Lead của Sales
+  description: Mới -> nhận -> liên hệ -> hành động tiếp -> theo dõi tiếp - > kết quả; tối thiểu nhập trường dữ liệu.
+  suggested_owner: null
+  priority: P0
+  status: Chưa bắt đầu
+  start_date: '2026-11-02'
+  deadline: '2026-11-06'
+  duration_days: 5
+  effort_person_days: 3.0
+  gate_or_milestone: null
+  deliverable: Luồng Sales
+  risk_note: null
+  source_page: 1
+- task_id: '1.10'
+  phase: 1. Định nghĩa sản phẩm & trải nghiệm người dùng
+  workstream: Thiết kế
+  work_group: Luồng người dùng
+  task: Vẽ luồng Quản lý
+  description: 'Funnel + lớp cảnh báo: handoff SLA, quá hạn, chưa liên hệ, Won/Lost; xem sâu bằng chứng.'
+  suggested_owner: null
+  priority: P1
+  status: Chưa bắt đầu
+  start_date: '2026-11-04'
+  deadline: '2026-11-09'
+  duration_days: 6
+  effort_person_days: 2.5
+  gate_or_milestone: null
+  deliverable: luồng Quản lý
+  risk_note: null
+  source_page: 1
+- task_id: '1.11'
+  phase: 1. Định nghĩa sản phẩm & trải nghiệm người dùng
+  workstream: Sản phẩm
+  work_group: Sự kiện thương mại (Commercial Event)
+  task: Thiết kế Sự kiện thương mại v0
+  description: Chọn 5-8 sự kiện MVP có bằng chứng + độ tin cậy; ưu tiên cam kết/đạt chuẩn/liên hệ/kết quả, chưa tự động thay
+    đổi rủi ro cao.
+  suggested_owner: null
+  priority: P1
+  status: Chưa bắt đầu
+  start_date: '2026-11-03'
+  deadline: '2026-11-09'
+  duration_days: 7
+  effort_person_days: 2.0
+  gate_or_milestone: null
+  deliverable: Đặc tả Sự kiện thương mại v0
+  risk_note: null
+  source_page: 1
+- task_id: '1.12'
+  phase: 1. Định nghĩa sản phẩm & trải nghiệm người dùng
+  workstream: Thiết kế
+  work_group: Mẫu thử
+  task: Dựng mẫu thử tương tác v0
+  description: Mẫu thử cho 3 vai trò chính, tập trung một câu chuyện Lead đầu-cuối; không trau chuốt giao diện quá mức.
+  suggested_owner: null
+  priority: P0
+  status: Chưa bắt đầu
+  start_date: '2026-11-06'
+  deadline: '2026-11-12'
+  duration_days: 7
+  effort_person_days: 4.0
+  gate_or_milestone: null
+  deliverable: Mẫu thử tương tác
+  risk_note: null
+  source_page: 1
+- task_id: '1.13'
+  phase: 1. Định nghĩa sản phẩm & trải nghiệm người dùng
+  workstream: Nghiên cứu
+  work_group: Khả năng sử dụng
+  task: Kiểm thử mẫu thử với 5-7 người dùng
+  description: Tối thiểu 2 Sales, 2 Marketing, 2 Quản lý; đo khả năng hiểu, ma sát nhập liệu, thiếu bối cảnh và độ tin cậy.
+  suggested_owner: null
+  priority: P0
+  status: Chưa bắt đầu
+  start_date: '2026-11-12'
+  deadline: '2026-11-17'
+  duration_days: 6
+  effort_person_days: 3.0
+  gate_or_milestone: null
+  deliverable: Kết quả kiểm thử sử dụng
+  risk_note: null
+  source_page: 1
+- task_id: '1.14'
+  phase: 1. Định nghĩa sản phẩm & trải nghiệm người dùng
+  workstream: Sản phẩm
+  work_group: Phạm vi MVP
+  task: Sửa phạm vi theo khả dụng + khả thi
+  description: Cắt những flow khó hiểu/giá trị thấp; giữ tính đầy đủ đầu-cuối.
+  suggested_owner: null
+  priority: P0
+  status: Chưa bắt đầu
+  start_date: '2026-11-18'
+  deadline: '2026-11-19'
+  duration_days: 2
+  effort_person_days: 1.0
+  gate_or_milestone: Cổng 2
+  deliverable: MVP phạm vi candidate
+  risk_note: null
+  source_page: 1
+- task_id: '1.15'
+  phase: 1. Định nghĩa sản phẩm & trải nghiệm người dùng
+  workstream: Sản phẩm
+  work_group: Đặc tả yêu cầu sản phẩm (PRD)
+  task: Chốt PRD MVP v0.1
+  description: Câu chuyện người dùng, quy tắc, tiêu chí chấp nhận, sự kiện phân tích, trường hợp biên, nội dung loại trừ rõ
+    ràng.
+  suggested_owner: null
+  priority: P0
+  status: Chưa bắt đầu
+  start_date: '2026-11-19'
+  deadline: '2026-11-20'
+  duration_days: 2
+  effort_person_days: 2.0
+  gate_or_milestone: Cổng 2 - 20/11
+  deliverable: PRD MVP v0.1
+  risk_note: null
+  source_page: 1
+- task_id: '2.1'
+  phase: 2. Khả thi kỹ thuật & kiến trúc
+  workstream: Kỹ thuật
+  work_group: Tích hợp Pancake
+  task: Xác minh lại Pancake API/điều khoản hiện tại
+  description: Xác nhận khả năng đọc hội thoại/khách hàng/tin nhắn/tag/giao việc, phạm vi token, giới hạn tốc độ, webhook/polling
+    và ranh giới thương mại/quyền gửi tin nhắn.
+  suggested_owner: null
+  priority: P0
+  status: Chưa bắt đầu
+  start_date: '2026-10-19'
+  deadline: '2026-10-27'
+  duration_days: 9
+  effort_person_days: 3.0
+  gate_or_milestone: null
+  deliverable: Ma trận khả năng Pancake
+  risk_note: Không hứa original-channel send nếu terms/API chưa xác nhận.
+  source_page: 1
+- task_id: '2.2'
+  phase: 2. Khả thi kỹ thuật & kiến trúc
+  workstream: Kỹ thuật
+  work_group: Tích hợp Pancake
+  task: Xây dựng thử nghiệm Pancake chỉ đọc
+  description: Kết nối trang thử nghiệm; nạp hội thoại/khách hàng/tin nhắn mẫu và đo độ ổn định.
+  suggested_owner: null
+  priority: P0
+  status: Chưa bắt đầu
+  start_date: '2026-10-26'
+  deadline: '2026-11-04'
+  duration_days: 10
+  effort_person_days: 5.0
+  gate_or_milestone: null
+  deliverable: Thử nghiệm nạp dữ liệu chạy được
+  risk_note: null
+  source_page: 1
+- task_id: '2.3'
+  phase: 2. Khả thi kỹ thuật & kiến trúc
+  workstream: Kỹ thuật
+  work_group: Độ ổn định tích hợp
+  task: Đánh giá webhook và polling
+  description: Thiết kế chiến lược đồng bộ, thử lại, con trỏ/điểm lưu, sự kiện trùng và đối soát.
+  suggested_owner: null
+  priority: P0
+  status: Chưa bắt đầu
+  start_date: '2026-11-02'
+  deadline: '2026-11-06'
+  duration_days: 5
+  effort_person_days: 2.0
+  gate_or_milestone: null
+  deliverable: Quyết định kiến trúc đồng bộ
+  risk_note: null
+  source_page: 1
+- task_id: '2.4'
+  phase: 2. Khả thi kỹ thuật & kiến trúc
+  workstream: Kỹ thuật
+  work_group: Bảo mật
+  task: Thiết kế bảo mật token/thông tin xác thực
+  description: Lưu trữ/mã hoá, cách ly dữ liệu khách hàng, xoay vòng/thu hồi, kiểm toán quyền truy cập kết nối.
+  suggested_owner: null
+  priority: P0
+  status: Chưa bắt đầu
+  start_date: '2026-10-28'
+  deadline: '2026-11-05'
+  duration_days: 9
+  effort_person_days: 2.0
+  gate_or_milestone: null
+  deliverable: Thiết kế thông tin xác thực
+  risk_note: null
+  source_page: 1
+- task_id: '2.5'
+  phase: 2. Khả thi kỹ thuật & kiến trúc
+  workstream: Kỹ thuật
+  work_group: Kiến trúc nghiệp vụ
+  task: Thiết kế mô hình tương tác trung lập nhà cung cấp
+  description: Thực thể nội bộ dùng Tương tác/Khách hàng/Lead/Sự kiện; Pancake là bộ chuyển đổi. Tránh khóa miền nghiệp vụ
+    vào đối tượng Pancake.
+  suggested_owner: null
+  priority: P0
+  status: Chưa bắt đầu
+  start_date: '2026-11-03'
+  deadline: '2026-11-09'
+  duration_days: 7
+  effort_person_days: 3.0
+  gate_or_milestone: null
+  deliverable: Mô hình nghiệp vụ v0.1
+  risk_note: null
+  source_page: 1
+- task_id: '2.6'
+  phase: 2. Khả thi kỹ thuật & kiến trúc
+  workstream: Kỹ thuật
+  work_group: Định danh
+  task: Thiết kế Khách hàng chuẩn + Lead ID
+  description: Quy tắc cho ID điện thoại/mạng xã hội, Lead/Lần thu hút khách ổn định, trùng/mở lại; luồng sửa thủ công.
+  suggested_owner: null
+  priority: P0
+  status: Chưa bắt đầu
+  start_date: '2026-11-05'
+  deadline: '2026-11-11'
+  duration_days: 7
+  effort_person_days: 3.0
+  gate_or_milestone: null
+  deliverable: Thiết kế định danh/Lead ID
+  risk_note: null
+  source_page: 1
+- task_id: '2.7'
+  phase: 2. Khả thi kỹ thuật & kiến trúc
+  workstream: Kỹ thuật
+  work_group: Đa khách hàng (multi-tenant)
+  task: Thiết kế kiến trúc đa khách hàng sẵn sàng SaaS
+  description: ID khách hàng, ranh giới tổ chức/người dùng/vai trò, phân vùng dữ liệu; chưa xây phần thanh toán/tự phục vụ.
+  suggested_owner: null
+  priority: P0
+  status: Chưa bắt đầu
+  start_date: '2026-11-05'
+  deadline: '2026-11-11'
+  duration_days: 7
+  effort_person_days: 2.0
+  gate_or_milestone: null
+  deliverable: Kiến trúc đa khách hàng
+  risk_note: null
+  source_page: 1
+- task_id: '2.8'
+  phase: 2. Khả thi kỹ thuật & kiến trúc
+  workstream: Kỹ thuật
+  work_group: Phân quyền (RBAC)
+  task: Thiết kế phân quyền theo Lead
+  description: Marketing/Quản trị có quyền rộng hơn; Sales chỉ truy cập Lead được giao; Quản lý có khả năng quan sát. Không
+    yêu cầu Sales có quyền toàn trang trong ứng dụng.
+  suggested_owner: null
+  priority: P0
+  status: Chưa bắt đầu
+  start_date: '2026-11-09'
+  deadline: '2026-11-13'
+  duration_days: 5
+  effort_person_days: 2.0
+  gate_or_milestone: null
+  deliverable: Ma trận phân quyền (RBAC)
+  risk_note: null
+  source_page: 1
+- task_id: '2.9'
+  phase: 2. Khả thi kỹ thuật & kiến trúc
+  workstream: Kỹ thuật
+  work_group: Khả thi AI
+  task: Thử nghiệm nhanh trích xuất thương mại
+  description: Kiểm thử tóm tắt + nhu cầu/phản đối/cam kết trên tin nhắn mẫu; lưu đoạn bằng chứng và độ tin cậy.
+  suggested_owner: null
+  priority: P1
+  status: Chưa bắt đầu
+  start_date: '2026-11-04'
+  deadline: '2026-11-13'
+  duration_days: 10
+  effort_person_days: 5.0
+  gate_or_milestone: null
+  deliverable: Mốc đánh giá AI trích xuất
+  risk_note: null
+  source_page: 1
+- task_id: '2.10'
+  phase: 2. Khả thi kỹ thuật & kiến trúc
+  workstream: Kỹ thuật
+  work_group: Khả thi AI
+  task: Định nghĩa chính sách người duyệt
+  description: Xác định sự kiện nào tự động, sự kiện nào chỉ gợi ý; đánh giá chi phí báo sai; yêu cầu có kiểm toán/hoàn tác.
+  suggested_owner: null
+  priority: P1
+  status: Chưa bắt đầu
+  start_date: '2026-11-12'
+  deadline: '2026-11-16'
+  duration_days: 5
+  effort_person_days: 1.5
+  gate_or_milestone: null
+  deliverable: Chính sách hành động AI
+  risk_note: null
+  source_page: 1
+- task_id: '2.11'
+  phase: 2. Khả thi kỹ thuật & kiến trúc
+  workstream: Kỹ thuật
+  work_group: Đo lường
+  task: Đánh giá khả thi liên kết nguồn thu hút khách Meta
+  description: Xác định định danh thực sự có sẵn từ Pancake/Meta để nối Campaign/Ad -> Hội thoại -> Lead; kiểm thử độ bao
+    phủ xác định chắc chắn.
+  suggested_owner: null
+  priority: P0
+  status: Chưa bắt đầu
+  start_date: '2026-11-05'
+  deadline: '2026-11-13'
+  duration_days: 9
+  effort_person_days: 4.0
+  gate_or_milestone: null
+  deliverable: Thử nghiệm liên kết nguồn Meta
+  risk_note: null
+  source_page: 1
+- task_id: '2.12'
+  phase: 2. Khả thi kỹ thuật & kiến trúc
+  workstream: Kỹ thuật
+  work_group: Mở rộng nguồn thu hút khách
+  task: Chỉ kiểm tra khả thi kết nối TikTok/Google
+  description: Không xây dựng; chỉ xác minh xác thực/ID báo cáo/chi phí và khả năng nối dòng liên kết nguồn để tránh ngõ cụt
+    thiết kế.
+  suggested_owner: null
+  priority: P2
+  status: Chưa bắt đầu
+  start_date: '2026-11-10'
+  deadline: '2026-11-17'
+  duration_days: 8
+  effort_person_days: 2.0
+  gate_or_milestone: null
+  deliverable: Ghi chú khả thi kết nối tương lai
+  risk_note: null
+  source_page: 1
+- task_id: '2.13'
+  phase: 2. Khả thi kỹ thuật & kiến trúc
+  workstream: Kỹ thuật
+  work_group: Sức khoẻ dữ liệu
+  task: Thiết kế mô hình Đã biết/Suy luận/Không biết
+  description: Mỗi liên kết có phương pháp/độ tin cậy; tính độ bao phủ; hiển thị rõ phần thiếu kết quả/nguồn.
+  suggested_owner: null
+  priority: P1
+  status: Chưa bắt đầu
+  start_date: '2026-11-11'
+  deadline: '2026-11-17'
+  duration_days: 7
+  effort_person_days: 2.0
+  gate_or_milestone: null
+  deliverable: Mô hình sức khoẻ dữ liệu
+  risk_note: null
+  source_page: 1
+- task_id: '2.14'
+  phase: 2. Khả thi kỹ thuật & kiến trúc
+  workstream: Kỹ thuật
+  work_group: Kiến trúc
+  task: Rà soát kiến trúc + ước lượng công sức
+  description: Rà soát đầu-cuối, xác định trở ngại cứng, ước lượng xây dựng theo khối công việc và xác nhận phần để sau.
+  suggested_owner: null
+  priority: P0
+  status: Chưa bắt đầu
+  start_date: '2026-11-17'
+  deadline: '2026-11-19'
+  duration_days: 3
+  effort_person_days: 2.0
+  gate_or_milestone: Cổng 2
+  deliverable: Kiến trúc + ước lượng
+  risk_note: null
+  source_page: 1
+- task_id: '2.15'
+  phase: 2. Khả thi kỹ thuật & kiến trúc
+  workstream: Kỹ thuật
+  work_group: Quyết định qua cổng
+  task: 'Cổng 2: Xây / Thu hẹp / Thử nghiệm lại'
+  description: Chỉ tiếp tục nếu nạp dữ liệu Pancake + định danh + dòng liên kết đầu-cuối đủ khả thi cho Pilot và phạm vi MVP
+    phù hợp năng lực đội ngũ.
+  suggested_owner: null
+  priority: P0
+  status: Chưa bắt đầu
+  start_date: '2026-11-20'
+  deadline: '2026-11-20'
+  duration_days: 1
+  effort_person_days: 1.0
+  gate_or_milestone: Cổng 2 - 20/11
+  deliverable: Quyết định xây dựng
+  risk_note: null
+  source_page: 1
+- task_id: '3.1'
+  phase: 3. Xây dựng MVP — Nền tảng
+  workstream: Kỹ thuật
+  work_group: Thiết lập quy trình phát hành
+  task: Kho mã/CI-CD/môi trường
+  description: Thiết lập dev/staging/prod nhẹ, rà soát mã, chuyển đổi dữ liệu, bí mật hệ thống và hoàn tác phát hành cơ bản.
+  suggested_owner: null
+  priority: P0
+  status: Chưa bắt đầu
+  start_date: '2026-11-23'
+  deadline: '2026-11-27'
+  duration_days: 5
+  effort_person_days: 3.0
+  gate_or_milestone: null
+  deliverable: Quy trình phát hành
+  risk_note: null
+  source_page: 1
+- task_id: '3.2'
+  phase: 3. Xây dựng MVP — Nền tảng
+  workstream: Kỹ thuật
+  work_group: Giám sát hệ thống
+  task: Mốc giám sát log/lỗi
+  description: Log có cấu trúc, bảng lỗi tích hợp, ID yêu cầu, khả năng quan sát job đồng bộ.
+  suggested_owner: null
+  priority: P1
+  status: Chưa bắt đầu
+  start_date: '2026-11-25'
+  deadline: '2026-12-02'
+  duration_days: 8
+  effort_person_days: 2.0
+  gate_or_milestone: null
+  deliverable: Observability hiện trạng
+  risk_note: null
+  source_page: 1
+- task_id: '3.3'
+  phase: 3. Xây dựng MVP — Nền tảng
+  workstream: Kỹ thuật
+  work_group: Khách hàng/Xác thực
+  task: Lõi tổ chức/người dùng/đăng nhập
+  description: Tạo không gian khách hàng thủ công; mời/đăng nhập; chưa tự đăng ký/thanh toán.
+  suggested_owner: null
+  priority: P0
+  status: Chưa bắt đầu
+  start_date: '2026-11-23'
+  deadline: '2026-12-04'
+  duration_days: 12
+  effort_person_days: 6.0
+  gate_or_milestone: null
+  deliverable: Module tổ chức/xác thực
+  risk_note: null
+  source_page: 1
+- task_id: '3.4'
+  phase: 3. Xây dựng MVP — Nền tảng
+  workstream: Kỹ thuật
+  work_group: Phân quyền (RBAC)
+  task: Phân quyền vai trò + phạm vi Lead
+  description: Implement Admin/Marketing/Sales/Quản lý access và phạm vi Lead được giao.
+  suggested_owner: null
+  priority: P0
+  status: Chưa bắt đầu
+  start_date: '2026-12-01'
+  deadline: '2026-12-09'
+  duration_days: 9
+  effort_person_days: 4.0
+  gate_or_milestone: null
+  deliverable: Phân quyền RBAC đã áp dụng
+  risk_note: null
+  source_page: 1
+- task_id: '3.5'
+  phase: 3. Xây dựng MVP — Nền tảng
+  workstream: Kỹ thuật
+  work_group: Kết nối Pancake
+  task: Xác thực/thiết lập kết nối
+  description: Cấu hình quản trị nội bộ to connect Pancake và kiểm tra thông tin xác thực.
+  suggested_owner: null
+  priority: P0
+  status: Chưa bắt đầu
+  start_date: '2026-11-30'
+  deadline: '2026-12-07'
+  duration_days: 8
+  effort_person_days: 4.0
+  gate_or_milestone: null
+  deliverable: Luồng thiết lập kết nối
+  risk_note: null
+  source_page: 1
+- task_id: '3.6'
+  phase: 3. Xây dựng MVP — Nền tảng
+  workstream: Kỹ thuật
+  work_group: Kết nối Pancake
+  task: Nạp hội thoại/khách hàng
+  description: Đồng bộ đủ mức vận hành thật cho các đối tượng cần thiết; có điểm lưu, thử lại và loại trùng.
+  suggested_owner: null
+  priority: P0
+  status: Chưa bắt đầu
+  start_date: '2026-12-03'
+  deadline: '2026-12-16'
+  duration_days: 14
+  effort_person_days: 8.0
+  gate_or_milestone: null
+  deliverable: Nạp dữ liệu ổn định
+  risk_note: null
+  source_page: 1
+- task_id: '3.7'
+  phase: 3. Xây dựng MVP — Nền tảng
+  workstream: Kỹ thuật
+  work_group: Mô hình dữ liệu
+  task: Customer/Lead/Handoff cấu trúc dữ liệu
+  description: Implement canonical Customer, Lead, Handoff, owner, dòng liên kết nguồn, timestamps.
+  suggested_owner: null
+  priority: P0
+  status: Chưa bắt đầu
+  start_date: '2026-11-30'
+  deadline: '2026-12-11'
+  duration_days: 12
+  effort_person_days: 6.0
+  gate_or_milestone: null
+  deliverable: Mô hình dữ liệu cốt lõi
+  risk_note: null
+  source_page: 1
+- task_id: '3.8'
+  phase: 3. Xây dựng MVP — Nền tảng
+  workstream: Kỹ thuật
+  work_group: Mô hình dữ liệu
+  task: Activity/Outcome/Revenue cấu trúc dữ liệu
+  description: Contact attempts, theo dõi tiếp, trạng thái, Won/Lost, lost reason, doanh thu; thay đổi có kiểm toán.
+  suggested_owner: null
+  priority: P0
+  status: Chưa bắt đầu
+  start_date: '2026-12-07'
+  deadline: '2026-12-16'
+  duration_days: 10
+  effort_person_days: 5.0
+  gate_or_milestone: null
+  deliverable: Mô hình dữ liệu thực thi
+  risk_note: null
+  source_page: 1
+- task_id: '3.9'
+  phase: 3. Xây dựng MVP — Nền tảng
+  workstream: Kỹ thuật
+  work_group: Nhật ký kiểm toán
+  task: Audit trail hiện trạng
+  description: Ghi ai làm gì, khi nào, từ nguồn nào cho các thay đổi trạng thái/kết quả/giao việc; hỗ trợ hoàn tác với các
+    thay đổi đơn giản.
+  suggested_owner: null
+  priority: P1
+  status: Chưa bắt đầu
+  start_date: '2026-12-14'
+  deadline: '2026-12-21'
+  duration_days: 8
+  effort_person_days: 3.0
+  gate_or_milestone: null
+  deliverable: Nhật ký kiểm toán
+  risk_note: null
+  source_page: 1
+- task_id: '3.10'
+  phase: 3. Xây dựng MVP — Nền tảng
+  workstream: Kỹ thuật
+  work_group: Cấu hình quản trị
+  task: Cấu hình định nghĩa đo lường
+  description: Cấu hình quản trị nội bộ cho Đạt chuẩn, Không liên hệ được, Won, lý do Lost và SLA.
+  suggested_owner: null
+  priority: P1
+  status: Chưa bắt đầu
+  start_date: '2026-12-07'
+  deadline: '2026-12-18'
+  duration_days: 12
+  effort_person_days: 5.0
+  gate_or_milestone: null
+  deliverable: Cấu hình đo lường v0
+  risk_note: null
+  source_page: 2
+- task_id: '4.1'
+  phase: 4. Xây dựng MVP — Luồng cốt lõi
+  workstream: Sản phẩm/Kỹ thuật
+  work_group: Marketing
+  task: Tạo Lead từ hội thoại
+  description: Từ hội thoại đã đồng bộ, tạo/đánh dấu Lead đạt chuẩn đồng thời giữ nguồn, bối cảnh và định danh khách hàng.
+  suggested_owner: null
+  priority: P0
+  status: Chưa bắt đầu
+  start_date: '2026-12-14'
+  deadline: '2026-12-23'
+  duration_days: 10
+  effort_person_days: 5.0
+  gate_or_milestone: null
+  deliverable: Luồng tạo Lead
+  risk_note: null
+  source_page: 2
+- task_id: '4.2'
+  phase: 4. Xây dựng MVP — Luồng cốt lõi
+  workstream: Sản phẩm/Kỹ thuật
+  work_group: Bàn giao
+  task: Marketing -> Sales handoff
+  description: Assign Sales, create handoff timestamp/SLA, package bối cảnh, tránh bàn giao trùng.
+  suggested_owner: null
+  priority: P0
+  status: Chưa bắt đầu
+  start_date: '2026-12-21'
+  deadline: '2027-01-05'
+  duration_days: 16
+  effort_person_days: 6.0
+  gate_or_milestone: null
+  deliverable: Luồng bàn giao
+  risk_note: null
+  source_page: 2
+- task_id: '4.3'
+  phase: 4. Xây dựng MVP — Luồng cốt lõi
+  workstream: Sản phẩm/Kỹ thuật
+  work_group: Không gian làm việc Sales
+  task: Danh sách Lead của tôi
+  description: 'Chế độ xem: Mới, đến hạn hôm nay, quá hạn, chờ khách, không liên hệ được; hỗ trợ xem nhanh ưu tiên.'
+  suggested_owner: null
+  priority: P0
+  status: Chưa bắt đầu
+  start_date: '2026-12-28'
+  deadline: '2027-01-08'
+  duration_days: 12
+  effort_person_days: 6.0
+  gate_or_milestone: null
+  deliverable: Hàng đợi Sales
+  risk_note: null
+  source_page: 2
+- task_id: '4.4'
+  phase: 4. Xây dựng MVP — Luồng cốt lõi
+  workstream: Sản phẩm/Kỹ thuật
+  work_group: Không gian làm việc Sales
+  task: Chi tiết Lead + bối cảnh
+  description: Hiển thị tóm tắt/nguồn/kênh gốc/bằng chứng hội thoại/dòng thời gian thương mại/hành động tiếp theo.
+  suggested_owner: null
+  priority: P0
+  status: Chưa bắt đầu
+  start_date: '2027-01-04'
+  deadline: '2027-01-13'
+  duration_days: 10
+  effort_person_days: 5.0
+  gate_or_milestone: null
+  deliverable: Chi tiết Lead
+  risk_note: null
+  source_page: 2
+- task_id: '4.5'
+  phase: 4. Xây dựng MVP — Luồng cốt lõi
+  workstream: Sản phẩm/Kỹ thuật
+  work_group: Thực thi Sales
+  task: Nhận Lead/kết quả liên hệ
+  description: Sales nhận Lead; ghi Đã liên hệ/Không nghe máy/Không hợp lệ/Khác kèm thời gian; tối thiểu thao tác.
+  suggested_owner: null
+  priority: P0
+  status: Chưa bắt đầu
+  start_date: '2027-01-04'
+  deadline: '2027-01-12'
+  duration_days: 9
+  effort_person_days: 4.0
+  gate_or_milestone: null
+  deliverable: Luồng kết quả liên hệ
+  risk_note: null
+  source_page: 2
+- task_id: '4.6'
+  phase: 4. Xây dựng MVP — Luồng cốt lõi
+  workstream: Sản phẩm/Kỹ thuật
+  work_group: Theo dõi tiếp
+  task: Hành động tiếp + hạn
+  description: Tạo hành động tiếp theo và hạn; cho phép hoàn thành/dời lịch; hiển thị việc quá hạn và người phụ trách.
+  suggested_owner: null
+  priority: P0
+  status: Chưa bắt đầu
+  start_date: '2027-01-06'
+  deadline: '2027-01-15'
+  duration_days: 10
+  effort_person_days: 5.0
+  gate_or_milestone: null
+  deliverable: Lõi theo dõi tiếp
+  risk_note: null
+  source_page: 2
+- task_id: '4.7'
+  phase: 4. Xây dựng MVP — Luồng cốt lõi
+  workstream: Sản phẩm/Kỹ thuật
+  work_group: Kết quả
+  task: Ghi nhận Đạt chuẩn/Won/Lost
+  description: Ghi nhận trạng thái/kết quả, lý do mất và doanh thu; kiểm tra theo cấu hình đo lường.
+  suggested_owner: null
+  priority: P0
+  status: Chưa bắt đầu
+  start_date: '2027-01-08'
+  deadline: '2027-01-18'
+  duration_days: 11
+  effort_person_days: 5.0
+  gate_or_milestone: null
+  deliverable: Ghi nhận kết quả
+  risk_note: null
+  source_page: 2
+- task_id: '4.8'
+  phase: 4. Xây dựng MVP — Luồng cốt lõi
+  workstream: Sản phẩm/Kỹ thuật
+  work_group: Dòng thời gian
+  task: Commercial timeline
+  description: Hiển thị sự kiện bàn giao/liên hệ/theo dõi tiếp/kết quả theo thứ tự thời gian, kèm nguồn và bằng chứng.
+  suggested_owner: null
+  priority: P1
+  status: Chưa bắt đầu
+  start_date: '2027-01-13'
+  deadline: '2027-01-20'
+  duration_days: 8
+  effort_person_days: 4.0
+  gate_or_milestone: null
+  deliverable: Dòng thời gian thương mại
+  risk_note: null
+  source_page: 2
+- task_id: '4.9'
+  phase: 4. Xây dựng MVP — Luồng cốt lõi
+  workstream: Sản phẩm/Kỹ thuật
+  work_group: Thông báo
+  task: Thông báo đến hạn/quá hạn cơ bản
+  description: Thông báo trong ứng dụng/email cho bàn giao mới và việc theo dõi tiếp đến hạn/quá hạn; chưa mở rộng phức tạp
+    đa kênh.
+  suggested_owner: null
+  priority: P1
+  status: Chưa bắt đầu
+  start_date: '2027-01-13'
+  deadline: '2027-01-21'
+  duration_days: 9
+  effort_person_days: 4.0
+  gate_or_milestone: null
+  deliverable: Thông báo v0
+  risk_note: null
+  source_page: 2
+- task_id: '4.10'
+  phase: 4. Xây dựng MVP — Luồng cốt lõi
+  workstream: Sản phẩm/Kỹ thuật
+  work_group: Kênh gốc
+  task: Thử nghiệm liên tục kênh gốc trong sản phẩm
+  description: 'Nếu API/điều khoản cho phép: dùng link/deep-link hoặc luồng gửi có kiểm soát; nếu không, hiển thị kênh/bối
+    cảnh và chuyển lại Marketing khi cần.'
+  suggested_owner: null
+  priority: P1
+  status: Chưa bắt đầu
+  start_date: '2027-01-11'
+  deadline: '2027-01-22'
+  duration_days: 12
+  effort_person_days: 4.0
+  gate_or_milestone: null
+  deliverable: Liên tục kênh v0
+  risk_note: Feature may be constrained by Pancake permissions/terms.
+  source_page: 2
+- task_id: '5.1'
+  phase: 5. Xây dựng MVP — Đo lường & trí tuệ
+  workstream: Dữ liệu
+  work_group: Phễu
+  task: Phễu Quản lý v0
+  description: 'Hội thoại/Lead/Bàn giao/Đã liên hệ/Đạt chuẩn/Won- Lost: số lượng + tỷ lệ chuyển đổi; phân tách theo Sales/nguồn
+    khi dữ liệu đủ tin cậy.'
+  suggested_owner: null
+  priority: P0
+  status: Chưa bắt đầu
+  start_date: '2027-01-11'
+  deadline: '2027-01-22'
+  duration_days: 12
+  effort_person_days: 6.0
+  gate_or_milestone: null
+  deliverable: Quản lý phễu
+  risk_note: null
+  source_page: 2
+- task_id: '5.2'
+  phase: 5. Xây dựng MVP — Đo lường & trí tuệ
+  workstream: Dữ liệu
+  work_group: Phân tích bàn giao
+  task: Chỉ số SLA
+  description: Số lượng bàn giao, đã nhận/đã liên hệ, trung vị thời gian tới liên hệ đầu tiên, vi phạm, danh sách chưa liên
+    hệ.
+  suggested_owner: null
+  priority: P0
+  status: Chưa bắt đầu
+  start_date: '2027-01-13'
+  deadline: '2027-01-22'
+  duration_days: 10
+  effort_person_days: 4.0
+  gate_or_milestone: null
+  deliverable: Handoff báo cáo
+  risk_note: null
+  source_page: 2
+- task_id: '5.3'
+  phase: 5. Xây dựng MVP — Đo lường & trí tuệ
+  workstream: Dữ liệu
+  work_group: Phân tích theo dõi tiếp
+  task: Tuân thủ theo dõi tiếp
+  description: Theo dõi việc đến hạn/hoàn thành/quá hạn theo Sales; hiển thị danh sách quá hạn và xu hướng đơn giản.
+  suggested_owner: null
+  priority: P1
+  status: Chưa bắt đầu
+  start_date: '2027-01-15'
+  deadline: '2027-01-25'
+  duration_days: 11
+  effort_person_days: 3.0
+  gate_or_milestone: null
+  deliverable: Follow-up báo cáo
+  risk_note: null
+  source_page: 2
+- task_id: '5.4'
+  phase: 5. Xây dựng MVP — Đo lường & trí tuệ
+  workstream: Dữ liệu
+  work_group: Sức khoẻ dữ liệu
+  task: Chỉ số độ bao phủ v0
+  description: Tính % Lead có nguồn, bàn giao, kết quả Sales và doanh thu; phân loại Đã biết/Suy luận/Không biết cho dòng
+    liên kết nguồn.
+  suggested_owner: null
+  priority: P0
+  status: Chưa bắt đầu
+  start_date: '2027-01-15'
+  deadline: '2027-01-27'
+  duration_days: 13
+  effort_person_days: 5.0
+  gate_or_milestone: null
+  deliverable: Sức khoẻ dữ liệu v0
+  risk_note: null
+  source_page: 2
+- task_id: '5.5'
+  phase: 5. Xây dựng MVP — Đo lường & trí tuệ
+  workstream: Dữ liệu
+  work_group: Liên kết nguồn Meta
+  task: Dòng liên kết nguồn Meta v0
+  description: Lưu dòng liên kết campaign/ad có sẵn từ thử nghiệm Pancake/Meta; báo cáo độ bao phủ và phần chưa biết, không
+    tạo độ chính xác giả.
+  suggested_owner: null
+  priority: P1
+  status: Chưa bắt đầu
+  start_date: '2027-01-11'
+  deadline: '2027-01-27'
+  duration_days: 17
+  effort_person_days: 6.0
+  gate_or_milestone: null
+  deliverable: Liên kết nguồn Meta v0
+  risk_note: null
+  source_page: 2
+- task_id: '5.6'
+  phase: 5. Xây dựng MVP — Đo lường & trí tuệ
+  workstream: AI
+  work_group: Tóm tắt hội thoại
+  task: Tóm tắt có bằng chứng v0
+  description: Tạo tóm tắt ngắn về nhu cầu/sản phẩm/phản đối/cam kết; liên kết về bằng chứng; người dùng có thể sửa/đánh dấu.
+  suggested_owner: null
+  priority: P1
+  status: Chưa bắt đầu
+  start_date: '2027-01-04'
+  deadline: '2027-01-20'
+  duration_days: 17
+  effort_person_days: 7.0
+  gate_or_milestone: null
+  deliverable: Tóm tắt AI v0
+  risk_note: null
+  source_page: 2
+- task_id: '5.7'
+  phase: 5. Xây dựng MVP — Đo lường & trí tuệ
+  workstream: AI
+  work_group: Cam kết
+  task: Phát hiện cam kết Khách/Sales
+  description: Phát hiện cam kết rõ ràng và gợi ý hạn/hành động; ở Alpha chỉ gợi ý trừ khi đã chứng minh ngưỡng độ tin cậy.
+  suggested_owner: null
+  priority: P1
+  status: Chưa bắt đầu
+  start_date: '2027-01-13'
+  deadline: '2027-01-27'
+  duration_days: 15
+  effort_person_days: 6.0
+  gate_or_milestone: null
+  deliverable: Gợi ý cam kết v0
+  risk_note: null
+  source_page: 2
+- task_id: '5.8'
+  phase: 5. Xây dựng MVP — Đo lường & trí tuệ
+  workstream: AI
+  work_group: Độ tin cậy
+  task: Giao diện bằng chứng/độ tin cậy
+  description: Hiển thị bằng chứng, độ tin cậy, tin nhắn nguồn và hành động phản hồi; không tự động thay đổi theo cách khó
+    giải thích.
+  suggested_owner: null
+  priority: P1
+  status: Chưa bắt đầu
+  start_date: '2027-01-20'
+  deadline: '2027-01-29'
+  duration_days: 10
+  effort_person_days: 4.0
+  gate_or_milestone: null
+  deliverable: AI độ tin cậy UI
+  risk_note: null
+  source_page: 2
+- task_id: '6.1'
+  phase: 6. Kiểm thử, bảo mật & sẵn sàng Alpha
+  workstream: Kiểm thử (QA)
+  work_group: Chiến lược kiểm thử
+  task: Lập ma trận kiểm thử MVP
+  description: 'Luồng chuẩn + trường hợp biên: Lead trùng, trễ đồng bộ, thiếu số điện thoại, mở lại, sai người phụ trách,
+    nguồn không đầy đủ, sửa Lost/Won.'
+  suggested_owner: null
+  priority: P0
+  status: Chưa bắt đầu
+  start_date: '2027-01-04'
+  deadline: '2027-01-12'
+  duration_days: 9
+  effort_person_days: 3.0
+  gate_or_milestone: null
+  deliverable: Ma trận kiểm thử
+  risk_note: null
+  source_page: 2
+- task_id: '6.2'
+  phase: 6. Kiểm thử, bảo mật & sẵn sàng Alpha
+  workstream: Kiểm thử (QA)
+  work_group: Dữ liệu kiểm thử chuẩn
+  task: Tạo dữ liệu kiểm thử đại diện
+  description: Dữ liệu tổng hợp/ẩn danh cho 5 kịch bản, định danh đa kênh, hội thoại nhiễu, thiếu nguồn.
+  suggested_owner: null
+  priority: P0
+  status: Chưa bắt đầu
+  start_date: '2027-01-08'
+  deadline: '2027-01-15'
+  duration_days: 8
+  effort_person_days: 3.0
+  gate_or_milestone: null
+  deliverable: Dữ liệu kiểm thử chuẩn
+  risk_note: null
+  source_page: 2
+- task_id: '6.3'
+  phase: 6. Kiểm thử, bảo mật & sẵn sàng Alpha
+  workstream: Kiểm thử (QA)
+  work_group: Tích hợp
+  task: Kiểm thử lỗi đồng bộ Pancake
+  description: Token hết hạn, giới hạn tốc độ, webhook/polling trùng, thiếu tin nhắn, kết nối lại, nạp bù.
+  suggested_owner: null
+  priority: P0
+  status: Chưa bắt đầu
+  start_date: '2027-01-18'
+  deadline: '2027-01-29'
+  duration_days: 12
+  effort_person_days: 5.0
+  gate_or_milestone: null
+  deliverable: Connector QA báo cáo
+  risk_note: null
+  source_page: 2
+- task_id: '6.4'
+  phase: 6. Kiểm thử, bảo mật & sẵn sàng Alpha
+  workstream: Kiểm thử (QA)
+  work_group: Quy trình
+  task: Kiểm thử E2E Marketing -> Doanh thu
+  description: 'Tự động/thủ công E2E: hội thoại->lead->handoff- >contact->theo dõi tiếp->Won/Lost->phễu.'
+  suggested_owner: null
+  priority: P0
+  status: Chưa bắt đầu
+  start_date: '2027-01-20'
+  deadline: '2027-02-02'
+  duration_days: 14
+  effort_person_days: 5.0
+  gate_or_milestone: null
+  deliverable: E2E pass báo cáo
+  risk_note: null
+  source_page: 2
+- task_id: '6.5'
+  phase: 6. Kiểm thử, bảo mật & sẵn sàng Alpha
+  workstream: Bảo mật
+  work_group: Quyền truy cập
+  task: Rà soát RBAC / cách ly khách hàng
+  description: Kiểm tra Sales không truy cập Lead/khách hàng khác; hành động quản trị có kiểm toán; giới hạn quyền truy cập
+    bí mật kết nối.
+  suggested_owner: null
+  priority: P0
+  status: Chưa bắt đầu
+  start_date: '2027-01-25'
+  deadline: '2027-02-03'
+  duration_days: 10
+  effort_person_days: 3.0
+  gate_or_milestone: null
+  deliverable: Danh sách kiểm tra bảo mật
+  risk_note: null
+  source_page: 2
+- task_id: '6.6'
+  phase: 6. Kiểm thử, bảo mật & sẵn sàng Alpha
+  workstream: Bảo mật
+  work_group: Quyền riêng tư
+  task: Chính sách lưu/xoá dữ liệu ban đầu
+  description: Định nghĩa thời hạn lưu dữ liệu Pilot, quy trình xoá, xuất/sao lưu, xử lý dữ liệu nhạy cảm; rà soát pháp lý
+    trước khi dùng dữ liệu khách hàng.
+  suggested_owner: null
+  priority: P0
+  status: Chưa bắt đầu
+  start_date: '2027-01-18'
+  deadline: '2027-02-05'
+  duration_days: 19
+  effort_person_days: 3.0
+  gate_or_milestone: null
+  deliverable: Chính sách riêng tư/lưu trữ Pilot
+  risk_note: null
+  source_page: 2
+- task_id: '6.7'
+  phase: 6. Kiểm thử, bảo mật & sẵn sàng Alpha
+  workstream: Kỹ thuật
+  work_group: Độ ổn định
+  task: Sao lưu/khôi phục + giám sát
+  description: Sao lưu hàng ngày khi phù hợp, kiểm thử khôi phục, cảnh báo job và trang sức khoẻ kết nối cho nhóm nội bộ.
+  suggested_owner: null
+  priority: P1
+  status: Chưa bắt đầu
+  start_date: '2027-01-25'
+  deadline: '2027-02-05'
+  duration_days: 12
+  effort_person_days: 4.0
+  gate_or_milestone: null
+  deliverable: Vận hành readiness
+  risk_note: null
+  source_page: 2
+- task_id: '6.8'
+  phase: 6. Kiểm thử, bảo mật & sẵn sàng Alpha
+  workstream: Sản phẩm
+  work_group: Thiết lập đo lường
+  task: Sự kiện phân tích sản phẩm
+  description: Theo dõi kích hoạt, handoff, contact, theo dõi tiếp, kết quả, phản hồi AI, lỗi; avoid chỉ số MAU hình thức.
+  suggested_owner: null
+  priority: P1
+  status: Chưa bắt đầu
+  start_date: '2027-01-25'
+  deadline: '2027-02-05'
+  duration_days: 12
+  effort_person_days: 3.0
+  gate_or_milestone: null
+  deliverable: Gắn đo lường sử dụng
+  risk_note: null
+  source_page: 2
+- task_id: '6.9'
+  phase: 6. Kiểm thử, bảo mật & sẵn sàng Alpha
+  workstream: Thành công KH/Vận hành
+  work_group: Triển khai
+  task: Viết sổ tay triển khai Pilot
+  description: Khám phá -> hiện trạng -> buổi chốt định nghĩa -> cấu hình -> đào tạo -> theo dõi sát -> rà soát tuần -> tổng
+    kết kinh doanh.
+  suggested_owner: null
+  priority: P0
+  status: Chưa bắt đầu
+  start_date: '2027-01-18'
+  deadline: '2027-02-05'
+  duration_days: 19
+  effort_person_days: 4.0
+  gate_or_milestone: null
+  deliverable: Sổ tay triển khai
+  risk_note: null
+  source_page: 2
+- task_id: '6.10'
+  phase: 6. Kiểm thử, bảo mật & sẵn sàng Alpha
+  workstream: Thành công KH/Vận hành
+  work_group: Đào tạo
+  task: Tạo đào tạo theo vai trò
+  description: Marketing 30m, Sales 45m, Quản lý 30m; theo tác vụ, không tour tính năng.
+  suggested_owner: null
+  priority: P0
+  status: Chưa bắt đầu
+  start_date: '2027-01-25'
+  deadline: '2027-02-08'
+  duration_days: 15
+  effort_person_days: 4.0
+  gate_or_milestone: null
+  deliverable: Tài liệu/kịch bản đào tạo
+  risk_note: null
+  source_page: 2
+- task_id: '6.11'
+  phase: 6. Kiểm thử, bảo mật & sẵn sàng Alpha
+  workstream: Tiếp cận thị trường (GTM)
+  work_group: Sẵn sàng Pilot
+  task: Chọn 3-5 đối tác thiết kế Đợt 1
+  description: Dùng điểm sàng lọc; ký phạm vi/quyền truy cập dữ liệu/cam kết người bảo trợ; ưu tiên cùng ngành nếu có thể.
+  suggested_owner: null
+  priority: P0
+  status: Chưa bắt đầu
+  start_date: '2027-01-18'
+  deadline: '2027-02-05'
+  duration_days: 19
+  effort_person_days: 3.0
+  gate_or_milestone: null
+  deliverable: Nhóm Pilot Đợt 1
+  risk_note: null
+  source_page: 2
+- task_id: '6.12'
+  phase: 6. Kiểm thử, bảo mật & sẵn sàng Alpha
+  workstream: Tiếp cận thị trường (GTM)
+  work_group: Hợp đồng
+  task: Thỏa thuận Pilot / DPA tối thiểu
+  description: Phạm vi, trách nhiệm, xử lý dữ liệu, bảo mật thông tin, giới hạn hỗ trợ, phí Pilot nếu áp dụng.
+  suggested_owner: null
+  priority: P0
+  status: Chưa bắt đầu
+  start_date: '2027-01-25'
+  deadline: '2027-02-08'
+  duration_days: 15
+  effort_person_days: 3.0
+  gate_or_milestone: null
+  deliverable: Mẫu thỏa thuận Pilot
+  risk_note: null
+  source_page: 2
+- task_id: '6.13'
+  phase: 6. Kiểm thử, bảo mật & sẵn sàng Alpha
+  workstream: Sản phẩm
+  work_group: Alpha
+  task: Tuần dùng thử nội bộ
+  description: Nhóm nòng cốt chạy quy trình mô phỏng + nội bộ; ghi lỗi và điểm ma sát hàng ngày.
+  suggested_owner: null
+  priority: P0
+  status: Chưa bắt đầu
+  start_date: '2027-02-01'
+  deadline: '2027-02-05'
+  duration_days: 5
+  effort_person_days: 5.0
+  gate_or_milestone: null
+  deliverable: Nhật ký lỗi dùng thử nội bộ
+  risk_note: null
+  source_page: 2
+- task_id: '6.14'
+  phase: 6. Kiểm thử, bảo mật & sẵn sàng Alpha
+  workstream: Sản phẩm
+  work_group: Quyết định qua cổng
+  task: 'Cổng 3: Sẵn sàng Alpha?'
+  description: Cho Pilot chạy nếu E2E P0 đạt, không có lỗi bảo mật nghiêm trọng, sổ tay/đào tạo sẵn sàng và kết nối đủ ổn
+    định.
+  suggested_owner: null
+  priority: P0
+  status: Chưa bắt đầu
+  start_date: '2027-02-12'
+  deadline: '2027-02-12'
+  duration_days: 1
+  effort_person_days: 1.0
+  gate_or_milestone: Cổng 3 - 12/02
+  deliverable: Quyết định Alpha đi/không đi
+  risk_note: null
+  source_page: 2
+- task_id: '7.1'
+  phase: 7. Pilot với đối tác thiết kế — Đợt 1
+  workstream: Triển khai
+  work_group: Chuẩn bị Pilot
+  task: Khởi động + lập bản đồ quy trình từng đối tác
+  description: Lập bản đồ thu hút khách -> Pancake -> bàn giao -> Sales - > kết quả; xác định điểm khác so với chuẩn.
+  suggested_owner: null
+  priority: P0
+  status: Chưa bắt đầu
+  start_date: '2027-02-15'
+  deadline: '2027-02-19'
+  duration_days: 5
+  effort_person_days: 5.0
+  gate_or_milestone: null
+  deliverable: Hiện tại-trạng thái maps
+  risk_note: null
+  source_page: 2
+- task_id: '7.2'
+  phase: 7. Pilot với đối tác thiết kế — Đợt 1
+  workstream: Triển khai
+  work_group: Đo hiện trạng
+  task: Chỉ số hiện trạng từng đối tác
+  description: Số lượng Lead, thời gian liên hệ đầu tiên, mất mát bàn giao, theo dõi tiếp, độ bao phủ kết quả, công sức báo
+    cáo trước Pilot.
+  suggested_owner: null
+  priority: P0
+  status: Chưa bắt đầu
+  start_date: '2027-02-15'
+  deadline: '2027-02-19'
+  duration_days: 5
+  effort_person_days: 3.0
+  gate_or_milestone: null
+  deliverable: Bảng điểm hiện trạng
+  risk_note: null
+  source_page: 2
+- task_id: '7.3'
+  phase: 7. Pilot với đối tác thiết kế — Đợt 1
+  workstream: Triển khai
+  work_group: Định nghĩa nghiệp vụ
+  task: Buổi chốt định nghĩa doanh thu
+  description: Thống nhất Lead/Đạt chuẩn/Không liên hệ được/Won/Lost/Doanh thu/SLA; ghi lại ngoại lệ.
+  suggested_owner: null
+  priority: P0
+  status: Chưa bắt đầu
+  start_date: '2027-02-16'
+  deadline: '2027-02-19'
+  duration_days: 4
+  effort_person_days: 4.0
+  gate_or_milestone: null
+  deliverable: Hợp đồng dữ liệu khách hàng
+  risk_note: null
+  source_page: 2
+- task_id: '7.4'
+  phase: 7. Pilot với đối tác thiết kế — Đợt 1
+  workstream: Triển khai
+  work_group: Thiết lập
+  task: Kết nối Pancake + cấu hình không gian khách hàng
+  description: Tạo thủ công, người dùng/vai trò, định nghĩa đo lường, ánh xạ nguồn, kiểm tra sức khoẻ dữ liệu.
+  suggested_owner: null
+  priority: P0
+  status: Chưa bắt đầu
+  start_date: '2027-02-17'
+  deadline: '2027-02-22'
+  duration_days: 6
+  effort_person_days: 4.0
+  gate_or_milestone: null
+  deliverable: Không gian làm việc đã cấu hình
+  risk_note: null
+  source_page: 2
+- task_id: '7.5'
+  phase: 7. Pilot với đối tác thiết kế — Đợt 1
+  workstream: Triển khai
+  work_group: Đào tạo
+  task: Đào tạo Marketing / Sales / Quản lý
+  description: Đào tạo theo vai trò, hoàn thành 1 luồng Lead thật, ghi lại điểm gây khó hiểu.
+  suggested_owner: null
+  priority: P0
+  status: Chưa bắt đầu
+  start_date: '2027-02-22'
+  deadline: '2027-02-24'
+  duration_days: 3
+  effort_person_days: 4.0
+  gate_or_milestone: null
+  deliverable: Trained pilot người dùng
+  risk_note: null
+  source_page: 2
+- task_id: '7.6'
+  phase: 7. Pilot với đối tác thiết kế — Đợt 1
+  workstream: Triển khai
+  work_group: Vận hành thật
+  task: Đợt 1 vận hành thật
+  description: Bắt đầu xử lý Lead thật; hỗ trợ hàng ngày trong tuần đầu; nhóm sản phẩm theo dõi chỉ số trọng yếu.
+  suggested_owner: null
+  priority: P0
+  status: Chưa bắt đầu
+  start_date: '2027-02-24'
+  deadline: '2027-02-24'
+  duration_days: 1
+  effort_person_days: 1.0
+  gate_or_milestone: 'Mốc: Đợt 1 vận hành thật'
+  deliverable: Pilot vận hành thật
+  risk_note: null
+  source_page: 2
+- task_id: '7.7'
+  phase: 7. Pilot với đối tác thiết kế — Đợt 1
+  workstream: Thành công KH/Vận hành
+  work_group: Theo dõi sát
+  task: Theo dõi sát tuần 1
+  description: Quan sát hành vi bàn giao/liên hệ/kết quả; không chỉ dựa vào yêu cầu tính năng; ghi cách xử lý tạm và khoảng
+    trống dữ liệu.
+  suggested_owner: null
+  priority: P0
+  status: Chưa bắt đầu
+  start_date: '2027-02-24'
+  deadline: '2027-03-03'
+  duration_days: 8
+  effort_person_days: 5.0
+  gate_or_milestone: null
+  deliverable: Theo dõi thực tế findings
+  risk_note: null
+  source_page: 2
+- task_id: '7.8'
+  phase: 7. Pilot với đối tác thiết kế — Đợt 1
+  workstream: Kỹ thuật
+  work_group: Hỗ trợ Pilot
+  task: Sửa lỗi P0/P1 của Pilot
+  description: Phân loại hàng ngày; chỉ hotfix lỗi nghiêm trọng; tránh để nhóm bị kéo vào yêu cầu tuỳ biến trừ khi đó là trở
+    ngại lặp lại.
+  suggested_owner: null
+  priority: P0
+  status: Chưa bắt đầu
+  start_date: '2027-02-24'
+  deadline: '2027-03-12'
+  duration_days: 17
+  effort_person_days: 8.0
+  gate_or_milestone: null
+  deliverable: Các bản vá ổn định Pilot
+  risk_note: null
+  source_page: 3
+- task_id: '7.9'
+  phase: 7. Pilot với đối tác thiết kế — Đợt 1
+  workstream: Thành công KH/Vận hành
+  work_group: Rà soát hàng tuần
+  task: 'Rà soát doanh thu hàng tuần #1-#4'
+  description: Rà soát Lead/bàn giao/liên hệ/theo dõi tiếp/kết quả/sức khoẻ dữ liệu + điểm rơi rớt lớn nhất; ghi lại quyết
+    định khách hàng.
+  suggested_owner: null
+  priority: P0
+  status: Chưa bắt đầu
+  start_date: '2027-03-01'
+  deadline: '2027-03-26'
+  duration_days: 26
+  effort_person_days: 8.0
+  gate_or_milestone: null
+  deliverable: 4 ghi chép rà soát tuần
+  risk_note: null
+  source_page: 3
+- task_id: '7.10'
+  phase: 7. Pilot với đối tác thiết kế — Đợt 1
+  workstream: Nghiên cứu
+  work_group: Mức độ sử dụng
+  task: Đo mức sử dụng & hành vi
+  description: '% Lead đi qua sản phẩm, Sales thực sự xử lý, độ bao phủ kết quả, mức hoàn thành theo dõi tiếp, mẫu lách quy
+    trình.'
+  suggested_owner: null
+  priority: P0
+  status: Chưa bắt đầu
+  start_date: '2027-03-01'
+  deadline: '2027-03-26'
+  duration_days: 26
+  effort_person_days: 4.0
+  gate_or_milestone: null
+  deliverable: Mức sử dụng dashboard
+  risk_note: null
+  source_page: 3
+- task_id: '7.11'
+  phase: 7. Pilot với đối tác thiết kế — Đợt 1
+  workstream: Nghiên cứu
+  work_group: Giá trị
+  task: Đo tác động kinh doanh
+  description: 'So sánh hiện trạng với Pilot: liên hệ đầu tiên, chưa liên hệ, quá hạn, thời gian quản lý làm báo cáo, Lead
+    thu hồi có bằng chứng.'
+  suggested_owner: null
+  priority: P0
+  status: Chưa bắt đầu
+  start_date: '2027-03-15'
+  deadline: '2027-03-31'
+  duration_days: 17
+  effort_person_days: 4.0
+  gate_or_milestone: null
+  deliverable: Phân tích tác động Pilot
+  risk_note: null
+  source_page: 3
+- task_id: '7.12'
+  phase: 7. Pilot với đối tác thiết kế — Đợt 1
+  workstream: Sản phẩm
+  work_group: Khả năng lặp lại
+  task: Theo dõi phần chuẩn vs tuỳ biến theo đối tác
+  description: 'Mỗi phân loại điểm khác: mẫu theo ngành, cấu hình, riêng lẻ, thiếu lõi thật.'
+  suggested_owner: null
+  priority: P0
+  status: Chưa bắt đầu
+  start_date: '2027-02-24'
+  deadline: '2027-03-31'
+  duration_days: 36
+  effort_person_days: 4.0
+  gate_or_milestone: null
+  deliverable: Ma trận khả năng lặp lại
+  risk_note: null
+  source_page: 3
+- task_id: '7.13'
+  phase: 7. Pilot với đối tác thiết kế — Đợt 1
+  workstream: Tiếp cận thị trường (GTM)
+  work_group: Thương mại
+  task: Kiểm tra gia hạn/tiếp tục trả phí
+  description: Thảo luận giá trị, mức sẵn sàng chi trả, phí triển khai và mô hình định kỳ trước khi Pilot kết thúc; ghi lại
+    phản đối.
+  suggested_owner: null
+  priority: P0
+  status: Chưa bắt đầu
+  start_date: '2027-03-22'
+  deadline: '2027-04-01'
+  duration_days: 11
+  effort_person_days: 3.0
+  gate_or_milestone: null
+  deliverable: Commercial bằng chứng
+  risk_note: null
+  source_page: 3
+- task_id: '7.14'
+  phase: 7. Pilot với đối tác thiết kế — Đợt 1
+  workstream: Sản phẩm
+  work_group: Tổng kết kinh doanh
+  task: Tổng kết kinh doanh Đợt 1
+  description: Trình bày trước/sau, lưu ý về sức khoẻ dữ liệu, giá trị thu hồi, mức sử dụng, trở ngại chưa giải quyết và trích
+    dẫn/quyết định của khách hàng.
+  suggested_owner: null
+  priority: P0
+  status: Chưa bắt đầu
+  start_date: '2027-04-01'
+  deadline: '2027-04-02'
+  duration_days: 2
+  effort_person_days: 3.0
+  gate_or_milestone: Cổng 4 - 02/04
+  deliverable: Tổng kết kinh doanh Đợt 1
+  risk_note: null
+  source_page: 3
+- task_id: '7.15'
+  phase: 7. Pilot với đối tác thiết kế — Đợt 1
+  workstream: Sản phẩm
+  work_group: Quyết định qua cổng
+  task: 'Cổng 4: giá trị có lặp lại?'
+  description: 'Quyết định tiếp tục/thu hẹp/chuyên sâu theo ngành. Gợi ý đạt: 3+ đối tác cho thấy giá trị rõ, quy trình phần
+    lớn lặp lại, công sức triển khai giảm và người bảo trợ sẵn sàng trả tiền/tiếp tục.'
+  suggested_owner: null
+  priority: P0
+  status: Chưa bắt đầu
+  start_date: '2027-04-02'
+  deadline: '2027-04-02'
+  duration_days: 1
+  effort_person_days: 1.0
+  gate_or_milestone: Cổng 4 - 02/04
+  deliverable: Quyết định Đợt 2
+  risk_note: null
+  source_page: 3
+- task_id: '8.1'
+  phase: 8. Chuẩn hoá sản phẩm v0.2
+  workstream: Sản phẩm
+  work_group: Tổng hợp nghiên cứu
+  task: Tổng hợp bài học Đợt 1
+  description: Xếp hạng trở ngại lặp lại/yếu tố tạo giá trị; loại yêu cầu đơn lẻ; cập nhật ICP và nguyên tắc sản phẩm.
+  suggested_owner: null
+  priority: P0
+  status: Chưa bắt đầu
+  start_date: '2027-04-05'
+  deadline: '2027-04-07'
+  duration_days: 3
+  effort_person_days: 2.0
+  gate_or_milestone: null
+  deliverable: Bản ghi nhớ bài học
+  risk_note: null
+  source_page: 3
+- task_id: '8.2'
+  phase: 8. Chuẩn hoá sản phẩm v0.2
+  workstream: Sản phẩm
+  work_group: Phạm vi
+  task: Xác định thay đổi v0.2
+  description: Chỉ thay đổi những gì giúp tăng khả năng lặp lại, giảm thời gian triển khai, tăng chất lượng dữ liệu hoặc giá
+    trị cốt lõi.
+  suggested_owner: null
+  priority: P0
+  status: Chưa bắt đầu
+  start_date: '2027-04-07'
+  deadline: '2027-04-08'
+  duration_days: 2
+  effort_person_days: 1.0
+  gate_or_milestone: null
+  deliverable: v0.2 phạm vi
+  risk_note: null
+  source_page: 3
+- task_id: '8.3'
+  phase: 8. Chuẩn hoá sản phẩm v0.2
+  workstream: Kỹ thuật
+  work_group: Hướng dẫn triển khai ban đầu
+  task: Công cụ thiết lập nội bộ
+  description: Giảm công việc thủ công khi tạo tổ chức/người dùng/kết nối/cấu hình; chưa có tự phục vụ công khai.
+  suggested_owner: null
+  priority: P1
+  status: Chưa bắt đầu
+  start_date: '2027-04-05'
+  deadline: '2027-04-16'
+  duration_days: 12
+  effort_person_days: 5.0
+  gate_or_milestone: null
+  deliverable: Công cụ cấu hình v0.2
+  risk_note: null
+  source_page: 3
+- task_id: '8.4'
+  phase: 8. Chuẩn hoá sản phẩm v0.2
+  workstream: Sản phẩm/Kỹ thuật
+  work_group: Chất lượng dữ liệu
+  task: Sửa 3 khoảng trống lớn nhất về dòng liên kết nguồn/sức khoẻ dữ liệu
+  description: Ưu tiên lỗi thiếu nguồn/kết quả/trùng lặp quan sát được trong Pilot.
+  suggested_owner: null
+  priority: P0
+  status: Chưa bắt đầu
+  start_date: '2027-04-05'
+  deadline: '2027-04-16'
+  duration_days: 12
+  effort_person_days: 6.0
+  gate_or_milestone: null
+  deliverable: Cải thiện sức khoẻ dữ liệu
+  risk_note: null
+  source_page: 3
+- task_id: '8.5'
+  phase: 8. Chuẩn hoá sản phẩm v0.2
+  workstream: Sản phẩm/Kỹ thuật
+  work_group: Mức độ sử dụng
+  task: Sửa 3 điểm ma sát lớn nhất của Sales
+  description: Giảm số thao tác, cải thiện hàng đợi/bối cảnh, làm rõ trạng thái; dựa trên hành vi quan sát, không chỉ yêu
+    cầu.
+  suggested_owner: null
+  priority: P0
+  status: Chưa bắt đầu
+  start_date: '2027-04-05'
+  deadline: '2027-04-16'
+  duration_days: 12
+  effort_person_days: 6.0
+  gate_or_milestone: null
+  deliverable: Trải nghiệm Sales v0.2
+  risk_note: null
+  source_page: 3
+- task_id: '8.6'
+  phase: 8. Chuẩn hoá sản phẩm v0.2
+  workstream: Thành công KH/Vận hành
+  work_group: Triển khai
+  task: Chuẩn hoá gói triển khai
+  description: Mẫu cho khởi động, định nghĩa, thiết lập, đào tạo, rà soát tuần; đo số giờ-người triển khai.
+  suggested_owner: null
+  priority: P0
+  status: Chưa bắt đầu
+  start_date: '2027-04-05'
+  deadline: '2027-04-14'
+  duration_days: 10
+  effort_person_days: 4.0
+  gate_or_milestone: null
+  deliverable: Bộ triển khai v1
+  risk_note: null
+  source_page: 3
+- task_id: '8.7'
+  phase: 8. Chuẩn hoá sản phẩm v0.2
+  workstream: Tiếp cận thị trường (GTM)
+  work_group: Gói chào bán
+  task: Hoàn thiện gói Pilot trả phí
+  description: Dùng bằng chứng Đợt 1 để viết lại điều kiện sàng lọc, phạm vi, khoảng giá, tiêu chí thành công và loại trừ.
+  suggested_owner: null
+  priority: P0
+  status: Chưa bắt đầu
+  start_date: '2027-04-05'
+  deadline: '2027-04-09'
+  duration_days: 5
+  effort_person_days: 2.0
+  gate_or_milestone: null
+  deliverable: Gói Pilot trả phí v1
+  risk_note: null
+  source_page: 3
+- task_id: '9.1'
+  phase: 9. Pilot trả phí — Đợt 2
+  workstream: Tiếp cận thị trường (GTM)
+  work_group: Danh sách cơ hội bán hàng
+  task: Tuyển 5-10 khách tiềm năng cho Pilot trả phí
+  description: Ưu tiên cùng ICP/ngành; sàng lọc bằng bảng chấm điểm chuẩn; không nhận dự án CRM riêng.
+  suggested_owner: null
+  priority: P0
+  status: Chưa bắt đầu
+  start_date: '2027-04-05'
+  deadline: '2027-04-23'
+  duration_days: 19
+  effort_person_days: 5.0
+  gate_or_milestone: null
+  deliverable: Danh sách cơ hội Đợt 2
+  risk_note: null
+  source_page: 3
+- task_id: '9.2'
+  phase: 9. Pilot trả phí — Đợt 2
+  workstream: Tiếp cận thị trường (GTM)
+  work_group: Sales
+  task: Thực hiện khám phá/demo chuẩn
+  description: Dùng demo theo quy trình vấn đề; ghi lại độ dài chu kỳ bán và phản đối; tránh bán theo danh sách tính năng.
+  suggested_owner: null
+  priority: P0
+  status: Chưa bắt đầu
+  start_date: '2027-04-12'
+  deadline: '2027-04-30'
+  duration_days: 19
+  effort_person_days: 5.0
+  gate_or_milestone: null
+  deliverable: Ghi chép khám phá/demo
+  risk_note: null
+  source_page: 3
+- task_id: '9.3'
+  phase: 9. Pilot trả phí — Đợt 2
+  workstream: Tiếp cận thị trường (GTM)
+  work_group: Thương mại
+  task: Chốt 5+ Pilot trả phí
+  description: Kiểm tra phí Pilot + đề xuất phí định kỳ; chấp nhận hoá đơn/hợp đồng thủ công.
+  suggested_owner: null
+  priority: P0
+  status: Chưa bắt đầu
+  start_date: '2027-04-19'
+  deadline: '2027-05-07'
+  duration_days: 19
+  effort_person_days: 4.0
+  gate_or_milestone: null
+  deliverable: Hợp đồng Pilot trả phí
+  risk_note: null
+  source_page: 3
+- task_id: '9.4'
+  phase: 9. Pilot trả phí — Đợt 2
+  workstream: Triển khai
+  work_group: Hướng dẫn triển khai ban đầu
+  task: Triển khai Đợt 2 bằng sổ tay chuẩn
+  description: Theo dõi giờ theo khách, điểm khác và thời gian tới giá trị; nhóm không được tuỳ biến không giới hạn.
+  suggested_owner: null
+  priority: P0
+  status: Chưa bắt đầu
+  start_date: '2027-04-26'
+  deadline: '2027-05-14'
+  duration_days: 19
+  effort_person_days: 10.0
+  gate_or_milestone: null
+  deliverable: Các lần vận hành thật Đợt 2
+  risk_note: null
+  source_page: 3
+- task_id: '9.5'
+  phase: 9. Pilot trả phí — Đợt 2
+  workstream: Đo lường
+  work_group: Hiệu quả kinh tế
+  task: Theo dõi hiệu quả kinh tế triển khai/hỗ trợ
+  description: Giờ thiết lập, yêu cầu hỗ trợ, chi phí hạ tầng/AI, quy mô khách hàng, doanh thu; so với mô hình mục tiêu.
+  suggested_owner: null
+  priority: P0
+  status: Chưa bắt đầu
+  start_date: '2027-04-26'
+  deadline: '2027-05-21'
+  duration_days: 26
+  effort_person_days: 3.0
+  gate_or_milestone: null
+  deliverable: Hiệu quả kinh tế triển khai
+  risk_note: null
+  source_page: 3
+- task_id: '9.6'
+  phase: 9. Pilot trả phí — Đợt 2
+  workstream: Đo lường
+  work_group: Duy trì sử dụng/Giá trị
+  task: Theo dõi chỉ báo sớm về mức sử dụng/giá trị trong 30 ngày
+  description: Mức sử dụng, độ bao phủ kết quả, tỷ lệ tuân thủ theo dõi tiếp, mức sử dụng hàng tuần của quản lý và mức sẵn
+    sàng tiếp tục.
+  suggested_owner: null
+  priority: P0
+  status: Chưa bắt đầu
+  start_date: '2027-05-03'
+  deadline: '2027-05-28'
+  duration_days: 26
+  effort_person_days: 4.0
+  gate_or_milestone: null
+  deliverable: Bảng theo dõi giá trị Đợt 2
+  risk_note: null
+  source_page: 3
+- task_id: '9.7'
+  phase: 9. Pilot trả phí — Đợt 2
+  workstream: Sản phẩm
+  work_group: Khả năng lặp lại
+  task: Cập nhật ma trận khả năng lặp lại
+  description: 'Mục tiêu cần biết: >=70-80% quy trình có thể chuẩn hoá; xác định mẫu theo ngành và thay đổi lõi.'
+  suggested_owner: null
+  priority: P0
+  status: Chưa bắt đầu
+  start_date: '2027-05-17'
+  deadline: '2027-05-28'
+  duration_days: 12
+  effort_person_days: 3.0
+  gate_or_milestone: null
+  deliverable: Khả năng lặp lại v2
+  risk_note: null
+  source_page: 3
+- task_id: '10.1'
+  phase: 10. Sẵn sàng thương mại
+  workstream: Chiến lược
+  work_group: ICP
+  task: Chốt ICP v1 cho ra mắt giới hạn
+  description: Định nghĩa rõ khách nào được bán và điều kiện loại trừ dựa trên bằng chứng Đợt 1+2.
+  suggested_owner: null
+  priority: P0
+  status: Chưa bắt đầu
+  start_date: '2027-05-24'
+  deadline: '2027-05-28'
+  duration_days: 5
+  effort_person_days: 1.5
+  gate_or_milestone: null
+  deliverable: ICP v1
+  risk_note: null
+  source_page: 3
+- task_id: '10.2'
+  phase: 10. Sẵn sàng thương mại
+  workstream: Tiếp cận thị trường (GTM)
+  work_group: Định vị
+  task: Chốt định vị/thông điệp v1
+  description: Định vị theo vấn đề; nội bộ có thể giữ tên Revenue Continuity, còn thông điệp công khai phải cụ thể.
+  suggested_owner: null
+  priority: P1
+  status: Chưa bắt đầu
+  start_date: '2027-05-24'
+  deadline: '2027-05-31'
+  duration_days: 8
+  effort_person_days: 2.0
+  gate_or_milestone: null
+  deliverable: Thông điệp v1
+  risk_note: null
+  source_page: 3
+- task_id: '10.3'
+  phase: 10. Sẵn sàng thương mại
+  workstream: Tiếp cận thị trường (GTM)
+  work_group: Định giá
+  task: Chốt gói/định giá v1
+  description: Quyết định phí triển khai + phí nền tảng/phí theo mức sử dụng định kỳ; không mặc định theo seat nếu chưa có
+    bằng chứng.
+  suggested_owner: null
+  priority: P0
+  status: Chưa bắt đầu
+  start_date: '2027-05-24'
+  deadline: '2027-06-02'
+  duration_days: 10
+  effort_person_days: 2.0
+  gate_or_milestone: null
+  deliverable: Định giá v1
+  risk_note: null
+  source_page: 3
+- task_id: '10.4'
+  phase: 10. Sẵn sàng thương mại
+  workstream: Tiếp cận thị trường (GTM)
+  work_group: Trang web
+  task: Trang giới thiệu + CTA đăng ký
+  description: Ban đầu không tự đăng ký; Đặt lịch rà soát quy trình / Đăng ký Pilot; nêu điều kiện phù hợp và bằng chứng tình
+    huống.
+  suggested_owner: null
+  priority: P1
+  status: Chưa bắt đầu
+  start_date: '2027-05-31'
+  deadline: '2027-06-07'
+  duration_days: 8
+  effort_person_days: 4.0
+  gate_or_milestone: null
+  deliverable: Trang giới thiệu ra mắt
+  risk_note: null
+  source_page: 3
+- task_id: '10.5'
+  phase: 10. Sẵn sàng thương mại
+  workstream: Tiếp cận thị trường (GTM)
+  work_group: Tài liệu hỗ trợ Sales
+  task: Kịch bản demo + xử lý phản đối
+  description: Vì sao không chỉ dùng CRM/Pancake/Excel+n8n; lưu ý về độ chính xác dữ liệu; kỳ vọng triển khai.
+  suggested_owner: null
+  priority: P1
+  status: Chưa bắt đầu
+  start_date: '2027-05-31'
+  deadline: '2027-06-07'
+  duration_days: 8
+  effort_person_days: 3.0
+  gate_or_milestone: null
+  deliverable: Sổ tay Sales v1
+  risk_note: null
+  source_page: 3
+- task_id: '10.6'
+  phase: 10. Sẵn sàng thương mại
+  workstream: Thành công KH/Vận hành
+  work_group: Hỗ trợ
+  task: Chính sách hỗ trợ & chuyển cấp
+  description: Định nghĩa kênh, mức nghiêm trọng, mục tiêu phản hồi, luồng sự cố kết nối và trách nhiệm khách hàng.
+  suggested_owner: null
+  priority: P0
+  status: Chưa bắt đầu
+  start_date: '2027-05-24'
+  deadline: '2027-06-02'
+  duration_days: 10
+  effort_person_days: 2.0
+  gate_or_milestone: null
+  deliverable: Chính sách hỗ trợ
+  risk_note: null
+  source_page: 3
+- task_id: '10.7'
+  phase: 10. Sẵn sàng thương mại
+  workstream: Thành công KH/Vận hành
+  work_group: Thành công khách hàng
+  task: Chương trình triển khai & sử dụng 30 ngày
+  description: Các mốc chuẩn từ khởi động đến tổng kết kinh doanh đầu tiên; định nghĩa chỉ số sức khoẻ.
+  suggested_owner: null
+  priority: P1
+  status: Chưa bắt đầu
+  start_date: '2027-05-24'
+  deadline: '2027-06-04'
+  duration_days: 12
+  effort_person_days: 3.0
+  gate_or_milestone: null
+  deliverable: Sổ tay Thành công KH v1
+  risk_note: null
+  source_page: 3
+- task_id: '10.8'
+  phase: 10. Sẵn sàng thương mại
+  workstream: Pháp lý/Bảo mật
+  work_group: Pháp lý thương mại
+  task: Điều khoản / Quyền riêng tư / DPA ban đầu
+  description: Rà soát xử lý dữ liệu khách hàng, sử dụng AI, nhà xử lý phụ, lưu/xoá dữ liệu và trách nhiệm kết nối.
+  suggested_owner: null
+  priority: P0
+  status: Chưa bắt đầu
+  start_date: '2027-05-17'
+  deadline: '2027-06-04'
+  duration_days: 19
+  effort_person_days: 4.0
+  gate_or_milestone: null
+  deliverable: Bộ pháp lý thương mại
+  risk_note: null
+  source_page: 3
+- task_id: '10.9'
+  phase: 10. Sẵn sàng thương mại
+  workstream: Bảo mật
+  work_group: Sẵn sàng bảo mật
+  task: Danh sách kiểm tra bảo mật cho v1 thương mại
+  description: Cách ly khách hàng, lưu thông tin xác thực, kiểm toán, sao lưu, ứng phó sự cố, rà soát quyền truy cập; ghi
+    rõ giới hạn đã biết.
+  suggested_owner: null
+  priority: P0
+  status: Chưa bắt đầu
+  start_date: '2027-05-17'
+  deadline: '2027-06-04'
+  duration_days: 19
+  effort_person_days: 4.0
+  gate_or_milestone: null
+  deliverable: Security readiness báo cáo
+  risk_note: null
+  source_page: 3
+- task_id: '10.10'
+  phase: 10. Sẵn sàng thương mại
+  workstream: Tài chính/Vận hành
+  work_group: Thanh toán
+  task: Quy trình thanh toán/hóa đơn thủ công
+  description: Định nghĩa lịch hợp đồng/hóa đơn/gia hạn; chưa cần hệ thống thanh toán tự phục vụ.
+  suggested_owner: null
+  priority: P1
+  status: Chưa bắt đầu
+  start_date: '2027-05-31'
+  deadline: '2027-06-04'
+  duration_days: 5
+  effort_person_days: 1.5
+  gate_or_milestone: null
+  deliverable: Quy trình thanh toán
+  risk_note: null
+  source_page: 3
+- task_id: '10.11'
+  phase: 10. Sẵn sàng thương mại
+  workstream: Sản phẩm
+  work_group: Phát hành
+  task: Đóng phạm vi v1
+  description: Đóng phạm vi ra mắt giới hạn; tạo danh sách việc sau ra mắt; không thêm tính năng tuỳ biến muộn.
+  suggested_owner: null
+  priority: P0
+  status: Chưa bắt đầu
+  start_date: '2027-06-01'
+  deadline: '2027-06-03'
+  duration_days: 3
+  effort_person_days: 1.0
+  gate_or_milestone: null
+  deliverable: v1 release phạm vi
+  risk_note: null
+  source_page: 3
+- task_id: '10.12'
+  phase: 10. Sẵn sàng thương mại
+  workstream: Chiến lược
+  work_group: Quyết định qua cổng
+  task: 'Cổng 5: Sẵn sàng thương mại?'
+  description: Đạt nếu giá trị lặp lại, khách sẵn sàng trả phí, hiệu quả kinh tế triển khai chấp nhận được, độ tin cậy dữ
+    liệu/bảo mật đủ mức và sổ tay hỗ trợ sẵn sàng.
+  suggested_owner: null
+  priority: P0
+  status: Chưa bắt đầu
+  start_date: '2027-06-04'
+  deadline: '2027-06-04'
+  duration_days: 1
+  effort_person_days: 1.0
+  gate_or_milestone: Cổng 5 - 04/06
+  deliverable: Ra mắt giới hạn decision
+  risk_note: null
+  source_page: 3
+- task_id: '11.1'
+  phase: 11. Ra mắt thương mại giới hạn & ổn định
+  workstream: Phát hành/Triển khai
+  work_group: Phát hành
+  task: Bản ứng viên phát hành v1
+  description: Phát hành bản v1 có đánh dấu phiên bản, kế hoạch chuyển đổi/hoàn tác, kiểm thử nhanh và ngưỡng giám sát.
+  suggested_owner: null
+  priority: P0
+  status: Chưa bắt đầu
+  start_date: '2027-06-07'
+  deadline: '2027-06-11'
+  duration_days: 5
+  effort_person_days: 3.0
+  gate_or_milestone: null
+  deliverable: Bản ứng viên phát hành v1 (RC)
+  risk_note: null
+  source_page: 3
+- task_id: '11.2'
+  phase: 11. Ra mắt thương mại giới hạn & ổn định
+  workstream: Phát hành/Triển khai
+  work_group: Ra mắt
+  task: Ra mắt giới hạn
+  description: Chỉ mở bán cho ICP đạt chuẩn; mặc định vẫn tạo tài khoản thủ công + triển khai có hướng dẫn.
+  suggested_owner: null
+  priority: P0
+  status: Chưa bắt đầu
+  start_date: '2027-06-14'
+  deadline: '2027-06-14'
+  duration_days: 1
+  effort_person_days: 1.0
+  gate_or_milestone: 'Mốc: 14/06/2027'
+  deliverable: v1 thương mại giới hạn
+  risk_note: null
+  source_page: 3
+- task_id: '11.3'
+  phase: 11. Ra mắt thương mại giới hạn & ổn định
+  workstream: Thành công KH/Vận hành
+  work_group: Ổn định hệ thống
+  task: Phân loại vấn đề ra mắt hàng ngày — 2 tuần đầu
+  description: Rà soát sự cố, kích hoạt, sức khoẻ kết nối, hỗ trợ, độ bao phủ dữ liệu; chỉ ưu tiên P0/P1.
+  suggested_owner: null
+  priority: P0
+  status: Chưa bắt đầu
+  start_date: '2027-06-14'
+  deadline: '2027-06-25'
+  duration_days: 12
+  effort_person_days: 6.0
+  gate_or_milestone: null
+  deliverable: Nhật ký xử lý sự cố khi ra mắt
+  risk_note: null
+  source_page: 3
+- task_id: '11.4'
+  phase: 11. Ra mắt thương mại giới hạn & ổn định
+  workstream: Đo lường
+  work_group: Chỉ số ra mắt
+  task: Theo dõi chỉ số nhóm ra mắt
+  description: Danh sách cơ hội đạt chuẩn, tỷ lệ chốt, giờ triển khai ban đầu, kích hoạt, độ bao phủ kết quả, mức sử dụng
+    hàng tuần của quản lý, gánh nặng hỗ trợ.
+  suggested_owner: null
+  priority: P0
+  status: Chưa bắt đầu
+  start_date: '2027-06-14'
+  deadline: '2027-06-30'
+  duration_days: 17
+  effort_person_days: 3.0
+  gate_or_milestone: null
+  deliverable: Bảng theo dõi nhóm ra mắt
+  risk_note: null
+  source_page: 3
+- task_id: '11.5'
+  phase: 11. Ra mắt thương mại giới hạn & ổn định
+  workstream: Sản phẩm
+  work_group: Bài học
+  task: Danh sách bài học 30 ngày
+  description: Ghi lại ma sát lặp lại, khoảng trống sản phẩm, phản đối GTM và đầu việc triển khai; gắn nhãn Lõi/Theo ngành/Riêng
+    lẻ.
+  suggested_owner: null
+  priority: P1
+  status: Chưa bắt đầu
+  start_date: '2027-06-14'
+  deadline: '2027-06-30'
+  duration_days: 17
+  effort_person_days: 2.0
+  gate_or_milestone: null
+  deliverable: Danh sách việc sau ra mắt
+  risk_note: null
+  source_page: 3
+- task_id: '11.6'
+  phase: 11. Ra mắt thương mại giới hạn & ổn định
+  workstream: Chiến lược
+  work_group: Giai đoạn tiếp theo
+  task: Quyết định hướng mở rộng
+  description: 'Rà soát cuối tháng 6: tiếp tục bán có Sales dẫn dắt, chuyên sâu hơn theo ngành, thêm kết nối nguồn thu hút
+    khách, đầu tư tự phục vụ hoặc lùi lại theo bằng chứng.'
+  suggested_owner: null
+  priority: P0
+  status: Chưa bắt đầu
+  start_date: '2027-06-30'
+  deadline: '2027-06-30'
+  duration_days: 1
+  effort_person_days: 1.0
+  gate_or_milestone: 'Mốc: Rà soát tháng 6'
+  deliverable: Quyết định chiến lược nửa cuối 2027
+  risk_note: null
+  source_page: 4

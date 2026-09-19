@@ -1,0 +1,70 @@
+{
+    "version":  1,
+    "story_id":  "BOOT-001",
+    "product_domain":  "platform",
+    "canonical_refs":  [
+                           "docs/canonical/PRODUCT_CONSTITUTION.md",
+                           "docs/canonical/ARCHITECTURE_CONSTITUTION.md",
+                           "docs/canonical/DOMAIN_INVARIANTS.md",
+                           "docs/canonical/INTEGRATION_PRINCIPLES.md",
+                           "docs/canonical/OPEN_DECISIONS.md"
+                       ],
+    "role":  "reviewer",
+    "allowed_skills":  [
+                           "comprehensive-review",
+                           "developer-essentials/code-review-excellence"
+                       ],
+    "mcp_profile":  "none",
+    "write_scope":  [
+                        "tmp/**"
+                    ],
+    "allowed_paths":  [
+                          "tmp/**"
+                      ],
+    "forbidden_paths":  [
+                            "product/**",
+                            "src/**",
+                            "tests/**",
+                            "docs/**",
+                            "templates/**",
+                            "ai-team/**",
+                            ".github/**",
+                            ".sdd/**",
+                            "production/**"
+                        ],
+    "acceptance_gates":  [
+                             "exec_contract",
+                             "review_report",
+                             "findings_evidence",
+                             "no_impl_diff",
+                             "canonical_unchanged",
+                             "no_prod_mutation",
+                             "no_auto_merge",
+                             "human_gate"
+                         ],
+    "required_gates":  [
+                           "exec_contract",
+                           "review_report",
+                           "findings_evidence",
+                           "no_impl_diff",
+                           "canonical_unchanged",
+                           "no_prod_mutation",
+                           "no_auto_merge",
+                           "human_gate"
+                       ],
+    "external_mutation_level":  "none",
+    "handoff_target":  "human-gate",
+    "open_decisions_not_to_resolve":  [
+                                          "CE-1",
+                                          "CE-2",
+                                          "MM-1",
+                                          "ID-1",
+                                          "ID-2",
+                                          "PM-1",
+                                          "LG-1"
+                                      ],
+    "merge_strategy":  "pr",
+    "auto_merge":  false,
+    "human_gate":  true,
+    "notes":  "Fresh-context read-only review. Never fix findings and never merge."
+}

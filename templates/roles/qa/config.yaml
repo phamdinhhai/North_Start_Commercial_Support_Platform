@@ -1,0 +1,3 @@
+default_model: cn/deepseek-v4-flash
+default_effort: normal
+max_tasks_per_session: 2

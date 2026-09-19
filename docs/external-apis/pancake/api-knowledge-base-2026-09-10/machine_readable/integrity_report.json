@@ -1,0 +1,19 @@
+{
+  "snapshot": "2026-09-10",
+  "catalog_entries": 497,
+  "by_platform": {
+    "Meta": 167,
+    "Pancake": 30,
+    "TikTok": 300
+  },
+  "by_coverage_level": {
+    "family_verified": 405,
+    "endpoint_verified": 83,
+    "official_doc_discovered": 4,
+    "legacy_deprecated": 5
+  },
+  "verified_endpoint_rows": 83,
+  "family_or_discovered_rows": 409,
+  "quality_rule": "endpoint_verified requires exact HTTP method + concrete path",
+  "json_valid": true
+}

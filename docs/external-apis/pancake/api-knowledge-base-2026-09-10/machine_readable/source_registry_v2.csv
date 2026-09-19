@@ -1,0 +1,28 @@
+﻿source_id,title,url,platform,authority,notes,verified_on
+PAN-REF,Pancake API Docs,https://developer.pancake.biz/,Pancake,official,API reference root,2026-09-10
+PAN-WH,Pancake Webhook Docs,https://developer.pancake.biz/webhook,Pancake,official,Webhook docs; content is JS-rendered and must be live-tested,2026-09-10
+META-ROOT,Meta for Developers,https://developers.meta.com/,Meta,official,Developer ecosystem root,2026-09-10
+META-POSTMAN,Meta official Postman workspaces,https://www.postman.com/meta/workspaces,Meta,official,"Official collections for Facebook, Instagram, Marketing, Threads, WhatsApp",2026-09-10
+META-FB,Facebook official Postman workspace,https://www.postman.com/meta/facebook/overview,Meta,official,Graph/Facebook examples,2026-09-10
+META-MSG,Messenger Platform official Postman,https://www.postman.com/meta/messenger-platform-api/collection/iyp204x/messenger-platform-api,Meta,official,Send and Conversations API examples,2026-09-10
+META-IG,Instagram official Postman workspace,https://www.postman.com/meta/instagram/,Meta,official,Instagram Login and Facebook Login variants,2026-09-10
+META-MAPI,Facebook Marketing API official Postman,https://www.postman.com/meta/facebook-marketing-api/overview,Meta,official,Marketing API common operations,2026-09-10
+META-WA,WhatsApp Business Platform official Postman,https://www.postman.com/meta/whatsapp-business-platform/overview,Meta,official,Cloud API and Business Management API,2026-09-10
+META-THREADS,Threads official Postman workspace,https://www.postman.com/meta/threads/,Meta,official,Threads publish/read/insights/discovery,2026-09-10
+META-ADLIB,Meta Ad Library API,https://www.facebook.com/ads/library/api/,Meta,official,Transparency/research API,2026-09-10
+META-CONTLIB,Meta Content Library & API announcement,https://about.fb.com/news/2023/11/new-tools-to-support-independent-research/,Meta,official,Restricted research access,2026-09-10
+META-HORIZON,Meta Horizon API Reference,https://developers.meta.com/horizon/reference/,Meta,official,Unity/Unreal/Spatial/OpenXR/Android API references,2026-09-10
+META-WEAR,Meta Wearables developer center,https://developers.meta.com/wearables/,Meta,official,Device Access Toolkit and Web Apps,2026-09-10
+META-VIDEOS,Meta developer video library,https://developers.meta.com/resources/videos/,Meta,official,Current WhatsApp Calling/Usernames/Direct Send/Unified Onboarding announcements,2026-09-10
+TT-DEV,TikTok for Developers docs,https://developers.tiktok.com/doc/overview,TikTok,official,Developer product inventory,2026-09-10
+TT-SCOPES,TikTok Scopes Reference,https://developers.tiktok.com/docs/en/tiktok-api-scopes,TikTok,official,Scope inventory,2026-09-10
+TT-VCE,TikTok VCE docs,https://developers.tiktok.com/docs/en/vce-getting-started,TikTok,official,Virtual Compute Environment research tool,2026-09-10
+TT-MINIS,TikTok Minis Server APIs,https://developers.tiktok.com/docs/en/minis-server-apis-overview,TikTok,official,Mini app/game backend APIs,2026-09-10
+TT-MON,TikTok Monetization,https://developers.tiktok.com/docs/en/monetization-overview,TikTok,official,Minis ads/purchases/subscriptions,2026-09-10
+TT-GO,TikTok GO,https://developers.tiktok.com/docs/en/tiktok-go-landing,TikTok,official,Local business / dining APIs,2026-09-10
+TT-BIZ,TikTok API for Business,https://ads.tiktok.com/gateway/docs/index?doc_id=1735712062490625,TikTok,official,"Marketing, Organic, Business Messaging",2026-09-10
+TT-BIZ-REF,TikTok API for Business endpoint reference,https://ads.tiktok.com/gateway/docs/index?doc_id=1735713875563521,TikTok,official,Endpoint list; current request format v1.3 for non-MCP endpoints,2026-09-10
+TT-EVENTS,TikTok Events API docs,https://ads.tiktok.com/gateway/docs/index?doc_id=1752366000747522,TikTok,official,Web/App/Offline/CRM measurement,2026-09-10
+TT-SHOP,TikTok Shop developer guide,https://partner.tiktokshop.com/docv2/page/tts-developer-guide,TikTok,official,Shop Open API ecosystem,2026-09-10
+TT-SHOP-END,TikTok Shop methods/endpoints,https://partner.tiktokshop.com/docv2/page/methods-and-endpoints,TikTok,official,"Hosts, category segments, authorization",2026-09-10
+TT-SHOP-CS,TikTok Shop Customer Service API,https://partner.tiktokshop.com/docv2/page/customer-service-api-overview,TikTok,official,Approval-gated shop messaging,2026-09-10

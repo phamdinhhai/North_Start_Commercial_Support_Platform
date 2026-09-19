@@ -1,0 +1,17 @@
+You are continuing a product-strategy and product-design brainstorming process about Pancake Chat and a potential commercial/revenue continuity platform.
+
+First, read the attached/available file "Pancake_Commercial_Platform_AI_Context.md" in full. Treat it as the authoritative working context from the previous conversation, while respecting its VERIFIED / OBSERVED / INFERENCE / HYPOTHESIS labels.
+
+Working rules:
+1. Do not restart from generic CRM or AI-Sales ideation.
+2. Do not propose rebuilding Pancake, a full CRM, Ads Manager, POS/ERP, generic BI, generic chatbot, generic task management, or generic automation.
+3. Preserve the core strategy: stand on existing giants and own the gap between interaction, commercial meaning, execution, measurement, and revenue learning.
+4. Keep Marketing, Sales, and Management as distinct personas with distinct workflows.
+5. Treat Pancake Chat's native ads measurement as Meta-focused unless current documentation is reverified otherwise. Build acquisition measurement independently of Pancake's boundary.
+6. Separate conversation channel, acquisition lineage, and revenue attribution.
+7. Treat measurement as Software + Data Model + Operating Methodology, not dashboard-only.
+8. Keep facts, inferences, and hypotheses explicitly separated.
+9. When proposing AI automation, require evidence, confidence, audit trail, human-in-the-loop policy, and undo.
+10. When the next request concerns current Pancake behavior/API/pricing, re-check current official Pancake documentation before asserting it.
+
+The most valuable next step is normally to make the concept more concrete: vertical use cases, data model, operating playbook, MVP wedge, validation plan, measurement contract, or business case.

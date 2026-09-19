@@ -1,0 +1,730 @@
+[Skip to content](https://github.com/earendil-works/pi#start-of-content)
+
+## Navigation Menu
+
+[Sign in](https://github.com/login?return_to=https%3A%2F%2Fgithub.com%2Fearendil-works%2Fpi)
+- PlatformAI CODE CREATION[GitHub CopilotWrite better code with AI](https://github.com/features/copilot)[GitHub Copilot appDirect agents from issue to merge](https://github.com/features/ai/github-app)[MCP RegistryIntegrate external tools](https://github.com/mcp)DEVELOPER WORKFLOWS[ActionsAutomate any workflow](https://github.com/features/actions)[CodespacesInstant dev environments](https://github.com/features/codespaces)[IssuesPlan and track work](https://github.com/features/issues)[Code ReviewManage code changes](https://github.com/features/code-review)[Code QualityEnforce quality at merge](https://github.com/features/code-quality)APPLICATION SECURITY[GitHub Advanced SecurityFind and fix vulnerabilities](https://github.com/security/advanced-security)[Code securitySecure your code as you build](https://github.com/security/advanced-security/code-security)[Secret protectionStop leaks before they start](https://github.com/security/advanced-security/secret-protection)EXPLORE[Why GitHub](https://github.com/why-github)[Documentation](https://docs.github.com)[Blog](https://github.blog)[Changelog](https://github.blog/changelog)[Marketplace](https://github.com/marketplace)[View all features](https://github.com/features)
+- AI CODE CREATION[GitHub CopilotWrite better code with AI](https://github.com/features/copilot)[GitHub Copilot appDirect agents from issue to merge](https://github.com/features/ai/github-app)[MCP RegistryIntegrate external tools](https://github.com/mcp)
+- [GitHub CopilotWrite better code with AI](https://github.com/features/copilot)
+- [GitHub Copilot appDirect agents from issue to merge](https://github.com/features/ai/github-app)
+- [MCP RegistryIntegrate external tools](https://github.com/mcp)
+- DEVELOPER WORKFLOWS[ActionsAutomate any workflow](https://github.com/features/actions)[CodespacesInstant dev environments](https://github.com/features/codespaces)[IssuesPlan and track work](https://github.com/features/issues)[Code ReviewManage code changes](https://github.com/features/code-review)[Code QualityEnforce quality at merge](https://github.com/features/code-quality)
+- [ActionsAutomate any workflow](https://github.com/features/actions)
+- [CodespacesInstant dev environments](https://github.com/features/codespaces)
+- [IssuesPlan and track work](https://github.com/features/issues)
+- [Code ReviewManage code changes](https://github.com/features/code-review)
+- [Code QualityEnforce quality at merge](https://github.com/features/code-quality)
+- APPLICATION SECURITY[GitHub Advanced SecurityFind and fix vulnerabilities](https://github.com/security/advanced-security)[Code securitySecure your code as you build](https://github.com/security/advanced-security/code-security)[Secret protectionStop leaks before they start](https://github.com/security/advanced-security/secret-protection)
+- [GitHub Advanced SecurityFind and fix vulnerabilities](https://github.com/security/advanced-security)
+- [Code securitySecure your code as you build](https://github.com/security/advanced-security/code-security)
+- [Secret protectionStop leaks before they start](https://github.com/security/advanced-security/secret-protection)
+- EXPLORE[Why GitHub](https://github.com/why-github)[Documentation](https://docs.github.com)[Blog](https://github.blog)[Changelog](https://github.blog/changelog)[Marketplace](https://github.com/marketplace)
+- [Why GitHub](https://github.com/why-github)
+- [Documentation](https://docs.github.com)
+- [Blog](https://github.blog)
+- [Changelog](https://github.blog/changelog)
+- [Marketplace](https://github.com/marketplace)
+
+## Navigation Menu
+
+- SolutionsBY COMPANY SIZE[Enterprises](https://github.com/enterprise)[Small and medium teams](https://github.com/team)[Startups](https://github.com/enterprise/startups)[Nonprofits](https://github.com/solutions/industry/nonprofits)BY USE CASE[App Modernization](https://github.com/solutions/use-case/app-modernization)[DevSecOps](https://github.com/solutions/use-case/devsecops)[DevOps](https://github.com/solutions/use-case/devops)[CI/CD](https://github.com/solutions/use-case/ci-cd)[View all use cases](https://github.com/solutions/use-case)BY INDUSTRY[Healthcare](https://github.com/solutions/industry/healthcare)[Financial services](https://github.com/solutions/industry/financial-services)[Manufacturing](https://github.com/solutions/industry/manufacturing)[Government](https://github.com/solutions/industry/government)[View all industries](https://github.com/solutions/industry)[View all solutions](https://github.com/solutions)
+- BY COMPANY SIZE[Enterprises](https://github.com/enterprise)[Small and medium teams](https://github.com/team)[Startups](https://github.com/enterprise/startups)[Nonprofits](https://github.com/solutions/industry/nonprofits)
+- [Enterprises](https://github.com/enterprise)
+- [Small and medium teams](https://github.com/team)
+- [Startups](https://github.com/enterprise/startups)
+- [Nonprofits](https://github.com/solutions/industry/nonprofits)
+- BY USE CASE[App Modernization](https://github.com/solutions/use-case/app-modernization)[DevSecOps](https://github.com/solutions/use-case/devsecops)[DevOps](https://github.com/solutions/use-case/devops)[CI/CD](https://github.com/solutions/use-case/ci-cd)[View all use cases](https://github.com/solutions/use-case)
+- [App Modernization](https://github.com/solutions/use-case/app-modernization)
+- [DevSecOps](https://github.com/solutions/use-case/devsecops)
+- [DevOps](https://github.com/solutions/use-case/devops)
+- [CI/CD](https://github.com/solutions/use-case/ci-cd)
+- [View all use cases](https://github.com/solutions/use-case)
+- BY INDUSTRY[Healthcare](https://github.com/solutions/industry/healthcare)[Financial services](https://github.com/solutions/industry/financial-services)[Manufacturing](https://github.com/solutions/industry/manufacturing)[Government](https://github.com/solutions/industry/government)[View all industries](https://github.com/solutions/industry)
+- [Healthcare](https://github.com/solutions/industry/healthcare)
+- [Financial services](https://github.com/solutions/industry/financial-services)
+- [Manufacturing](https://github.com/solutions/industry/manufacturing)
+- [Government](https://github.com/solutions/industry/government)
+- [View all industries](https://github.com/solutions/industry)
+- ResourcesEXPLORE BY TOPIC[AI](https://github.com/resources/articles?topic=ai)[Software Development](https://github.com/resources/articles?topic=software-development)[DevOps](https://github.com/resources/articles?topic=devops)[Security](https://github.com/resources/articles?topic=security)[View all topics](https://github.com/resources/articles)EXPLORE BY TYPE[Customer stories](https://github.com/customer-stories)[Events & webinars](https://github.com/resources/events)[Ebooks & reports](https://github.com/resources/whitepapers)[Business insights](https://github.com/solutions/executive-insights)[GitHub Skills](https://skills.github.com)SUPPORT & SERVICES[Documentation](https://docs.github.com)[Customer support](https://support.github.com)[Community forum](https://github.com/orgs/community/discussions)[Trust center](https://github.com/trust-center)[Partners](https://github.com/partners)[View all resources](https://github.com/resources)
+- EXPLORE BY TOPIC[AI](https://github.com/resources/articles?topic=ai)[Software Development](https://github.com/resources/articles?topic=software-development)[DevOps](https://github.com/resources/articles?topic=devops)[Security](https://github.com/resources/articles?topic=security)[View all topics](https://github.com/resources/articles)
+- [AI](https://github.com/resources/articles?topic=ai)
+- [Software Development](https://github.com/resources/articles?topic=software-development)
+- [DevOps](https://github.com/resources/articles?topic=devops)
+- [Security](https://github.com/resources/articles?topic=security)
+- [View all topics](https://github.com/resources/articles)
+
+## Navigation Menu
+
+- EXPLORE BY TYPE[Customer stories](https://github.com/customer-stories)[Events & webinars](https://github.com/resources/events)[Ebooks & reports](https://github.com/resources/whitepapers)[Business insights](https://github.com/solutions/executive-insights)[GitHub Skills](https://skills.github.com)
+- [Customer stories](https://github.com/customer-stories)
+- [Events & webinars](https://github.com/resources/events)
+- [Ebooks & reports](https://github.com/resources/whitepapers)
+- [Business insights](https://github.com/solutions/executive-insights)
+- [GitHub Skills](https://skills.github.com)
+- SUPPORT & SERVICES[Documentation](https://docs.github.com)[Customer support](https://support.github.com)[Community forum](https://github.com/orgs/community/discussions)[Trust center](https://github.com/trust-center)[Partners](https://github.com/partners)
+- [Documentation](https://docs.github.com)
+- [Customer support](https://support.github.com)
+- [Community forum](https://github.com/orgs/community/discussions)
+- [Trust center](https://github.com/trust-center)
+- [Partners](https://github.com/partners)
+- Open SourceCOMMUNITY[GitHub SponsorsFund open source developers](https://github.com/open-source/sponsors)PROGRAMS[Security Lab](https://securitylab.github.com)[Maintainer Community](https://maintainers.github.com)[GitHub Stars](https://stars.github.com)[Archive Program](https://archiveprogram.github.com)REPOSITORIES[Topics](https://github.com/topics)[Trending](https://github.com/trending)[Collections](https://github.com/collections)
+- COMMUNITY[GitHub SponsorsFund open source developers](https://github.com/open-source/sponsors)
+- [GitHub SponsorsFund open source developers](https://github.com/open-source/sponsors)
+- PROGRAMS[Security Lab](https://securitylab.github.com)[Maintainer Community](https://maintainers.github.com)[GitHub Stars](https://stars.github.com)[Archive Program](https://archiveprogram.github.com)
+- [Security Lab](https://securitylab.github.com)
+- [Maintainer Community](https://maintainers.github.com)
+- [GitHub Stars](https://stars.github.com)
+- [Archive Program](https://archiveprogram.github.com)
+- REPOSITORIES[Topics](https://github.com/topics)[Trending](https://github.com/trending)[Collections](https://github.com/collections)
+- [Topics](https://github.com/topics)
+- [Trending](https://github.com/trending)
+- [Collections](https://github.com/collections)
+- EnterpriseENTERPRISE SOLUTIONS[Enterprise platformAI-powered developer platform](https://github.com/enterprise)AVAILABLE ADD-ONS[GitHub Advanced SecurityEnterprise-grade security features](https://github.com/security/advanced-security)[Copilot for BusinessEnterprise-grade AI features](https://github.com/features/copilot/copilot-business)[Premium SupportEnterprise-grade 24/7 support](https://github.com/enterprise/premium-support)
+- ENTERPRISE SOLUTIONS[Enterprise platformAI-powered developer platform](https://github.com/enterprise)
+- [Enterprise platformAI-powered developer platform](https://github.com/enterprise)
+- AVAILABLE ADD-ONS[GitHub Advanced SecurityEnterprise-grade security features](https://github.com/security/advanced-security)[Copilot for BusinessEnterprise-grade AI features](https://github.com/features/copilot/copilot-business)[Premium SupportEnterprise-grade 24/7 support](https://github.com/enterprise/premium-support)
+- [GitHub Advanced SecurityEnterprise-grade security features](https://github.com/security/advanced-security)
+- [Copilot for BusinessEnterprise-grade AI features](https://github.com/features/copilot/copilot-business)
+- [Premium SupportEnterprise-grade 24/7 support](https://github.com/enterprise/premium-support)
+- [Pricing](https://github.com/pricing)
+- AI CODE CREATION[GitHub CopilotWrite better code with AI](https://github.com/features/copilot)[GitHub Copilot appDirect agents from issue to merge](https://github.com/features/ai/github-app)[MCP RegistryIntegrate external tools](https://github.com/mcp)
+- [GitHub CopilotWrite better code with AI](https://github.com/features/copilot)
+- [GitHub Copilot appDirect agents from issue to merge](https://github.com/features/ai/github-app)
+- [MCP RegistryIntegrate external tools](https://github.com/mcp)
+
+## Navigation Menu
+
+- DEVELOPER WORKFLOWS[ActionsAutomate any workflow](https://github.com/features/actions)[CodespacesInstant dev environments](https://github.com/features/codespaces)[IssuesPlan and track work](https://github.com/features/issues)[Code ReviewManage code changes](https://github.com/features/code-review)[Code QualityEnforce quality at merge](https://github.com/features/code-quality)
+- [ActionsAutomate any workflow](https://github.com/features/actions)
+- [CodespacesInstant dev environments](https://github.com/features/codespaces)
+- [IssuesPlan and track work](https://github.com/features/issues)
+- [Code ReviewManage code changes](https://github.com/features/code-review)
+- [Code QualityEnforce quality at merge](https://github.com/features/code-quality)
+- APPLICATION SECURITY[GitHub Advanced SecurityFind and fix vulnerabilities](https://github.com/security/advanced-security)[Code securitySecure your code as you build](https://github.com/security/advanced-security/code-security)[Secret protectionStop leaks before they start](https://github.com/security/advanced-security/secret-protection)
+- [GitHub Advanced SecurityFind and fix vulnerabilities](https://github.com/security/advanced-security)
+- [Code securitySecure your code as you build](https://github.com/security/advanced-security/code-security)
+- [Secret protectionStop leaks before they start](https://github.com/security/advanced-security/secret-protection)
+- EXPLORE[Why GitHub](https://github.com/why-github)[Documentation](https://docs.github.com)[Blog](https://github.blog)[Changelog](https://github.blog/changelog)[Marketplace](https://github.com/marketplace)
+- [Why GitHub](https://github.com/why-github)
+- [Documentation](https://docs.github.com)
+- [Blog](https://github.blog)
+- [Changelog](https://github.blog/changelog)
+- [Marketplace](https://github.com/marketplace)
+- [GitHub CopilotWrite better code with AI](https://github.com/features/copilot)
+- [GitHub Copilot appDirect agents from issue to merge](https://github.com/features/ai/github-app)
+- [MCP RegistryIntegrate external tools](https://github.com/mcp)
+[GitHub CopilotWrite better code with AI](https://github.com/features/copilot)
+[GitHub Copilot appDirect agents from issue to merge](https://github.com/features/ai/github-app)
+[MCP RegistryIntegrate external tools](https://github.com/mcp)
+- [ActionsAutomate any workflow](https://github.com/features/actions)
+- [CodespacesInstant dev environments](https://github.com/features/codespaces)
+- [IssuesPlan and track work](https://github.com/features/issues)
+- [Code ReviewManage code changes](https://github.com/features/code-review)
+- [Code QualityEnforce quality at merge](https://github.com/features/code-quality)
+[ActionsAutomate any workflow](https://github.com/features/actions)
+[CodespacesInstant dev environments](https://github.com/features/codespaces)
+[IssuesPlan and track work](https://github.com/features/issues)
+[Code ReviewManage code changes](https://github.com/features/code-review)
+[Code QualityEnforce quality at merge](https://github.com/features/code-quality)
+- [GitHub Advanced SecurityFind and fix vulnerabilities](https://github.com/security/advanced-security)
+- [Code securitySecure your code as you build](https://github.com/security/advanced-security/code-security)
+- [Secret protectionStop leaks before they start](https://github.com/security/advanced-security/secret-protection)
+[GitHub Advanced SecurityFind and fix vulnerabilities](https://github.com/security/advanced-security)
+[Code securitySecure your code as you build](https://github.com/security/advanced-security/code-security)
+[Secret protectionStop leaks before they start](https://github.com/security/advanced-security/secret-protection)
+- [Why GitHub](https://github.com/why-github)
+- [Documentation](https://docs.github.com)
+- [Blog](https://github.blog)
+- [Changelog](https://github.blog/changelog)
+- [Marketplace](https://github.com/marketplace)
+[Why GitHub](https://github.com/why-github)
+[Documentation](https://docs.github.com)
+[Blog](https://github.blog)
+[Changelog](https://github.blog/changelog)
+[Marketplace](https://github.com/marketplace)
+[View all features](https://github.com/features)
+- BY COMPANY SIZE[Enterprises](https://github.com/enterprise)[Small and medium teams](https://github.com/team)[Startups](https://github.com/enterprise/startups)[Nonprofits](https://github.com/solutions/industry/nonprofits)
+- [Enterprises](https://github.com/enterprise)
+- [Small and medium teams](https://github.com/team)
+
+## Navigation Menu
+
+- [Startups](https://github.com/enterprise/startups)
+- [Nonprofits](https://github.com/solutions/industry/nonprofits)
+- BY USE CASE[App Modernization](https://github.com/solutions/use-case/app-modernization)[DevSecOps](https://github.com/solutions/use-case/devsecops)[DevOps](https://github.com/solutions/use-case/devops)[CI/CD](https://github.com/solutions/use-case/ci-cd)[View all use cases](https://github.com/solutions/use-case)
+- [App Modernization](https://github.com/solutions/use-case/app-modernization)
+- [DevSecOps](https://github.com/solutions/use-case/devsecops)
+- [DevOps](https://github.com/solutions/use-case/devops)
+- [CI/CD](https://github.com/solutions/use-case/ci-cd)
+- [View all use cases](https://github.com/solutions/use-case)
+- BY INDUSTRY[Healthcare](https://github.com/solutions/industry/healthcare)[Financial services](https://github.com/solutions/industry/financial-services)[Manufacturing](https://github.com/solutions/industry/manufacturing)[Government](https://github.com/solutions/industry/government)[View all industries](https://github.com/solutions/industry)
+- [Healthcare](https://github.com/solutions/industry/healthcare)
+- [Financial services](https://github.com/solutions/industry/financial-services)
+- [Manufacturing](https://github.com/solutions/industry/manufacturing)
+- [Government](https://github.com/solutions/industry/government)
+- [View all industries](https://github.com/solutions/industry)
+- [Enterprises](https://github.com/enterprise)
+- [Small and medium teams](https://github.com/team)
+- [Startups](https://github.com/enterprise/startups)
+- [Nonprofits](https://github.com/solutions/industry/nonprofits)
+[Enterprises](https://github.com/enterprise)
+[Small and medium teams](https://github.com/team)
+[Startups](https://github.com/enterprise/startups)
+[Nonprofits](https://github.com/solutions/industry/nonprofits)
+- [App Modernization](https://github.com/solutions/use-case/app-modernization)
+- [DevSecOps](https://github.com/solutions/use-case/devsecops)
+- [DevOps](https://github.com/solutions/use-case/devops)
+- [CI/CD](https://github.com/solutions/use-case/ci-cd)
+- [View all use cases](https://github.com/solutions/use-case)
+[App Modernization](https://github.com/solutions/use-case/app-modernization)
+[DevSecOps](https://github.com/solutions/use-case/devsecops)
+[DevOps](https://github.com/solutions/use-case/devops)
+[CI/CD](https://github.com/solutions/use-case/ci-cd)
+[View all use cases](https://github.com/solutions/use-case)
+- [Healthcare](https://github.com/solutions/industry/healthcare)
+- [Financial services](https://github.com/solutions/industry/financial-services)
+- [Manufacturing](https://github.com/solutions/industry/manufacturing)
+- [Government](https://github.com/solutions/industry/government)
+- [View all industries](https://github.com/solutions/industry)
+[Healthcare](https://github.com/solutions/industry/healthcare)
+[Financial services](https://github.com/solutions/industry/financial-services)
+[Manufacturing](https://github.com/solutions/industry/manufacturing)
+[Government](https://github.com/solutions/industry/government)
+[View all industries](https://github.com/solutions/industry)
+[View all solutions](https://github.com/solutions)
+- EXPLORE BY TOPIC[AI](https://github.com/resources/articles?topic=ai)[Software Development](https://github.com/resources/articles?topic=software-development)[DevOps](https://github.com/resources/articles?topic=devops)[Security](https://github.com/resources/articles?topic=security)[View all topics](https://github.com/resources/articles)
+- [AI](https://github.com/resources/articles?topic=ai)
+- [Software Development](https://github.com/resources/articles?topic=software-development)
+- [DevOps](https://github.com/resources/articles?topic=devops)
+- [Security](https://github.com/resources/articles?topic=security)
+- [View all topics](https://github.com/resources/articles)
+- EXPLORE BY TYPE[Customer stories](https://github.com/customer-stories)[Events & webinars](https://github.com/resources/events)[Ebooks & reports](https://github.com/resources/whitepapers)[Business insights](https://github.com/solutions/executive-insights)[GitHub Skills](https://skills.github.com)
+- [Customer stories](https://github.com/customer-stories)
+- [Events & webinars](https://github.com/resources/events)
+- [Ebooks & reports](https://github.com/resources/whitepapers)
+- [Business insights](https://github.com/solutions/executive-insights)
+- [GitHub Skills](https://skills.github.com)
+
+## Navigation Menu
+
+- SUPPORT & SERVICES[Documentation](https://docs.github.com)[Customer support](https://support.github.com)[Community forum](https://github.com/orgs/community/discussions)[Trust center](https://github.com/trust-center)[Partners](https://github.com/partners)
+- [Documentation](https://docs.github.com)
+- [Customer support](https://support.github.com)
+- [Community forum](https://github.com/orgs/community/discussions)
+- [Trust center](https://github.com/trust-center)
+- [Partners](https://github.com/partners)
+- [AI](https://github.com/resources/articles?topic=ai)
+- [Software Development](https://github.com/resources/articles?topic=software-development)
+- [DevOps](https://github.com/resources/articles?topic=devops)
+- [Security](https://github.com/resources/articles?topic=security)
+- [View all topics](https://github.com/resources/articles)
+[AI](https://github.com/resources/articles?topic=ai)
+[Software Development](https://github.com/resources/articles?topic=software-development)
+[DevOps](https://github.com/resources/articles?topic=devops)
+[Security](https://github.com/resources/articles?topic=security)
+[View all topics](https://github.com/resources/articles)
+- [Customer stories](https://github.com/customer-stories)
+- [Events & webinars](https://github.com/resources/events)
+- [Ebooks & reports](https://github.com/resources/whitepapers)
+- [Business insights](https://github.com/solutions/executive-insights)
+- [GitHub Skills](https://skills.github.com)
+[Customer stories](https://github.com/customer-stories)
+[Events & webinars](https://github.com/resources/events)
+[Ebooks & reports](https://github.com/resources/whitepapers)
+[Business insights](https://github.com/solutions/executive-insights)
+[GitHub Skills](https://skills.github.com)
+- [Documentation](https://docs.github.com)
+- [Customer support](https://support.github.com)
+- [Community forum](https://github.com/orgs/community/discussions)
+- [Trust center](https://github.com/trust-center)
+- [Partners](https://github.com/partners)
+[Documentation](https://docs.github.com)
+[Customer support](https://support.github.com)
+[Community forum](https://github.com/orgs/community/discussions)
+[Trust center](https://github.com/trust-center)
+[Partners](https://github.com/partners)
+[View all resources](https://github.com/resources)
+- COMMUNITY[GitHub SponsorsFund open source developers](https://github.com/open-source/sponsors)
+- [GitHub SponsorsFund open source developers](https://github.com/open-source/sponsors)
+- PROGRAMS[Security Lab](https://securitylab.github.com)[Maintainer Community](https://maintainers.github.com)[GitHub Stars](https://stars.github.com)[Archive Program](https://archiveprogram.github.com)
+- [Security Lab](https://securitylab.github.com)
+- [Maintainer Community](https://maintainers.github.com)
+- [GitHub Stars](https://stars.github.com)
+- [Archive Program](https://archiveprogram.github.com)
+- REPOSITORIES[Topics](https://github.com/topics)[Trending](https://github.com/trending)[Collections](https://github.com/collections)
+- [Topics](https://github.com/topics)
+- [Trending](https://github.com/trending)
+- [Collections](https://github.com/collections)
+- [GitHub SponsorsFund open source developers](https://github.com/open-source/sponsors)
+[GitHub SponsorsFund open source developers](https://github.com/open-source/sponsors)
+- [Security Lab](https://securitylab.github.com)
+- [Maintainer Community](https://maintainers.github.com)
+- [GitHub Stars](https://stars.github.com)
+- [Archive Program](https://archiveprogram.github.com)
+[Security Lab](https://securitylab.github.com)
+[Maintainer Community](https://maintainers.github.com)
+[GitHub Stars](https://stars.github.com)
+[Archive Program](https://archiveprogram.github.com)
+- [Topics](https://github.com/topics)
+- [Trending](https://github.com/trending)
+- [Collections](https://github.com/collections)
+[Topics](https://github.com/topics)
+[Trending](https://github.com/trending)
+[Collections](https://github.com/collections)
+- ENTERPRISE SOLUTIONS[Enterprise platformAI-powered developer platform](https://github.com/enterprise)
+- [Enterprise platformAI-powered developer platform](https://github.com/enterprise)
+- AVAILABLE ADD-ONS[GitHub Advanced SecurityEnterprise-grade security features](https://github.com/security/advanced-security)[Copilot for BusinessEnterprise-grade AI features](https://github.com/features/copilot/copilot-business)[Premium SupportEnterprise-grade 24/7 support](https://github.com/enterprise/premium-support)
+
+## Navigation Menu
+
+- [GitHub Advanced SecurityEnterprise-grade security features](https://github.com/security/advanced-security)
+- [Copilot for BusinessEnterprise-grade AI features](https://github.com/features/copilot/copilot-business)
+- [Premium SupportEnterprise-grade 24/7 support](https://github.com/enterprise/premium-support)
+- [Enterprise platformAI-powered developer platform](https://github.com/enterprise)
+[Enterprise platformAI-powered developer platform](https://github.com/enterprise)
+- [GitHub Advanced SecurityEnterprise-grade security features](https://github.com/security/advanced-security)
+- [Copilot for BusinessEnterprise-grade AI features](https://github.com/features/copilot/copilot-business)
+- [Premium SupportEnterprise-grade 24/7 support](https://github.com/enterprise/premium-support)
+[GitHub Advanced SecurityEnterprise-grade security features](https://github.com/security/advanced-security)
+[Copilot for BusinessEnterprise-grade AI features](https://github.com/features/copilot/copilot-business)
+[Premium SupportEnterprise-grade 24/7 support](https://github.com/enterprise/premium-support)
+[Pricing](https://github.com/pricing)
+[Sign in](https://github.com/login?return_to=https%3A%2F%2Fgithub.com%2Fearendil-works%2Fpi)
+[Sign up](https://github.com/signup?ref_cta=Sign+up&ref_loc=header+logged+out&ref_page=%2F%3Cuser-name%3E%2F%3Crepo-name%3E&source=header-repo&source_repo=earendil-works%2Fpi)
+[Reload](https://github.com/earendil-works/pi)
+[Reload](https://github.com/earendil-works/pi)
+[Reload](https://github.com/earendil-works/pi)
+
+### Uh oh!
+
+There was an error while loading. [Please reload this page](https://github.com/earendil-works/pi).
+[earendil-works](https://github.com/earendil-works)
+[pi](https://github.com/earendil-works/pi)
+- 
+            [Notifications](https://github.com/login?return_to=%2Fearendil-works%2Fpi)    You must be signed in to change notification settings
+
+
+- 
+          [Fork
+    13.2k](https://github.com/login?return_to=%2Fearendil-works%2Fpi)
+
+- 
+
+        [Star
+          105k](https://github.com/login?return_to=%2Fearendil-works%2Fpi)
+
+[Notifications](https://github.com/login?return_to=%2Fearendil-works%2Fpi)
+[Fork
+    13.2k](https://github.com/login?return_to=%2Fearendil-works%2Fpi)
+[Star
+          105k](https://github.com/login?return_to=%2Fearendil-works%2Fpi)
+- 
+  [Code](https://github.com/earendil-works/pi)
+- 
+  [Issues
+          142](https://github.com/earendil-works/pi/issues)
+- 
+  [Pull requests
+          68](https://github.com/earendil-works/pi/pulls)
+- 
+  [Discussions](https://github.com/earendil-works/pi/discussions)
+- 
+  [Actions](https://github.com/earendil-works/pi/actions)
+- 
+  [Projects](https://github.com/earendil-works/pi/projects)
+- 
+  [Security and quality
+          4](https://github.com/earendil-works/pi/security)
+- 
+  [Insights](https://github.com/earendil-works/pi/pulse)
+[Code](https://github.com/earendil-works/pi)
+[Issues
+          142](https://github.com/earendil-works/pi/issues)
+[Pull requests
+          68](https://github.com/earendil-works/pi/pulls)
+[Discussions](https://github.com/earendil-works/pi/discussions)
+[Actions](https://github.com/earendil-works/pi/actions)
+[Projects](https://github.com/earendil-works/pi/projects)
+[Security and quality
+          4](https://github.com/earendil-works/pi/security)
+[Insights](https://github.com/earendil-works/pi/pulse)
+- 
+
+
+    [Code](https://github.com/earendil-works/pi)
+
+
+- 
+
+
+    [Issues](https://github.com/earendil-works/pi/issues)
+
+
+- 
+
+
+    [Pull requests](https://github.com/earendil-works/pi/pulls)
+
+
+- 
+
+
+    [Discussions](https://github.com/earendil-works/pi/discussions)
+
+
+- 
+
+
+    [Actions](https://github.com/earendil-works/pi/actions)
+
+
+- 
+
+
+    [Projects](https://github.com/earendil-works/pi/projects)
+
+
+- 
+
+
+    [Security and quality](https://github.com/earendil-works/pi/security)
+
+
+- 
+
+
+    [Insights](https://github.com/earendil-works/pi/pulse)
+
+
+[Code](https://github.com/earendil-works/pi)
+[Issues](https://github.com/earendil-works/pi/issues)
+[Pull requests](https://github.com/earendil-works/pi/pulls)
+[Discussions](https://github.com/earendil-works/pi/discussions)
+[Actions](https://github.com/earendil-works/pi/actions)
+[Projects](https://github.com/earendil-works/pi/projects)
+[Security and quality](https://github.com/earendil-works/pi/security)
+[Insights](https://github.com/earendil-works/pi/pulse)
+[Branches](https://github.com/earendil-works/pi/branches)
+[Tags](https://github.com/earendil-works/pi/tags)
+
+## History
+[6,354 Commits](https://github.com/earendil-works/pi/commits/main/)
+
+## Folders and files
+[.github](https://github.com/earendil-works/pi/tree/main/.github)
+[.github](https://github.com/earendil-works/pi/tree/main/.github)
+[.husky](https://github.com/earendil-works/pi/tree/main/.husky)
+[.husky](https://github.com/earendil-works/pi/tree/main/.husky)
+[.pi](https://github.com/earendil-works/pi/tree/main/.pi)
+[.pi](https://github.com/earendil-works/pi/tree/main/.pi)
+[packages](https://github.com/earendil-works/pi/tree/main/packages)
+[packages](https://github.com/earendil-works/pi/tree/main/packages)
+[scripts](https://github.com/earendil-works/pi/tree/main/scripts)
+[scripts](https://github.com/earendil-works/pi/tree/main/scripts)
+[.gitattributes](https://github.com/earendil-works/pi/blob/main/.gitattributes)
+[.gitattributes](https://github.com/earendil-works/pi/blob/main/.gitattributes)
+[.gitignore](https://github.com/earendil-works/pi/blob/main/.gitignore)
+[.gitignore](https://github.com/earendil-works/pi/blob/main/.gitignore)
+[.npmrc](https://github.com/earendil-works/pi/blob/main/.npmrc)
+[.npmrc](https://github.com/earendil-works/pi/blob/main/.npmrc)
+[AGENTS.md](https://github.com/earendil-works/pi/blob/main/AGENTS.md)
+[AGENTS.md](https://github.com/earendil-works/pi/blob/main/AGENTS.md)
+[CONTRIBUTING.md](https://github.com/earendil-works/pi/blob/main/CONTRIBUTING.md)
+[CONTRIBUTING.md](https://github.com/earendil-works/pi/blob/main/CONTRIBUTING.md)
+[LICENSE](https://github.com/earendil-works/pi/blob/main/LICENSE)
+[LICENSE](https://github.com/earendil-works/pi/blob/main/LICENSE)
+[README.md](https://github.com/earendil-works/pi/blob/main/README.md)
+[README.md](https://github.com/earendil-works/pi/blob/main/README.md)
+[SECURITY.md](https://github.com/earendil-works/pi/blob/main/SECURITY.md)
+[SECURITY.md](https://github.com/earendil-works/pi/blob/main/SECURITY.md)
+[biome.json](https://github.com/earendil-works/pi/blob/main/biome.json)
+[biome.json](https://github.com/earendil-works/pi/blob/main/biome.json)
+[mini-test.sh](https://github.com/earendil-works/pi/blob/main/mini-test.sh)
+[mini-test.sh](https://github.com/earendil-works/pi/blob/main/mini-test.sh)
+[package-lock.json](https://github.com/earendil-works/pi/blob/main/package-lock.json)
+[package-lock.json](https://github.com/earendil-works/pi/blob/main/package-lock.json)
+[package.json](https://github.com/earendil-works/pi/blob/main/package.json)
+[package.json](https://github.com/earendil-works/pi/blob/main/package.json)
+[pi-test.bat](https://github.com/earendil-works/pi/blob/main/pi-test.bat)
+[pi-test.bat](https://github.com/earendil-works/pi/blob/main/pi-test.bat)
+[pi-test.ps1](https://github.com/earendil-works/pi/blob/main/pi-test.ps1)
+[pi-test.ps1](https://github.com/earendil-works/pi/blob/main/pi-test.ps1)
+[pi-test.sh](https://github.com/earendil-works/pi/blob/main/pi-test.sh)
+[pi-test.sh](https://github.com/earendil-works/pi/blob/main/pi-test.sh)
+[test.sh](https://github.com/earendil-works/pi/blob/main/test.sh)
+[test.sh](https://github.com/earendil-works/pi/blob/main/test.sh)
+[tsconfig.base.json](https://github.com/earendil-works/pi/blob/main/tsconfig.base.json)
+[tsconfig.base.json](https://github.com/earendil-works/pi/blob/main/tsconfig.base.json)
+[tsconfig.json](https://github.com/earendil-works/pi/blob/main/tsconfig.json)
+[tsconfig.json](https://github.com/earendil-works/pi/blob/main/tsconfig.json)
+[tui-plan.md](https://github.com/earendil-works/pi/blob/main/tui-plan.md)
+[tui-plan.md](https://github.com/earendil-works/pi/blob/main/tui-plan.md)
+[vitest.base.ts](https://github.com/earendil-works/pi/blob/main/vitest.base.ts)
+[vitest.base.ts](https://github.com/earendil-works/pi/blob/main/vitest.base.ts)
+
+## Repository files navigation
+- 
+- [README](https://github.com/earendil-works/pi)
+- [Contributing](https://github.com/earendil-works/pi)
+- [MIT license](https://github.com/earendil-works/pi)
+- [Security](https://github.com/earendil-works/pi)
+[README](https://github.com/earendil-works/pi)
+[Contributing](https://github.com/earendil-works/pi)
+[MIT license](https://github.com/earendil-works/pi)
+[Security](https://github.com/earendil-works/pi)
+New issues and PRs from new contributors are auto-closed by default. Maintainers review auto-closed issues daily. See [CONTRIBUTING.md](https://github.com/earendil-works/pi/blob/main/CONTRIBUTING.md).
+
+# Pi Agent Harness
+
+This is the home of the Pi agent harness project including our self extensible coding agent.
+- [@earendil-works/pi-coding-agent](https://github.com/earendil-works/pi/blob/main/packages/coding-agent): Interactive coding agent CLI
+- [@earendil-works/pi-agent-core](https://github.com/earendil-works/pi/blob/main/packages/agent): Agent runtime with tool calling and state management
+- [@earendil-works/pi-ai](https://github.com/earendil-works/pi/blob/main/packages/ai): Unified multi-provider LLM API (OpenAI, Anthropic, Google, …)
+[@earendil-works/pi-coding-agent](https://github.com/earendil-works/pi/blob/main/packages/coding-agent)
+[@earendil-works/pi-agent-core](https://github.com/earendil-works/pi/blob/main/packages/agent)
+[@earendil-works/pi-ai](https://github.com/earendil-works/pi/blob/main/packages/ai)
+To learn more about Pi:
+- [Visit pi.dev](https://pi.dev), the project website with demos
+- [Read the documentation](https://pi.dev/docs/latest), but you can also ask the agent to explain itself
+[Visit pi.dev](https://pi.dev)
+[Read the documentation](https://pi.dev/docs/latest)
+
+## All Packages
+[@earendil-works/chord](https://github.com/earendil-works/pi/blob/main/packages/chord)
+[@earendil-works/pi-telemetry](https://github.com/earendil-works/pi/blob/main/packages/telemetry)
+[@earendil-works/pi-ai](https://github.com/earendil-works/pi/blob/main/packages/ai)
+[@earendil-works/pi-agent-core](https://github.com/earendil-works/pi/blob/main/packages/agent)
+[@earendil-works/pi-coding-agent](https://github.com/earendil-works/pi/blob/main/packages/coding-agent)
+[@earendil-works/pi-tui](https://github.com/earendil-works/pi/blob/main/packages/tui)
+For Slack/chat automation and workflows see [earendil-works/pi-chat](https://github.com/earendil-works/pi-chat).
+
+## Permissions & Containerization
+Pi does not include a built-in permission system for restricting filesystem, process, network, or credential access. By default, it runs with the permissions of the user and process that launched it.
+If you need stronger boundaries, containerize or sandbox Pi. See [packages/coding-agent/docs/containerization.md](https://github.com/earendil-works/pi/blob/main/packages/coding-agent/docs/containerization.md) for three patterns:
+- Gondolin extension: keep pi and provider auth on the host while routing built-in tools and ! commands into a local Linux micro-VM.
+- Plain Docker: run the whole pi process in a local container for simple isolation.
+- OpenShell: run the whole pi process in a policy-controlled sandbox.
+
+```
+pi
+```
+
+
+```
+!
+```
+
+
+```
+pi
+```
+
+
+```
+pi
+```
+
+## Contributing
+See [CONTRIBUTING.md](https://github.com/earendil-works/pi/blob/main/CONTRIBUTING.md) for contribution guidelines and [AGENTS.md](https://github.com/earendil-works/pi/blob/main/AGENTS.md) for project-specific rules (for both humans and agents). Longer term plans for Pi can also be found in [RFCs](https://rfc.earendil.com/keyword/pi/).
+
+## Development
+```
+npm install --ignore-scripts # Install all dependencies without running lifecycle scripts npm run build # Refresh model data, then build all packages npm run build:offline # Rebuild using existing model data without network access npm run check # Lint, format, and type check ./test.sh # Run tests (skips LLM-dependent tests without API keys) ./pi-test.sh # Run pi from sources (can be run from any directory)
+```
+
+## Building standalone binaries from release source
+GitHub releases include a versioned source archive covered by the release's SHA256SUMS file. Extract it and run the same build script used for the official standalone binaries:
+
+```
+SHA256SUMS
+```
+
+
+```
+VERSION="<release-version>" tar -xzf "pi-${VERSION}-source.tar.gz" cd "pi-${VERSION}" ./scripts/build-binaries.sh --offline-model-data --platform linux-x64 --out "$PWD/out"
+```
+
+The archive includes release model data and native prebuilds. --offline-model-data uses that model data without refreshing provider catalogs. The script installs dependencies and builds the executable with its runtime assets; pass --skip-install if dependencies are already provided.
+
+```
+--offline-model-data
+```
+
+
+```
+--skip-install
+```
+
+## Supply-chain hardening
+We treat npm dependency changes as reviewed code changes.
+- Direct external dependencies are pinned to exact versions. Internal workspace packages remain version-ranged.
+- .npmrc sets save-exact=true and min-release-age=2 to avoid same-day dependency releases during npm resolution.
+- package-lock.json is the dependency ground truth. Pre-commit blocks accidental lockfile commits unless PI_ALLOW_LOCKFILE_CHANGE=1 is set.
+- npm run check verifies pinned direct deps, native TypeScript import compatibility, and the generated coding-agent shrinkwrap.
+- The published CLI package includes packages/coding-agent/npm-shrinkwrap.json, generated from the root lockfile, to pin transitive deps for npm users.
+- Release smoke tests use npm run release:local to build, pack, and create isolated npm and Bun installs outside the repo before tagging a release.
+- Local release installs, documented npm installs, and pi update --self use --ignore-scripts where supported.
+- CI installs with npm ci --ignore-scripts, and a scheduled GitHub workflow runs npm audit --omit=dev plus npm audit signatures --omit=dev.
+- Shrinkwrap generation has an explicit allowlist for dependency lifecycle scripts; new lifecycle-script deps fail checks until reviewed.
+
+```
+.npmrc
+```
+
+
+```
+save-exact=true
+```
+
+
+```
+min-release-age=2
+```
+
+
+```
+package-lock.json
+```
+
+
+```
+PI_ALLOW_LOCKFILE_CHANGE=1
+```
+
+
+```
+npm run check
+```
+
+
+```
+packages/coding-agent/npm-shrinkwrap.json
+```
+
+
+```
+npm run release:local
+```
+
+
+```
+pi update --self
+```
+
+
+```
+--ignore-scripts
+```
+
+
+```
+npm ci --ignore-scripts
+```
+
+
+```
+npm audit --omit=dev
+```
+
+
+```
+npm audit signatures --omit=dev
+```
+
+## Share your OSS coding agent sessions
+If you use Pi or other coding agents for open source work, please share your sessions.
+Public OSS session data helps improve coding agents with real-world tasks, tool use, failures, and fixes instead of toy benchmarks.
+For the full explanation, see [this post on X](https://x.com/badlogicgames/status/2037811643774652911).
+To publish sessions, use [badlogic/pi-share-hf](https://github.com/badlogic/pi-share-hf). Read its README.md for setup instructions. All you need is a Hugging Face account, the Hugging Face CLI, and pi-share-hf.
+
+```
+badlogic/pi-share-hf
+```
+
+
+```
+pi-share-hf
+```
+
+You can also watch [this video](https://x.com/badlogicgames/status/2041151967695634619), where I show how I publish my pi-mono sessions.
+
+```
+pi-mono
+```
+
+I regularly publish my own pi-mono work sessions here:
+
+```
+pi-mono
+```
+
+- [badlogicgames/pi-mono on Hugging Face](https://huggingface.co/datasets/badlogicgames/pi-mono)
+[badlogicgames/pi-mono on Hugging Face](https://huggingface.co/datasets/badlogicgames/pi-mono)
+
+## License
+MIT
+[pi.dev](https://pi.dev) domain graciously donated by [exe.dev](https://exe.dev)
+
+## About
+AI agent toolkit: unified LLM API, agent loop, TUI, coding agent CLI
+
+### Resources
+[Readme](https://github.com/earendil-works/pi#readme-ov-file)
+[MIT license](https://github.com/earendil-works/pi#MIT-1-ov-file)
+
+### Contributing
+[Contributing](https://github.com/earendil-works/pi#contributing-ov-file)
+
+### Security policy
+[Security policy](https://github.com/earendil-works/pi#security-ov-file)
+[Activity](https://github.com/earendil-works/pi/activity)
+[Custom properties](https://github.com/earendil-works/pi/custom-properties)
+
+### Forks
+[13.2k forks](https://github.com/earendil-works/pi/forks)
+[Report repository](https://github.com/contact/report-content?content_url=https%3A%2F%2Fgithub.com%2Fearendil-works%2Fpi&report=earendil-works+%28user%29)
+
+### Footer navigation
+
+- 
+            [Terms](https://docs.github.com/site-policy/github-terms/github-terms-of-service)
+
+- 
+            [Privacy](https://docs.github.com/site-policy/privacy-policies/github-privacy-statement)
+
+- 
+              [Security](https://github.com/security)
+
+- 
+              [Status](https://www.githubstatus.com/)
+
+- 
+            [Community](https://github.community/)
+
+- 
+            [Docs](https://docs.github.com/)
+
+- 
+            [Contact](https://support.github.com?tags=dotcom-footer)
+
+- 
+
+
+      Manage cookies
+
+
+
+- 
+
+
+        Do not share my personal information
+
+
+
+[Terms](https://docs.github.com/site-policy/github-terms/github-terms-of-service)
+[Privacy](https://docs.github.com/site-policy/privacy-policies/github-privacy-statement)
+[Security](https://github.com/security)
+[Status](https://www.githubstatus.com/)
+[Community](https://github.community/)
+[Docs](https://docs.github.com/)
+[Contact](https://support.github.com?tags=dotcom-footer)

@@ -1,0 +1,54 @@
+# Master Index — Audited v2
+
+## Đọc đầu tiên
+1. `GAP_AUDIT_v1_to_v2.md`
+2. `SCOPE_AND_COMPLETENESS.md`
+3. `COVERAGE.md`
+4. `AI_README.md`
+5. `machine_readable/api_catalog_v2.json`
+
+## Pancake Chat
+- `01_PANCAKE_CHAT/ENDPOINT_CATALOG.md`
+- `01_PANCAKE_CHAT/AUTH_RATE_LIMITS.md`
+- `01_PANCAKE_CHAT/WEBHOOKS.md`
+- `01_PANCAKE_CHAT/WEBHOOK_AUDIT.md`
+- `01_PANCAKE_CHAT/OBJECTS_SCHEMAS.md`
+
+## Meta
+- `02_META/META_ALL_DEVELOPER_ECOSYSTEM_MAP.md`
+- `02_META/GRAPH_AND_PAGES_API.md`
+- `02_META/MESSENGER_PLATFORM.md`
+- `02_META/INSTAGRAM_API.md`
+- `02_META/MARKETING_API.md`
+- `02_META/AD_LIBRARY_API.md`
+- `02_META/META_CONTENT_LIBRARY_API.md`
+- `02_META/LEAD_ADS_AND_CONVERSIONS.md`
+- `02_META/BUSINESS_MANAGEMENT_API.md`
+- `02_META/WHATSAPP_BUSINESS_PLATFORM.md`
+- `02_META/WHATSAPP_DETAILED_SURFACE.md`
+- `02_META/THREADS_API.md`
+- `02_META/DEPRECATED_LEGACY.md`
+
+## TikTok
+- `03_TIKTOK/TIKTOK_ECOSYSTEM_MAP.md`
+- `03_TIKTOK/TIKTOK_FOR_DEVELOPERS.md`
+- `03_TIKTOK/TIKTOK_GO.md`
+- `03_TIKTOK/TIKTOK_MINIS_AND_MONETIZATION.md`
+- `03_TIKTOK/RESEARCH_VCE.md`
+- `03_TIKTOK/API_FOR_BUSINESS.md`
+- `03_TIKTOK/API_FOR_BUSINESS_DETAILED_MAP.md`
+- `03_TIKTOK/MARKETING_API.md`
+- `03_TIKTOK/ORGANIC_API.md`
+- `03_TIKTOK/BUSINESS_MESSAGING_API.md`
+- `03_TIKTOK/MEASUREMENT_EVENTS_API.md`
+- `03_TIKTOK/TIKTOK_SHOP_OPEN_API.md`
+- `03_TIKTOK/TIKTOK_SHOP_DETAILED_MAP.md`
+
+## Cross-platform
+Giữ các matrix v1 nhưng khi có xung đột, catalog v2 và audit v2 là nguồn ưu tiên.
+
+## Machine readable
+- `machine_readable/api_catalog_v2.json`
+- `machine_readable/api_catalog_v2.yaml`
+- `machine_readable/api_catalog_v2.csv`
+- `machine_readable/source_registry_v2.csv`
