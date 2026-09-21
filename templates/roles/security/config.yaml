@@ -1,3 +1,0 @@
-default_model: cn/qwen3.8-max
-default_effort: high
-max_tasks_per_session: 1

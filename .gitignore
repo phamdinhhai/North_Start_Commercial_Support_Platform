@@ -3,7 +3,18 @@
 # Claude Flow runtime data
 .claude-flow/data/
 .claude-flow/logs/
+.claude-flow/metrics/
 # Environment variables
 .env
 .env.local
 .env.*.local
+# Node.js
+node_modules/
+dist/
+build/
+coverage/
+*.log
+.tmp/
+# OS
+.DS_Store
+Thumbs.db

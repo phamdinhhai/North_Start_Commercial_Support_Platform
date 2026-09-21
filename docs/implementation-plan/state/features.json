@@ -1,0 +1,201 @@
+{
+  "version": 1,
+  "generated": "2026-09-21",
+  "features": [
+    {
+      "feature_id": "F-001",
+      "name": "Pilot Workspace Isolation",
+      "R_ids": ["R-01"],
+      "C_ids": ["C-12", "C-03"],
+      "phases": ["PH1", "PH3", "PH6"],
+      "status": "planned"
+    },
+    {
+      "feature_id": "F-002",
+      "name": "Authentication",
+      "R_ids": ["R-02"],
+      "C_ids": ["C-04", "C-12"],
+      "phases": ["PH1", "PH3"],
+      "status": "planned"
+    },
+    {
+      "feature_id": "F-003",
+      "name": "Role-Based Access",
+      "R_ids": ["R-03"],
+      "C_ids": ["C-12", "C-04"],
+      "phases": ["PH1", "PH3"],
+      "status": "planned"
+    },
+    {
+      "feature_id": "F-004",
+      "name": "Manual/Synthetic Lead Import",
+      "R_ids": ["R-04"],
+      "C_ids": ["C-05", "C-11", "C-02"],
+      "phases": ["PH1", "PH5"],
+      "status": "planned"
+    },
+    {
+      "feature_id": "F-005",
+      "name": "Versioned Inbound Envelope",
+      "R_ids": ["R-05", "R-06"],
+      "C_ids": ["C-11", "C-05"],
+      "phases": ["PH0", "PH1", "PH4"],
+      "status": "planned"
+    },
+    {
+      "feature_id": "F-006",
+      "name": "Lead Create + Stable ID",
+      "R_ids": ["R-07"],
+      "C_ids": ["C-01"],
+      "phases": ["PH1", "PH2"],
+      "status": "planned"
+    },
+    {
+      "feature_id": "F-007",
+      "name": "Lead Assignment/Acceptance",
+      "R_ids": ["R-08"],
+      "C_ids": ["C-01", "C-02"],
+      "phases": ["PH2", "PH5"],
+      "status": "planned"
+    },
+    {
+      "feature_id": "F-008",
+      "name": "Context Summary (Evidence-Backed)",
+      "R_ids": ["R-09"],
+      "C_ids": ["C-01"],
+      "phases": ["PH2"],
+      "status": "planned"
+    },
+    {
+      "feature_id": "F-009",
+      "name": "Three Attribution Concepts",
+      "R_ids": ["R-10"],
+      "C_ids": ["C-01"],
+      "phases": ["PH2"],
+      "status": "planned"
+    },
+    {
+      "feature_id": "F-010",
+      "name": "Handoff Package",
+      "R_ids": ["R-11"],
+      "C_ids": ["C-01", "C-02"],
+      "phases": ["PH2"],
+      "status": "planned"
+    },
+    {
+      "feature_id": "F-011",
+      "name": "Contact Attempt/Outcome Recording",
+      "R_ids": ["R-12"],
+      "C_ids": ["C-01", "C-06"],
+      "phases": ["PH2", "PH5"],
+      "status": "planned"
+    },
+    {
+      "feature_id": "F-012",
+      "name": "Next Action Lifecycle",
+      "R_ids": ["R-13"],
+      "C_ids": ["C-01", "C-06"],
+      "phases": ["PH2", "PH5"],
+      "status": "planned"
+    },
+    {
+      "feature_id": "F-013",
+      "name": "Lead State Machine (Hypothesis)",
+      "R_ids": ["R-14"],
+      "C_ids": ["C-01", "C-06"],
+      "phases": ["PH2"],
+      "status": "planned",
+      "blocked_by": ["CE-1"]
+    },
+    {
+      "feature_id": "F-014",
+      "name": "Minimal Outcome (Won/Lost/Unknown)",
+      "R_ids": ["R-15"],
+      "C_ids": ["C-01", "C-06"],
+      "phases": ["PH2", "PH5"],
+      "status": "planned"
+    },
+    {
+      "feature_id": "F-015",
+      "name": "Commercial Event Provenance Envelope",
+      "R_ids": ["R-16"],
+      "C_ids": ["C-01", "C-06"],
+      "phases": ["PH2"],
+      "status": "planned"
+    },
+    {
+      "feature_id": "F-016",
+      "name": "UNKNOWN States Handling",
+      "R_ids": ["R-17"],
+      "C_ids": ["C-01", "C-06"],
+      "phases": ["PH2", "PH5"],
+      "status": "planned"
+    },
+    {
+      "feature_id": "F-017",
+      "name": "Durable Persistence (PostgreSQL)",
+      "R_ids": ["R-18"],
+      "C_ids": ["C-03"],
+      "phases": ["PH3"],
+      "status": "planned"
+    },
+    {
+      "feature_id": "F-018",
+      "name": "Append-Only Audit Trail",
+      "R_ids": ["R-19", "R-20"],
+      "C_ids": ["C-06", "C-01"],
+      "phases": ["PH2", "PH5"],
+      "status": "planned"
+    },
+    {
+      "feature_id": "F-019",
+      "name": "AI Draft-Only Pipeline",
+      "R_ids": ["R-21"],
+      "C_ids": ["C-01", "C-10", "C-06"],
+      "phases": ["PH2", "PH5"],
+      "status": "planned",
+      "blocked_by": ["CE-2"]
+    },
+    {
+      "feature_id": "F-020",
+      "name": "Product Telemetry",
+      "R_ids": ["R-22", "R-23"],
+      "C_ids": ["C-07", "C-08"],
+      "phases": ["PH3", "PH5", "PH6"],
+      "status": "planned"
+    },
+    {
+      "feature_id": "F-021",
+      "name": "Manager Exception View",
+      "R_ids": ["R-24"],
+      "C_ids": ["C-02", "C-08"],
+      "phases": ["PH5"],
+      "status": "planned"
+    },
+    {
+      "feature_id": "F-022",
+      "name": "Data Health Coverage View",
+      "R_ids": ["R-25"],
+      "C_ids": ["C-08", "C-01"],
+      "phases": ["PH5"],
+      "status": "planned"
+    },
+    {
+      "feature_id": "F-023",
+      "name": "Pancake Read-Only Sync",
+      "R_ids": ["R-26", "R-27"],
+      "C_ids": ["C-05", "C-11", "C-09"],
+      "phases": ["PH0", "PH4"],
+      "status": "planned",
+      "blocked_by": ["Q-03", "Q-04"]
+    },
+    {
+      "feature_id": "F-024",
+      "name": "Synthetic/Demo Segregation",
+      "R_ids": ["R-28"],
+      "C_ids": ["C-12"],
+      "phases": ["PH6"],
+      "status": "planned"
+    }
+  ]
+}
