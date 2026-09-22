@@ -24,11 +24,44 @@ describe('Lead entity', () => {
   });
 
   describe('I-01: Customer ≠ Lead', () => {
-    it('Lead has no customerId field — separate entity', () => {
+    it('Lead has optional customerId reference, NOT embedded customer data (I-01)', () => {
       const lead = createLead({ workspaceId: ws, displayName: 'Test' });
-      expect(lead).not.toHaveProperty('customerId');
+      // I-01: Lead does not embed customer fields; customerId is just a reference
+      expect(lead).not.toHaveProperty('customer');
       expect(lead).toHaveProperty('id');
       expect(lead).toHaveProperty('workspaceId');
+      // customerId is optional — absent by default
+      expect(lead.customerId).toBeUndefined();
+    });
+
+    it('Lead can reference a Customer via customerId (I-01 — reference, not ownership)', () => {
+      const lead = createLead({ workspaceId: ws, displayName: 'Test', customerId: 'cust-1' as any });
+      expect(lead.customerId).toBe('cust-1');
+    });
+  });
+
+  describe('I-02: Chain identity — source/lineage/attribution', () => {
+    it('attribution defaults to UNKNOWN (MM-1) — no fabrication', () => {
+      const lead = createLead({ workspaceId: ws, displayName: 'T' });
+      expect(lead.attribution).toBe('unknown');
+    });
+
+    it('conversationSource and acquisitionLineage are optional, never auto-filled', () => {
+      const lead = createLead({ workspaceId: ws, displayName: 'T' });
+      expect(lead.conversationSource).toBeUndefined();
+      expect(lead.acquisitionLineage).toBeUndefined();
+    });
+
+    it('I-02: source and lineage stored separately — not collapsed', () => {
+      const lead = createLead({
+        workspaceId: ws,
+        displayName: 'T',
+        conversationSource: 'facebook_ad',
+        acquisitionLineage: 'campaign_q4_2026',
+      });
+      expect(lead.conversationSource).toBe('facebook_ad');
+      expect(lead.acquisitionLineage).toBe('campaign_q4_2026');
+      expect(lead.conversationSource).not.toBe(lead.acquisitionLineage);
     });
   });
 

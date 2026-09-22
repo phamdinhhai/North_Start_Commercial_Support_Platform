@@ -29,6 +29,8 @@ export interface Handoff {
   readonly context: string;
   readonly evidenceRefs: readonly EvidenceRef[];
   readonly proposedNextAction?: ProposedNextAction;
+  /** Reference to the audit record created when handoff was created (I-05, R-11 acceptance). */
+  readonly auditRef?: string;
   readonly createdAt: string;
 }
 
@@ -38,6 +40,7 @@ export interface CreateHandoffInput {
   readonly context: string;
   readonly evidenceRefs?: readonly EvidenceRef[];
   readonly proposedNextAction?: ProposedNextAction;
+  readonly auditRef?: string;
 }
 
 /**
@@ -52,6 +55,7 @@ export function createHandoff(input: CreateHandoffInput): Handoff {
     context: input.context,
     evidenceRefs: input.evidenceRefs ?? [],
     proposedNextAction: input.proposedNextAction,
+    ...(input.auditRef !== undefined && { auditRef: input.auditRef }),
     createdAt: new Date().toISOString(),
   };
 }
