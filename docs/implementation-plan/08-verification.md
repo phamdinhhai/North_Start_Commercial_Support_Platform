@@ -45,8 +45,10 @@ Sau mỗi phase, cập nhật phần này:
 | I-03 |  |  |  |  |  |  |  |
 | I-04 |  |  |  |  |  |  |  |
 | I-05 |  |  |  |  |  |  |  |
+| I-06 | deferred | deferred | ≥1 test: merge rejected w/o evidence |  |  |  |  |
 | I-07 |  |  |  |  |  |  |  |
 | I-08 |  |  |  |  |  |  |  |
 | I-09 |  |  |  |  |  |  |  |
+| I-10 | deferred | deferred | ≥1 test: adapter anti-corruption |  |  |  |  |
 | I-11 |  |  |  |  |  |  |  |
 | I-12 |  |  |  |  |  |  |  |

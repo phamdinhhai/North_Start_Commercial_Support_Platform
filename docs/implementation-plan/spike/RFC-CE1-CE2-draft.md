@@ -21,6 +21,7 @@ New → Accepted → Contacting → Follow-up → Won / Lost + Unknown
 - Terminal states (`Won`/`Lost`/`Unknown`) **reversible** bằng correction append (không overwrite) — I-05.
 - `UNKNOWN` không bị collapse thành `null`/empty — luôn surfaced với `unknown_reason` (I-08).
 - Bất kỳ transition vượt frozen boundary → **abort** với comment `// OPEN: CE-1 — see ADR-001`.
+- Lead-scoped access (I-09) enforced ở store boundary — workspace isolation (R-01) là concern riêng, không gộp vào I-09.
 
 ### 1.3 Không tự resolve
 
@@ -39,9 +40,33 @@ CE-1 chỉ freeze sau Gate #A RFC review (Product + Architecture + Data). Code P
 ### 2.2 Quy tắc interim
 
 - AI output → `CommercialEvent` với `confidence + evidence + suggested mutation + policy check`.
-- Manual loop luôn fully functional khi AI flag OFF — không block L0 loop.
+- Manual loop luôn fully functional khi AI flag OFF — không block L0 loop (I-03).
 - Invalid AI output → fails closed → manual input (I-03).
 - Bất kỳ autonomous mutation → **abort** với comment `// OPEN: CE-2 — see ADR-003`.
+
+### 2.3 Assertion & Provenance (non-inferred — scope boundary rõ)
+
+CE-2 interim chỉ cover **inferred** commercial meaning (AI draft). **Observed / claimed / imported** facts — manual input, synthetic, Pancake raw, CRM import — theo path riêng cùng provenance envelope (I-04, I-05, I-12):
+
+```
+observed / claimed / imported
+        │
+        ▼
+  Assertion envelope ──── raw payload (immutable) + external record ID + source
+  (non-inferred)          + timestamps + schema_version + audit + UNKNOWN states
+        │
+        ▼
+  Canonical projection (not fabricated)
+```
+
+**Quy tắc:**
+- Assertion envelope lưu raw immutable trước canonical mapping (I-12) — không overwrite, không fabricate.
+- `UNKNOWN` / `not_applicable` / `not_observed` / `not_requested` là valid states, không collapse (I-08).
+- Mọi correction là append + audit (I-05) — reversible.
+- AI inferred CE không tự gộp vào assertion envelope — hai path tách biệt cho tới khi CE-2 chốt (ADR-003 interim).
+
+> Đây là seam marker nơi code chạm CE-2 inferred/non-inferred:
+> `// OPEN: CE-2 — see ADR-003 — inferred-only interim; observed/claimed/imported → Assertion envelope`
 
 ---
 

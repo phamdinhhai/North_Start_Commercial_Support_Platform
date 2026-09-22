@@ -11,7 +11,7 @@
 - **CE-1:** Không có transition table / state-machine enum nào được freeze. Research chỉ có sketch LVP `New → Accepted → Contacting → Follow-up → Won/Lost + Unknown` (hypothesis) và một tập richer states (qualified / churn risk / lost-revenue…) chỉ là aspirations.
 - **CE-2:** Không rõ `CommercialEvent` chỉ cover inferred/AI-derived meaning hay là generalized assertion primitive cho observed/claimed/imported/inferred.
 
-Cả hai đều chạm tới I-03 (AI → CE → Evidence → Policy → Action), I-04 (append-audited, reversible), I-05 (provenance). Không được tự resolve.
+Cả hai đều chạm tới I-03 (AI interpretation must not directly mutate canonical commercial state), I-04 (Inferred changes must become a Commercial Event with evidence, confidence, timestamp and audit — pipeline Interaction→AI→CE→Evidence→Policy→Action), I-05 (Important automated actions are explainable and auditable; append-only, reversible). Không được tự resolve.
 
 ## Decision (interim — không freeze)
 
@@ -39,5 +39,8 @@ RFC chốt transition table + scope, hoặc evidence mới từ experiment Gate 
 
 - `OPEN_DECISIONS.md` CE-1, CE-2
 - `03-requirements.md` R-14, R-20
-- `04-architecture.md` C-01
+- `04-architecture.md` C-01, C-02
 - `05-phase-map.md` PH2 gate
+- `08-verification.md` Gate #A record
+
+> **ID sync note:** Single system R-01…R-28 (`03-requirements.md`), C-01…C-12 (`04-architecture.md`). No dual ID systems. C-12 clarified: workspace isolation = R-01, lead-scoped access = I-09/R-03 — tách biệt, không gộp (OPEN PM-1).

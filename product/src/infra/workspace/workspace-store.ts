@@ -1,7 +1,11 @@
 /**
- * Workspace-scoped in-memory store (C-12, I-09).
+ * Workspace-scoped in-memory store (C-12, R-01 — workspace isolation).
  *
  * Mỗi store entry gắn với workspaceId — query scoped, cross-workspace reject.
+ * NOTE: workspace isolation (R-01) ≠ I-09 (lead-scoped access). I-09 enforced separately
+ * in domain layer where Sales access is scoped to assigned lead, not entire workspace inbox.
+ * // OPEN: PM-1 — I-09 lead-scoped chưa chốt chi tiết
+ *
  * In-memory PH1, được replace bởi durable persistence trong PH3+.
  */
 

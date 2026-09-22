@@ -14,6 +14,7 @@ export type LeadStatus =
   | 'Won'
   | 'Lost'
   | 'Unknown'; // I-08 — UNKNOWN là valid state, không null
+// OPEN: CE-1 — see ADR-001 — interim: New→Accepted→Contacting→Follow-up→Won/Lost+Unknown. Code PHẢI abort nếu transition vượt frozen boundary.
 
 /**
  * Lead ≠ Customer (I-01) — entity riêng biệt.

@@ -42,7 +42,7 @@
 | C-09 | Job/Queue Abstraction | Connector jobs, idempotent, checkpoint tách biệt | P1, defer generic |
 | C-10 | AI Inference | **Draft-only, policy-gated, feature-flag OFF** | P1; ADR-003 |
 | C-11 | Adapter Contract (versioned envelope) | Envelope + hash + anti-corruption mapping | Mọi inbound; ADR-003 |
-| C-12 | Identity / Workspace / RBAC | Workspace isolation; Sales scoped access; demo segregation | Cluster A; I-09 |
+| C-12 | Identity / Workspace / RBAC | Workspace isolation (R-01) + Sales lead-scoped access (I-09, R-03) + demo segregation (R-28) | Cluster A; R-01/I-09 tách biệt — OPEN PM-1 |
 
 ## 3. Domain core (framework-independent)
 
@@ -90,7 +90,7 @@ schema_version
 
 ## 6. Module boundaries (từ `ARCHITECTURE_CONSTITUTION.md` §4)
 
-1. **Identity / access / workspace** — auth, RBAC (I-09), workspace isolation (I-08), synthetic/demo segregation (I-12).
+1. **Identity / access / workspace** — workspace isolation (R-01, C-12); auth, RBAC lead-scoped (I-09, R-03); synthetic/demo segregation (I-12, R-28).  // OPEN: PM-1 — I-09 lead-scoped chưa chốt chi tiết, chỉ enforce frozen boundary
 2. **Lead / handoff / evidence** — Lead stable ID, handoff package, raw evidence (I-07, I-11, I-12).
 3. **Sales action / next action / outcome** — queued actions, contact attempts, next action lifecycle, Won/Lost/Unknown (I-05, I-08).
 4. **Audit / provenance** — append-audit (I-04, I-05).
