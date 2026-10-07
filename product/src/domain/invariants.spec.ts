@@ -15,6 +15,8 @@ import { createOutcome, correctOutcome, type Outcome } from './outcome/outcome';
 import { UNKNOWN_SENTINEL, isValidUnknownState, UNKNOWN_STATES } from './unknown-states/unknown-states';
 import { canTransition, transitionLead } from './lead/lead-state';
 import { AuditStore } from '../infra/audit/audit-store';
+import { WorkspaceStore, type WorkspaceScopedEntry } from '../infra/workspace/workspace-store';
+import { ManualAdapter } from '../adapters/manual/manual-adapter';
 
 const ws = 'ws-1';
 const leadId = 'lead-123' as unknown as import('./lead/lead').LeadId;
@@ -123,10 +125,34 @@ describe('Invariant sweep — I-01…I-12', () => {
     });
   });
 
-  describe('I-06: Merge deferred — no auto-merge', () => {
-    it('no merge function exists in domain layer', () => {
-      // Compile-time: if this fails, a merge function was added prematurely
-      expect(true).toBe(true);
+  describe('I-06: Identity merges require evidence, confidence and reversibility / undo (no auto-merge)', () => {
+    it('no auto-merge API exists in domain layer — merge deferred by explicit non-goal', async () => {
+      // If any merge function appears, this grep must fail the PR.
+      const domainModules = await import('./lead/lead');
+      expect('mergeLeads' in domainModules).toBe(false);
+      expect('mergeCustomers' in domainModules).toBe(false);
+      const customerMod = await import('./customer/customer');
+      expect('mergeCustomers' in customerMod).toBe(false);
+      // AuditStore must not expose merge helpers either
+      expect(typeof (AuditStore as any).merge).toBe('undefined');
+    });
+
+    it('same phone does not collapse into one Lead — each episode is a separate Lead', () => {
+      const sharedPhone = '+84-900-111-222';
+      const l1 = createLead({ workspaceId: ws, displayName: sharedPhone });
+      const l2 = createLead({ workspaceId: ws, displayName: sharedPhone });
+      // Stable IDs are distinct even though display/search key is identical
+      expect(l1.id).not.toBe(l2.id);
+      expect(sameLead(l1, l2)).toBe(false);
+    });
+
+    it('correction is append-only — reversibility requires explicit correction, not overwrite (I-06 + I-05)', () => {
+      const orig = createOutcome({ leadId, workspaceId: ws, value: 'Won', actor: 's' });
+      const corr = correctOutcome(orig, { newValue: 'Lost', actor: 'mgr', reason: 'evidence shows refund' });
+      // Original preserved; correction links back — undo path exists via history
+      expect(orig.value).toBe('Won');
+      expect(corr.supersedesOutcomeId).toBe(orig.id);
+      expect(corr.value).toBe('Lost');
     });
   });
 
@@ -166,15 +192,61 @@ describe('Invariant sweep — I-01…I-12', () => {
     });
   });
 
-  describe('I-09: Lead-scoped access — RBAC', () => {
-    it('already tested in workspace-store.spec.ts — cross-reference', () => {
-      // WorkspaceStore rejects cross-workspace access
-      expect(true).toBe(true);
+  describe('I-09: Sales access is scoped to assigned customer/lead context, not entire inbox (lead-scoped)', () => {
+    type ScopedEntry = WorkspaceScopedEntry & { assignedTo?: string };
+
+    it('cross-workspace access is invisible (returns undefined, not error leak)', () => {
+      const store = new WorkspaceStore<ScopedEntry>();
+      store.add({ id: 'lead-1', workspaceId: 'ws-a', createdAt: new Date().toISOString(), assignedTo: 'sales-1' });
+      expect(store.getById('lead-1', 'ws-b')).toBeUndefined();
+      expect(store.listByWorkspace('ws-b')).toEqual([]);
+    });
+
+    it('within workspace, only assigned leads are visible via predicate (lead-scoped, not inbox-scoped)', () => {
+      const store = new WorkspaceStore<ScopedEntry>();
+      store.add({ id: 'lead-1', workspaceId: ws, createdAt: new Date().toISOString(), assignedTo: 'sales-1' });
+      store.add({ id: 'lead-2', workspaceId: ws, createdAt: new Date().toISOString(), assignedTo: 'sales-2' });
+      store.add({ id: 'lead-3', workspaceId: ws, createdAt: new Date().toISOString(), assignedTo: 'sales-1' });
+      const visibleToSales1 = store.query(ws, (e) => e.assignedTo === 'sales-1');
+      expect(visibleToSales1.map((e) => e.id)).toEqual(['lead-1', 'lead-3']);
+      expect(visibleToSales1.find((e) => e.id === 'lead-2')).toBeUndefined();
+    });
+
+    it('reassignment immediately revokes previous assignee visibility (no lingering access)', () => {
+      const store = new WorkspaceStore<ScopedEntry>();
+      const entry: ScopedEntry = { id: 'lead-1', workspaceId: ws, createdAt: new Date().toISOString(), assignedTo: 'sales-1' };
+      store.add(entry);
+      // Simulate reassignment by replacing entry (store is append-only in real domain; this is scope check)
+      // After reassignment, old assignee query must not return the lead
+      const reassigned: ScopedEntry = { ...entry, assignedTo: 'sales-2' };
+      // Clear and re-add to simulate state change (real impl would be event-sourced)
+      store.clear();
+      store.add(reassigned);
+      expect(store.query(ws, (e) => e.assignedTo === 'sales-1')).toEqual([]);
+      expect(store.query(ws, (e) => e.assignedTo === 'sales-2')).toHaveLength(1);
     });
   });
 
-  describe('I-10: Adapter boundary — anti-corruption', () => {
-    it('AssertionEnvelope rejects inferred mode — must use CommercialEvent', () => {
+  // I-10 (canonical): CRM adapters do not own canonical commercial semantics
+  describe('I-10: CRM adapters do not own canonical commercial semantics (platform owns Lead/State/Outcome)', () => {
+    it('adapter creates envelope only — it never decides Lead state/outcome (platform owns semantics)', () => {
+      const adapter = new ManualAdapter();
+      const env = adapter.ingest({
+        connection: 'manual',
+        externalRecordId: 'row-1',
+        externalEventType: 'message',
+        rawPayload: { text: 'xin báo giá khóa học' },
+      });
+      // Envelope has no status/outcome — those are platform decisions
+      expect((env as any).status).toBeUndefined();
+      expect((env as any).outcome).toBeUndefined();
+      expect((env as any).leadState).toBeUndefined();
+      // Platform decides state separately
+      const lead = createLead({ workspaceId: ws, displayName: 'T' });
+      expect(lead.status).toBe('New');
+    });
+
+    it('AssertionEnvelope rejects inferred acquisitionMode — CRM/manual cannot masquerade as AI inference', () => {
       expect(() =>
         createAssertion({
           workspaceId: ws,
@@ -183,15 +255,32 @@ describe('Invariant sweep — I-01…I-12', () => {
           eventType: 'WON',
           value: 'won',
           acquisitionMode: 'inferred' as never,
-          sourceActor: 'ai',
+          sourceActor: 'crm-sync',
           createdBy: 'system',
         }),
       ).toThrow('AssertionEnvelope must not use inferred');
     });
   });
 
-  describe('I-11: Adapter = integration boundary — no inherited semantics', () => {
-    it('CommercialEvent and AssertionEnvelope are distinct types (CE-2 boundary)', () => {
+  // I-11 (canonical): External providers are integration boundaries, not the core domain
+  describe('I-11: External providers are integration boundaries, not the core domain (anti-corruption)', () => {
+    it('ManualAdapter preserves raw payload behind envelope — domain never reads provider shape directly', () => {
+      const adapter = new ManualAdapter();
+      const raw = { provider: 'pancake', weird_shape: { foo: 1 } };
+      const env = adapter.ingest({
+        connection: 'manual',
+        externalRecordId: 'ext-1',
+        externalEventType: 'message',
+        rawPayload: raw,
+      });
+      expect(env.rawPayload).toEqual(raw);
+      // Domain entity does not embed provider fields
+      const lead = createLead({ workspaceId: ws, displayName: 'T' });
+      expect('weird_shape' in lead).toBe(false);
+      expect('provider' in lead).toBe(false);
+    });
+
+    it('CommercialEvent (inferred) and AssertionEnvelope (observed/claimed) are distinct types — provider cannot collapse them (CE-2 boundary)', () => {
       const ce = createCommercialEvent({
         leadId,
         workspaceId: ws,
@@ -212,7 +301,6 @@ describe('Invariant sweep — I-01…I-12', () => {
         sourceActor: 'sales-1',
         createdBy: 'sales-1',
       });
-      // Different shapes
       expect('inferredMeaning' in ce).toBe(true);
       expect('inferredMeaning' in ae).toBe(false);
     });

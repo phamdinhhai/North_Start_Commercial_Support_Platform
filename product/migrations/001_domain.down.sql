@@ -1,0 +1,9 @@
+DROP TABLE IF EXISTS commercial_envelope;
+DROP TABLE IF EXISTS audit_record;
+DROP TABLE IF EXISTS outcome;
+DROP TABLE IF EXISTS assertion_envelope;
+DROP TABLE IF EXISTS commercial_event;
+DROP TABLE IF EXISTS handoff;
+DROP TABLE IF EXISTS lead;
+DROP TABLE IF EXISTS customer;
+DROP TABLE IF EXISTS workspace;
