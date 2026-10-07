@@ -10,6 +10,7 @@ import {
 
 describe('CommercialEnvelope v1 (R-05, R-06, I-11, I-12)', () => {
   const base = {
+    workspaceId: 'ws-env-test',
     connection: 'conn-ws-001',
     externalRecordId: 'ext-123',
     externalEventType: 'conversation',
@@ -72,9 +73,9 @@ describe('CommercialEnvelope v1 (R-05, R-06, I-11, I-12)', () => {
   });
 
   describe('idempotency key (R-06)', () => {
-    it('key = connection:externalRecordId', () => {
+    it('key = workspaceId:connection:externalRecordId (R-06 within I-09)', () => {
       const env = createEnvelope(base);
-      expect(idempotencyKey(env)).toBe('conn-ws-001:ext-123');
+      expect(idempotencyKey(env)).toBe('ws-env-test:conn-ws-001:ext-123');
     });
   });
 

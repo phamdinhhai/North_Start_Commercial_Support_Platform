@@ -128,6 +128,36 @@ integration('PilotLoop over PostgreSQL — durability + two-person handoff', () 
     }
   });
 
+  it('P1-1: cross-workspace same connection+externalRecordId → distinct envelopes, no shared raw evidence (PG path)', async () => {
+    const wsA = `it-p11-a-${randomUUID()}`;
+    const wsB = `it-p11-b-${randomUUID()}`;
+    const sharedConn = `pancake-page-${randomUUID()}`;
+    const svc = new PilotLoopService(new PgPilotStore(db1), new ManualAdapter());
+
+    const a = await svc.ingestScenario({
+      workspaceId: wsA, displayName: 'A', utterance: 'evidence A', speaker: 'customer',
+      connection: sharedConn, externalRecordId: 'msg-shared', isSynthetic: true,
+    });
+    const b = await svc.ingestScenario({
+      workspaceId: wsB, displayName: 'B', utterance: 'evidence B', speaker: 'customer',
+      connection: sharedConn, externalRecordId: 'msg-shared', isSynthetic: true,
+    });
+    // Envelope rows must be distinct per workspace (old UNIQUE(connection,ext) reused A's row)
+    const envA = (await svc.get(a.lead.id))!;
+    const envB = (await svc.get(b.lead.id))!;
+    expect(envA.sourceEnvelopeId).not.toBe(envB.sourceEnvelopeId);
+    expect(envB.envelope?.rawPayload).toEqual({ utterance: 'evidence B', speaker: 'customer' });
+    expect(envB.envelope?.workspaceId).toBe(wsB);
+
+    const rows = await db1.query<{ workspace_id: string }>(
+      'SELECT workspace_id FROM commercial_envelope WHERE connection = $1 AND external_record_id = $2',
+      [sharedConn, 'msg-shared'],
+    );
+    expect(rows.rows.map((r) => r.workspace_id).sort()).toEqual([wsA, wsB].sort());
+
+    await db1.query('DELETE FROM workspace WHERE id IN ($1,$2)', [wsA, wsB]);
+  });
+
   it('mutation + audit are atomic: a guardrail refusal leaves no partial state (QA-35)', async () => {
     const svc = new PilotLoopService(new PgPilotStore(db1), new ManualAdapter());
     const state = await svc.ingestScenario({

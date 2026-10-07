@@ -51,6 +51,7 @@ export class PilotLoopService {
     if (!input.utterance) throw new PilotDomainError('INPUT_REQUIRED', 400, 'utterance is required');
 
     const envelope = this.adapter.ingest({
+      workspaceId: input.workspaceId,
       connection: input.connection,
       externalRecordId: input.externalRecordId,
       externalEventType: 'message',

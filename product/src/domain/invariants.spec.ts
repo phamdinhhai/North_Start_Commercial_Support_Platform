@@ -232,6 +232,7 @@ describe('Invariant sweep — I-01…I-12', () => {
     it('adapter creates envelope only — it never decides Lead state/outcome (platform owns semantics)', () => {
       const adapter = new ManualAdapter();
       const env = adapter.ingest({
+        workspaceId: ws,
         connection: 'manual',
         externalRecordId: 'row-1',
         externalEventType: 'message',
@@ -268,6 +269,7 @@ describe('Invariant sweep — I-01…I-12', () => {
       const adapter = new ManualAdapter();
       const raw = { provider: 'pancake', weird_shape: { foo: 1 } };
       const env = adapter.ingest({
+        workspaceId: ws,
         connection: 'manual',
         externalRecordId: 'ext-1',
         externalEventType: 'message',

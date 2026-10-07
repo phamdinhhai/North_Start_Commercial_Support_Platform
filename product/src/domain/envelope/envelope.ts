@@ -13,13 +13,17 @@ export type MappingStatus = 'pending' | 'mapped' | 'error';
  * - `rawPayload` immutable — I-12, không bao giờ sửa sau khi tạo.
  * - `rawPayloadHash` = SHA-256(JSON(rawPayload)) — verifies integrity.
  * - `mappingStatus` = pending → mapped/error; lỗi mapping giữ nguyên raw, không fabricate canonical fields.
- * - Idempotency key: `connection` + `externalRecordId` (R-06).
+ * - Idempotency key: `workspaceId` + `connection` + `externalRecordId` (R-06 within I-09/R-01).
+ *   Connection names come from external systems and collide across tenants, so the key MUST
+ *   include the authenticated workspace — otherwise workspace B receives workspace A's evidence.
  */
 export interface CommercialEnvelope {
   readonly envelopeId: EnvelopeId;
   readonly schemaVersion: 1;
+  /** Authenticated workspace scope (I-09/R-01). Part of the idempotency key. */
+  readonly workspaceId: string;
   readonly connection: string; // workspace-scoped connection ID
-  readonly externalRecordId: string; // immutable — idempotency key part 1
+  readonly externalRecordId: string; // immutable — idempotency key part 2
   readonly externalEventType: string; // message | conversation | customer | note | order
   readonly sourceCapturedAt: string; // ISO 8601
   readonly ingestedAt: string; // ISO 8601
@@ -32,6 +36,7 @@ export interface CommercialEnvelope {
 }
 
 export interface CreateEnvelopeInput {
+  readonly workspaceId: string;
   readonly connection: string;
   readonly externalRecordId: string;
   readonly externalEventType: string;
@@ -51,10 +56,12 @@ export function hashRawPayload(rawPayload: unknown): string {
  * Mapping starts ở `pending` — canonical projection xảy ra sau (anti-corruption layer).
  */
 export function createEnvelope(input: CreateEnvelopeInput): CommercialEnvelope {
+  if (!input.workspaceId) throw new Error("workspaceId is required — envelope scope (I-09/R-01)");
   const ingestedAt = new Date().toISOString();
   return {
     envelopeId: randomUUID() as EnvelopeId,
     schemaVersion: 1,
+    workspaceId: input.workspaceId,
     connection: input.connection,
     externalRecordId: input.externalRecordId,
     externalEventType: input.externalEventType,
@@ -67,9 +74,14 @@ export function createEnvelope(input: CreateEnvelopeInput): CommercialEnvelope {
   };
 }
 
-/** Idempotency key = connection + externalRecordId (R-06). */
-export function idempotencyKey(envelope: Pick<CommercialEnvelope, 'connection' | 'externalRecordId'>): string {
-  return `${envelope.connection}:${envelope.externalRecordId}`;
+/**
+ * Idempotency key = workspaceId + connection + externalRecordId (R-06 within I-09).
+ * Connection names collide across tenants, so the workspace is part of the key.
+ */
+export function idempotencyKey(
+  envelope: Pick<CommercialEnvelope, 'workspaceId' | 'connection' | 'externalRecordId'>,
+): string {
+  return `${envelope.workspaceId}:${envelope.connection}:${envelope.externalRecordId}`;
 }
 
 /**

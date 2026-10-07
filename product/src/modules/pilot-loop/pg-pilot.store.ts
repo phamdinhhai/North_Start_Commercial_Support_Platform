@@ -62,7 +62,7 @@ export class PgPilotStore implements PilotLoopStore {
       ),
       leadRow.source_envelope_id
         ? this.db.query<EnvelopeDbRow>(
-            `SELECT id, raw_payload, raw_payload_hash, source_captured_at, ingested_at, connection,
+            `SELECT id, workspace_id, raw_payload, raw_payload_hash, source_captured_at, ingested_at, connection,
                     external_record_id, external_event_type, is_synthetic
                FROM commercial_envelope WHERE id = $1`,
             [leadRow.source_envelope_id],
@@ -242,19 +242,21 @@ export class PgPilotStore implements PilotLoopStore {
 }
 
 async function insertEnvelope(tx: SqlExecutor, env: CommercialEnvelope): Promise<string> {
-  // Idempotent by (connection, external_record_id). DO UPDATE (no-op) makes PG
-  // RETURN the id of the winning row whether it was just inserted or already
-  // existed from a previous process — the lead FK must reference THAT id.
+  // P1-1: idempotency scope = (workspace_id, connection, external_record_id) — R-06
+  // within I-09. DO UPDATE (no-op) makes PG RETURN the id of the winning row whether
+  // it was just inserted or already existed from a previous process — the lead FK must
+  // reference THAT id. Different workspaces NEVER share a row.
   const res = await tx.query<{ id: string }>(
-    `INSERT INTO commercial_envelope (id, schema_version, connection, external_record_id, external_event_type,
+    `INSERT INTO commercial_envelope (id, schema_version, workspace_id, connection, external_record_id, external_event_type,
                                       source_captured_at, ingested_at, raw_payload, raw_payload_hash,
                                       mapping_status, is_synthetic)
-     VALUES ($1,$2,$3,$4,$5,$6,$7,$8::jsonb,$9,$10,$11)
-     ON CONFLICT (connection, external_record_id) DO UPDATE SET connection = EXCLUDED.connection
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9::jsonb,$10,$11,$12)
+     ON CONFLICT (workspace_id, connection, external_record_id) DO UPDATE SET connection = EXCLUDED.connection
      RETURNING id`,
     [
       env.envelopeId,
       env.schemaVersion,
+      env.workspaceId,
       env.connection,
       env.externalRecordId,
       env.externalEventType,
@@ -327,6 +329,7 @@ interface WorkDbRow extends QueryResultRow {
 
 interface EnvelopeDbRow extends QueryResultRow {
   id: string;
+  workspace_id: string;
   raw_payload: unknown;
   raw_payload_hash: string;
   source_captured_at: Date | string;
@@ -417,6 +420,7 @@ function toEnvelope(r: EnvelopeDbRow): CommercialEnvelope {
   return {
     envelopeId: r.id as CommercialEnvelope['envelopeId'],
     schemaVersion: 1,
+    workspaceId: r.workspace_id,
     connection: r.connection,
     externalRecordId: r.external_record_id,
     externalEventType: r.external_event_type,
