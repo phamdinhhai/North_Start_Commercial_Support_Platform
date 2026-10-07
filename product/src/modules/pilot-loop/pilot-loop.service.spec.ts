@@ -78,7 +78,7 @@ describe('PilotLoopService — P0 education B2C loop (durable store port)', () =
     expect(audit.getByEntity('lead', state.lead.id).length).toBeGreaterThanOrEqual(4);
   });
 
-  it('Marketing A bàn giao cho Sales B — B xem và nhận đúng gói, A mất quyền sau khi B nhận', async () => {
+  it('Marketing A bàn giao cho Sales B — B xem và nhận đúng gói, A mất quyền mutate sau khi B nhận', async () => {
     const state = await svc.ingestScenario(base); // owner = marketing-lan
     const handed = await svc.handoffToSales(state.lead.id, {
       context: 'c',
@@ -105,6 +105,12 @@ describe('PilotLoopService — P0 education B2C loop (durable store port)', () =
     const accepted = await svc.salesAccept(handed.lead.id, { workId, actor: 'sales-b', reason: 'B nhận trách nhiệm' });
     expect(accepted.ownerUserId).toBe('sales-b');
     expect(accepted.workItems[0].status).toBe('accepted');
+
+    // Sau khi B nhận, A không còn quyền mutate (ownership đã chuyển — I-09)
+    await expect(svc.advance(accepted.lead.id, { to: 'Contacting', actor: 'marketing-lan', reason: 'x' })).rejects.toMatchObject({
+      code: 'NOT_OWNER',
+      status: 403,
+    });
   });
 
   it('separates utterance speaker from responsible party for mixed propositions (Q3 conflict case)', async () => {
@@ -138,10 +144,11 @@ describe('PilotLoopService — P0 education B2C loop (durable store port)', () =
       proposedAction: 'Gửi bảng học phí',
       responsibleParty: 'internal',
       origin: 'explicit-commitment',
-      actor: 'sales-hung',
+      actor: 'marketing-lan',
       recipientUserId: 'sales-hung',
     });
     const workId = handed.workItems[0].id;
+    await svc.salesAccept(state.lead.id, { workId, actor: 'sales-hung', reason: 'B nhận' });
     await expect(svc.completeWork(state.lead.id, { workId, actor: 'sales-hung', evidence: 'observed' })).rejects.toMatchObject({
       code: 'EVIDENCE_POINTER_REQUIRED',
       status: 422,
@@ -161,8 +168,10 @@ describe('PilotLoopService — P0 education B2C loop (durable store port)', () =
       actor: 'marketing-lan',
       recipientUserId: 'sales-hung',
     });
+    const workId = handed.workItems[0].id;
+    await svc.salesAccept(state.lead.id, { workId, actor: 'sales-hung', reason: 'B nhận' });
     await expect(
-      svc.completeWork(state.lead.id, { workId: handed.workItems[0].id, actor: 'ai', evidence: 'inferred' }),
+      svc.completeWork(state.lead.id, { workId, actor: 'sales-hung', evidence: 'inferred' }),
     ).rejects.toMatchObject({ code: 'INFERRED_CANNOT_CLOSE', status: 422 });
   });
 
@@ -174,7 +183,7 @@ describe('PilotLoopService — P0 education B2C loop (durable store port)', () =
       responsibleParty: 'internal',
       origin: 'explicit-request',
       dueAt: '2026-10-09T15:00:00+07:00',
-      actor: 'sales-hung',
+      actor: 'marketing-lan',
       recipientUserId: 'sales-hung',
     });
     const oldId = handed.workItems[0].id;
@@ -201,10 +210,11 @@ describe('PilotLoopService — P0 education B2C loop (durable store port)', () =
       responsibleParty: 'internal',
       origin: 'explicit-request',
       dueAt: '2026-10-09T15:00:00+07:00',
-      actor: 'sales-hung',
+      actor: 'marketing-lan',
       recipientUserId: 'sales-hung',
     });
     const workId = handed.workItems[0].id;
+    await svc.salesAccept(state.lead.id, { workId, actor: 'sales-hung', reason: 'nhận' });
     await svc.completeWork(state.lead.id, { workId, actor: 'sales-hung', evidence: 'declared', reason: 'đã gọi' });
     await expect(
       svc.rescheduleWork(state.lead.id, { workId, actor: 'sales-hung', newDueAt: '2026-10-12T16:00:00+07:00', reason: 'lỡ tay' }),
@@ -219,10 +229,11 @@ describe('PilotLoopService — P0 education B2C loop (durable store port)', () =
       responsibleParty: 'external',
       origin: 'explicit-request',
       dueAt: '2026-10-09T00:00:00+07:00',
-      actor: 'sales-hung',
+      actor: 'marketing-lan',
       recipientUserId: 'sales-hung',
     });
     const workId = handed.workItems[0].id;
+    await svc.salesAccept(state.lead.id, { workId, actor: 'sales-hung', reason: 'nhận' });
     const marked = await svc.markExternalUnobserved(state.lead.id, { workId, actor: 'sales-hung' });
     expect(marked.workItems[0].status).toBe('awaiting-external');
     expect(marked.workItems[0].completionEvidence).toBe('absent');
@@ -240,11 +251,13 @@ describe('PilotLoopService — P0 education B2C loop (durable store port)', () =
       proposedAction: 'Gọi lại chiều nay',
       responsibleParty: 'internal',
       origin: 'explicit-request',
-      actor: 'sales-hung',
+      actor: 'marketing-lan',
       recipientUserId: 'sales-hung',
     });
+    const workId = handed.workItems[0].id;
+    await svc.salesAccept(state.lead.id, { workId, actor: 'sales-hung', reason: 'nhận' });
     const done = await svc.completeWork(state.lead.id, {
-      workId: handed.workItems[0].id,
+      workId,
       actor: 'sales-hung',
       evidence: 'declared',
       reason: 'nhập muộn hôm sau',
@@ -263,7 +276,8 @@ describe('PilotLoopService — P0 education B2C loop (durable store port)', () =
       actor: 'marketing-lan',
       recipientUserId: 'sales-hung',
     });
-    await svc.salesAccept(state.lead.id, { workId: handed.workItems[0].id, actor: 'sales-hung', reason: 'x' });
+    const workId = handed.workItems[0].id;
+    await svc.salesAccept(state.lead.id, { workId, actor: 'sales-hung', reason: 'x' });
     await svc.advance(state.lead.id, { to: 'Contacting', actor: 'sales-hung', reason: 'đã gọi' });
     await svc.advance(state.lead.id, { to: 'Follow-up', actor: 'sales-hung', reason: 'chờ trả lời' });
     const won = await svc.recordOutcome(state.lead.id, { value: 'Won', actor: 'sales-hung', reason: 'đã deposit' });
@@ -271,7 +285,7 @@ describe('PilotLoopService — P0 education B2C loop (durable store port)', () =
     const corrected = await svc.correctOutcomeRecord(state.lead.id, {
       outcomeId: won.outcomes[0].id,
       newValue: 'Lost',
-      actor: 'manager',
+      actor: 'sales-hung',
       reason: 'khách rút, hoàn deposit',
     });
     expect(corrected.outcomes).toHaveLength(2);
@@ -281,9 +295,144 @@ describe('PilotLoopService — P0 education B2C loop (durable store port)', () =
 
   it('aborts transitions beyond the frozen CE-1 hypothesis boundary (422, not 500)', async () => {
     const state = await svc.ingestScenario(base);
-    await expect(svc.recordOutcome(state.lead.id, { value: 'Won', actor: 'x' })).rejects.toMatchObject({
+    await expect(svc.recordOutcome(state.lead.id, { value: 'Won', actor: 'marketing-lan' })).rejects.toMatchObject({
       code: 'CE1_BOUNDARY',
       status: 422,
     });
+  });
+});
+
+/**
+ * P1-2 — view / accept / mutation là BA quyền tách biệt (I-09, PM-1 vẫn OPEN).
+ * Lỗi cũ: controller gate mọi mutation bằng đúng `authorizedView` (quyền XEM), nên
+ * người được bàn giao B hoàn thành/dời lịch/chuyển trạng thái lead TRƯỚC khi nhận
+ * trách nhiệm, trong khi owner vẫn là A.
+ */
+describe('P1-2 — mutation authorization is per work item and handoff state', () => {
+  let svc: PilotLoopService;
+
+  beforeEach(async () => {
+    ({ svc } = make());
+  });
+
+  async function handedOver() {
+    const state = await svc.ingestScenario(base); // owner = marketing-lan
+    const handed = await svc.handoffToSales(state.lead.id, {
+      context: 'c',
+      proposedAction: 'Gọi lại chị A',
+      responsibleParty: 'internal',
+      origin: 'explicit-request',
+      dueAt: '2026-10-09T15:00:00+07:00',
+      actor: 'marketing-lan',
+      recipientUserId: 'sales-b',
+    });
+    return { state, workId: handed.workItems[0].id };
+  }
+
+  it('recipient B may VIEW and ACCEPT, but every mutation is refused while owner is still A', async () => {
+    const { state, workId } = await handedOver();
+
+    // view — quyền đọc lead-scoped của recipient
+    const view = await svc.get(state.lead.id);
+    expect(view?.handoffRecipient).toBe('sales-b');
+    expect(view?.ownerUserId).toBe('marketing-lan');
+
+    // mutations trước khi nhận → 403, và state KHÔNG đổi
+    await expect(svc.completeWork(state.lead.id, { workId, actor: 'sales-b', evidence: 'declared' })).rejects.toMatchObject({ code: 'NOT_OWNER', status: 403 });
+    await expect(
+      svc.rescheduleWork(state.lead.id, { workId, actor: 'sales-b', newDueAt: '2026-10-12T09:00:00+07:00', reason: 'x' }),
+    ).rejects.toMatchObject({ code: 'NOT_OWNER', status: 403 });
+    await expect(svc.advance(state.lead.id, { to: 'Contacting', actor: 'sales-b', reason: 'x' })).rejects.toMatchObject({ code: 'NOT_OWNER', status: 403 });
+    await expect(svc.recordOutcome(state.lead.id, { value: 'Won', actor: 'sales-b' })).rejects.toMatchObject({ code: 'NOT_OWNER', status: 403 });
+
+    const after = await svc.get(state.lead.id);
+    expect(after?.lead.status).toBe('New'); // không có half-mutation
+    expect(after?.workItems[0].status).toBe('proposed');
+    expect(after?.ownerUserId).toBe('marketing-lan');
+    expect(after?.outcomes).toHaveLength(0);
+
+    // accept là quyền riêng của recipient → vẫn được
+    const accepted = await svc.salesAccept(state.lead.id, { workId, actor: 'sales-b', reason: 'B nhận' });
+    expect(accepted.ownerUserId).toBe('sales-b');
+    // sau khi nhận, B mutate hợp lệ
+    const done = await svc.completeWork(state.lead.id, { workId, actor: 'sales-b', evidence: 'declared', reason: 'đã gọi' });
+    expect(done.workItems[0].status).toBe('completed');
+  });
+
+  it('a non-owner, non-recipient cannot even accept someone else’s handoff (already guarded) nor mutate', async () => {
+    const { state, workId } = await handedOver();
+    await expect(svc.salesAccept(state.lead.id, { workId, actor: 'sales-c', reason: 'x' })).rejects.toMatchObject({
+      code: 'NOT_ASSIGNED_RECIPIENT',
+      status: 403,
+    });
+    await expect(svc.completeWork(state.lead.id, { workId, actor: 'sales-c', evidence: 'declared' })).rejects.toMatchObject({
+      code: 'NOT_OWNER',
+      status: 403,
+    });
+  });
+
+  it('external no-observation is a mutation too — refused for a not-yet-owner recipient', async () => {
+    const state = await svc.ingestScenario(base);
+    const handed = await svc.handoffToSales(state.lead.id, {
+      context: 'c',
+      proposedAction: 'Chị A trao đổi với bé',
+      responsibleParty: 'external',
+      origin: 'explicit-request',
+      actor: 'marketing-lan',
+      recipientUserId: 'sales-b',
+    });
+    const workId = handed.workItems[0].id;
+    await expect(svc.markExternalUnobserved(state.lead.id, { workId, actor: 'sales-b' })).rejects.toMatchObject({
+      code: 'NOT_OWNER',
+      status: 403,
+    });
+    await svc.salesAccept(state.lead.id, { workId, actor: 'sales-b', reason: 'nhận' });
+    const marked = await svc.markExternalUnobserved(state.lead.id, { workId, actor: 'sales-b' });
+    expect(marked.workItems[0].status).toBe('awaiting-external');
+  });
+
+  it('only the owner may hand off; P0 correction path is owner-only (manager/admin = PM-1, not widened here)', async () => {
+    const { state, workId } = await handedOver();
+    await expect(
+      svc.handoffToSales(state.lead.id, {
+        context: 'x',
+        proposedAction: 'y',
+        responsibleParty: 'internal',
+        origin: 'explicit-request',
+        actor: 'sales-b',
+        recipientUserId: 'sales-c',
+      }),
+    ).rejects.toMatchObject({ code: 'NOT_OWNER', status: 403 });
+
+    await svc.salesAccept(state.lead.id, { workId, actor: 'sales-b', reason: 'nhận' });
+    await svc.advance(state.lead.id, { to: 'Contacting', actor: 'sales-b', reason: 'gọi' });
+    await svc.advance(state.lead.id, { to: 'Follow-up', actor: 'sales-b', reason: 'chờ' });
+    const won = await svc.recordOutcome(state.lead.id, { value: 'Won', actor: 'sales-b', reason: 'deposit' });
+    await expect(
+      svc.correctOutcomeRecord(state.lead.id, { outcomeId: won.outcomes[0].id, newValue: 'Lost', actor: 'manager', reason: 'khách rút' }),
+    ).rejects.toMatchObject({ code: 'NOT_OWNER', status: 403 });
+    // owner vẫn sửa được bằng append (I-05)
+    const fixed = await svc.correctOutcomeRecord(state.lead.id, {
+      outcomeId: won.outcomes[0].id,
+      newValue: 'Lost',
+      actor: 'sales-b',
+      reason: 'khách rút, hoàn deposit',
+    });
+    expect(fixed.outcomes).toHaveLength(2);
+    // history cho thấy 'manager' chưa từng mutate thành công
+    const history = await svc.auditHistory(state.lead.id as LeadId);
+    expect(history.map((h) => h.actor)).not.toContain('manager');
+  });
+
+  it('work item of another lead cannot be mutated through this lead (per-item check)', async () => {
+    const a = await handedOver();
+    const stateB = await svc.ingestScenario({ ...base, displayName: 'Phụ huynh B', externalRecordId: 'msg-009' });
+    // Owner hợp lệ của lead B, nhưng workId thuộc lead A → 404, không mutate chéo lead.
+    await expect(
+      svc.completeWork(stateB.lead.id, { workId: a.workId, actor: 'marketing-lan', evidence: 'declared' }),
+    ).rejects.toMatchObject({ code: 'WORK_NOT_FOUND', status: 404 });
+    await expect(
+      svc.rescheduleWork(stateB.lead.id, { workId: a.workId, actor: 'marketing-lan', newDueAt: '2026-10-20T09:00:00+07:00', reason: 'x' }),
+    ).rejects.toMatchObject({ code: 'WORK_NOT_FOUND', status: 404 });
   });
 });

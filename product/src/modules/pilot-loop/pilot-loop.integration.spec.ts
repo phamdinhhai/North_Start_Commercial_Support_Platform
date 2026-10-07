@@ -169,6 +169,9 @@ integration('PilotLoop over PostgreSQL — durability + two-person handoff', () 
       actor: 'marketing-a', recipientUserId: 'sales-b',
     });
     const wid = handed.workItems[0].id;
+    // B phải NHẬN trước (P1-2: recipient chưa-accept không có quyền mutate), rồi mới
+    // có thể bị từ chối vì thiếu evidence pointer — đó chính là guardrail cần test.
+    await svc.salesAccept(state.lead.id as LeadId, { workId: wid, actor: 'sales-b', reason: 'B nhận' });
 
     await expect(svc.completeWork(state.lead.id, { workId: wid, actor: 'sales-b', evidence: 'observed' }))
       .rejects.toMatchObject({ code: 'EVIDENCE_POINTER_REQUIRED', status: 422 });

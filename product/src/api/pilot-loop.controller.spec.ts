@@ -53,7 +53,7 @@ describe('PilotLoopController — auth & RBAC wiring (T3-03/T3-04 unit-level; LI
     await expect(ctrl.getLead(foreign, res.leadId)).rejects.toThrow(NotFoundException);
   });
 
-  it('Marketing A → Sales B: B được xem và accept gói bàn giao addressed to them (I-09, PM-1 pending)', async () => {
+  it('Marketing A → Sales B: B được XEM và ACCEPT gói bàn giao addressed to them (I-09, PM-1 pending)', async () => {
     const res = await ctrl.intake(salesA, { displayName: 'd', utterance: 'u', speaker: 'customer', connection: 'c', externalRecordId: 'r' });
     const handed = await ctrl.handoff(salesA, res.leadId, {
       context: 'c',
@@ -118,5 +118,76 @@ describe('PilotLoopController — auth & RBAC wiring (T3-03/T3-04 unit-level; LI
     const marked = await ctrl.unobserved(salesA, res.leadId, { workId: handed.workItemId });
     expect(marked.workStatus).toBe('awaiting-external');
     expect(marked.evidence).toBe('absent');
+  });
+});
+
+/**
+ * P1-2 at the HTTP boundary: `authorizedView` (RBAC) is the VIEW gate only. Mutations
+ * additionally require current ownership, enforced in the service and surfaced here as a
+ * 403 with a machine-readable code — never 200, never a raw 500.
+ */
+describe('P1-2 — controller separates view / accept / mutation rights', () => {
+  let ctrl: PilotLoopController;
+
+  beforeEach(() => {
+    process.env.AUTH_DEV_UNSIGNED_TOKENS = 'true';
+    ctrl = makeController();
+  });
+
+  async function handedOver() {
+    const res = await ctrl.intake(salesA, { displayName: 'd', utterance: 'u', speaker: 'customer', connection: 'c', externalRecordId: 'r-p12' });
+    const handed = await ctrl.handoff(salesA, res.leadId, {
+      context: 'c',
+      proposedAction: 'Gọi lại chị A',
+      responsibleParty: 'internal',
+      origin: 'explicit-request',
+      recipientUserId: 'sales-b',
+    });
+    return { leadId: res.leadId, workItemId: handed.workItemId };
+  }
+
+  it('recipient B may view + accept, but every mutation endpoint is 403 NOT_OWNER before acceptance', async () => {
+    const { leadId, workItemId } = await handedOver();
+
+    // view OK
+    expect((await ctrl.getLead(salesB, leadId)).lead.owner).toBe('marketing-a');
+
+    // mutations by B while owner is A → 403 + code (không 200, không 500)
+    await expect(ctrl.complete(salesB, leadId, { workId: workItemId, evidence: 'declared' })).rejects.toMatchObject({
+      status: 403,
+      response: { code: 'NOT_OWNER' },
+    });
+    await expect(ctrl.reschedule(salesB, leadId, { workId: workItemId, newDueAt: '2026-10-12T09:00:00+07:00', reason: 'x' })).rejects.toMatchObject({
+      status: 403,
+      response: { code: 'NOT_OWNER' },
+    });
+    await expect(ctrl.advance(salesB, leadId, { to: 'Contacting', reason: 'x' })).rejects.toMatchObject({
+      status: 403,
+      response: { code: 'NOT_OWNER' },
+    });
+    await expect(ctrl.outcome(salesB, leadId, { value: 'Won' })).rejects.toMatchObject({
+      status: 403,
+      response: { code: 'NOT_OWNER' },
+    });
+
+    // state unchanged (no half-mutation)
+    const view = await ctrl.getLead(salesA, leadId);
+    expect(view.lead.status).toBe('New');
+    expect(view.workItems[0].status).toBe('proposed');
+
+    // accept remains B's right; after that mutations succeed
+    const accepted = await ctrl.accept(salesB, leadId, { workId: workItemId, reason: 'B nhận' });
+    expect(accepted.owner).toBe('sales-b');
+    const done = await ctrl.complete(salesB, leadId, { workId: workItemId, evidence: 'declared', reason: 'đã gọi' });
+    expect(done.workStatus).toBe('completed');
+  });
+
+  it('the previous owner A cannot mutate after handing over to B (ownership moved)', async () => {
+    const { leadId, workItemId } = await handedOver();
+    await ctrl.accept(salesB, leadId, { workId: workItemId, reason: 'B nhận' });
+    // A vẫn XEM được (workspace + từng là owner)? Không: resource.assignedTo giờ là B,
+    // A không còn trong recipients → A bị 403 ở gate view của RBAC.
+    await expect(ctrl.getLead(salesA, leadId)).rejects.toThrow(ForbiddenException);
+    await expect(ctrl.advance(salesA, leadId, { to: 'Contacting', reason: 'x' })).rejects.toThrow(ForbiddenException);
   });
 });

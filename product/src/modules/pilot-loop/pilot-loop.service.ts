@@ -6,7 +6,7 @@ import { createHandoff } from '../../domain/handoff/handoff';
 import { createOutcome, correctOutcome } from '../../domain/outcome/outcome';
 import { UNKNOWN_SENTINEL } from '../../domain/unknown-states/unknown-states';
 import { ManualAdapter } from '../../adapters/manual/manual-adapter';
-import type { AuditDraft, AuditHistoryEntry, CompletionEvidence, PilotLoopState, ResponsibleParty, ScenarioInput, WorkItem, WorkOrigin, WorkStatus } from './pilot.types';
+import type { AuditDraft, AuditHistoryEntry, CompletionEvidence, PilotErrorCode, PilotLoopState, ResponsibleParty, ScenarioInput, WorkItem, WorkOrigin, WorkStatus } from './pilot.types';
 import { PilotDomainError } from './pilot.types';
 import type { PilotLoopStore } from './pilot.store';
 
@@ -28,10 +28,76 @@ import type { PilotLoopStore } from './pilot.store';
  * - Mọi mutation append-audited atomically với state (I-05, QA-35, qua store).
  * - Handoff A→B: tạo lead (A) bàn giao cho B; B (chưa phải owner) được xem + nhận
  *   gói bàn giao addressed to them. Quyền chi tiết vẫn OPEN: PM-1.
+ *
+ * BA quyền tách biệt (P1-2) — KHÔNG suy từ quyền xem ra quyền sửa:
+ *   view     = owner, người được bàn giao (recipient), manager/admin cùng workspace
+ *              (RBAC ở controller);
+ *   accept   = chính người được bàn giao (recipient) hoặc owner hiện tại;
+ *   mutation = CHỈ owner hiện tại của lead, kiểm tra theo TỪNG work item (workId
+ *              phải thuộc lead đang xử lý) và theo trạng thái bàn giao.
+ * Recipient chưa accept do đó không complete/dời lịch/advance/ghi kết quả hộ A.
+ * Manager/admin mutation? PM-1 vẫn OPEN → P0 không tự nới: owner-only.
  */
 @Injectable()
 export class PilotLoopService {
   constructor(private readonly store: PilotLoopStore, private readonly adapter = new ManualAdapter()) {}
+
+  /**
+   * Mutation authority (P1-2): only the CURRENT owner of the lead may mutate, and
+   * only on work items belonging to that lead. View/accept rights never imply this.
+   */
+  private requireOwner(state: PilotLoopState, actor: string, action: string): void {
+    if (!state.ownerUserId || state.ownerUserId !== actor) {
+      throw new PilotDomainError(
+        'NOT_OWNER',
+        403,
+        `${actor} may not ${action}: only the current lead owner (${state.ownerUserId ?? 'unassigned'}) may mutate work on this lead — view/accept rights do not imply it`,
+      );
+    }
+  }
+
+  /** Work item must belong to THIS lead (per-item check, P1-2). */
+  private requireWork(state: PilotLoopState, workId: string): WorkItem {
+    const item = state.workItems.find((w) => w.id === workId);
+    if (!item) throw new PilotDomainError('WORK_NOT_FOUND', 404, 'workId not found on this lead');
+    return item;
+  }
+
+  /**
+   * Work item must still be actionable for THIS endpoint. `closedCodes` preserves each
+   * endpoint's published contract (completed work on `complete` → WORK_ALREADY_COMPLETED;
+   * on `reschedule`/`unobserved`/`accept` → WORK_ALREADY_CLOSED).
+   */
+  private requireActionable(state: PilotLoopState, item: WorkItem, closedCodes: Partial<Record<WorkStatus, PilotErrorCode>>): WorkItem {
+    const code = closedCodes[item.status];
+    if (code) {
+      throw new PilotDomainError(code, 409, `work ${item.id} is ${item.status}; record a correction instead of mutating it`);
+    }
+    return item;
+  }
+
+  /** Owner-checked, lead-scoped, actionable work item — the single gate every work mutation passes. */
+  private requireMutableWork(
+    state: PilotLoopState,
+    workId: string,
+    actor: string,
+    action: string,
+    closedCodes: Partial<Record<WorkStatus, PilotErrorCode>>,
+  ): WorkItem {
+    this.requireOwner(state, actor, action);
+    return this.requireActionable(state, this.requireWork(state, workId), closedCodes);
+  }
+
+  /**
+   * Closed statuses per endpoint, as they were published before P1-3 — `complete` calls a
+   * finished item WORK_ALREADY_COMPLETED, the other work mutations call it WORK_ALREADY_CLOSED.
+   */
+  private static readonly CLOSED_BY_ENDPOINT = {
+    complete: { completed: 'WORK_ALREADY_COMPLETED' } as Partial<Record<WorkStatus, PilotErrorCode>>,
+    reschedule: { completed: 'WORK_ALREADY_CLOSED' } as Partial<Record<WorkStatus, PilotErrorCode>>,
+    unobserved: { completed: 'WORK_ALREADY_CLOSED' } as Partial<Record<WorkStatus, PilotErrorCode>>,
+    accept: { completed: 'WORK_ALREADY_CLOSED' } as Partial<Record<WorkStatus, PilotErrorCode>>,
+  };
 
   /** CE-1 boundary violation is a business refusal (422), never a raw 500. */
   private ce1Transition(lead: Lead, input: { readonly to: Lead['status']; readonly actor: string; readonly reason: string }): Lead {
@@ -111,8 +177,9 @@ export class PilotLoopService {
       throw new PilotDomainError('INPUT_REQUIRED', 400, 'recipientUserId is required — a handoff must name the receiver');
     }
     const state = await this.require(leadId);
-    const evidenceRefs = input.evidenceRef
-      ? [{ envelopeId: input.evidenceRef, rawPayloadHash: 'pending', capturedAt: new Date().toISOString() }]
+    // Bàn giao là mutation trên lead → chỉ owner hiện tại được tạo (P1-2).
+    this.requireOwner(state, input.actor, 'hand off this lead');
+    const evidenceRefs = input.evidenceRef      ? [{ envelopeId: input.evidenceRef, rawPayloadHash: 'pending', capturedAt: new Date().toISOString() }]
       : state.envelope
         ? [{ envelopeId: state.envelope.envelopeId, rawPayloadHash: state.envelope.rawPayloadHash, capturedAt: state.envelope.sourceCapturedAt }]
         : [];
@@ -173,12 +240,14 @@ export class PilotLoopService {
     input: { readonly actor: string; readonly reason: string; readonly workId: string },
   ): Promise<PilotLoopState> {
     const state = await this.require(leadId);
-    const target = state.workItems.find((w) => w.id === input.workId);
-    if (!target) throw new PilotDomainError('WORK_NOT_FOUND', 404, 'workId not found');
-    // Chỉ người được bàn giao (recipient) hoặc owner hiện tại mới được accept.
+    // accept là quyền RIÊNG (P1-2): người được bàn giao hoặc owner hiện tại — rộng hơn
+    // mutation (chỉ owner) nhưng vẫn hẹp hơn view (mọi recipient được xem).
     if (input.actor !== state.handoffRecipient && input.actor !== state.ownerUserId) {
       throw new PilotDomainError('NOT_ASSIGNED_RECIPIENT', 403, 'only the handoff recipient or current owner may accept this work');
     }
+    // Item phải thuộc lead này và còn khả dụng — nhận một item đã superseded/completed
+    // sẽ trao ownership dựa trên một work item không còn tồn tại thực thi (P1-3).
+    const target = this.requireActionable(state, this.requireWork(state, input.workId), PilotLoopService.CLOSED_BY_ENDPOINT.accept);
 
     const lead = this.ce1Transition(state.lead, { to: 'Accepted', actor: input.actor, reason: input.reason });
     const workItems = state.workItems.map((w) => (w.id === input.workId ? { ...w, status: 'accepted' as WorkStatus, actor: input.actor } : w));
@@ -201,6 +270,7 @@ export class PilotLoopService {
   /** Bước 3b — advance Contacting/Follow-up (CE-1 hypothesis; abort ngoài boundary). */
   async advance(leadId: LeadId, input: { readonly to: 'Contacting' | 'Follow-up'; readonly actor: string; readonly reason: string }): Promise<PilotLoopState> {
     const state = await this.require(leadId);
+    this.requireOwner(state, input.actor, 'change the lead stage');
     const lead = this.ce1Transition(state.lead, { to: input.to, actor: input.actor, reason: input.reason });
     const next = { ...state, lead };
     await this.store.save(next, [
@@ -234,9 +304,8 @@ export class PilotLoopService {
     },
   ): Promise<PilotLoopState> {
     const state = await this.require(leadId);
-    const current = state.workItems.find((w) => w.id === input.workId);
-    if (!current) throw new PilotDomainError('WORK_NOT_FOUND', 404, 'workId not found');
-    if (current.status === 'completed') throw new PilotDomainError('WORK_ALREADY_COMPLETED', 409, 'work already completed');
+    // P1-2 owner + per-item lead scope (P1-2) + superseded/closed refusal (P1-3).
+    const current = this.requireMutableWork(state, input.workId, input.actor, 'complete work', PilotLoopService.CLOSED_BY_ENDPOINT.complete);
 
     if (input.evidence === 'observed' && !input.evidenceRef) {
       throw new PilotDomainError('EVIDENCE_POINTER_REQUIRED', 422, 'observed completion requires a system evidence pointer');
@@ -281,11 +350,7 @@ export class PilotLoopService {
     input: { readonly workId: string; readonly actor: string; readonly newDueAt: string; readonly reason: string },
   ): Promise<PilotLoopState> {
     const state = await this.require(leadId);
-    const old = state.workItems.find((w) => w.id === input.workId);
-    if (!old) throw new PilotDomainError('WORK_NOT_FOUND', 404, 'workId not found');
-    if (old.status === 'completed' || old.status === 'cancelled') {
-      throw new PilotDomainError('WORK_ALREADY_CLOSED', 409, 'closed work cannot be rescheduled; record a correction instead');
-    }
+    const old = this.requireMutableWork(state, input.workId, input.actor, 'reschedule work', PilotLoopService.CLOSED_BY_ENDPOINT.reschedule);
 
     const superseded: WorkItem = { ...old, status: 'rescheduled', completionEvidence: 'absent' };
     const replacement: WorkItem = {
@@ -318,8 +383,9 @@ export class PilotLoopService {
   /** Bước 4c — external qua mốc chưa có evidence → `awaiting-external`, không thất bại. */
   async markExternalUnobserved(leadId: LeadId, input: { readonly workId: string; readonly actor: string }): Promise<PilotLoopState> {
     const state = await this.require(leadId);
-    const item = state.workItems.find((w) => w.id === input.workId);
-    if (!item) throw new PilotDomainError('WORK_NOT_FOUND', 404, 'workId not found');
+    // no-observation là một mutation (đổi status/evidence) → cùng gate owner + per-item
+    // + superseded/closed (P1-2/P1-3). Item đã có evidence observed thì không áp dụng.
+    const item = this.requireMutableWork(state, input.workId, input.actor, 'record no-observation', PilotLoopService.CLOSED_BY_ENDPOINT.unobserved);
     if (item.responsibleParty !== 'external') throw new PilotDomainError('NOT_EXTERNAL_EXPECTATION', 422, 'only external expectations can be marked no-observation');
     if (item.completionEvidence === 'observed') throw new PilotDomainError('ALREADY_OBSERVED', 409, 'already observed; no-observation not applicable');
 
@@ -347,6 +413,8 @@ export class PilotLoopService {
     input: { readonly value: 'Won' | 'Lost' | 'Unknown'; readonly actor: string; readonly reason?: string },
   ): Promise<PilotLoopState> {
     const state = await this.require(leadId);
+    // Outcome + lead-stage transition là mutation → chỉ owner hiện tại (P1-2).
+    this.requireOwner(state, input.actor, 'record the outcome');
     const outcome = createOutcome({
       leadId: state.lead.id,
       workspaceId: state.lead.workspaceId,
@@ -378,8 +446,11 @@ export class PilotLoopService {
     input: { readonly outcomeId: string; readonly newValue: 'Won' | 'Lost' | 'Unknown'; readonly actor: string; readonly reason: string },
   ): Promise<PilotLoopState> {
     const state = await this.require(leadId);
+    // Correction is a mutation on the case → owner-only in P0. Manager/admin correction is a
+    // PM-1 capability and is deliberately NOT widened here (the audit trail below proves it).
+    this.requireOwner(state, input.actor, 'correct the outcome');
     const previous = state.outcomes.find((o) => o.id === input.outcomeId);
-    if (!previous) throw new PilotDomainError('WORK_NOT_FOUND', 404, 'outcomeId not found');
+    if (!previous) throw new PilotDomainError('OUTCOME_NOT_FOUND', 404, 'outcomeId not found on this lead');
 
     const corrected = correctOutcome(previous, { newValue: input.newValue, actor: input.actor, reason: input.reason });
     const lead = this.ce1Transition(state.lead, { to: input.newValue, actor: input.actor, reason: input.reason });
