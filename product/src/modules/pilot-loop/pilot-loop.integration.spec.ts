@@ -158,6 +158,51 @@ integration('PilotLoop over PostgreSQL — durability + two-person handoff', () 
     await db1.query('DELETE FROM workspace WHERE id IN ($1,$2)', [wsA, wsB]);
   });
 
+  it('P1-3 over PG: superseded item is refused from DURABLE status; replacement closes the chain', async () => {
+    const svc = new PilotLoopService(new PgPilotStore(db1), new ManualAdapter());
+    const state = await svc.ingestScenario({
+      workspaceId: wsId, displayName: 'P1-3', utterance: 'u', speaker: 'customer',
+      connection: conn, externalRecordId: 'msg-p13', ownerUserId: 'marketing-a',
+    });
+    const handed = await svc.handoffToSales(state.lead.id, {
+      context: 'c', proposedAction: 'Gọi lại 15:00 thứ Sáu', responsibleParty: 'internal',
+      origin: 'explicit-request', dueAt: '2026-10-09T15:00:00+07:00',
+      actor: 'marketing-a', recipientUserId: 'sales-b',
+    });
+    const oldId = handed.workItems[0].id;
+    await svc.salesAccept(state.lead.id, { workId: oldId, actor: 'sales-b', reason: 'B nhận' });
+    const moved = await svc.rescheduleWork(state.lead.id, {
+      workId: oldId, actor: 'sales-b', newDueAt: '2026-10-12T16:00:00+07:00', reason: 'dời',
+    });
+    const replacementId = moved.workItems.find((w) => w.supersedesWorkId === oldId)!.id;
+
+    // fresh service = another request/process: refusal must come from persisted rows
+    const svc2 = new PilotLoopService(new PgPilotStore(db1), new ManualAdapter());
+    let caught: unknown;
+    await svc2.completeWork(state.lead.id, { workId: oldId, actor: 'sales-b', evidence: 'declared' }).catch((e) => (caught = e));
+    expect(caught).toMatchObject({ code: 'WORK_SUPERSEDED', status: 409 });
+    expect((caught as { details?: Record<string, unknown> }).details).toMatchObject({ replacementId });
+
+    // DB truth before the fix this would already be 'completed'
+    const before = await db1.query<{ id: string; status: string }>(
+      'SELECT id, status FROM pilot_work_item WHERE id IN ($1,$2)',
+      [oldId, replacementId],
+    );
+    expect(before.rows.find((r) => r.id === oldId)?.status).toBe('rescheduled');
+    expect(before.rows.find((r) => r.id === replacementId)?.status).toBe('open');
+
+    const done = await svc2.completeWork(state.lead.id, { workId: replacementId, actor: 'sales-b', evidence: 'declared', reason: 'đã gọi' });
+    expect(done.workItems.find((w) => w.id === oldId)!.status).toBe('rescheduled');
+
+    const after = await db1.query<{ n: string }>(
+      `SELECT status FROM pilot_work_item
+        WHERE lead_id = $1 AND (id = $2 OR id = $3 OR supersedes_work_id = $2)
+          AND status NOT IN ('completed','rescheduled','cancelled')`,
+      [state.lead.id, oldId, replacementId],
+    );
+    expect(after.rows).toHaveLength(0); // chuỗi thay thế không còn việc hoạt động
+  });
+
   it('mutation + audit are atomic: a guardrail refusal leaves no partial state (QA-35)', async () => {
     const svc = new PilotLoopService(new PgPilotStore(db1), new ManualAdapter());
     const state = await svc.ingestScenario({

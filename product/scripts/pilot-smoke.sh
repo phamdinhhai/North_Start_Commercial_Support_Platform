@@ -94,22 +94,43 @@ AC=$(curl -s -X POST "$BASE/pilot/leads/$LEAD/accept" "${B[@]}" -d "{\"workId\":
 expect_eq "Accepted" "$(jget "$AC" leadStatus)" "Accepted"
 expect_eq "owner=B" "$(jget "$AC" owner)" "sales-b"
 
-step "7. reschedule open work by B"
-expect_contains "reschedule ok" "$(curl -s -X POST "$BASE/pilot/leads/$LEAD/reschedule" "${B[@]}" -d "{\"workId\":\"$WORK\",\"newDueAt\":\"2026-10-12T16:00:00+07:00\",\"reason\":\"doi sang thu Hai\"}")" '"workCount"'
+step "7. reschedule open work by B -> returns the replacement ID (P1-3)"
+RS=$(curl -s -X POST "$BASE/pilot/leads/$LEAD/reschedule" "${B[@]}" -d "{\"workId\":\"$WORK\",\"newDueAt\":\"2026-10-12T16:00:00+07:00\",\"reason\":\"doi sang thu Hai\"}")
+REPL=$(jget "$RS" replacementId)
+expect_contains "replacementId returned" "$RS" '"replacementId"'
+[ -n "$REPL" ] && [ "$REPL" != "$WORK" ] && ok "replacement is a new id" || fail "no usable replacementId: $RS"
+expect_eq "old item marked rescheduled" "$(jget "$RS" supersededStatus)" "rescheduled"
 
-step "8. complete declared (Q4: occurredAt NOT backfilled)"
-CM=$(curl -s -X POST "$BASE/pilot/leads/$LEAD/complete" "${B[@]}" -d "{\"workId\":\"$WORK\",\"evidence\":\"declared\",\"reason\":\"da goi, hen cuoi tuan\"}")
+step "7b. mutating the OLD superseded id is refused 409 WORK_SUPERSEDED (was silently 200)"
+SU=$(curl -s -X POST "$BASE/pilot/leads/$LEAD/complete" "${B[@]}" -d "{\"workId\":\"$WORK\",\"evidence\":\"declared\"}")
+expect_contains "409 code" "$SU" 'WORK_SUPERSEDED'
+expect_contains "refusal names the replacement" "$SU" "$REPL"
+
+step "8. complete the REPLACEMENT (Q4: occurredAt NOT backfilled); old stays rescheduled"
+CM=$(curl -s -X POST "$BASE/pilot/leads/$LEAD/complete" "${B[@]}" -d "{\"workId\":\"$REPL\",\"evidence\":\"declared\",\"reason\":\"da goi, hen cuoi tuan\"}")
 expect_eq "completed" "$(jget "$CM" workStatus)" "completed"
 expect_eq "evidence declared" "$(jget "$CM" evidence)" "declared"
 expect_eq "occurredAt unknown" "$(jget "$CM" occurredAt)" "unknown"
+VIEW_AFTER=$(curl -s "$BASE/pilot/leads/$LEAD" "${B[@]}")
+expect_contains "old item still rescheduled" "$VIEW_AFTER" "\"id\":\"$WORK\",\"action\":\"Goi lai 15:00 thu Sau\",\"responsibleParty\":\"internal\",\"origin\":\"explicit-request\",\"status\":\"rescheduled\""
+expect_contains "replacement completed" "$VIEW_AFTER" "\"id\":\"$REPL\""
+# chain has no active item left (P1-3 requirement): count open/accepted/proposed/awaiting for the chain
+ACTIVE=$(node -e '
+const fs=require("fs");const v=JSON.parse(fs.readFileSync(0,"utf8"));
+const [oldId,repl]=process.argv.slice(1);
+const chain=v.workItems.filter(w=>w.id===oldId||w.supersedesWorkId===oldId||w.id===repl);
+const active=chain.filter(w=>["proposed","accepted","open","awaiting-external"].includes(w.status));
+process.stdout.write(String(active.length));
+' <<< "$VIEW_AFTER" "$WORK" "$REPL")
+expect_eq "no active work left in the supersession chain" "$ACTIVE" "0"
 
 step "9. observed without pointer -> 422 EVIDENCE_POINTER_REQUIRED"
 HO2=$(curl -s -X POST "$BASE/pilot/leads/$LEAD/handoff" "${B[@]}" -d "{\"context\":\"gui hoc phi\",\"proposedAction\":\"Gui bang hoc phi\",\"responsibleParty\":\"internal\",\"origin\":\"explicit-commitment\",\"recipientUserId\":\"sales-b\"}")
 WORK2=$(jget "$HO2" workItemId)
 expect_contains "422 code" "$(curl -s -X POST "$BASE/pilot/leads/$LEAD/complete" "${B[@]}" -d "{\"workId\":\"$WORK2\",\"evidence\":\"observed\"}")" "EVIDENCE_POINTER_REQUIRED"
 
-step "10. reschedule completed work -> 409 WORK_ALREADY_CLOSED"
-expect_contains "409 code" "$(curl -s -X POST "$BASE/pilot/leads/$LEAD/reschedule" "${B[@]}" -d "{\"workId\":\"$WORK\",\"newDueAt\":\"2026-10-20T09:00:00+07:00\",\"reason\":\"lo tay\"}")" 'WORK_ALREADY_CLOSED'
+step "10. reschedule COMPLETED work -> 409 WORK_ALREADY_CLOSED"
+expect_contains "409 code" "$(curl -s -X POST "$BASE/pilot/leads/$LEAD/reschedule" "${B[@]}" -d "{\"workId\":\"$REPL\",\"newDueAt\":\"2026-10-20T09:00:00+07:00\",\"reason\":\"lo tay\"}")" 'WORK_ALREADY_CLOSED'
 
 step "11. external expectation -> unobserved (awaiting-external, never failure)"
 HO3=$(curl -s -X POST "$BASE/pilot/leads/$LEAD/handoff" "${B[@]}" -d "{\"context\":\"ky vong khach\",\"proposedAction\":\"Chi A trao doi voi be\",\"responsibleParty\":\"external\",\"origin\":\"explicit-request\",\"recipientUserId\":\"sales-b\"}")
@@ -136,7 +157,15 @@ if [ "$APP_MANAGED" = "1" ]; then
   sleep 3
   V=$(curl -s "$BASE/pilot/leads/$LEAD" "${B[@]}")
   expect_contains "lead survives restart (Won)" "$V" '"status":"Won"'
-  expect_contains "work item survives (completed)" "$V" "\"id\":\"$WORK\",\"action\":\"Goi lai 15:00 thu Sau\",\"responsibleParty\":\"internal\",\"origin\":\"explicit-request\",\"status\":\"completed\""
+  expect_contains "superseded item survives as rescheduled (P1-3)" "$V" "\"id\":\"$WORK\",\"action\":\"Goi lai 15:00 thu Sau\",\"responsibleParty\":\"internal\",\"origin\":\"explicit-request\",\"status\":\"rescheduled\""
+  expect_contains "replacement survives as completed" "$V" "\"id\":\"$REPL\""
+  CHAIN=$(node -e '
+const v=JSON.parse(require("fs").readFileSync(0,"utf8"));const [oldId,repl]=process.argv.slice(1);
+const chain=v.workItems.filter(w=>w.id===oldId||w.supersedesWorkId===oldId||w.id===repl);
+const done=chain.filter(w=>w.status==="completed").length, sup=chain.filter(w=>w.status==="rescheduled").length, act=chain.filter(w=>["proposed","accepted","open","awaiting-external"].includes(w.status)).length;
+process.stdout.write(`${done}/${sup}/${act}`);
+' <<< "$V" "$WORK" "$REPL")
+  expect_eq "post-restart chain: completed/rescheduled/active" "$CHAIN" "1/1/0"
   expect_contains "outcome survives claimed" "$V" '"assertionStatus":"claimed"'
   expect_contains "envelope ref survives (I-12)" "$V" '"evidenceRefs":['
   AH=$(curl -s "$BASE/pilot/leads/$LEAD/audit" "${B[@]}")

@@ -64,11 +64,31 @@ export class PilotLoopService {
   }
 
   /**
-   * Work item must still be actionable for THIS endpoint. `closedCodes` preserves each
-   * endpoint's published contract (completed work on `complete` → WORK_ALREADY_COMPLETED;
-   * on `reschedule`/`unobserved`/`accept` → WORK_ALREADY_CLOSED).
+   * Work item must still be actionable for THIS endpoint.
+   *
+   * P1-3: `rescheduled`/`cancelled` items are closed-by-replacement — completing one used to
+   * return 200 while the live successor stayed open, so the chain looked done and was not.
+   * They are refused with WORK_SUPERSEDED + `details.replacementId`, letting the caller retry
+   * against the item that actually survives instead of guessing IDs.
+   * `closedCodes` preserves each endpoint's published contract for `completed` work
+   * (`complete` → WORK_ALREADY_COMPLETED; `reschedule`/`unobserved`/`accept` → WORK_ALREADY_CLOSED).
    */
   private requireActionable(state: PilotLoopState, item: WorkItem, closedCodes: Partial<Record<WorkStatus, PilotErrorCode>>): WorkItem {
+    if (item.status === 'rescheduled' || item.status === 'cancelled') {
+      const replacement = state.workItems.find((w) => w.supersedesWorkId === item.id && w.status !== 'completed' && w.status !== 'rescheduled' && w.status !== 'cancelled');
+      const live = replacement ?? state.workItems.find((w) => w.supersedesWorkId === item.id);
+      throw new PilotDomainError(
+        'WORK_SUPERSEDED',
+        409,
+        `work ${item.id} is ${item.status} and is no longer actionable${live ? ' — act on the replacement instead' : ' — the chain has no live item'}`,
+        {
+          workId: item.id,
+          status: item.status,
+          replacementId: live?.id ?? null,
+          ...(live ? { replacementStatus: live.status, dueAt: live.dueAt ?? null } : {}),
+        },
+      );
+    }
     const code = closedCodes[item.status];
     if (code) {
       throw new PilotDomainError(code, 409, `work ${item.id} is ${item.status}; record a correction instead of mutating it`);

@@ -109,6 +109,7 @@ export type PilotErrorCode =
   | 'EXTERNAL_NOT_DECLAREABLE'
   | 'WORK_ALREADY_CLOSED'
   | 'WORK_ALREADY_COMPLETED'
+  | 'WORK_SUPERSEDED'
   | 'CE1_BOUNDARY'
   | 'NOT_ASSIGNED_RECIPIENT'
   | 'NOT_OWNER'
@@ -125,6 +126,12 @@ export class PilotDomainError extends Error {
     readonly code: PilotErrorCode,
     readonly status: 400 | 403 | 404 | 409 | 422,
     message: string,
+    /**
+     * Machine-readable context surfaced verbatim in the 4xx body — e.g. `replacementId` so a
+     * caller that tried to mutate a superseded work item can act on the live successor
+     * instead of guessing which ID survived (P1-3).
+     */
+    readonly details?: Record<string, unknown>,
   ) {
     super(message);
     this.name = 'PilotDomainError';

@@ -191,3 +191,53 @@ describe('P1-2 — controller separates view / accept / mutation rights', () => 
     await expect(ctrl.advance(salesA, leadId, { to: 'Contacting', reason: 'x' })).rejects.toThrow(ForbiddenException);
   });
 });
+
+/** P1-3 at the HTTP boundary: superseded items cannot be completed; callers get the live ID. */
+describe('P1-3 — reschedule returns the replacement; completing the old ID is 409 + details', () => {
+  let ctrl: PilotLoopController;
+
+  beforeEach(() => {
+    process.env.AUTH_DEV_UNSIGNED_TOKENS = 'true';
+    ctrl = makeController();
+  });
+
+  it('reschedule responds with replacementId; complete on the old ID → 409 WORK_SUPERSEDED; complete on the replacement closes the chain', async () => {
+    const res = await ctrl.intake(salesA, { displayName: 'd', utterance: 'u', speaker: 'customer', connection: 'c', externalRecordId: 'r-p13' });
+    const handed = await ctrl.handoff(salesA, res.leadId, {
+      context: 'c',
+      proposedAction: 'Gọi lại 15:00 thứ Sáu',
+      responsibleParty: 'internal',
+      origin: 'explicit-request',
+      recipientUserId: 'sales-b',
+      dueAt: '2026-10-09T15:00:00+07:00',
+    });
+    await ctrl.accept(salesB, res.leadId, { workId: handed.workItemId, reason: 'B nhận' });
+
+    const moved = await ctrl.reschedule(salesB, res.leadId, {
+      workId: handed.workItemId,
+      newDueAt: '2026-10-12T16:00:00+07:00',
+      reason: 'dời sang thứ Hai',
+    });
+    expect(moved.supersededStatus).toBe('rescheduled');
+    expect(typeof moved.replacementId).toBe('string');
+    expect(moved.dueAt).toBe('2026-10-12T16:00:00+07:00');
+    const replacementId = moved.replacementId as string;
+
+    // completing the OLD id must fail loudly and name the successor
+    let caught: unknown;
+    await ctrl.complete(salesB, res.leadId, { workId: handed.workItemId, evidence: 'declared' }).catch((e) => (caught = e));
+    expect(caught).toMatchObject({ status: 409, response: { code: 'WORK_SUPERSEDED', details: { replacementId } } });
+
+    // and the old item is genuinely still rescheduled (bug was: it flipped to completed)
+    const view = await ctrl.getLead(salesB, res.leadId);
+    expect(view.workItems.find((w) => w.id === handed.workItemId)?.status).toBe('rescheduled');
+    expect(view.workItems.find((w) => w.id === replacementId)?.status).toBe('open');
+
+    // completing the replacement closes the chain with no active item left
+    const done = await ctrl.complete(salesB, res.leadId, { workId: replacementId, evidence: 'declared', reason: 'đã gọi' });
+    expect(done.workStatus).toBe('completed');
+    const after = await ctrl.getLead(salesB, res.leadId);
+    const active = after.workItems.filter((w) => ['proposed', 'accepted', 'open', 'awaiting-external'].includes(w.status as string));
+    expect(active).toHaveLength(0);
+  });
+});

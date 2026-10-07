@@ -41,7 +41,10 @@ function toRequestLike(headers: Record<string, string | undefined>): AuthRequest
 /** Map domain refusal codes to a proper HTTP exception envelope (never raw 500). */
 function toHttpException(err: unknown): HttpException {
   if (err instanceof PilotDomainError) {
-    return new HttpException({ code: err.code, message: err.message }, err.status);
+    // `details` carries machine-readable context — e.g. replacementId for WORK_SUPERSEDED
+    // (P1-3) — so a client can retry against the item that is actually live.
+    const body = { code: err.code, message: err.message, ...(err.details ? { details: err.details } : {}) };
+    return new HttpException(body, err.status);
   }
   if (err instanceof UnauthorizedException || err instanceof NotFoundException || err instanceof ForbiddenException) {
     return err;
@@ -177,7 +180,19 @@ export class PilotLoopController {
       const ctx = this.authCtx(headers);
       await this.authorizedView(ctx, leadId);
       const state = await this.loop.rescheduleWork(leadId as LeadId, { ...body, actor: ctx.userId });
-      return { leadStatus: state.lead.status, workCount: state.workItems.length };
+      // P1-3: the old ID is now superseded — return the live successor so the caller (and the
+      // UI) never keeps operating on the dead ID.
+      const superseded = state.workItems.find((w) => w.id === body.workId);
+      const replacement = state.workItems.find((w) => w.supersedesWorkId === body.workId);
+      return {
+        leadStatus: state.lead.status,
+        workCount: state.workItems.length,
+        supersededWorkId: superseded?.id ?? body.workId,
+        supersededStatus: superseded?.status,
+        replacementId: replacement?.id,
+        replacementStatus: replacement?.status,
+        dueAt: replacement?.dueAt,
+      };
     } catch (err) {
       throw toHttpException(err);
     }

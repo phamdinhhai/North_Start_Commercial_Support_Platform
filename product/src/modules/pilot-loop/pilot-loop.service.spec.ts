@@ -436,3 +436,144 @@ describe('P1-2 — mutation authorization is per work item and handoff state', (
     ).rejects.toMatchObject({ code: 'WORK_NOT_FOUND', status: 404 });
   });
 });
+
+/**
+ * P1-3 — a superseded work item is closed-by-replacement. Completing/rescheduling the OLD ID
+ * used to return 200 while the live replacement stayed open: the chain looked done and was not.
+ * Mutations on a superseded item are refused with WORK_SUPERSEDED + replacementId, and the
+ * replacement must be the object of the caller's next action.
+ */
+describe('P1-3 — superseded items are not actionable; callers get replacementId', () => {
+  let svc: PilotLoopService;
+
+  beforeEach(() => {
+    ({ svc } = make());
+  });
+
+  async function rescheduledChain() {
+    const state = await svc.ingestScenario(base);
+    const handed = await svc.handoffToSales(state.lead.id, {
+      context: 'c',
+      proposedAction: 'Gọi lại 15:00 thứ Sáu',
+      responsibleParty: 'internal',
+      origin: 'explicit-request',
+      dueAt: '2026-10-09T15:00:00+07:00',
+      actor: 'marketing-lan',
+      recipientUserId: 'sales-b',
+    });
+    const oldId = handed.workItems[0].id;
+    await svc.salesAccept(state.lead.id, { workId: oldId, actor: 'sales-b', reason: 'B nhận' });
+    const moved = await svc.rescheduleWork(state.lead.id, {
+      workId: oldId,
+      actor: 'sales-b',
+      newDueAt: '2026-10-12T16:00:00+07:00',
+      reason: 'Phụ huynh dời sang thứ Hai',
+    });
+    const replacementId = moved.workItems.find((w) => w.supersedesWorkId === oldId)!.id;
+    return { leadId: state.lead.id, oldId, replacementId };
+  }
+
+  it('completing the OLD (superseded) ID is refused and names the replacement', async () => {
+    const { leadId, oldId, replacementId } = await rescheduledChain();
+
+    let caught: unknown;
+    await svc.completeWork(leadId, { workId: oldId, actor: 'sales-b', evidence: 'declared' }).catch((e) => (caught = e));
+    expect(caught).toMatchObject({ code: 'WORK_SUPERSEDED', status: 409 });
+    expect((caught as { details?: Record<string, unknown> }).details).toMatchObject({
+      workId: oldId,
+      status: 'rescheduled',
+      replacementId,
+      replacementStatus: 'open',
+      dueAt: '2026-10-12T16:00:00+07:00',
+    });
+
+    // THE POINT OF THE FIX: the old item must still be rescheduled and the replacement still open.
+    const after = await svc.get(leadId);
+    expect(after!.workItems.find((w) => w.id === oldId)!.status).toBe('rescheduled');
+    expect(after!.workItems.find((w) => w.id === replacementId)!.status).toBe('open');
+  });
+
+  it('completing the replacement closes the chain and leaves no active item behind', async () => {
+    const { leadId, oldId, replacementId } = await rescheduledChain();
+    const done = await svc.completeWork(leadId, { workId: replacementId, actor: 'sales-b', evidence: 'declared', reason: 'đã gọi hôm thứ Hai' });
+
+    const old = done.workItems.find((w) => w.id === oldId)!;
+    const current = done.workItems.find((w) => w.id === replacementId)!;
+    expect(old.status).toBe('rescheduled');
+    expect(current.status).toBe('completed');
+    // "không còn việc hoạt động của chuỗi thay thế đó"
+    const activeInChain = done.workItems.filter(
+      (w) => (w.id === oldId || w.id === replacementId || w.supersedesWorkId === oldId) && w.status !== 'completed' && w.status !== 'rescheduled' && w.status !== 'cancelled',
+    );
+    expect(activeInChain).toHaveLength(0);
+    expect(done.workItems.some((w) => w.status === 'open' || w.status === 'accepted' || w.status === 'proposed')).toBe(false);
+  });
+
+  it('rescheduling a superseded item is refused too (no orphaned second replacement)', async () => {
+    const { leadId, oldId, replacementId } = await rescheduledChain();
+    await expect(
+      svc.rescheduleWork(leadId, { workId: oldId, actor: 'sales-b', newDueAt: '2026-10-20T09:00:00+07:00', reason: 'lẫn ID' }),
+    ).rejects.toMatchObject({ code: 'WORK_SUPERSEDED', status: 409 });
+    // only ONE live item in the chain
+    const after = await svc.get(leadId);
+    expect(after!.workItems.filter((w) => w.supersedesWorkId === oldId)).toHaveLength(1);
+    expect(after!.workItems.find((w) => w.id === replacementId)!.dueAt).toBe('2026-10-12T16:00:00+07:00');
+  });
+
+  it('markExternalUnobserved and accept on a superseded item are refused, not silently applied', async () => {
+    const state = await svc.ingestScenario(base);
+    const handed = await svc.handoffToSales(state.lead.id, {
+      context: 'c',
+      proposedAction: 'Chị A trao đổi với bé',
+      responsibleParty: 'external',
+      origin: 'explicit-request',
+      actor: 'marketing-lan',
+      recipientUserId: 'sales-b',
+    });
+    const oldId = handed.workItems[0].id;
+    await svc.salesAccept(state.lead.id, { workId: oldId, actor: 'sales-b', reason: 'nhận' });
+    const moved = await svc.rescheduleWork(state.lead.id, { workId: oldId, actor: 'sales-b', newDueAt: '2026-10-12T09:00:00+07:00', reason: 'dời' });
+    const replacementId = moved.workItems.find((w) => w.supersedesWorkId === oldId)!.id;
+
+    await expect(svc.markExternalUnobserved(state.lead.id, { workId: oldId, actor: 'sales-b' })).rejects.toMatchObject({
+      code: 'WORK_SUPERSEDED',
+      status: 409,
+    });
+    // accepting an already-superseded item would re-hand ownership on a dead item
+    await expect(svc.salesAccept(state.lead.id, { workId: oldId, actor: 'sales-b', reason: 'nhận lại' })).rejects.toMatchObject({
+      code: 'WORK_SUPERSEDED',
+      status: 409,
+    });
+    // the live replacement is still actionable
+    const marked = await svc.markExternalUnobserved(state.lead.id, { workId: replacementId, actor: 'sales-b' });
+    expect(marked.workItems.find((w) => w.id === replacementId)!.status).toBe('awaiting-external');
+  });
+
+  it('refusal is computed from RELOADED state, not the caller-cached object (store round-trip)', async () => {
+    const audit = new AuditStore();
+    const store = new InMemoryPilotStore(audit);
+    const svcA = new PilotLoopService(store);
+    const state = await svcA.ingestScenario(base);
+    const handed = await svcA.handoffToSales(state.lead.id, {
+      context: 'c',
+      proposedAction: 'Gọi lại 15:00 thứ Sáu',
+      responsibleParty: 'internal',
+      origin: 'explicit-request',
+      dueAt: '2026-10-09T15:00:00+07:00',
+      actor: 'marketing-lan',
+      recipientUserId: 'sales-b',
+    });
+    const oldId = handed.workItems[0].id;
+    await svcA.salesAccept(state.lead.id, { workId: oldId, actor: 'sales-b', reason: 'nhận' });
+    const moved = await svcA.rescheduleWork(state.lead.id, { workId: oldId, actor: 'sales-b', newDueAt: '2026-10-12T16:00:00+07:00', reason: 'dời' });
+    const replacementId = moved.workItems.find((w) => w.supersedesWorkId === oldId)!.id;
+
+    // A SECOND service instance over the same store = another request/process: it must
+    // refuse the old ID from persisted status and point at the persisted successor.
+    const svcB = new PilotLoopService(store);
+    let caught: unknown;
+    await svcB.completeWork(state.lead.id, { workId: oldId, actor: 'sales-b', evidence: 'declared' }).catch((e) => (caught = e));
+    expect(caught).toMatchObject({ code: 'WORK_SUPERSEDED', status: 409 });
+    expect((caught as { details?: Record<string, unknown> }).details).toMatchObject({ workId: oldId, replacementId });
+  });
+});
