@@ -1,7 +1,7 @@
 # PH3 — Persistence & Auth
 
 **Phase:** PH3 · **Gate trước:** L2 (PH2 domain verified, sweep I-06/I-09 đã fix) · **Gate sau:** L2→L3 (persistence durable)
-**Trạng thái:** Planned chi tiết — chưa bắt đầu code
+**Trạng thái:** Đang code — P0 slice đã kiểm chứng trên PostgreSQL THẬT (2026-10-07). T3-01/02/05/08 `[✓DB]`; T3-03/04 `[✓code][✓live]` (401/403/404 verify qua HTTP, chưa phải APP_GUARD toàn cục); T3-06/07 mới `[✓code]` (chưa wire endpoint). Chưa đóng Gate L2→L3: credential model + permission matrix vẫn `OPEN: PM-1`, optimistic locking chưa làm, telemetry/feedback chưa nối luồng. Chi tiết theo mức trạng thái: `state/progress.md` (PH3 + Pilot-loop).
 **Thời lượng:** 2–3 tuần
 **Phạm vi:** R-01, R-02, R-03, R-18, R-21, R-22, R-23 · C-03, C-04, C-06, C-07, C-08, C-12
 **Ranh giới:** Chỉ app/data plane. R-29…R-41 (control plane, licensing, installer, backup/restore P2) KHÔNG thuộc PH3 — giữ `proposed`, cần human gate trước khi promote.

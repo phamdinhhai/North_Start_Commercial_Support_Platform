@@ -10,7 +10,7 @@
       "C_ids": ["C-12", "C-03"],
       "phases": ["PH1", "PH3", "PH6"],
       "status": "in_progress",
-      "notes": "PH1 shell done (workspace-store 10 tests, synthetic segregation). 2026-10-07: DB isolation verified on PG16 + pilot cross-user 403/cross-workspace 404 live HTTP; workspaceId/owner server-derived (QA-32). PH6 pilot pending."
+      "notes": "PH1 shell done (workspace-store 10 tests, synthetic segregation). 2026-10-07: DB isolation verified on PG16 + pilot cross-user 403/cross-workspace 404 live HTTP; workspaceId/owner server-derived (QA-32). P1-fix round: envelope idempotency scoped to workspace (F-005/migration 004), demo header sandboxed to demo:<name> and opt-in (was able to address any tenant), in-memory audit history no longer leaks other leads of the same workspace. PH6 pilot pending."
     },
     {
       "feature_id": "F-002",
@@ -19,7 +19,7 @@
       "C_ids": ["C-04", "C-12"],
       "phases": ["PH1", "PH3"],
       "status": "in_progress",
-      "notes": "2026-10-07: stub auth enforced on pilot HTTP surface — 401 unauthenticated + demo header verified live (R-02). NOT real auth: unsigned Bearer dev-only (AUTH_DEV_UNSIGNED_TOKENS), no global guard; credential model (invite/password/IdP) vẫn QA-28/PM-1 open."
+      "notes": "2026-10-07: stub auth enforced on pilot HTTP surface — 401 unauthenticated + demo header verified live (R-02). Auth resolves BEFORE body validation so 401 never leaks the input schema; demo path is sandboxed (demo:<name>) and opt-in via DEMO_WORKSPACES=true (default off = fail closed). NOT real auth: unsigned Bearer dev-only (AUTH_DEV_UNSIGNED_TOKENS), no global guard; credential model (invite/password/IdP) vẫn QA-28/PM-1 open."
     },
     {
       "feature_id": "F-003",
@@ -28,7 +28,7 @@
       "C_ids": ["C-12", "C-04"],
       "phases": ["PH1", "PH3"],
       "status": "in_progress",
-      "notes": "Frozen boundary I-09 done (lead-scoped). 2026-10-07: handoff recipient view+accept verified; unrelated user 403, cross-workspace 404 qua HTTP thật (không mở rộng role). Manager scope vẫn workspace-wide tạm — QA-58/PM-1 pending RFC."
+      "notes": "Frozen boundary I-09 done (lead-scoped). 2026-10-07: handoff recipient view+accept verified; unrelated user 403, cross-workspace 404 qua HTTP thật (không mở rộng role). P1-2 fix: view/accept/mutation là ba quyền tách biệt — mutation yêu cầu CURRENT owner và kiểm theo từng work item (trước đó recipient chưa accept vẫn complete/advance/ghi outcome được); manager/admin không được nới thêm. Manager view scope vẫn workspace-wide tạm — QA-58/PM-1 pending RFC."
     },
     {
       "feature_id": "F-004",
@@ -37,7 +37,7 @@
       "C_ids": ["C-05", "C-11", "C-02"],
       "phases": ["PH1", "PH5"],
       "status": "in_progress",
-      "notes": "Manual adapter done (7 tests, raw preserved). CSV template/preview/row-level validation (QA-11) pending PH5."
+      "notes": "Manual adapter done (11 tests incl. P1-1 workspace-scoping regressions, raw preserved). CSV template/preview/row-level validation (QA-11) pending PH5. 2026-10-07 P1-4: ingest bodies validated at the HTTP boundary (400 INPUT_INVALID) before the adapter is reached."
     },
     {
       "feature_id": "F-005",
@@ -46,7 +46,7 @@
       "C_ids": ["C-11", "C-05"],
       "phases": ["PH0", "PH1", "PH4"],
       "status": "done",
-      "notes": "envelope 12 tests, idempotency + raw immutability done. Provider extension deferred to PH4 (Q-03/Q-04)."
+      "notes": "envelope 12 tests, idempotency + raw immutability done. Provider extension deferred to PH4 (Q-03/Q-04). 2026-10-07 P1-1: idempotency key = (workspace, connection, externalRecordId) in both the adapter and the PG constraint/ON CONFLICT (was cross-tenant reusable); migration 004 backfills only where derivable and refuses to guess otherwise."
     },
     {
       "feature_id": "F-006",
@@ -91,7 +91,7 @@
       "C_ids": ["C-01", "C-02"],
       "phases": ["PH2"],
       "status": "done",
-      "notes": "handoff 7 tests — recipient/context/channel/action/evidence-or-reason (QA-14)."
+      "notes": "handoff 7 tests — recipient/context/channel/action/evidence-or-reason (QA-14). 2026-10-07: caller-supplied evidenceRef must resolve to stored raw evidence in the same workspace (P1-4 — the fabricated rawPayloadHash:'pending' placeholder is gone); creating a handoff is a mutation, so it requires the current owner (P1-2)."
     },
     {
       "feature_id": "F-011",
@@ -109,7 +109,7 @@
       "C_ids": ["C-01", "C-06"],
       "phases": ["PH2", "PH5"],
       "status": "in_progress",
-      "notes": "State model done; PH5: overdue queue, primary cardinality (QA-18), Won/Lost open-action gate (QA-20)."
+      "notes": "State model done; PH5: overdue queue, primary cardinality (QA-18), Won/Lost open-action gate (QA-20). 2026-10-07 P0 pilot: work-item lifecycle is durable + guardrailed — superseded items are 409 WORK_SUPERSEDED with details.replacementId (P1-3, both in-memory and PG), and completion/reschedule/no-observation require the current owner (P1-2). Overdue remains internal-only (V2 §9.3); external past-due is awaiting-external, never failure. Won/Lost open-action gate NOT implemented — outcome can still be recorded while work items are open (PH5)."
     },
     {
       "feature_id": "F-013",
@@ -155,7 +155,7 @@
       "C_ids": ["C-03"],
       "phases": ["PH3"],
       "status": "in_progress",
-      "notes": "2026-10-07: migrations 001–003 verified on PG16 (up/down/re-up exit 0); durability across container AND app-process restart proven for pilot loop (smoke 31/31). Telemetry/feedback endpoints not wired; real-data pilot not ready."
+      "notes": "2026-10-07: migrations 001–004 verified on PG16 (up/down 4/re-up exit 0); durability across container AND app-process restart proven for pilot loop (smoke 53/53 at e93e82d). Concurrent `migrate up` race fixed (advisory locks + in-transaction re-check; reproduced 3/4 failures pre-fix). Telemetry/feedback endpoints not wired; optimistic locking not implemented; real-data pilot not ready."
     },
     {
       "feature_id": "F-018",
@@ -164,7 +164,7 @@
       "C_ids": ["C-06", "C-01"],
       "phases": ["PH2", "PH5"],
       "status": "done",
-      "notes": "audit-store 8 tests + invariants 19 tests — append-only; 2026-10-07: mutation+audit atomic in one PG transaction (QA-35), refusal leaves no partial state (integration), full eventType history survives app restart (smoke step 14)."
+      "notes": "audit-store 8 tests + invariants 25 tests — append-only; 2026-10-07: mutation+audit atomic in one PG transaction (QA-35), refusal leaves no partial state (integration), full eventType history survives app restart (smoke step 14). P1-5: in-memory history() was workspace-wide (leaked other leads' trails) → now lead-scoped, unknown lead → empty. P1-3/P1-4: superseded-item refusals are recorded with replacementId, and work_completed stores the referenced evidence's raw hash."
     },
     {
       "feature_id": "F-019",

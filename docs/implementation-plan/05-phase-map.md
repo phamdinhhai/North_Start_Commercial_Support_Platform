@@ -3,7 +3,7 @@
 **Phiên:** 2026-10-02 (cập nhật từ 2026-09-21)
 **Nguồn:** `03-requirements.md` (R-01…R-28 active + R-29…R-41 deferred §10), `04-architecture.md` (C-01…C-12; C-13/C-14 dự kiến cho deferred), `OPEN_DECISIONS.md` (CE-1/CE-2/PM-1/MM-1/ID-1/ID-2/LG-1), `discovery/2026-10-01-qa.md` (QA-01…59), `discovery/2026-10-01-specification-draft.md`, `SERVICE_MODEL.md`
 **Trạng thái code:** PH1+PH2 done (138 tests, 2026-10-02) — xem `state/progress.md`, `state/features.json`
-**Problem framing:** `docs/Dinh_nghia_bai_toan_V2.md` là framing/validation hypotheses, chưa freeze; trace và H1–H8 ở `discovery/v2-validation-and-traceability.md` (ADR-004 proposed).
+**Problem framing:** `docs/Dinh_nghia_bai_toan_V2.md` là framing/validation hypotheses, chưa freeze; trace và H1–H8 ở `discovery/v2-validation-and-traceability.md` (ADR-004 **Accepted** 2026-10-07 — quyền hạn: framing/validation only, không sửa canonical; RFC-005 vẫn **Draft**).
 
 ---
 
@@ -14,7 +14,7 @@
 | PH0 | Spike & Research | Live verify Pancake + anti-corruption envelope design | R-05, R-06, R-26, R-27 | C-05, C-11 | Pre-PH1 | Spike docs có, cần re-verify live trước PH4 |
 | PH1 | Walking Skeleton | `product/` bootstrap (Node 22/TS/NestJS/Fastify/Vitest), health + domain shell, in-memory repo | R-01…R-04, R-07 (shell) | C-01, C-04, C-12 | L1 | **Done** (code) |
 | PH2 | Domain & Events | Entities + CommercialEvent provenance + UNKNOWN + audit | R-07…R-17, R-19, R-20 | C-01, C-02, C-06 | L2 | **Done** (code, sweep I-06/I-09 đã fix) |
-| PH3 | Persistence & Auth | PostgreSQL durable + migrations forward/back + auth/RBAC + workspace isolation DB + telemetry/feedback | R-01, R-02, R-03, R-18, R-21, R-22, R-23 | C-03, C-04, C-06, C-07, C-08, C-12 | L2→L3 | Planned chi tiết |
+| PH3 | Persistence & Auth | PostgreSQL durable + migrations forward/back + auth/RBAC + workspace isolation DB + telemetry/feedback | R-01, R-02, R-03, R-18, R-21, R-22, R-23 | C-03, C-04, C-06, C-07, C-08, C-12 | L2→L3 | Đang code — P0 slice verified trên PostgreSQL thật (migrations 001–004, 229 tests + 8 PG integration, smoke 53/53 qua restart); PM-1/credential model + optimistic locking còn mở |
 | PH4 | Pancake Sync (P1 flagged) | Pancake read sync, idempotent QA-10, checkpoint tách biệt, flag OFF | R-05, R-06, R-26, R-27 | C-05, C-09, C-11 | L3 | Planned chi tiết (có thể // PH5) |
 | PH5 | LVP Slice Hardening | Queues, next-action/outcome (Lost QA-57, allocation QA-59), contact/trial, Data Health, CSV/file, error contract | R-04, R-08, R-12, R-13, R-15, R-16, R-23, R-24, R-25 | C-01, C-02, C-03, C-05, C-06, C-08, C-11 | L3→L4 | Planned chi tiết |
 | PH6 | Pilot & Learning | Isolated pilot workspace (QA-58), synthetic segregation, release + experiment exposure, gate review + direction | R-01, R-18, R-21, R-22, R-23, R-28 | C-03, C-06, C-07, C-08, C-12 | L4/L5 | Planned chi tiết |
