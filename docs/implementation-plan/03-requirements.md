@@ -328,4 +328,34 @@
 | R-20 | CE-2 | ADR-001 interim (AI draft-only) |
 | R-26, R-27 | Q-03, Q-04 | PH0 spike (Pancake feasibility) |
 
+## 10. Proposed Service Model Requirements (Deferred — chưa được duyệt vào LVP)
+
+**Trạng thái:** Đăng ký delta để product review; không phải cam kết scope hiện hành. Các requirement dưới đây không mở rộng PH3. Chỉ promote sau khi human gate cập nhật phase map và giải quyết các quyết định liên quan.
+
+| R-ID | Yêu cầu đề xuất | C-ID đề xuất | Phase gợi ý | Gate / lưu ý |
+|------|----------------|-------------|-------------|--------------|
+| R-29 | Cùng một gói phần mềm hỗ trợ managed VPS và customer-hosted; tách control plane khỏi data plane, mỗi instance có identity/config/secret riêng. | C-03, C-12; cần C-13 Control Plane | Productization | PM-1, LG-1; customer/instance/workspace không đồng nhất. |
+| R-30 | First-run `/setup` tạo workspace và admin đúng một lần, an toàn và có audit. | C-04, C-06, C-12 | Onboarding | PM-1; chưa quyết định invite/password/SSO/bootstrap credential. |
+| R-31 | Provisioning là workflow có trạng thái, idempotent, retryable và có compensation/cleanup khi lỗi. | C-06, C-09; cần C-13 | Control plane | Chọn mode A/provider và ownership trước. |
+| R-32 | Quản lý lifecycle instance/subscription riêng khỏi Lead state; mọi chuyển trạng thái có audit. | C-06, C-09; cần C-13/C-14 | Control plane | Không nhập chung với CE-1; hết hạn/past-due policy cần duyệt. |
+| R-33 | Nếu mở customer-hosted: license ký số, agent outbound-only, grace/offline policy; không khóa/xóa dữ liệu khách khi hết hạn. | C-09, C-12; cần C-14 | Customer-hosted | Human/legal review cho license và read-only policy. |
+| R-34 | Image có version/digest/signature; upgrade có backup/preflight/changelog/rollback và khách kiểm soát lịch nâng cấp ở mode B. | C-03, C-09, C-11 | Release engineering | Chốt license/distribution strategy trước phát hành. |
+| R-35 | Backup/restore có kiểm thử, retention và portability B↔A; bảo toàn audit, provenance, evidence và workspace boundaries. | C-03, C-06, C-11 | Reliability/productization | RPO/RTO, key custody, trách nhiệm dữ liệu cần duyệt. SQL migration rollback không thay thế backup/restore. |
+| R-36 | Tách ops telemetry control-plane khỏi ProductEvent; allowlist dữ liệu, redact PII/token, diagnostic chi tiết opt-in. | C-06, C-08, C-12; cần C-13 | Trước central telemetry | I-12; legal/privacy review. Không gửi nội dung hội thoại/prompt/PII theo mặc định. |
+| R-37 | Remote support chỉ qua grant có consent, scope, thời hạn/revoke; mọi thao tác audit, diagnostic bundle đã redact. | C-06, C-12 | Trước customer-hosted support | PM-1; permissions/support consent cần RFC/human gate. |
+| R-38 | Installer preflight kiểm tra môi trường/tài nguyên/network trước mutation; từ chối an toàn với lỗi actionable. | C-04, C-09, C-11 | Installer/productization | Ngưỡng phần cứng trong SERVICE_MODEL còn là ước lượng, phải xác minh. |
+| R-39 | Secret riêng từng instance/customer, không log, có rotation/revocation; custody phù hợp deployment mode. | C-06, C-12 | Security hardening | Chốt secret store/key custody; không đưa secret vào repo. |
+| R-40 | Nếu mở rộng beyond Pancake read-only: channel gateway chuẩn hóa webhook, chống giả mạo/replay, idempotency và rate policy. | C-05, C-09, C-11 | Theo từng channel | App riêng hay shared relay còn mở; không mở rộng PH4 mặc định. |
+| R-41 | Trước đóng gói thương mại: inventory dependency/license, SBOM và review nghĩa vụ host/phân phối. | Chưa có C-ID | Release/governance gate | License strategy chưa chốt; cần chuyên gia pháp lý khi cần. |
+
+### Ranh giới và quyết định cần duyệt
+
+- R-29…R-41 là backlog đề xuất từ `docs/north-star/SERVICE_MODEL.md`; không thay thế R-01…R-28 và không tự đổi phạm vi LVP.
+- PH3 đã duyệt vẫn là persistence/auth/RBAC/telemetry-feedback cho app; control plane, provisioning, licensing, installer và fleet upgrade không thuộc PH3 nếu chưa có quyết định scope mới.
+- Login/token endpoint không tự xác định credential model. Không phát hành token chỉ dựa trên email/workspace do caller gửi; cần chọn one-time bootstrap/invitation, password flow hoặc external IdP trước khi implement login thật.
+- Không resolve CE-1, CE-2, MM-1, ID-1, ID-2, PM-1, LG-1. Các capability liên quan phải giữ seam và human gate.
+- Trước khi promote các R này: quyết định mode A/B sequencing, lõi build-vs-compose, license strategy, LLM key custody, provider/data location, ICP/kênh đầu tiên, app-vs-relay, và expiry policy.
+
+---
+
 > Quy tắc: Không tự resolve open decision; ghi `BLOCKED-BY` và để Human Gate quyết. CE-1/CE-2 xử lý interim bằng ADR-001.

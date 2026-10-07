@@ -3,7 +3,7 @@
 **Date:** 2026-10-06
 **Status:** Accepted — Product/Architecture/Data review approved 2026-10-07
 **Sources:** `docs/Dinh_nghia_bai_toan_V2.md` (2026-10-06) §§1–22; `docs/implementation-plan/discovery/v2-validation-and-traceability.md`; `docs/north-star/NORTH_STAR.md`; `docs/north-star/SERVICE_MODEL.md`; `docs/canonical/OPEN_DECISIONS.md`; `docs/canonical/DOMAIN_INVARIANTS.md`
-**Related:** ADR-001 (CE-1/CE-2 interim), ADR-002 (persistence), ADR-003 (adapter); `HYPOTHESIS_REGISTER.md`, `EXPERIMENT_REGISTER.md`, `EVIDENCE_REGISTER.md`
+**Related:** ADR-001 (CE-1/CE-2 interim), ADR-002 (persistence), ADR-003 (adapter), `RFC-005-v2-domain-questions.md` (domain seams for review); `HYPOTHESIS_REGISTER.md`, `EXPERIMENT_REGISTER.md`, `EVIDENCE_REGISTER.md`
 
 ## Context
 

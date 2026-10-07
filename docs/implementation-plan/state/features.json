@@ -1,6 +1,7 @@
 {
   "version": 1,
-  "generated": "2026-09-21",
+  "generated": "2026-10-02",
+  "notes": "PH1+PH2 code done (132 tests, 2026-09-22). F-025…F-037 là đề xuất từ 03-requirements §10 (R-29…R-41) và discovery QA-01…59 — chưa duyệt vào LVP, không tự mở rộng PH3. CE-1/CE-2/PM-1/MM-1/ID-1/ID-2/LG-1 vẫn BLOCKED-BY.",
   "features": [
     {
       "feature_id": "F-001",
@@ -8,7 +9,8 @@
       "R_ids": ["R-01"],
       "C_ids": ["C-12", "C-03"],
       "phases": ["PH1", "PH3", "PH6"],
-      "status": "planned"
+      "status": "in_progress",
+      "notes": "PH1 shell done (workspace-store 10 tests, synthetic segregation). PH3 DB + PH6 pilot pending."
     },
     {
       "feature_id": "F-002",
@@ -16,7 +18,8 @@
       "R_ids": ["R-02"],
       "C_ids": ["C-04", "C-12"],
       "phases": ["PH1", "PH3"],
-      "status": "planned"
+      "status": "planned",
+      "notes": "Shell done, real auth (invite/password/IdP) pending — QA-28 lựa chọn chưa chốt credential model."
     },
     {
       "feature_id": "F-003",
@@ -24,7 +27,8 @@
       "R_ids": ["R-03"],
       "C_ids": ["C-12", "C-04"],
       "phases": ["PH1", "PH3"],
-      "status": "planned"
+      "status": "planned",
+      "notes": "Frozen boundary I-09 done (lead-scoped). Full matrix PM-1 proposal — QA-30…32/58 pending RFC."
     },
     {
       "feature_id": "F-004",
@@ -32,7 +36,8 @@
       "R_ids": ["R-04"],
       "C_ids": ["C-05", "C-11", "C-02"],
       "phases": ["PH1", "PH5"],
-      "status": "planned"
+      "status": "in_progress",
+      "notes": "Manual adapter done (7 tests, raw preserved). CSV template/preview/row-level validation (QA-11) pending PH5."
     },
     {
       "feature_id": "F-005",
@@ -40,7 +45,8 @@
       "R_ids": ["R-05", "R-06"],
       "C_ids": ["C-11", "C-05"],
       "phases": ["PH0", "PH1", "PH4"],
-      "status": "planned"
+      "status": "done",
+      "notes": "envelope 12 tests, idempotency + raw immutability done. Provider extension deferred to PH4 (Q-03/Q-04)."
     },
     {
       "feature_id": "F-006",
@@ -48,7 +54,8 @@
       "R_ids": ["R-07"],
       "C_ids": ["C-01"],
       "phases": ["PH1", "PH2"],
-      "status": "planned"
+      "status": "done",
+      "notes": "lead 13 tests — stable ID immutable, survives reassignment."
     },
     {
       "feature_id": "F-007",
@@ -56,7 +63,8 @@
       "R_ids": ["R-08"],
       "C_ids": ["C-01", "C-02"],
       "phases": ["PH2", "PH5"],
-      "status": "planned"
+      "status": "done",
+      "notes": "lead-state 18 tests — assign/accept/reject/reassign append-audited. Pending-access/revoke scope (QA-16/32) needs PM-1 RFC in PH5."
     },
     {
       "feature_id": "F-008",
@@ -64,7 +72,8 @@
       "R_ids": ["R-09"],
       "C_ids": ["C-01"],
       "phases": ["PH2"],
-      "status": "planned"
+      "status": "done",
+      "notes": "handoff + lead cover evidence ref + audit; AI draft distinguish pending (I-03)."
     },
     {
       "feature_id": "F-009",
@@ -72,7 +81,8 @@
       "R_ids": ["R-10"],
       "C_ids": ["C-01"],
       "phases": ["PH2"],
-      "status": "planned"
+      "status": "done",
+      "notes": "I-02 anti-collapse + UNKNOWN attribution (MM-1) enforced."
     },
     {
       "feature_id": "F-010",
@@ -80,7 +90,8 @@
       "R_ids": ["R-11"],
       "C_ids": ["C-01", "C-02"],
       "phases": ["PH2"],
-      "status": "planned"
+      "status": "done",
+      "notes": "handoff 7 tests — recipient/context/channel/action/evidence-or-reason (QA-14)."
     },
     {
       "feature_id": "F-011",
@@ -88,7 +99,8 @@
       "R_ids": ["R-12"],
       "C_ids": ["C-01", "C-06"],
       "phases": ["PH2", "PH5"],
-      "status": "planned"
+      "status": "done",
+      "notes": "Outcome + audit done (correction append-only). Backdate occurredAt/recordedAt (QA-19) pending PH5 workflow."
     },
     {
       "feature_id": "F-012",
@@ -96,7 +108,8 @@
       "R_ids": ["R-13"],
       "C_ids": ["C-01", "C-06"],
       "phases": ["PH2", "PH5"],
-      "status": "planned"
+      "status": "in_progress",
+      "notes": "State model done; PH5: overdue queue, primary cardinality (QA-18), Won/Lost open-action gate (QA-20)."
     },
     {
       "feature_id": "F-013",
@@ -104,8 +117,9 @@
       "R_ids": ["R-14"],
       "C_ids": ["C-01", "C-06"],
       "phases": ["PH2"],
-      "status": "planned",
-      "blocked_by": ["CE-1"]
+      "status": "done",
+      "blocked_by": ["CE-1"],
+      "notes": "Interim hypothesis New→Accepted→Contacting→Follow-up→Won/Lost/Unknown done, reversible + audit. Freeze needs CE-1 RFC."
     },
     {
       "feature_id": "F-014",
@@ -113,7 +127,8 @@
       "R_ids": ["R-15"],
       "C_ids": ["C-01", "C-06"],
       "phases": ["PH2", "PH5"],
-      "status": "planned"
+      "status": "done",
+      "notes": "outcome 7 tests — claimed + supersedes. QA-57 Lost policy + QA-59 payment allocation need PH5 schema review."
     },
     {
       "feature_id": "F-015",
@@ -121,7 +136,8 @@
       "R_ids": ["R-16"],
       "C_ids": ["C-01", "C-06"],
       "phases": ["PH2"],
-      "status": "planned"
+      "status": "done",
+      "notes": "commercial-event 13 tests — provenance envelope done, inferred-only interim (CE-2)."
     },
     {
       "feature_id": "F-016",
@@ -129,7 +145,8 @@
       "R_ids": ["R-17"],
       "C_ids": ["C-01", "C-06"],
       "phases": ["PH2", "PH5"],
-      "status": "planned"
+      "status": "done",
+      "notes": "unknown-states 7 tests — 5 truth states distinct, no null/empty."
     },
     {
       "feature_id": "F-017",
@@ -145,7 +162,8 @@
       "R_ids": ["R-19", "R-20"],
       "C_ids": ["C-06", "C-01"],
       "phases": ["PH2", "PH5"],
-      "status": "planned"
+      "status": "done",
+      "notes": "audit-store 8 tests + invariants 19 tests — append-only, atomic with mutation (QA-35) needs PH3 DB."
     },
     {
       "feature_id": "F-019",
@@ -153,8 +171,9 @@
       "R_ids": ["R-21"],
       "C_ids": ["C-01", "C-10", "C-06"],
       "phases": ["PH2", "PH5"],
-      "status": "planned",
-      "blocked_by": ["CE-2"]
+      "status": "done",
+      "blocked_by": ["CE-2"],
+      "notes": "Draft-only + CE→evidence→policy guard done, flag OFF. Real inference (QA-39/40) deferred P1."
     },
     {
       "feature_id": "F-020",
@@ -162,7 +181,8 @@
       "R_ids": ["R-22", "R-23"],
       "C_ids": ["C-07", "C-08"],
       "phases": ["PH3", "PH5", "PH6"],
-      "status": "planned"
+      "status": "planned",
+      "notes": "Spec QA-53/54 — needs PH3 wiring (release version + flag exposure)."
     },
     {
       "feature_id": "F-021",
@@ -170,7 +190,8 @@
       "R_ids": ["R-24"],
       "C_ids": ["C-02", "C-08"],
       "phases": ["PH5"],
-      "status": "planned"
+      "status": "planned",
+      "notes": "QA-58: scoped to granted team/branch, not workspace-wide default — PM-1 RFC required."
     },
     {
       "feature_id": "F-022",
@@ -187,7 +208,8 @@
       "C_ids": ["C-05", "C-11", "C-09"],
       "phases": ["PH0", "PH4"],
       "status": "planned",
-      "blocked_by": ["Q-03", "Q-04"]
+      "blocked_by": ["Q-03", "Q-04"],
+      "notes": "Flag OFF, manual fallback. Needs PH0 re-verify live."
     },
     {
       "feature_id": "F-024",
@@ -195,7 +217,128 @@
       "R_ids": ["R-28"],
       "C_ids": ["C-12"],
       "phases": ["PH6"],
-      "status": "planned"
+      "status": "planned",
+      "notes": "Pilot 1 customer → 1 deployment → 1 workspace (QA-58); branch/team inside workspace."
+    },
+    {
+      "feature_id": "F-025",
+      "name": "[Proposed] Control/Data Plane Split (Managed vs Customer-Hosted)",
+      "R_ids": ["R-29"],
+      "C_ids": ["C-03", "C-12", "C-13"],
+      "phases": ["Productization"],
+      "status": "proposed",
+      "blocked_by": ["PM-1", "LG-1"],
+      "notes": "Deferred — needs C-13 Control Plane. Do not expand PH3 until human gate updates phase map."
+    },
+    {
+      "feature_id": "F-026",
+      "name": "[Proposed] First-Run /setup (Workspace + Admin Bootstrap)",
+      "R_ids": ["R-30"],
+      "C_ids": ["C-04", "C-06", "C-12"],
+      "phases": ["Onboarding"],
+      "status": "proposed",
+      "blocked_by": ["PM-1"],
+      "notes": "One-time idempotent + audit. Credential model (invite/password/SSO) not decided — QA-28."
+    },
+    {
+      "feature_id": "F-027",
+      "name": "[Proposed] Provisioning Workflow (Idempotent + Compensation)",
+      "R_ids": ["R-31"],
+      "C_ids": ["C-06", "C-09", "C-13"],
+      "phases": ["Control plane"],
+      "status": "proposed",
+      "notes": "Deferred — needs C-13, mode A/provider decision."
+    },
+    {
+      "feature_id": "F-028",
+      "name": "[Proposed] Instance/Subscription Lifecycle (Separate from Lead State)",
+      "R_ids": ["R-32"],
+      "C_ids": ["C-06", "C-09", "C-13", "C-14"],
+      "phases": ["Control plane"],
+      "status": "proposed",
+      "notes": "Do not conflate with CE-1. Expiry/past-due policy needs approval — QA-44…46."
+    },
+    {
+      "feature_id": "F-029",
+      "name": "[Proposed] Customer-Hosted Licensing (Signed, Outbound-Only)",
+      "R_ids": ["R-33"],
+      "C_ids": ["C-09", "C-12", "C-14"],
+      "phases": ["Customer-hosted"],
+      "status": "proposed",
+      "notes": "Grace/offline policy, never lock/delete customer data on expiry — QA-45/46, legal review."
+    },
+    {
+      "feature_id": "F-030",
+      "name": "[Proposed] Versioned Image + Upgrade (Backup/Preflight/Rollback)",
+      "R_ids": ["R-34"],
+      "C_ids": ["C-03", "C-09", "C-11"],
+      "phases": ["Release engineering"],
+      "status": "proposed",
+      "notes": "Needs license/distribution strategy before release."
+    },
+    {
+      "feature_id": "F-031",
+      "name": "[Proposed] Backup/Restore (Tested, Retention, B↔A Portability)",
+      "R_ids": ["R-35"],
+      "C_ids": ["C-03", "C-06", "C-11"],
+      "phases": ["Reliability/productization"],
+      "status": "proposed",
+      "notes": "Must preserve audit/provenance/evidence + workspace boundaries. Migration rollback ≠ backup/restore."
+    },
+    {
+      "feature_id": "F-032",
+      "name": "[Proposed] Ops Telemetry Split (Allowlist + Redaction)",
+      "R_ids": ["R-36"],
+      "C_ids": ["C-06", "C-08", "C-12", "C-13"],
+      "phases": ["Before central telemetry"],
+      "status": "proposed",
+      "notes": "Primary I-12. No chat/prompt/PII by default — SERVICE_MODEL §6.2 allowlist."
+    },
+    {
+      "feature_id": "F-033",
+      "name": "[Proposed] Remote Support (Consent Grant, Scoped, Audited)",
+      "R_ids": ["R-37"],
+      "C_ids": ["C-06", "C-12"],
+      "phases": ["Before customer-hosted support"],
+      "status": "proposed",
+      "blocked_by": ["PM-1"],
+      "notes": "Time-boxed/revocable, redacted diagnostic bundles."
+    },
+    {
+      "feature_id": "F-034",
+      "name": "[Proposed] Installer Preflight",
+      "R_ids": ["R-38"],
+      "C_ids": ["C-04", "C-09", "C-11"],
+      "phases": ["Installer/productization"],
+      "status": "proposed",
+      "notes": "Hardware thresholds in SERVICE_MODEL are estimates — must verify before mutation."
+    },
+    {
+      "feature_id": "F-035",
+      "name": "[Proposed] Per-Instance Secret Custody (Rotation/Revocation)",
+      "R_ids": ["R-39"],
+      "C_ids": ["C-06", "C-12"],
+      "phases": ["Security hardening"],
+      "status": "proposed",
+      "notes": "Never in repo/logs. Custody per deployment mode — choose store before implementing login."
+    },
+    {
+      "feature_id": "F-036",
+      "name": "[Proposed] Channel Gateway (per-Channel Hardening)",
+      "R_ids": ["R-40"],
+      "C_ids": ["C-05", "C-09", "C-11"],
+      "phases": ["Per channel"],
+      "status": "proposed",
+      "notes": "Webhook anti-forgery/replay, idempotency, rate policy. Do not expand PH4 by default."
+    },
+    {
+      "feature_id": "F-037",
+      "name": "[Proposed] Dependency/License Inventory + SBOM (Pre-Commercial Pack)",
+      "R_ids": ["R-41"],
+      "C_ids": [],
+      "phases": ["Release/governance gate"],
+      "status": "proposed",
+      "notes": "Host/distribution obligations — needs legal review, not yet a C-ID."
     }
   ]
 }

@@ -134,7 +134,7 @@ Use pseudonymous references and permitted data only. Do not copy unnecessary mes
 ## 8. Promotion path and gates
 
 1. Keep H1–H8 in the learning/evidence register and this validation aid; do not edit frozen canonical semantics.
-2. Map V2 terminology against canonical terms (especially provenance/status, timestamps, identity, obligations, and outcomes) before writing any mapping contract.
+2. Map V2 terminology against canonical terms (especially provenance/status, timestamps, identity, obligations, and outcomes) before writing any mapping contract. Domain questions are collected in [`../decisions/RFC-005-v2-domain-questions.md`](../decisions/RFC-005-v2-domain-questions.md), which remains a draft and does not decide them.
 3. If results imply a domain/architecture change, draft an RFC describing evidence, alternatives, impact, and unresolved assumptions; update `OPEN_DECISIONS.md` only through canonical governance.
 4. Promote accepted decision by human-approved RFC/ADR; only then update canonical model, requirements, architecture, and code.
 5. Distinguish the learning gate (evidence sufficient to proceed/narrow/stop) from Gate #A, persistence/migration review, and Pancake feasibility gates.
