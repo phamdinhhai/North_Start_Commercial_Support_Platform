@@ -26,36 +26,51 @@ Sau mỗi phase, cập nhật phần này:
 
 ### PH3 Verification — P0 slice (persistence + auth/RBAC + pilot loop)
 
-- **Date:** 2026-10-07 · **SHA:** `e93e82d` (từ `b81edd9`)
+- **Date:** 2026-10-07 → **checkpoint 2026-10-08** (P1-fix round `b81edd9..0f1da07` đã push + migration 004 review follow-up) · **SHA:** xem "Checkpoint" cuối mục
 - **Author:** Claude (assistant) — tự verified, **chưa** qua human review
 - **Gate:** L2→L3 **CHƯA ĐÓNG** — còn: credential model + permission matrix (`OPEN: PM-1`), optimistic locking (vòng kế tiếp), telemetry/feedback chưa wire endpoint (T3-06/07), RFC-005 Q3/Q4 chưa có kết quả gán nhãn thật
 - **Environment đã dùng để verify (không phải CI host):** Node 22, PostgreSQL 16 (docker `postgres:16-alpine`, host port **55432** — 5432 đang bị container `edura-postgres` của dự án khác chiếm, không đụng tới), `TEST_DATABASE_URL=postgres://north_star:north_star@localhost:55432/north_star`
 - **CI:** `npm ci && npm run typecheck && npm test && npm run build` — **[~] KHÔNG có CI host.** Repo không có `.github/workflows/` (đã kiểm tra 2026-10-07), nên "CI PASS" chỉ là **local runs**; mọi con số dưới đây là local. Cần người thật thêm workflow + báo cáo kết quả tại SHA.
   - `npm run typecheck` → exit 0
-  - `npm test` (KHÔNG set DB env) → exit 0, **228 pass / 8 skipped** (2 file integration skip theo thiết kế khi thiếu `TEST_DATABASE_URL`)
-  - `npm test` (CÓ set DB env) → exit 0, **236 pass / 0 skipped**
-  - `npm run test:integration` → exit 0, **8 pass** (`--no-file-parallelism`)
+  - `npm ci` → exit 0
+  - `npm test` (KHÔNG set DB env) → exit 0, **228 pass / 10 skipped** (3 file integration skip theo thiết kế khi thiếu `TEST_DATABASE_URL`)
+  - `npm test` (CÓ set DB env) → exit 0, **238 pass / 0 skipped**
+  - `npm run test:integration` → exit 0, **10 pass** (`--no-file-parallelism`)
   - `npm run build` → exit 0
-  - `npm run test:cov` **CÓ** DB (`--no-file-parallelism`) → exit 0, lines **91.33%** (branch 84.42%, funcs 93.42%). Bảo mật-thiết-yếu: `rbac.service` 100/100, `auth.service` 100 lines (93.33 branch), `pilot-loop.service` 98.79, `pilot.store` 100, `pilot-validation` 94.37, `envelope` 100, `migrator` 97.22.
+  - `npm run test:cov` **CÓ** DB (`--no-file-parallelism`) → exit 0, lines **91.43%** (branch 84.61%, funcs 93.42%). Bảo mật-thiết-yếu: `rbac.service` 100/100, `auth.service` 100 lines (93.33 branch), `pilot-loop.service` 98.79, `pilot.store` 100, `pilot-validation` 94.37, `envelope` 100, `migrator` 97.22. **Threshold giữ nguyên 80% lines — không nới.**
   - `npm run test:cov` **KHÔNG** DB → **exit 1**: `Coverage for lines (75.79%) does not meet global threshold (80%)` — `PgPilotStore` + các đường PG-only không được bao phủ khi thiếu DB. **Nghĩa là: một CI host chạy `npm run test:cov` mà không provision PostgreSQL sẽ ĐỎ**, đây là sự thật về harness chứ không phải lỗi code. Cần người quyết: thêm service PG trong CI hay tách threshold cho run không-DB — tôi không tự đổi threshold.
   - `scripts/pilot-smoke.sh` → exit 0, **PASS=53 FAIL=0** (14 bước + 7b/9b/13b; giết và khởi động lại tiến trình app, đọc lại từ PG)
-  - `migrate up` / `down 4` / re-`up` → exit 0; schema về đúng 13 bảng, 4 version trong `schema_migrations`
-  - **Migration `004` edge-case proof (scratch DB `migtest_004`, dev DB không đụng):**
-    - envelope có lead ở **hai** workspace cùng tham chiếu → `RAISE EXCEPTION … Refusing to guess`, `migrate up` **exit 1**, và vì Migrator chạy trong transaction nên **toàn bộ file rolled back**: `information_schema` còn **0** cột `workspace_id`, `schema_migrations` vẫn đúng 3 version cũ. Không có trạng thái nửa vời, không có workspace nào bị đoán bừa.
-    - envelope được lead **một** workspace tham chiếu + một envelope mồ côi → exit 0; hàng được tham chiếu backfill `workspace_id='wsA'`, hàng mồ côi bị xoá (theo ghi chú trong file migration), constraint đổi thành `commercial_envelope_workspace_connection_record_key`. `down 1` → `up` round-trip exit 0. Scratch DB đã drop.
+  - `migrate up` / `down 1` / re-`up` / `down 4` → exit 0 trên dev DB, gồm cả đường **down của một DB đã apply bản 004 cũ** (không có bảng quarantine) — xem bullet 004 bên dưới
+  - **Migration `004` — dữ liệu cũ được xử lý thế nào (bản sau review, `product/src/infra/postgres/migration-004.integration.spec.ts`, chạy trên DB PHỤ tạm tạo/rời trong cùng instance):**
+    - **Điều kiện xóa: KHÔNG CÒN ĐIỀU KIỆN NÀO xóa raw evidence.** Bản cũ (`2d3ce38`) xóa `DELETE … WHERE workspace_id IS NULL`, tức mặc định "envelope không có lead tham chiếu = dữ liệu thử được phép bỏ". Điều đó **sai về nguyên tắc** — raw evidence chưa lead-hóa vẫn là bằng chứng (I-12: raw immutable; migration không có quyền huỷ). Bản hiện tại: hàng chưa rõ scope được **SAO NGUYÊN TRẠNG** (đủ cột, `raw_payload`, `raw_payload_hash`, `is_synthetic`) sang `commercial_envelope_quarantine` kèm `quarantine_reason` + `quarantined_at`, rồi mới rời bảng chính để `SET NOT NULL` đứng được; hàng nào **không có bản sao trong quarantine thì KHÔNG bị xóa** (DELETE có điều kiện `EXISTS (… quarantine …)`). Test chứng minh payload của hàng bị quarantine **giống hệt** sau round-trip `up → down`, và `down()` khôi nó về bảng chính thay vì `DROP TABLE` quarantine.
+    - **Điều kiện xóa còn lại duy nhất là của người vận hành**, được ghi thành comment trong `004…down.sql` (`DELETE FROM commercial_envelope_quarantine; DROP TABLE …`) — chỉ sau khi đã nhìn thấy payload và chủ quyết. `is_synthetic = false` trong quarantine được báo riêng trong `RAISE NOTICE` ("not-marked-synthetic=N … need a human decision") để không lẫn dữ liệu thật với dữ liệu thử.
+    - envelope có lead ở **hai** workspace cùng tham chiếu → `RAISE EXCEPTION … Refusing to guess`, migration **thất bại**, và vì Migrator chạy mỗi file trong một transaction nên **toàn bộ rolled back**: `information_schema` còn **0** cột `workspace_id`, **0** bảng quarantine, `schema_migrations` không ghi version, dữ liệu envelope nguyên vẹn.
+    - envelope được lead **một** workspace tham chiếu → backfill `workspace_id='wsA'`, vẫn ở bảng chính; constraint đổi thành `commercial_envelope_workspace_connection_record_key`, cột `workspace_id` NOT NULL.
+    - **Dev DB hiện tại:** 12 envelope, 12 đã có workspace, **0** hàng không có lead tham chiếu → quarantine rỗng; schema dev đã được `down 1`/`up` để tạo bảng quarantine và khớp bản migration mới (trước đó lệch vì dev DB đang apply bản 004 cũ).
 - **Invariant coverage:** I-01…I-12 — **[x] mỗi cái ≥1 test** (xem matrix cuối file; `domain/invariants.spec.ts` = 25 tests). Ngoại lệ ghi rõ: I-06 và I-10 vẫn ở mức **placeholder/anti-corruption** theo `phases/PH2` (thay bằng meaningful check là việc đã ghi trong `state/progress.md` "Việc tiếp theo" #2), không phải đã chứng minh đầy đủ.
 - **Canonical unchanged:** `docs/canonical/**` — **[x] Verified** (`git diff --stat b81edd9..HEAD -- docs/canonical/` = rỗng ở đợt P1-fix này)
 - **Forbidden paths untouched:** — **[x] Verified** (`git diff --name-only b81edd9..HEAD` không có `src/bernstein/**`, `templates/**`, `.agents/skills/**`)
 - **Open decisions respected:** — **[x] No silent resolution.** CE-1: vẫn chỉ là hypothesis ADR-001, mọi transition ngoài boundary → 422 `CE1_BOUNDARY`; CE-2: CommercialEvent vẫn inferred-only; PM-1: quyền mutation **thu hẹp** (owner-only) chứ không mở rộng, manager/admin correction từ chối 403 và audit chứng minh không có record của actor đó; MM-1/ID-1/ID-2/LG-1 không chạm. RFC-005 vẫn **Draft**, EXP-06 vẫn **proposed**, ADR-004 **Accepted** với quyền hạn framing/validation only.
 - **Human Gate:** — **[ ] Not recorded.** Đợt này là code-fix theo review của user trên GitHub (`b81edd9`); user dừng lại để review trước khi làm tiếp (optimistic locking là vòng sau).
 - **Issues found:** 5 P1 do user review phát hiện tại `b81edd9`, tất cả tái hiện được trong code và đã sửa — mỗi cái một commit có regression test:
-  1. `2d3ce38` **P1-1** idempotency key thiếu workspace → envelope dùng xuyên tenant (cả in-memory và `UNIQUE`/`ON CONFLICT` của PG). Sửa + migration `004` (chỉ backfill tất định, **từ chối đoán** workspace cho bản ghi mơ hồ: `RAISE EXCEPTION`).
+  1. `2d3ce38` **P1-1** idempotency key thiếu workspace → envelope dùng xuyên tenant (cả in-memory và `UNIQUE`/`ON CONFLICT` của PG). Sửa + migration `004` (chỉ backfill tất định, **từ chối đoán** workspace cho bản ghi mơ hồ: `RAISE EXCEPTION`). **Bản sửa đầu tiên của `004` có một lỗi nguyên tắc do user review phát hiện: nó xóa envelope không có lead tham chiếu, coi đó là dữ liệu được phép bỏ. Đã sửa lại theo hướng quarantine-bảo-toàn (xem bullet 004 ở trên).**
   2. `948851b` **P1-2** recipient chưa accept vẫn complete/reschedule/advance/ghi outcome → **tách view / accept / mutation**; mutation chỉ owner hiện tại, kiểm theo từng work item.
   3. `406ca8e` **P1-3** complete trên item đã superseded trả 200, replacement vẫn mở → **409 `WORK_SUPERSEDED` + `details.replacementId`**; smoke sửa (trước đó 31/31 assertions **encode chính lỗi này**).
   4. `e62a0b2` **P1-4** không validate input tại boundary (không có global ValidationPipe), `observed` nhận mọi `evidenceRef`, handoff ghi `rawPayloadHash:'pending'` bịa đặt → boundary validation 400 `INPUT_INVALID`; pointer phải **tồn tại trong storage durable + đúng workspace + đúng quan hệ với hồ sơ**; audit lưu raw hash. **Kèm demo workspace:** `x-demo-workspace` trước cho phép caller chỉ **mọi** workspace; nay opt-in (`DEMO_WORKSPACES=true`) và luôn sandbox thành `demo:<name>`.
   5. `a04f162` **P1-5** `InMemoryPilotStore.history()` lọc "workspace khớp VÀ entityId ≠ leadId" → rò toàn bộ trail của lead khác trong cùng tenant (2 lead/tenant là trường hợp bình thường) → lead-scoped membership; unknown lead → rỗng.
   - **Bonus (tìm thấy khi verify, không nằm trong danh sách user):** `e93e82d` migrator race — hai integration spec file boot song song trên cùng dev DB cùng `migrate up`; code cũ đọc danh sách pending **ngoài** transaction nên cả hai cùng DDL → tái hiện 3/4 lỗi `duplicate key ... pg_type_typname_nsp_index` trên PG 16 thật. Đã sửa bằng `pg_advisory_xact_lock` + re-check trong transaction; **đây là nguyên nhân thất bại không ổn định (flaky) của `npm test` khi có DB env** — giờ 3/3 run sạch.
-  - Ghi chú trung thực: **không có E2E/contract test suite** (`vitest.config.e2e.ts` được tham chiếu trong `package.json` nhưng file không tồn tại; không có `test/*.e2e-spec.ts`); bằng chứng end-to-end hiện chỉ là `scripts/pilot-smoke.sh` + PG integration specs. Pancake contract tests thuộc PH4 (flag OFF, blocked Q-03/Q-04).
+  - Ghi chú trung thực: **không có E2E/contract test suite** (`vitest.config.e2e.ts` được tham chiếu trong `package.json` nhưng file không tồn tại; không có `test/*.e2e-spec.ts`); bằng chứng end-to-end hiện chỉ là `scripts/pilot-smoke.sh` + PG integration specs. Pancake contract tests thuộc PH4 (flag OFF, blocked Q-03/Q-04). **Test xanh không có nghĩa là product đã sẵn sàng pilot nhiều người**: còn thiếu credential model thật (PM-1), optimistic locking (nhiều người cùng sửa một version), Won/Lost open-action gate (outcome vẫn ghi được khi work item còn mở — PH5), telemetry/feedback wiring, và mọi bằng chứng về người dùng thật (EXP-06 mới tới mức synthetic preparation).
+
+### Checkpoint (pushed)
+
+| Mục | Giá trị |
+|---|---|
+| Remote | `origin/main` — checkpoint `b81edd9..0f1da07` (8 commit) đã push 2026-10-08; correction của migration 004 push tiếp sau đó (xem commit cuối bảng) |
+| Bug-fix commits | `2d3ce38` P1-1 · `948851b` P1-2 · `406ca8e` P1-3 · `e62a0b2` P1-4 + demo workspace · `a04f162` P1-5 · `e93e82d` migrator race (self-found) |
+| Docs commits | `00e2b2a` (3 drift) · `0f1da07` (coverage + 004 proof) |
+| Pending sau checkpoint | correction của migration 004 (quarantine thay vì delete) — commit riêng, **chưa push cho tới khi bạn xác nhận** |
+| Tạm dừng theo chỉ đạo | optimistic locking (vòng sau khi review checkpoint) |
+
 
 ---
 
