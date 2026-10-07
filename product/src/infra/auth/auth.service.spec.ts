@@ -87,3 +87,34 @@ describe('AuthService — PH3 T3-03 (1-A stub, OPEN: PM-1)', () => {
     }
   });
 });
+
+describe('AuthService — bootstrap + fallback paths (security-critical, 100% line target)', () => {
+  const svc = new AuthService();
+  const prev = process.env.BOOTSTRAP_TOKEN;
+
+  it('one-time bootstrap token grants admin ONLY when it matches the env value', () => {
+    process.env.BOOTSTRAP_TOKEN = 'sup3r-secret-bootstrap';
+    try {
+      const ctx = svc.resolve({ headers: { 'x-bootstrap-token': 'sup3r-secret-bootstrap' } });
+      expect(ctx).toMatchObject({ workspaceId: 'bootstrap', userId: 'bootstrap-admin', role: 'admin', isDemo: false });
+      // wrong value → no auth context at all (no partial grant, no role downgrade)
+      expect(svc.resolve({ headers: { 'x-bootstrap-token': 'wrong' } })).toBeNull();
+    } finally {
+      if (prev === undefined) delete process.env.BOOTSTRAP_TOKEN;
+      else process.env.BOOTSTRAP_TOKEN = prev;
+    }
+  });
+
+  it('with BOOTSTRAP_TOKEN unset the header grants nothing (fail closed)', () => {
+    delete process.env.BOOTSTRAP_TOKEN;
+    expect(svc.resolve({ headers: { 'x-bootstrap-token': 'anything' } })).toBeNull();
+  });
+
+  it('a base64 token missing userId is rejected; missing role defaults to sales, never admin', () => {
+    process.env.AUTH_DEV_UNSIGNED_TOKENS = 'true';
+    const noUser = Buffer.from(JSON.stringify({ workspaceId: 'ws-1' })).toString('base64');
+    expect(svc.resolve({ headers: { authorization: `Bearer ${noUser}` } })).toBeNull();
+    const noRole = Buffer.from(JSON.stringify({ workspaceId: 'ws-1', userId: 'u' })).toString('base64');
+    expect(svc.resolve({ headers: { authorization: `Bearer ${noRole}` } })?.role).toBe('sales');
+  });
+});

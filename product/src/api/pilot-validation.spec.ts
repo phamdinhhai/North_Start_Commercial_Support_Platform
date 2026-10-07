@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { validateCompleteBody, validateHandoffBody, validateIntakeBody, validateOutcomeBody, validateRescheduleBody, type BoundaryError } from './pilot-validation';
+import { validateAcceptBody, validateAdvanceBody, validateCompleteBody, validateHandoffBody, validateIntakeBody, validateOutcomeBody, validateRescheduleBody, validateUnobservedBody } from './pilot-validation';
 
 /**
  * P1-4 (boundary half) — main.ts has NO global ValidationPipe and the controller typed its
@@ -63,5 +63,24 @@ describe('pilot boundary validation — 400 before the domain is touched', () =>
     const issues = validateHandoffBody({ context: '', proposedAction: '', responsibleParty: 'wrong', origin: 'wrong', recipientUserId: '' });
     expect(issues.map((i) => i.field)).toEqual(expect.arrayContaining(['context', 'proposedAction', 'responsibleParty', 'origin', 'recipientUserId']));
     expect(issues.length).toBeGreaterThanOrEqual(5);
+  });
+});
+
+describe('pilot boundary validation — non-object bodies on every endpoint', () => {
+  it('arrays, strings and null are rejected as bodies (not coerced into field errors)', () => {
+    for (const bad of ['nope', ['a'], null, undefined, 42]) {
+      for (const fn of [validateIntakeBody, validateHandoffBody, validateAcceptBody, validateAdvanceBody, validateCompleteBody, validateRescheduleBody, validateUnobservedBody, validateOutcomeBody]) {
+        expect(fn(bad)).toEqual([{ field: 'body', code: 'OBJECT_REQUIRED', message: 'request body must be a JSON object' }]);
+      }
+    }
+  });
+
+  it('optional fields are only checked when present (blank reason/evidenceRef rejected, absent accepted)', () => {
+    expect(validateCompleteBody({ workId: 'w', evidence: 'declared' })).toEqual([]);
+    expect(validateCompleteBody({ workId: 'w', evidence: 'declared', reason: '  ' })).toEqual([{ field: 'reason', code: 'REQUIRED', message: expect.any(String) }]);
+    expect(validateHandoffBody({ context: 'c', proposedAction: 'a', responsibleParty: 'internal', origin: 'explicit-request', recipientUserId: 'b', evidenceRef: '' })).toHaveLength(1);
+    expect(validateOutcomeBody({ value: 'Lost', reason: 'ok' })).toEqual([]);
+    expect(validateUnobservedBody({ workId: 'w' })).toEqual([]);
+    expect(validateAdvanceBody({ to: 'Contacting', reason: 'đã gọi' })).toEqual([]);
   });
 });

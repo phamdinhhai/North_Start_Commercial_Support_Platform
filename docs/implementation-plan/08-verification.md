@@ -32,12 +32,17 @@ Sau mỗi phase, cập nhật phần này:
 - **Environment đã dùng để verify (không phải CI host):** Node 22, PostgreSQL 16 (docker `postgres:16-alpine`, host port **55432** — 5432 đang bị container `edura-postgres` của dự án khác chiếm, không đụng tới), `TEST_DATABASE_URL=postgres://north_star:north_star@localhost:55432/north_star`
 - **CI:** `npm ci && npm run typecheck && npm test && npm run build` — **[~] KHÔNG có CI host.** Repo không có `.github/workflows/` (đã kiểm tra 2026-10-07), nên "CI PASS" chỉ là **local runs**; mọi con số dưới đây là local. Cần người thật thêm workflow + báo cáo kết quả tại SHA.
   - `npm run typecheck` → exit 0
-  - `npm test` (KHÔNG set DB env) → exit 0, **223 pass / 8 skipped** (2 file integration skip theo thiết kế khi thiếu `TEST_DATABASE_URL`)
-  - `npm test` (CÓ set DB env) → exit 0, **231 pass / 0 skipped**, chạy 3 lần liên tiếp sạch
+  - `npm test` (KHÔNG set DB env) → exit 0, **228 pass / 8 skipped** (2 file integration skip theo thiết kế khi thiếu `TEST_DATABASE_URL`)
+  - `npm test` (CÓ set DB env) → exit 0, **236 pass / 0 skipped**
   - `npm run test:integration` → exit 0, **8 pass** (`--no-file-parallelism`)
   - `npm run build` → exit 0
-  - `scripts/pilot-smoke.sh` → exit 0, **PASS=53 FAIL=0** (14 bước + 13b; giết và khởi động lại tiến trình app, đọc lại từ PG)
-  - `migrate up/down/re-up` → exit 0; `down 4` → `up` → schema về đúng 13 bảng, 4 version
+  - `npm run test:cov` **CÓ** DB (`--no-file-parallelism`) → exit 0, lines **91.33%** (branch 84.42%, funcs 93.42%). Bảo mật-thiết-yếu: `rbac.service` 100/100, `auth.service` 100 lines (93.33 branch), `pilot-loop.service` 98.79, `pilot.store` 100, `pilot-validation` 94.37, `envelope` 100, `migrator` 97.22.
+  - `npm run test:cov` **KHÔNG** DB → **exit 1**: `Coverage for lines (75.79%) does not meet global threshold (80%)` — `PgPilotStore` + các đường PG-only không được bao phủ khi thiếu DB. **Nghĩa là: một CI host chạy `npm run test:cov` mà không provision PostgreSQL sẽ ĐỎ**, đây là sự thật về harness chứ không phải lỗi code. Cần người quyết: thêm service PG trong CI hay tách threshold cho run không-DB — tôi không tự đổi threshold.
+  - `scripts/pilot-smoke.sh` → exit 0, **PASS=53 FAIL=0** (14 bước + 7b/9b/13b; giết và khởi động lại tiến trình app, đọc lại từ PG)
+  - `migrate up` / `down 4` / re-`up` → exit 0; schema về đúng 13 bảng, 4 version trong `schema_migrations`
+  - **Migration `004` edge-case proof (scratch DB `migtest_004`, dev DB không đụng):**
+    - envelope có lead ở **hai** workspace cùng tham chiếu → `RAISE EXCEPTION … Refusing to guess`, `migrate up` **exit 1**, và vì Migrator chạy trong transaction nên **toàn bộ file rolled back**: `information_schema` còn **0** cột `workspace_id`, `schema_migrations` vẫn đúng 3 version cũ. Không có trạng thái nửa vời, không có workspace nào bị đoán bừa.
+    - envelope được lead **một** workspace tham chiếu + một envelope mồ côi → exit 0; hàng được tham chiếu backfill `workspace_id='wsA'`, hàng mồ côi bị xoá (theo ghi chú trong file migration), constraint đổi thành `commercial_envelope_workspace_connection_record_key`. `down 1` → `up` round-trip exit 0. Scratch DB đã drop.
 - **Invariant coverage:** I-01…I-12 — **[x] mỗi cái ≥1 test** (xem matrix cuối file; `domain/invariants.spec.ts` = 25 tests). Ngoại lệ ghi rõ: I-06 và I-10 vẫn ở mức **placeholder/anti-corruption** theo `phases/PH2` (thay bằng meaningful check là việc đã ghi trong `state/progress.md` "Việc tiếp theo" #2), không phải đã chứng minh đầy đủ.
 - **Canonical unchanged:** `docs/canonical/**` — **[x] Verified** (`git diff --stat b81edd9..HEAD -- docs/canonical/` = rỗng ở đợt P1-fix này)
 - **Forbidden paths untouched:** — **[x] Verified** (`git diff --name-only b81edd9..HEAD` không có `src/bernstein/**`, `templates/**`, `.agents/skills/**`)
