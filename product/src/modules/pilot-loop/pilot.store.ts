@@ -41,6 +41,8 @@ export const PILOT_STORE = Symbol('PILOT_STORE');
 @Injectable()
 export class InMemoryPilotStore implements PilotLoopStore {
   private readonly cases = new Map<string, PilotLoopState>();
+  /** Entity ids known to belong to each lead — accumulates across saves (P1-5). */
+  private readonly caseEntities = new Map<string, Set<string>>();
   /** Evidence index (P1-4): envelopeId → workspace scope + raw hash, filled on save (I-12). */
   private readonly evidence = new Map<string, EvidenceRefRecord>();
 
@@ -64,14 +66,31 @@ export class InMemoryPilotStore implements PilotLoopStore {
         sourceCapturedAt: state.envelope.sourceCapturedAt,
       });
     }
+    // Track which entity ids belong to THIS case (lead + every entity its own mutations
+    // touched) so history can never serve another case's trail (P1-5). Accumulated across
+    // saves on purpose: `state.handoff` holds only the LATEST handoff, but an earlier
+    // handoff's audit records still belong to this lead.
+    const members = this.caseEntities.get(state.lead.id) ?? new Set<string>();
+    members.add(state.lead.id);
+    for (const a of audits) if (a.entityId) members.add(a.entityId);
+    this.caseEntities.set(state.lead.id, members);
     this.cases.set(state.lead.id, state);
   }
 
-  /** In-memory audit view (append order, I-05). */
+  /**
+   * Lead-scoped audit view (P1-5, I-05 + I-09).
+   *
+   * Membership is resolved through the case's OWN entity ids (lead, its handoffs, work items
+   * and outcomes) accumulated in `caseEntities`, never through "everything in this workspace
+   * that isn't the lead" — the old filter leaked other leads' entire trails (their contexts,
+   * reasons and actors) into one case's history. Unknown lead → empty, never a full dump.
+   */
   async history(leadId: string): Promise<readonly AuditHistoryEntry[]> {
-    const leadRecords = this.audit.getByEntity('lead', leadId);
-    const extra = this.audit.all().filter((r) => r.workspaceId === (this.cases.get(leadId)?.lead.workspaceId ?? '') && r.entityId !== leadId);
-    return [...leadRecords, ...extra]
+    const members = this.caseEntities.get(leadId);
+    if (!members || members.size === 0) return [];
+    return this.audit
+      .all()
+      .filter((r) => members.has(r.entityId))
       .sort((a, b) => a.timestamp.localeCompare(b.timestamp))
       .map((r) => ({
         id: r.id,

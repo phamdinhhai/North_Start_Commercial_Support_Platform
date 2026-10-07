@@ -250,6 +250,33 @@ integration('PilotLoop over PostgreSQL — durability + two-person handoff', () 
     await db1.query('DELETE FROM workspace WHERE id IN ($1,$2)', [wsA, wsB]);
   });
 
+  it('P1-5 over PG: audit history is lead-scoped — no other case’s trail leaks (I-09/I-05)', async () => {
+    const store = new PgPilotStore(db1);
+    const svc = new PilotLoopService(store, new ManualAdapter());
+    const a = await svc.ingestScenario({
+      workspaceId: wsId, displayName: 'A', utterance: 'u', speaker: 'customer',
+      connection: conn, externalRecordId: 'msg-h-a', ownerUserId: 'marketing-a',
+    });
+    const b = await svc.ingestScenario({
+      workspaceId: wsId, displayName: 'B', utterance: 'u', speaker: 'customer',
+      connection: conn, externalRecordId: 'msg-h-b', ownerUserId: 'marketing-a',
+    });
+    const handedB = await svc.handoffToSales(b.lead.id, {
+      context: 'B-PRIVATE-context', proposedAction: 'B-PRIVATE-action', responsibleParty: 'internal',
+      origin: 'explicit-request', actor: 'marketing-a', recipientUserId: 'sales-b',
+    });
+    await svc.salesAccept(b.lead.id, { workId: handedB.workItems[0].id, actor: 'sales-b', reason: 'B-PRIVATE-reason' });
+
+    const historyA = await store.history(a.lead.id);
+    expect(historyA.length).toBeGreaterThan(0);
+    expect(historyA.every((h) => h.entityId !== b.lead.id)).toBe(true);
+    const dump = JSON.stringify(historyA);
+    expect(dump).not.toContain('B-PRIVATE');
+
+    const historyB = await store.history(b.lead.id);
+    expect(historyB.map((h) => h.eventType)).toEqual(expect.arrayContaining(['handoff_created', 'lead_transition']));
+  });
+
   it('mutation + audit are atomic: a guardrail refusal leaves no partial state (QA-35)', async () => {
     const svc = new PilotLoopService(new PgPilotStore(db1), new ManualAdapter());
     const state = await svc.ingestScenario({

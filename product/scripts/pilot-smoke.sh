@@ -171,10 +171,26 @@ OV=$(curl -s -X POST "$BASE/pilot/leads/$LEAD/outcome" "${B[@]}" -d '{"value":"W
 expect_eq "Won" "$(jget "$OV" leadStatus)" "Won"
 expect_eq "claimed" "$(jget "$OV" assertionStatus)" "claimed"
 
+step "13b. P1-5 audit history is lead-scoped (no other case's trail leaks — I-09/I-05)"
+curl -s -X POST "$BASE/pilot/leads/$L2/handoff" "${A[@]}" -d "{\"context\":\"P15-private-context\",\"proposedAction\":\"P15-private-action\",\"responsibleParty\":\"internal\",\"origin\":\"explicit-request\",\"recipientUserId\":\"marketing-a\"}" >/dev/null
+# the OTHER case does have its own trail (its handoff record), captured by entity id
+AH_L2=$(curl -s "$BASE/pilot/leads/$L2/audit" "${A[@]}")
+OTHER_HANDOFF=$(printf '%s' "$AH_L2" | node -e '
+const h=JSON.parse(require("fs").readFileSync(0,"utf8")).history;
+const x=h.find((r)=>r.entityType==="handoff");process.stdout.write(x?x.entityId:"");
+')
+[ -n "$OTHER_HANDOFF" ] && ok "other case has its own handoff record" || fail "no handoff in $L2 history: $AH_L2"
+AH2=$(curl -s "$BASE/pilot/leads/$LEAD/audit" "${B[@]}")
+expect_contains "own case has audit" "$AH2" '"eventType":"work_completed"'
+case "$AH2" in *"$OTHER_HANDOFF"*) fail "audit leaked another lead's handoff into this case's history";; *) ok "another lead's handoff id absent from this case's history";; esac
+# note: the audit trail stores entity metadata (leadId/recipient/status), not the context text,
+# so a context string is NOT expected to appear — asserted absence below is about the new leak path
+case "$AH2" in *P15-private*) fail "audit leaked another lead's payload";; *) ok "no other lead's payload in this case's history";; esac
+
 step "14. restart APP process (PgPilotStore = durable), re-read everything from PG"
 if [ "$APP_MANAGED" = "1" ]; then
   kill "$APP_PID" 2>/dev/null; wait "$APP_PID" 2>/dev/null || true
-  AUTH_DEV_UNSIGNED_TOKENS=true PORT="$APP_PORT" node dist/main.js > /tmp/pilot-smoke-app2.log 2>&1 &
+  AUTH_DEV_UNSIGNED_TOKENS=true DEMO_WORKSPACES=true PORT="$APP_PORT" node dist/main.js > /tmp/pilot-smoke-app2.log 2>&1 &
   APP_PID=$!
   trap 'kill "$APP_PID" 2>/dev/null' EXIT
   sleep 3
