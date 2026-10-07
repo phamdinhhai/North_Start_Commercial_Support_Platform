@@ -10,7 +10,7 @@
       "C_ids": ["C-12", "C-03"],
       "phases": ["PH1", "PH3", "PH6"],
       "status": "in_progress",
-      "notes": "PH1 shell done (workspace-store 10 tests, synthetic segregation). PH3 DB + PH6 pilot pending."
+      "notes": "PH1 shell done (workspace-store 10 tests, synthetic segregation). 2026-10-07: DB isolation verified on PG16 + pilot cross-user 403/cross-workspace 404 live HTTP; workspaceId/owner server-derived (QA-32). PH6 pilot pending."
     },
     {
       "feature_id": "F-002",
@@ -18,8 +18,8 @@
       "R_ids": ["R-02"],
       "C_ids": ["C-04", "C-12"],
       "phases": ["PH1", "PH3"],
-      "status": "planned",
-      "notes": "Shell done, real auth (invite/password/IdP) pending — QA-28 lựa chọn chưa chốt credential model."
+      "status": "in_progress",
+      "notes": "2026-10-07: stub auth enforced on pilot HTTP surface — 401 unauthenticated + demo header verified live (R-02). NOT real auth: unsigned Bearer dev-only (AUTH_DEV_UNSIGNED_TOKENS), no global guard; credential model (invite/password/IdP) vẫn QA-28/PM-1 open."
     },
     {
       "feature_id": "F-003",
@@ -27,8 +27,8 @@
       "R_ids": ["R-03"],
       "C_ids": ["C-12", "C-04"],
       "phases": ["PH1", "PH3"],
-      "status": "planned",
-      "notes": "Frozen boundary I-09 done (lead-scoped). Full matrix PM-1 proposal — QA-30…32/58 pending RFC."
+      "status": "in_progress",
+      "notes": "Frozen boundary I-09 done (lead-scoped). 2026-10-07: handoff recipient view+accept verified; unrelated user 403, cross-workspace 404 qua HTTP thật (không mở rộng role). Manager scope vẫn workspace-wide tạm — QA-58/PM-1 pending RFC."
     },
     {
       "feature_id": "F-004",
@@ -154,7 +154,8 @@
       "R_ids": ["R-18"],
       "C_ids": ["C-03"],
       "phases": ["PH3"],
-      "status": "planned"
+      "status": "in_progress",
+      "notes": "2026-10-07: migrations 001–003 verified on PG16 (up/down/re-up exit 0); durability across container AND app-process restart proven for pilot loop (smoke 31/31). Telemetry/feedback endpoints not wired; real-data pilot not ready."
     },
     {
       "feature_id": "F-018",
@@ -163,7 +164,7 @@
       "C_ids": ["C-06", "C-01"],
       "phases": ["PH2", "PH5"],
       "status": "done",
-      "notes": "audit-store 8 tests + invariants 19 tests — append-only, atomic with mutation (QA-35) needs PH3 DB."
+      "notes": "audit-store 8 tests + invariants 19 tests — append-only; 2026-10-07: mutation+audit atomic in one PG transaction (QA-35), refusal leaves no partial state (integration), full eventType history survives app restart (smoke step 14)."
     },
     {
       "feature_id": "F-019",

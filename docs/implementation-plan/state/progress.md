@@ -4,7 +4,7 @@
 **Mode:** Build — PH1 + PH2 code reported done; PH3 persistence verified on real PostgreSQL 16; pilot-loop P0 flow running live (in-memory).
 **Problem framing:** `docs/Dinh_nghia_bai_toan_V2.md` (2026-10-06) is a problem-definition and validation-plan source, not a frozen product/domain specification; see `discovery/v2-validation-and-traceability.md`.
 **Sources:** `docs/implementation-plan/discovery/2026-10-01-qa.md` (QA-01…59), `discovery/2026-10-01-specification-draft.md`, `discovery/v2-validation-and-traceability.md`, `discovery/q3-annotation-guide.md`, `discovery/q4-provenance-time-mapping.md`, `discovery/q3-q4-synthetic-scenarios-edu-b2c.md`, `03-requirements.md` (R-01…R-41), `SERVICE_MODEL.md`, `state/features.json`
-**Code evidence (2026-10-07):** `product/` — `npm run typecheck` exit 0; `npm test` exit 0 (**177 passed / 2 skipped**, 21 files; skip = PG integration when `TEST_DATABASE_URL` absent); `npm run build` exit 0. With real PostgreSQL 16 (docker compose, host :55432): integration 2/2 pass, `migrate:up`/`migrate:down`/re-`up` exit 0, data survives container restart. Pilot loop additionally verified live via `scripts/pilot-smoke.sh` against `node dist/main.js` (13 steps).
+**Code evidence (2026-10-07):** `product/` — `npm run typecheck` exit 0; `npm test` exit 0 (**179 pass / 4 skipped**, 22 files; skip = 2 integration specs khi thiếu `TEST_DATABASE_URL`); `npm run build` exit 0. Với PostgreSQL 16 thật (docker compose, host :55432 — port 5432 bị `edura-postgres` chiếm): integration pilot 2/2 + postgres 2/2 pass, `migrate:up/down/re-up` exit 0, dữ liệu sống qua restart **container**. P0 pilot loop additionally verified **live qua HTTP + restart tiến trình ứng dụng** (`scripts/pilot-smoke.sh` 31 assertions, exit 0) — lead/handoff/work/outcome/audit đọc lại đầy đủ từ PG.
 
 > **Evidence boundary:** V2 H1–H8 and numeric thresholds are proposed validation hypotheses, not empirical results or industry benchmarks. QA-01…59/spec draft are intent/proposal records, not frozen requirements. R-29…R-41 remain proposed/deferred and do not expand PH3. CE-1/CE-2/PM-1/MM-1/ID-1/ID-2/LG-1 remain open; no canonical decision is resolved by V2.
 
@@ -14,9 +14,9 @@
 - [x] T0-01: Q-03 spike (Pancake API docs + auth + paging) — spike docs có, cần re-verify live trước PH4
 - [x] T0-02: Q-04 spike (webhook semantics + payload) — như trên
 - [x] T0-03: Envelope schema v1 draft — `domain/envelope` đã implement + test (12 tests)
-- [x] T0-04: RFC CE-1 + CE-2 draft — ADR-001 interim hypothesis (Gate #A đã fix citations 51f9732)
+- [x] T0-04: RFC CE-1 + CE-2 draft — ADR-001 interim hypothesis (citations đã fix 51f9732 — chỉ là rà soát trích dẫn, không phải phê duyệt gate)
 - [x] T0-05: Synthetic/manual adapter spec — `adapters/manual` (7 tests), synthetic demo path có
-- [x] T0-06: Human Gate #A — citations CE-2/PM-1 đã sửa; CE-1/CE-2 vẫn interim, cần RFC chốt trước khi freeze state machine
+- [~] T0-06: Human Gate #A — **VẪN CHỜ** (sửa 2026-10-07): ADR-001 vẫn `Proposed — chờ Human Gate #A`; CE-1/CE-2 chưa có phê duyệt transition table/scope. Code chỉ chạy hypothesis interim và abort ngoài boundary (422 CE1_BOUNDARY). Citation fix 51f9732 chỉ là rà soát trích dẫn, không tự chứng minh gate đã được duyệt — đánh dấu [x] trước đó là quá phạm vi.
 
 **Kết luận PH0:** Spike + envelope đủ để không block PH1/PH2; Pancake feasibility (Q-03/Q-04) vẫn BLOCKED-BY cho PH4.
 
@@ -50,27 +50,32 @@
 > Cập nhật 2026-10-07, tách 3 mức trạng thái: **[✓code]** đã code + unit test · **[✓DB]** đã kiểm chứng trên PostgreSQL thật · **[pilot-ready]** đủ điều kiện cho pilot dữ liệu thật. Mức `[✓DB]` chỉ đạt khi integration test chạy (không skip) trên Postgres 16 local (docker compose, host port 55432 — port 5432 đang bị `edura-postgres` chiếm). Gate L2→L3 chỉ đóng khi `[✓DB]` VÀ auth/RBAC được gắn HTTP guard.
 
 - [✓code][✓DB] T3-01: PostgreSQL setup — `docker-compose.yml`, `.env.example`, `PostgresService` (pool lazy, `withTransaction` rollback khi lỗi — QA-35). Kiểm chứng 2026-10-07: `SELECT 1` OK, container restart giữ dữ liệu (insert → restart → read = 1 row)
-- [✓code][✓DB] T3-02: Domain migration v1 — `migrations/001_domain.{up,down}.sql`, `002_telemetry_feedback.{up,down}.sql`. Kiểm chứng: `migrate up` apply 2 migration trên DB sạch, schema 12 bảng public
-- [✓code][✓DB] T3-05: Workspace isolation (DB) — `WorkspaceRepository` + `postgres.integration.spec.ts` XPASS (2/2, không skip) — cross-workspace query trả đúng ws-a. `npm run test:integration` fix glob `src/**/*.integration.spec.ts` → `vitest run integration` (glob cũ không match trên vitest 3)
-- [✓code][✓DB] T3-08: Migration rollback — `migrate down` rolled back 002, re-`up` pass trên DB thật (unit + integration exit 0)
-- [✓code] T3-03: Auth (1-A stub) — `AuthService`: demo header, bootstrap token, Bearer unsigned **chỉ khi `AUTH_DEV_UNSIGNED_TOKENS=true`**; không đọc workspace từ body. **CHƯA gắn HTTP guard — chưa `[✓DB]`, chưa pilot-ready.** `OPEN: PM-1`
-- [✓code] T3-04: RBAC — `RbacService` lead-scoped + deny-by-default, export/delete chỉ admin (5 unit tests). **CHƯA gắn guard; AC 401/403/404 cross-workspace qua HTTP chưa test; Manager vẫn workspace-wide tạm (QA-58 chờ PM-1).** Chưa pilot-ready
+- [✓code][✓DB] T3-02: Domain migration — `001_domain`, `002_telemetry_feedback` + **`003_pilot_loop`** (owner/recipient/`pilot_work_item` — validation schema cho P0 flow, không phải canonical model). Kiểm chứng: `migrate up` apply 3 migration, down/re-up sạch
+- [✓code][✓DB] T3-05: Workspace isolation (DB) — `WorkspaceRepository` + `postgres.integration.spec.ts` XPASS (2/2, không skip); pilot integration bổ sung xác thực workspace-scoped qua PG thật
+- [✓code][✓DB] T3-08: Migration rollback — `migrate down`/re-`up` pass trên DB thật (unit + integration exit 0)
+- [✓code][✓live] T3-03: Auth (1-A stub) — `AuthService`: demo header, bootstrap token, Bearer unsigned **chỉ khi `AUTH_DEV_UNSIGNED_TOKENS=true`**; không đọc workspace từ body. **Đã enforce 401 trong `PilotLoopController` (R-02)** qua HTTP thật — nhưng **chưa phải APP_GUARD/middleware toàn cục**; các route ngoài pilot loop chưa được bảo vệ; credential model thật vẫn `OPEN: PM-1` (QA-28).
+- [✓code][✓live][pilot-ready?] T3-04: RBAC — `RbacService` lead-scoped + deny-by-default; recipient được xem/nhận đúng gói addressed to them (PM-1-pending, không mở rộng role). **403 cross-user + 404 cross-workspace đã verify qua HTTP thật** (smoke steps 5, 6). Manager vẫn workspace-wide tạm (QA-58 chờ PM-1). Chưa pilot-ready cho dữ liệu thật: thiếu credential model + guard toàn cục.
 - [✓code] T3-06: Telemetry — `TelemetryService` tag `releaseVersion` + `flagExposure`, bảng `product_event` (2 unit tests; wiring HTTP endpoint chưa)
 - [✓code] T3-07: Structured feedback — `FeedbackService`, bảng `feedback` tách telemetry (3 unit tests; endpoint chưa)
 
-**Verify 2026-10-07 (exit codes kiểm tra riêng, không qua pipe):** `typecheck` exit 0 · `npm test` exit 0 (19 files pass, 1 skip = integration khi thiếu `TEST_DATABASE_URL`; 169 pass / 2 skipped) · `build` exit 0 · integration có DB exit 0 · `migrate:up`/`migrate:down`/re-`up` exit 0.
+**Verify 2026-10-07 (exit codes kiểm tra riêng, không qua pipe):** `typecheck` exit 0 · `npm test` exit 0 (20 files pass, 2 skip = integration specs khi thiếu `TEST_DATABASE_URL`; 179 pass / 4 skipped) · `npm run test:integration` với DB exit 0, chạy **2 lần liên tiếp sau unit run** không còn phá schema (pilot 2/2 + postgres 2/2) · `build` exit 0 · `migrate:up`/`down`/re-`up` exit 0 · `scripts/pilot-smoke.sh` exit 0, chạy **2 lần** (PASS=31 FAIL=0, gồm restart app + 403 cross-user qua HTTP thật).
+
+**Sự cố test-integrity đã sửa (2026-10-07, ghi lại trung thực):** (1) `postgres.integration.spec.ts` teardown gọi `migrator.down(2)` trên DB dev **dùng chung** → rollback luôn 2 migration mới nhất, xóa `003_pilot_loop` sau mỗi lần chạy và làm mọi suite kế tiếp chết `column owner_user_id does not exist`. Đã sửa: teardown chỉ dọn rows, không rollback schema (rollback CLI đã có bằng chứng riêng). (2) Hai integration spec chạy parallel trên cùng DB cũng va nhau → `test:integration` chuyển `--no-file-parallelism`. (3) Smoke giờ tự `migrate up` trước khi boot app (idempotent) — không còn giả định schema sẵn.
+
 
 **Không tự mở rộng PH3 bằng R-29…R-41** (control plane, provisioning, licensing, installer, fleet upgrade). PH3 đã duyệt vẫn là persistence/auth/RBAC/telemetry-feedback cho app/data plane.
 
-## Pilot-loop (mới — P0 flow giáo dục B2C, in-memory + HTTP, chưa wire PG)
+## Pilot-loop (P0 flow giáo dục B2C — PostgreSQL-backed, HTTP live)
 
-> `[✓live]` = chạy thật trên tiến trình Node (`node dist/main.js`, :3111), không chỉ unit test.
+> Mức trạng thái: `[✓code]` unit test · `[✓DB]` integration chạy trên Postgres 16 thật (không skip) · `[✓live]` chạy qua HTTP trên tiến trình `node dist/main.js` thật, smoke script **tự assert và exit non-zero khi sai**.
 
-- [✓code][✓live] `product/src/modules/pilot-loop/pilot-loop.service.ts` (471 dòng <500) — 10 unit tests; `product/src/api/pilot-loop.controller.ts` + module — 7 tests; `scripts/pilot-smoke.sh` chạy 13 bước trên server thật.
-- Luồng đã chạy thật (2026-10-07): intake (raw envelope I-12, attribution UNKNOWN MM-1, workspaceId server-derived) → handoff (work item `proposed` — gửi bàn giao ≠ nhận trách nhiệm) → accept (New→Accepted, CE-1) → reschedule khi còn mở (supersede, item cũ `rescheduled`, không còn nhắc lịch cũ) → complete `declared` (`occurredAt=unknown` — Q4 không backfill) → advance Contacting→Follow-up → outcome Won (`assertionStatus=claimed`, R-15) → GET view.
-- Fail-closed đã kiểm chứng bằng HTTP status: unauthenticated → **401**; `observed` không có evidence pointer → **500**; reschedule việc đã completed → **500** (correction, không mở lại ngầm); New→Won ngoài hypothesis CE-1 → **500**.
-- RBAC wiring: cùng module auth/rbac — cross-workspace 404 (QA-32/AC-03), unassigned sales 403, owner xem được (7 controller tests). **Chưa** test 401/403/404 qua PG + middleware guard toàn cục; đây vẫn là stub PM-1.
-- Trạng thái: **in-memory, chưa persist PG** — data mất khi restart tiến trình; PG-backed repository cho lead/handoff/work/outcome vẫn thuộc T3-05/T3-06 wiring. Work axes (`responsibleParty`/`origin`/`completionEvidence`) là **candidate validation constructs cho Q3** — RFC-005 vẫn Draft, EXP-06 vẫn proposed; không phải canonical model.
+- [✓code][✓DB][✓live] `product/src/modules/pilot-loop/` — `PilotLoopService` (store port) + `PgPilotStore` (durable: envelope I-12, lead+owner, handoff+recipient, work items Q3-axes, outcome supersedes, audit — MỘT transaction, QA-35) + `InMemoryPilotStore` (demo/DB-less, không durable). 11 service unit tests + **2 integration tests trên PG thật** (restart-pool durability + atomic refusal) exit 0.
+- [✓code][✓DB][✓live] Bàn giao hai người: **marketing-A tạo + handoff → sales-B**; B xem gói (context + evidenceRefs) và accept; owner chuyển B. `sales-C` không liên quan bị **403 qua HTTP thật** (step 5 smoke) — quyền recipient là lead-scoped I-09 cho đúng gói addressed to them, KHÔNG mở rộng role; matrix đầy đủ vẫn **OPEN: PM-1**.
+- [✓code][✓live] `scripts/pilot-smoke.sh` — 14 bước, 31 assertions, **PASS=31 FAIL=0, exit 0** (2026-10-07). Step 14 kill app → start process mới → đọc lại từ PG: lead Won, work item completed, outcome claimed, envelope refs, đủ 6 eventType audit (append-only I-05). Đây mới là bằng chứng "hồ sơ sống qua restart ỨNG DỤNG", không chỉ restart container PG.
+- [✓code][✓live] Error contract: guardrail refusal trả **4xx + machine code**, không còn 500: 422 `EVIDENCE_POINTER_REQUIRED` (message observed ≠ hành động), 422 `INFERRED_CANNOT_CLOSE` (I-03/V2 §9.6), 422 `EXTERNAL_NOT_DECLAREABLE`, 422 `CE1_BOUNDARY` (New→Won ngoài hypothesis), 409 `WORK_ALREADY_CLOSED` (reschedule việc đã xong → correction, không mở lại ngầm), 403 `NOT_ASSIGNED_RECIPIENT`, 404 cross-workspace (QA-32/AC-03), 401 unauth (R-02). Smoke **assert mã lỗi**, in sai là fail.
+- [✓live] Demo route vẫn chạy (`x-demo-workspace`, không token — R-02 AC); token Bearer unsigned dùng trong smoke chỉ với `AUTH_DEV_UNSIGNED_TOKENS=true` — **dev-only**, credential model thật chờ RFC PM-1/QA-28.
+- Trạng thái Q3/Q4: work axes (`responsibleParty`/`origin`/`completionEvidence`) và `occurredAt=unknown` không backfill là **candidate validation constructs** — RFC-005 vẫn Draft, EXP-06 vẫn proposed; migration `003_pilot_loop` là pilot-validation schema, không phải canonical model đã duyệt.
+- Còn thiếu cho Gate L2→L3: telemetry/feedback endpoints chưa wire vào luồng (T3-06/07 mới `[✓code]`), auth chưa qua middleware toàn cục, RFC-005 Q3/Q4 chưa có kết quả gán nhãn thật.
 
 
 ## PH4 — Pancake Sync (P1 flagged)

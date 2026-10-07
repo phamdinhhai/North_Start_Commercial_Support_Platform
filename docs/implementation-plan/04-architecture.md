@@ -56,7 +56,7 @@ Tuân thủ `DOMAIN_MODEL.md`:
 - **Attribution** — Không collapse Conversation Source ≠ Acquisition Lineage ≠ Revenue Attribution (I-02). Trong LVP: UNKNOWN (MM-1).
 - **Identity / Merge** — stable Lead ID; merge evidence + confidence + reversible (I-06); automated merge deferred (ID-1).
 
-**Invariant enforcement:** Mọi mutation đi qua CommercialEvent pipeline (I-03 AI → CE → Evidence → Policy → Action). AI draft-only; never direct mutate. UNKNOWN visible.
+**Invariant enforcement (đã thu hẹp 2026-10-07):** Chỉ thay đổi SUY LUẬN (AI/rule-derived) phải đi qua CommercialEvent pipeline I-03→I-04 (AI → CE → Evidence → Policy → Action); ADR-001 giữ CE scope inferred-only tới khi CE-2 chốt. Thao tác thủ công/observed/imported không bị ép thành CommercialEvent — chúng vẫn bắt buộc provenance envelope + append-audit (TRUST_AND_EVIDENCE §§2-5, I-05, I-12). AI draft-only; never direct mutate. UNKNOWN visible. Nguồn đúng: DOMAIN_INVARIANTS I-04 ("Inferred changes must become a Commercial Event..."), không phải "mọi mutation".
 
 ## 4. Adapter contract & inbound envelope (C-11, C-05)
 
