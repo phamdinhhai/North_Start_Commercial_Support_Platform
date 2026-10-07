@@ -35,7 +35,7 @@ if [ -z "${BASE:-}" ]; then
   npm run build >/dev/null 2>&1 || { echo "FAIL: build"; exit 1; }
   # Ensure schema is current before booting the app (idempotent; migrator no-ops if applied).
   node dist/scripts/migrate.js up >/dev/null 2>&1 || { echo "FAIL: migrate up"; exit 1; }
-  AUTH_DEV_UNSIGNED_TOKENS=true PORT="$APP_PORT" node dist/main.js > /tmp/pilot-smoke-app.log 2>&1 &
+  AUTH_DEV_UNSIGNED_TOKENS=true DEMO_WORKSPACES=true PORT="$APP_PORT" node dist/main.js > /tmp/pilot-smoke-app.log 2>&1 &
   APP_PID=$!
   trap 'kill "$APP_PID" 2>/dev/null' EXIT
   APP_MANAGED=1
@@ -67,10 +67,12 @@ step() { echo; echo "== $1 =="; }
 step "1. health"
 expect_contains "status ok" "$(curl -s "$ROOT/health")" '"status":"ok"'
 
-step "2. R-02: unauthenticated -> 401; demo header -> allowed"
+step "2. R-02: unauthenticated -> 401; demo header -> sandboxed demo workspace (cannot address a real tenant)"
 expect_eq "401 without creds" "$(curl -s -o /dev/null -w '%{http_code}' -X POST "$BASE/pilot/scenarios" -H 'content-type: application/json' -d "{\"displayName\":\"d\",\"utterance\":\"u\",\"speaker\":\"customer\",\"connection\":\"c-$RUN\",\"externalRecordId\":\"x0\"}")" "401"
 D=$(curl -s -X POST "$BASE/pilot/scenarios" "${DEMO[@]}" -d "{\"displayName\":\"demo lead\",\"utterance\":\"u\",\"speaker\":\"customer\",\"connection\":\"c-$RUN\",\"externalRecordId\":\"xdemo\"}")
+DEMO_LEAD=$(jget "$D" leadId)
 expect_eq "demo intake ok" "$(jget "$D" status)" "New"
+expect_contains "demo case is written into demo:<name> sandbox, not the raw name" "$(curl -s "$BASE/pilot/leads/$DEMO_LEAD" "${DEMO[@]}")" "\"workspaceId\":\"demo:$WS\""
 
 step "3. intake as marketing-A"
 R=$(curl -s -X POST "$BASE/pilot/scenarios" "${A[@]}" -d "{\"displayName\":\"Phu huynh A\",\"utterance\":\"Thu Sau em goi lai cho chi nhe, chi trao doi voi be da.\",\"speaker\":\"customer\",\"connection\":\"c-$RUN\",\"externalRecordId\":\"msg1\",\"conversationSource\":\"Messenger\"}")
@@ -88,6 +90,8 @@ step "5. unrelated sales-C cannot see the case (403 — I-09, no role widening)"
 expect_eq "C GET -> 403" "$(curl -s -o /dev/null -w '%{http_code}' "$BASE/pilot/leads/$LEAD" "${C[@]}")" "403"
 V_B=$(curl -s "$BASE/pilot/leads/$LEAD" "${B[@]}")
 expect_contains "B can view handoff context" "$V_B" '"context":"Phu huynh muon con hoc thu"'
+# demo identity naming the REAL workspace id must not reach the real case (P1: sandbox, not selector)
+expect_eq "demo header cannot read a real workspace case (404 invisible)" "$(curl -s -o /dev/null -w '%{http_code}' "$BASE/pilot/leads/$LEAD" "${DEMO[@]}")" "404"
 
 step "6. B accepts -> owner becomes B"
 AC=$(curl -s -X POST "$BASE/pilot/leads/$LEAD/accept" "${B[@]}" -d "{\"workId\":\"$WORK\",\"reason\":\"B nhan trach nhiem\"}")
@@ -128,6 +132,25 @@ step "9. observed without pointer -> 422 EVIDENCE_POINTER_REQUIRED"
 HO2=$(curl -s -X POST "$BASE/pilot/leads/$LEAD/handoff" "${B[@]}" -d "{\"context\":\"gui hoc phi\",\"proposedAction\":\"Gui bang hoc phi\",\"responsibleParty\":\"internal\",\"origin\":\"explicit-commitment\",\"recipientUserId\":\"sales-b\"}")
 WORK2=$(jget "$HO2" workItemId)
 expect_contains "422 code" "$(curl -s -X POST "$BASE/pilot/leads/$LEAD/complete" "${B[@]}" -d "{\"workId\":\"$WORK2\",\"evidence\":\"observed\"}")" "EVIDENCE_POINTER_REQUIRED"
+
+step "9b. P1-4 boundary + evidence integrity (bad enum, bad param, bogus or unrelated pointer)"
+expect_contains "400 INPUT_INVALID on evidence outside the enum" "$(curl -s -X POST "$BASE/pilot/leads/$LEAD/complete" "${B[@]}" -d "{\"workId\":\"$WORK2\",\"evidence\":\"totally-done\"}")" 'INPUT_INVALID'
+W2_STATUS=$(curl -s "$BASE/pilot/leads/$LEAD" "${B[@]}" | node -e '
+const v=JSON.parse(require("fs").readFileSync(0,"utf8"));const id=process.argv[1];
+const w=v.workItems.find((x)=>x.id===id);process.stdout.write(`${w?.status}/${w?.completionEvidence}`);
+' "$WORK2")
+expect_eq "rejected payload left the work item untouched" "$W2_STATUS" "proposed/absent"
+expect_eq "malformed leadId -> 400, not a raw 500" "$(curl -s -o /dev/null -w '%{http_code}' "$BASE/pilot/leads/not-a-uuid" "${B[@]}")" "400"
+expect_contains "pointer that resolves to nothing -> EVIDENCE_NOT_FOUND" "$(curl -s -X POST "$BASE/pilot/leads/$LEAD/complete" "${B[@]}" -d "{\"workId\":\"$WORK2\",\"evidence\":\"observed\",\"evidenceRef\":\"00000000-0000-0000-0000-000000000000\"}")" 'EVIDENCE_NOT_FOUND'
+# a REAL envelope of a DIFFERENT case in the same workspace: exists, in scope, but unrelated
+L3=$(jget "$(curl -s -X POST "$BASE/pilot/scenarios" "${A[@]}" -d "{\"displayName\":\"khac\",\"utterance\":\"u\",\"speaker\":\"customer\",\"connection\":\"c-$RUN\",\"externalRecordId\":\"msg3\"}")" leadId)
+curl -s -X POST "$BASE/pilot/leads/$L3/handoff" "${A[@]}" -d "{\"context\":\"case khac\",\"proposedAction\":\"a\",\"responsibleParty\":\"internal\",\"origin\":\"explicit-request\",\"recipientUserId\":\"marketing-a\"}" >/dev/null
+OTHER_ENV=$(curl -s "$BASE/pilot/leads/$L3" "${A[@]}" | grep -oE '"envelopeId":"[0-9a-f-]+"' | head -1 | sed -E 's/.*"envelopeId":"//; s/"//')
+[ -n "$OTHER_ENV" ] && ok "captured another case's envelope id" || fail "no envelope id on L3"
+expect_contains "unrelated real pointer -> EVIDENCE_NOT_RELATED" "$(curl -s -X POST "$BASE/pilot/leads/$LEAD/complete" "${B[@]}" -d "{\"workId\":\"$WORK2\",\"evidence\":\"observed\",\"evidenceRef\":\"$OTHER_ENV\"}")" 'EVIDENCE_NOT_RELATED'
+# the case's OWN evidence resolves, so observed completion succeeds through the real path
+OWN_ENV=$(curl -s "$BASE/pilot/leads/$LEAD" "${B[@]}" | grep -oE '"envelopeId":"[0-9a-f-]+"' | head -1 | sed -E 's/.*"envelopeId":"//; s/"//')
+expect_contains "own evidence pointer accepted (observed closes)" "$(curl -s -X POST "$BASE/pilot/leads/$LEAD/complete" "${B[@]}" -d "{\"workId\":\"$WORK2\",\"evidence\":\"observed\",\"evidenceRef\":\"$OWN_ENV\"}")" '"workStatus":"completed"'
 
 step "10. reschedule COMPLETED work -> 409 WORK_ALREADY_CLOSED"
 expect_contains "409 code" "$(curl -s -X POST "$BASE/pilot/leads/$LEAD/reschedule" "${B[@]}" -d "{\"workId\":\"$REPL\",\"newDueAt\":\"2026-10-20T09:00:00+07:00\",\"reason\":\"lo tay\"}")" 'WORK_ALREADY_CLOSED'

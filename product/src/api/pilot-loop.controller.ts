@@ -16,21 +16,38 @@ import { AuthService, type AuthContext, type AuthRequestLike } from '../infra/au
 import { RbacService } from '../infra/rbac/rbac.service';
 import { PilotLoopService } from '../modules/pilot-loop/pilot-loop.service';
 import { PilotDomainError, type ScenarioInput } from '../modules/pilot-loop/pilot.types';
+import {
+  boundaryRejection,
+  validateAcceptBody,
+  validateAdvanceBody,
+  validateCompleteBody,
+  validateHandoffBody,
+  validateIntakeBody,
+  validateOutcomeBody,
+  validateRescheduleBody,
+  validateUnobservedBody,
+  type BoundaryError,
+} from './pilot-validation';
 import type { LeadId } from '../domain/lead/lead';
 
 /**
  * P0 pilot HTTP surface — education B2C loop (T3-03/T3-04 wiring).
  *
  * - Auth (R-02): MỌI route yêu cầu resolve ctx; unauthenticated non-demo → 401.
- *   Demo (`x-demo-workspace`) là demo route. KHÔNG endpoint nào phát token từ
- *   email/workspaceId trong body (QA-28; credential model chờ RFC PM-1).
+ *   Demo (`x-demo-workspace`) là DEMO-ONLY route: demo identity là `demo`/viewer, KHÔNG được
+ *   dùng để chọn workspace thật (P1 review) — workspace demo tách biệt, không đọc case thật.
+ *   KHÔNG endpoint nào phát token từ email/workspaceId trong body (QA-28; credential model chờ RFC PM-1).
  * - RBAC (I-09, deny-by-default): workspace mismatch → 404 (invisible, QA-32/AC-03);
  *   lead không assigned cho sales → 403. "Assigned" = owner hiện tại HOẶC người
  *   được bàn giao (recipient) — B xem/nhận gói addressed to them mà KHÔNG cần mở
  *   rộng quyền manager/admin (PM-1 vẫn OPEN, không tự nới ở đây).
+ * - Input (P1-4): MỌI body được validate tại boundary TRƯỚC khi chạm domain → 400
+ *   INPUT_INVALID + danh sách field issues (không enum tuỳ tiện, không thiếu field,
+ *   không date sai định dạng xuống DB, không raw 500).
  * - Errors: guardrail từ chối = business code + 4xx (không phải raw 500):
  *   EVIDENCE_POINTER_REQUIRED/INFERRED_CANNOT_CLOSE/EXTERNAL_NOT_DECLAREABLE/
- *   NOT_EXTERNAL_EXPECTATION → 422; WORK_ALREADY_*→409; *_NOT_FOUND→404; 403.
+ *   NOT_EXTERNAL_EXPECTATION/EVIDENCE_* → 422; WORK_ALREADY_CLOSED,
+ *   WORK_ALREADY_COMPLETED, WORK_SUPERSEDED → 409; *_NOT_FOUND → 404; 403.
  * - Persistence: PgPilotStore (durable) ở production; in-memory cho unit tests.
  */
 
@@ -49,8 +66,22 @@ function toHttpException(err: unknown): HttpException {
   if (err instanceof UnauthorizedException || err instanceof NotFoundException || err instanceof ForbiddenException) {
     return err;
   }
+  // Already an HTTP-shaped refusal (boundary 400 INPUT_INVALID thrown by `check`) — pass it
+  // through untouched, otherwise it would be laundered into a 500 and lose its code/details.
+  if (err instanceof HttpException) {
+    return err;
+  }
   // Unexpected → 500 (fail closed) nhưng phải là lỗi thật, không phải guardrail.
   return new HttpException({ code: 'INTERNAL', message: err instanceof Error ? err.message : 'internal error' }, HttpStatus.INTERNAL_SERVER_ERROR);
+}
+
+/** Validate a request body at the boundary; returns the typed payload or throws 400. */
+function check<T>(issues: readonly BoundaryError[], body: T): T {
+  if (issues.length > 0) {
+    const rejection = boundaryRejection(issues);
+    throw new HttpException({ code: rejection.code, message: rejection.message, details: rejection.details }, 400);
+  }
+  return body;
 }
 
 @Controller('pilot')
@@ -69,6 +100,7 @@ export class PilotLoopController {
   ) {
     try {
       const ctx = this.authCtx(headers);
+      check(validateIntakeBody(body), body);
       // Server-derived workspace — body không tự chọn workspace (QA-32, I-09).
       const input: ScenarioInput = {
         ...body,
@@ -87,6 +119,7 @@ export class PilotLoopController {
   async getLead(@Headers() headers: Record<string, string | undefined>, @Param('leadId') leadId: string) {
     try {
       const ctx = this.authCtx(headers);
+      this.checkLeadId(leadId);
       return await this.authorizedView(ctx, leadId);
     } catch (err) {
       throw toHttpException(err);
@@ -110,6 +143,8 @@ export class PilotLoopController {
   ) {
     try {
       const ctx = this.authCtx(headers);
+      check(validateHandoffBody(body), body);
+      this.checkLeadId(leadId);
       await this.authorizedView(ctx, leadId); // 404/403 trước khi mutate
       const state = await this.loop.handoffToSales(leadId as LeadId, { ...body, actor: ctx.userId });
       return { workItemId: state.workItems[state.workItems.length - 1]?.id, leadStatus: state.lead.status, recipient: state.handoffRecipient };
@@ -126,6 +161,8 @@ export class PilotLoopController {
   ) {
     try {
       const ctx = this.authCtx(headers);
+      check(validateAcceptBody(body), body);
+      this.checkLeadId(leadId);
       await this.authorizedView(ctx, leadId);
       const state = await this.loop.salesAccept(leadId as LeadId, { workId: body.workId, actor: ctx.userId, reason: body.reason });
       return { leadStatus: state.lead.status, workStatus: state.workItems.find((w) => w.id === body.workId)?.status, owner: state.ownerUserId };
@@ -143,6 +180,8 @@ export class PilotLoopController {
   ) {
     try {
       const ctx = this.authCtx(headers);
+      check(validateAdvanceBody(body), body);
+      this.checkLeadId(leadId);
       await this.authorizedView(ctx, leadId);
       const state = await this.loop.advance(leadId as LeadId, { to: body.to, actor: ctx.userId, reason: body.reason });
       return { leadStatus: state.lead.status };
@@ -160,10 +199,12 @@ export class PilotLoopController {
   ) {
     try {
       const ctx = this.authCtx(headers);
+      check(validateCompleteBody(body), body);
+      this.checkLeadId(leadId);
       await this.authorizedView(ctx, leadId);
       const state = await this.loop.completeWork(leadId as LeadId, { ...body, actor: ctx.userId });
       const w = state.workItems.find((x) => x.id === body.workId);
-      return { workStatus: w?.status, evidence: w?.completionEvidence, occurredAt: w?.occurredAt };
+      return { workStatus: w?.status, evidence: w?.completionEvidence, occurredAt: w?.occurredAt, evidenceRef: w?.evidenceRef };
     } catch (err) {
       throw toHttpException(err);
     }
@@ -178,6 +219,8 @@ export class PilotLoopController {
   ) {
     try {
       const ctx = this.authCtx(headers);
+      check(validateRescheduleBody(body), body);
+      this.checkLeadId(leadId);
       await this.authorizedView(ctx, leadId);
       const state = await this.loop.rescheduleWork(leadId as LeadId, { ...body, actor: ctx.userId });
       // P1-3: the old ID is now superseded — return the live successor so the caller (and the
@@ -207,6 +250,8 @@ export class PilotLoopController {
   ) {
     try {
       const ctx = this.authCtx(headers);
+      check(validateUnobservedBody(body), body);
+      this.checkLeadId(leadId);
       await this.authorizedView(ctx, leadId);
       const state = await this.loop.markExternalUnobserved(leadId as LeadId, { workId: body.workId, actor: ctx.userId });
       const w = state.workItems.find((x) => x.id === body.workId);
@@ -224,6 +269,8 @@ export class PilotLoopController {
   ) {
     try {
       const ctx = this.authCtx(headers);
+      check(validateOutcomeBody(body), body);
+      this.checkLeadId(leadId);
       await this.authorizedView(ctx, leadId);
       const state = await this.loop.recordOutcome(leadId as LeadId, { value: body.value, actor: ctx.userId, reason: body.reason });
       return { leadStatus: state.lead.status, assertionStatus: state.outcomes[state.outcomes.length - 1]?.assertionStatus };
@@ -236,10 +283,21 @@ export class PilotLoopController {
   async auditHistory(@Headers() headers: Record<string, string | undefined>, @Param('leadId') leadId: string) {
     try {
       const ctx = this.authCtx(headers);
+      this.checkLeadId(leadId);
       await this.authorizedView(ctx, leadId);
       return { history: await this.loop.auditHistory(leadId as LeadId) };
     } catch (err) {
       throw toHttpException(err);
+    }
+  }
+
+  /**
+   * P1-4: a route parameter is an input too. `leadId` is used in `WHERE id = $1::uuid`, so a
+   * non-UUID value used to reach Postgres and return a raw 500; it is refused as 400 here.
+   */
+  private checkLeadId(leadId: string): void {
+    if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(leadId ?? '')) {
+      throw new HttpException({ code: 'INPUT_INVALID', message: 'leadId must be a UUID', details: { issues: [{ field: 'leadId', code: 'REQUIRED', message: 'leadId must be a UUID' }] } }, 400);
     }
   }
 

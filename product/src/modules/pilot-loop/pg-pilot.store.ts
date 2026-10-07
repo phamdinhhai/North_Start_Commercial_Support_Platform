@@ -16,7 +16,7 @@ import type {
   WorkStatus,
 } from './pilot.types';
 import type { AuditHistoryEntry } from './pilot.types';
-import type { PilotLoopStore } from './pilot.store';
+import type { EvidenceRefRecord, PilotLoopStore } from './pilot.store';
 
 /**
  * Durable pilot-loop store (C-03, C-06, R-18) — PostgreSQL-backed.
@@ -81,6 +81,21 @@ export class PgPilotStore implements PilotLoopStore {
       handoffRecipient: latestHandoff?.recipient_user_id ?? undefined,
       envelope: envelopes.rows[0] ? toEnvelope(envelopes.rows[0]) : undefined,
     };
+  }
+
+  /**
+   * P1-4: resolve an evidence pointer against the DURABLE envelope table. Returns only the
+   * scope + hash fields needed to validate a reference — never another tenant's payload.
+   */
+  async loadEvidence(envelopeId: string): Promise<EvidenceRefRecord | undefined> {
+    if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(envelopeId)) return undefined;
+    const res = await this.db.query<{ workspace_id: string; raw_payload_hash: string; source_captured_at: Date | string }>(
+      'SELECT workspace_id, raw_payload_hash, source_captured_at FROM commercial_envelope WHERE id = $1',
+      [envelopeId],
+    );
+    const row = res.rows[0];
+    if (!row) return undefined;
+    return { envelopeId, workspaceId: row.workspace_id, rawPayloadHash: row.raw_payload_hash, sourceCapturedAt: iso(row.source_captured_at) };
   }
 
   async history(leadId: string): Promise<readonly AuditHistoryEntry[]> {

@@ -131,6 +131,40 @@ export class PilotLoopService {
     }
   }
 
+  /**
+   * P1-4 — an evidence pointer is a REFERENCE to immutable raw evidence (I-12), never a way
+   * to promote a claim. A pointer must (a) resolve in durable storage, (b) live in the SAME
+   * workspace (I-09), and (c) relate to THIS case — the lead's source envelope, an envelope a
+   * handoff already cites, or one an existing work item cites. Anything else is refused so a
+   * fabricated/unrelated string can never close work as `observed`.
+   *
+   * Cross-tenant existence is answered 403 rather than 404 on purpose: the pointer was
+   * supplied by an already-authorized participant of THIS lead, and the failure is about the
+   * referenced object's scope, not about hiding another workspace's existence.
+   */
+  private async resolveEvidence(
+    state: PilotLoopState,
+    pointer: string,
+    action: string,
+    options: { readonly requireRelation: boolean } = { requireRelation: true },
+  ) {
+    const record = await this.store.loadEvidence(pointer);
+    if (!record) {
+      throw new PilotDomainError('EVIDENCE_NOT_FOUND', 422, `evidence pointer "${pointer}" does not resolve to stored raw evidence — ${action} needs a real envelope reference (I-12)`);
+    }
+    if (record.workspaceId !== state.lead.workspaceId) {
+      throw new PilotDomainError('EVIDENCE_OUT_OF_SCOPE', 403, `evidence ${pointer} belongs to another workspace — it cannot evidence this case (I-09)`);
+    }
+    const related =
+      pointer === state.sourceEnvelopeId ||
+      state.handoff?.evidenceRefs.some((r) => r.envelopeId === pointer) === true ||
+      state.workItems.some((w) => w.evidenceRef === pointer);
+    if (options.requireRelation && !related) {
+      throw new PilotDomainError('EVIDENCE_NOT_RELATED', 422, `evidence ${pointer} exists in this workspace but is not referenced by this lead, its handoff or its work items — it cannot evidence ${action}`);
+    }
+    return record;
+  }
+
   /** Bước 1 — nhập tình huống: raw envelope immutable (I-12) + Lead create (I-07). */
   async ingestScenario(input: ScenarioInput): Promise<PilotLoopState> {
     if (!input.workspaceId) throw new PilotDomainError('INPUT_REQUIRED', 400, 'workspaceId is required');
@@ -199,7 +233,15 @@ export class PilotLoopService {
     const state = await this.require(leadId);
     // Bàn giao là mutation trên lead → chỉ owner hiện tại được tạo (P1-2).
     this.requireOwner(state, input.actor, 'hand off this lead');
-    const evidenceRefs = input.evidenceRef      ? [{ envelopeId: input.evidenceRef, rawPayloadHash: 'pending', capturedAt: new Date().toISOString() }]
+
+    // P1-4 + I-12: một evidence ref phải trỏ tới raw evidence THẬT trong cùng workspace.
+    // Mã cũ ghi `rawPayloadHash: 'pending'` cho ref do caller cung cấp — tức là bịa placeholder
+    // vào dấu vết bằng chứng; ref không resolve thì bị từ chối thay vì được lưu mờ.
+    const cited = input.evidenceRef
+      ? await this.resolveEvidence(state, input.evidenceRef, 'handoff', { requireRelation: false })
+      : undefined;
+    const evidenceRefs = cited
+      ? [{ envelopeId: cited.envelopeId, rawPayloadHash: cited.rawPayloadHash, capturedAt: cited.sourceCapturedAt }]
       : state.envelope
         ? [{ envelopeId: state.envelope.envelopeId, rawPayloadHash: state.envelope.rawPayloadHash, capturedAt: state.envelope.sourceCapturedAt }]
         : [];
@@ -309,8 +351,11 @@ export class PilotLoopService {
   }
 
   /**
-   * Bước 4 — complete. `observed` CẦN evidence pointer (message observed ≠ hành động);
-   * `inferred` không tự đóng (V2 §9.6); external không declare-complete hộ khách.
+   * Bước 4 — complete. `observed` CẦN evidence pointer resolve được, đúng workspace và đúng
+   * quan hệ với hồ sơ này (P1-4; message observed ≠ hành động); `inferred` không tự đóng
+   * (V2 §9.6); external không declare-complete hộ khách.
+   * Pointer đi kèm `declared` chỉ được GHI LẠI như một tham chiếu — nó không nâng lời khai
+   * thành observed (provenance thuộc về dữ kiện, không suy từ sự hiện diện của con trỏ).
    */
   async completeWork(
     leadId: LeadId,
@@ -337,6 +382,10 @@ export class PilotLoopService {
       throw new PilotDomainError('EXTERNAL_NOT_DECLAREABLE', 422, 'external expectation cannot be completed on internal declaration alone');
     }
 
+    // P1-4: any pointer present must validate — not only `observed` ones, otherwise a bogus
+    // ref could be parked on a declared record and reused later.
+    const evidence = input.evidenceRef === undefined ? undefined : await this.resolveEvidence(state, input.evidenceRef, 'completion');
+
     const workItems = state.workItems.map((w) =>
       w.id === input.workId
         ? {
@@ -356,7 +405,13 @@ export class PilotLoopService {
         workspaceId: state.lead.workspaceId,
         actor: input.actor,
         previousValue: current.status,
-        newValue: JSON.stringify({ status: 'completed', evidence: input.evidence }),
+        // audit carries the RAW HASH of the referenced evidence (I-12) so the trail is
+        // traceable to the immutable object, not just to a pointer string that could drift.
+        newValue: JSON.stringify({
+          status: 'completed',
+          evidence: input.evidence,
+          ...(input.evidenceRef !== undefined && { evidenceRef: input.evidenceRef, evidenceHash: evidence?.rawPayloadHash }),
+        }),
         reason: input.reason ?? 'work completed',
         eventType: 'work_completed',
       },

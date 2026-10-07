@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { UnauthorizedException, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { PilotLoopController } from './pilot-loop.controller';
 import { AuthService } from '../infra/auth/auth.service';
@@ -16,6 +16,7 @@ const salesC = { authorization: `Bearer ${b64({ workspaceId: 'ws-a', userId: 'sa
 const foreign = { authorization: `Bearer ${b64({ workspaceId: 'ws-b', userId: 'sales-9', role: 'sales' })}` };
 
 function makeController(): PilotLoopController {
+  process.env.DEMO_WORKSPACES = 'true'; // demo sandboxes are opt-in; this suite exercises them
   const audit = new AuditStore();
   const store = new InMemoryPilotStore(audit);
   return new PilotLoopController(new AuthService(), new RbacService(), new PilotLoopService(store, new ManualAdapter()));
@@ -78,7 +79,7 @@ describe('PilotLoopController — auth & RBAC wiring (T3-03/T3-04 unit-level; LI
     const res = await ctrl.intake(demoHeaders, { displayName: 'd', utterance: 'u', speaker: 'customer', connection: 'c', externalRecordId: 'r' });
     expect(res.status).toBe('New');
     const view = await ctrl.getLead(demoHeaders, res.leadId);
-    expect(view.lead.workspaceId).toBe('ws-demo');
+    expect(view.lead.workspaceId).toBe('demo:ws-demo'); // sandboxed, never the raw header value
   });
 
   it('runs the loop end-to-end over the controller surface', async () => {
@@ -239,5 +240,76 @@ describe('P1-3 — reschedule returns the replacement; completing the old ID is 
     const after = await ctrl.getLead(salesB, res.leadId);
     const active = after.workItems.filter((w) => ['proposed', 'accepted', 'open', 'awaiting-external'].includes(w.status as string));
     expect(active).toHaveLength(0);
+  });
+});
+
+/**
+ * P1-4 (HTTP half) + demo-workspace isolation.
+ * Two things were possible before: a body value outside the enum reached the store, and the
+ * `x-demo-workspace` header let any caller name ANY workspace — i.e. read a real tenant's case
+ * by guessing its id. Boundary validation now answers 400 INPUT_INVALID, and demo identity is
+ * sandboxed to `demo:<name>` and switch-controlled.
+ */
+describe('P1-4 + demo isolation at the controller', () => {
+  let ctrl: PilotLoopController;
+
+  beforeEach(() => {
+    process.env.AUTH_DEV_UNSIGNED_TOKENS = 'true';
+    process.env.DEMO_WORKSPACES = 'true';
+    ctrl = makeController();
+  });
+
+  afterEach(() => {
+    delete process.env.DEMO_WORKSPACES;
+  });
+
+  it('rejects an evidence value outside the enum with 400 + field issues instead of persisting it', async () => {
+    const res = await ctrl.intake(salesA, { displayName: 'd', utterance: 'u', speaker: 'customer', connection: 'c', externalRecordId: 'r-v' });
+    const handed = await ctrl.handoff(salesA, res.leadId, { context: 'c', proposedAction: 'a', responsibleParty: 'internal', origin: 'explicit-commitment', recipientUserId: 'sales-b' });
+    await ctrl.accept(salesA, res.leadId, { workId: handed.workItemId, reason: 'nhận' });
+
+    await expect(ctrl.complete(salesA, res.leadId, { workId: handed.workItemId, evidence: 'totally-done' } as never)).rejects.toMatchObject({
+      status: 400,
+      response: { code: 'INPUT_INVALID', details: { issues: [{ field: 'evidence' }] } },
+    });
+    // nothing was written: the item is still accepted, not completed
+    const view = await ctrl.getLead(salesA, res.leadId);
+    expect(view.workItems[0].status).toBe('accepted');
+    expect(view.workItems[0].completionEvidence).toBe('absent');
+  });
+
+  it('rejects malformed ids and a nonexistent evidence pointer before touching the domain', async () => {
+    await expect(ctrl.getLead(salesA, 'not-a-uuid')).rejects.toMatchObject({ status: 400, response: { code: 'INPUT_INVALID' } });
+
+    const res = await ctrl.intake(salesA, { displayName: 'd', utterance: 'u', speaker: 'customer', connection: 'c', externalRecordId: 'r-v2' });
+    const handed = await ctrl.handoff(salesA, res.leadId, { context: 'c', proposedAction: 'a', responsibleParty: 'internal', origin: 'explicit-commitment', recipientUserId: 'sales-b' });
+    await ctrl.accept(salesA, res.leadId, { workId: handed.workItemId, reason: 'nhận' });
+
+    // a pointer that does not resolve is refused even though it is syntactically fine
+    await expect(ctrl.complete(salesA, res.leadId, { workId: handed.workItemId, evidence: 'observed', evidenceRef: 'made-up-pointer' })).rejects.toMatchObject({
+      status: 422,
+      response: { code: 'EVIDENCE_NOT_FOUND' },
+    });
+    expect((await ctrl.getLead(salesA, res.leadId)).workItems[0].status).toBe('accepted');
+  });
+
+  it('unauthenticated callers get 401, never a schema description (auth before validation)', async () => {
+    await expect(ctrl.intake({}, { displayName: '', utterance: '', speaker: 'alien' } as never)).rejects.toThrow(UnauthorizedException);
+  });
+
+  it('demo identity is sandboxed: it cannot address a real workspace by naming it', async () => {
+    const real = await ctrl.intake(salesA, { displayName: 'thật', utterance: 'u', speaker: 'customer', connection: 'c', externalRecordId: 'r-real' });
+    // demo header pointing at the REAL workspace id — must not reach the real lead
+    const demo = { 'x-demo-workspace': 'ws-a' };
+    await expect(ctrl.getLead(demo, real.leadId)).rejects.toMatchObject({ status: 404 });
+
+    const d = await ctrl.intake(demo, { displayName: 'd', utterance: 'u', speaker: 'customer', connection: 'c', externalRecordId: 'r-demo-iso' });
+    const dv = await ctrl.getLead(demo, d.leadId);
+    expect(dv.lead.workspaceId).toBe('demo:ws-a'); // sandbox, never the real tenant id
+  });
+
+  it('demo mode is opt-in: without DEMO_WORKSPACES the header grants nothing', async () => {
+    delete process.env.DEMO_WORKSPACES;
+    await expect(ctrl.intake({ 'x-demo-workspace': 'ws-any' }, { displayName: 'd', utterance: 'u', speaker: 'customer', connection: 'c', externalRecordId: 'r-off' })).rejects.toThrow(UnauthorizedException);
   });
 });

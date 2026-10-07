@@ -118,7 +118,11 @@ export type PilotErrorCode =
   | 'LEAD_NOT_FOUND'
   | 'NOT_EXTERNAL_EXPECTATION'
   | 'ALREADY_OBSERVED'
-  | 'INPUT_REQUIRED';
+  | 'EVIDENCE_NOT_FOUND'
+  | 'EVIDENCE_OUT_OF_SCOPE'
+  | 'EVIDENCE_NOT_RELATED'
+  | 'INPUT_REQUIRED'
+  | 'INPUT_INVALID';
 
 /** Domain guardrail refusal — carries an intended HTTP status, mapped by the controller. */
 export class PilotDomainError extends Error {

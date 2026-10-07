@@ -19,20 +19,32 @@ export interface AuthRequestLike {
   body?: Record<string, unknown>;
 }
 
+/** Demo workspace names are sandboxed so the header can never address a real tenant (P1 review). */
+const DEMO_PREFIX = 'demo:';
+const sanitizeDemoName = (raw: string): string => raw.slice(0, 48).replace(/[^a-zA-Z0-9._-]/g, '_');
+
 @Injectable()
 export class AuthService {
   private readonly logger = new Logger(AuthService.name);
 
   /**
    * Resolve auth context from request.
-   * - Demo: cho phép không cần token (header x-demo-workspace).
+   * - Demo: `x-demo-workspace` — DEMO-ONLY and OPT-IN (`DEMO_WORKSPACES=true`). The value is a
+   *   SANDBOX LABEL, not a workspace selector: it always resolves to `demo:<name>`, so a caller
+   *   cannot read or write a real tenant's case by guessing that tenant's id. Flag off by
+   *   default → a deployment that forgets it simply has no demo path (fail closed).
    * - Non-demo: yêu cầu Authorization: Bearer <token> hoặc x-bootstrap-token (one-time env).
    * Không đọc email/workspace từ body để cấp quyền.
    */
   resolve(req: AuthRequestLike): AuthContext | null {
     const demoWs = req.headers['x-demo-workspace'] ?? req.query?.['demoWorkspace'];
-    if (demoWs) {
-      return { workspaceId: demoWs, userId: 'demo', role: 'viewer', isDemo: true };
+    if (demoWs !== undefined && demoWs !== '') {
+      if (process.env.DEMO_WORKSPACES !== 'true') {
+        this.logger.warn('demo header presented while DEMO_WORKSPACES is not enabled — treated as unauthenticated');
+        return null;
+      }
+      const sandbox = `${DEMO_PREFIX}${sanitizeDemoName(demoWs) || 'anon'}`;
+      return { workspaceId: sandbox, userId: `${sandbox}:viewer`, role: 'viewer', isDemo: true };
     }
     const auth = req.headers['authorization'] ?? req.headers['Authorization'];
     const bootstrap = req.headers['x-bootstrap-token'];

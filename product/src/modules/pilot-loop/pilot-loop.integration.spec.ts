@@ -203,6 +203,53 @@ integration('PilotLoop over PostgreSQL — durability + two-person handoff', () 
     expect(after.rows).toHaveLength(0); // chuỗi thay thế không còn việc hoạt động
   });
 
+  it('P1-4 over PG: evidence pointers are validated against durable envelopes, not the caller', async () => {
+    const wsA = `it-p14-a-${randomUUID()}`;
+    const wsB = `it-p14-b-${randomUUID()}`;
+    const svc = new PilotLoopService(new PgPilotStore(db1), new ManualAdapter());
+
+    const a = await svc.ingestScenario({
+      workspaceId: wsA, displayName: 'A', utterance: 'u', speaker: 'customer',
+      connection: `conn-${randomUUID()}`, externalRecordId: 'e-a', ownerUserId: 'sales-b',
+    });
+    const b = await svc.ingestScenario({
+      workspaceId: wsB, displayName: 'B', utterance: 'u', speaker: 'customer',
+      connection: `conn-${randomUUID()}`, externalRecordId: 'e-b', ownerUserId: 'sales-b',
+    });
+    const handed = await svc.handoffToSales(a.lead.id, {
+      context: 'c', proposedAction: 'Gửi học phí', responsibleParty: 'internal',
+      origin: 'explicit-commitment', actor: 'sales-b', recipientUserId: 'sales-b',
+    });
+    const wid = handed.workItems[0].id;
+    await svc.salesAccept(a.lead.id, { workId: wid, actor: 'sales-b', reason: 'nhận' });
+
+    // 1) pointer that exists in ANOTHER workspace → refused, and no cross-tenant payload leaks
+    await expect(
+      svc.completeWork(a.lead.id, { workId: wid, actor: 'sales-b', evidence: 'observed', evidenceRef: b.sourceEnvelopeId! }),
+    ).rejects.toMatchObject({ code: 'EVIDENCE_OUT_OF_SCOPE', status: 403 });
+
+    // 2) pointer that resolves to nothing durable → refused
+    await expect(
+      svc.completeWork(a.lead.id, { workId: wid, actor: 'sales-b', evidence: 'observed', evidenceRef: randomUUID() }),
+    ).rejects.toMatchObject({ code: 'EVIDENCE_NOT_FOUND', status: 422 });
+
+    expect((await svc.get(a.lead.id))!.workItems.find((w) => w.id === wid)!.status).toBe('accepted');
+
+    // 3) the case's own envelope → accepted, and the audit records the raw hash (I-12)
+    const done = await svc.completeWork(a.lead.id, {
+      workId: wid, actor: 'sales-b', evidence: 'observed', evidenceRef: a.sourceEnvelopeId!, reason: 'file đã gửi',
+    });
+    expect(done.workItems.find((w) => w.id === wid)!.completionEvidence).toBe('observed');
+    const audit = await db1.query<{ new_value: unknown }>(
+      "SELECT new_value FROM audit_record WHERE entity_id = $1 AND event_type = 'work_completed'",
+      [wid],
+    );
+    const recorded = JSON.parse(typeof audit.rows[0]?.new_value === 'string' ? audit.rows[0].new_value : JSON.stringify(audit.rows[0]?.new_value));
+    expect(recorded.evidenceHash).toMatch(/^[0-9a-f]{64}$/);
+
+    await db1.query('DELETE FROM workspace WHERE id IN ($1,$2)', [wsA, wsB]);
+  });
+
   it('mutation + audit are atomic: a guardrail refusal leaves no partial state (QA-35)', async () => {
     const svc = new PilotLoopService(new PgPilotStore(db1), new ManualAdapter());
     const state = await svc.ingestScenario({
