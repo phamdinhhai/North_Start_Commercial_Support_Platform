@@ -4,17 +4,24 @@ import { PilotLoopController } from './pilot-loop.controller';
 import { AuthService } from '../infra/auth/auth.service';
 import { RbacService } from '../infra/rbac/rbac.service';
 import { PilotLoopService } from '../modules/pilot-loop/pilot-loop.service';
+import { InMemoryPilotStore } from '../modules/pilot-loop/pilot.store';
+import { AuditStore } from '../infra/audit/audit-store';
+import { ManualAdapter } from '../adapters/manual/manual-adapter';
 
 const demoHeaders = { 'x-demo-workspace': 'ws-demo' };
-const userHeaders = { authorization: `Bearer ${Buffer.from(JSON.stringify({ workspaceId: 'ws-a', userId: 'sales-1', role: 'sales' })).toString('base64')}` };
-const otherUserHeaders = { authorization: `Bearer ${Buffer.from(JSON.stringify({ workspaceId: 'ws-a', userId: 'sales-2', role: 'sales' })).toString('base64')}` };
-const foreignWsHeaders = { authorization: `Bearer ${Buffer.from(JSON.stringify({ workspaceId: 'ws-b', userId: 'sales-9', role: 'sales' })).toString('base64')}` };
+const b64 = (o: unknown) => Buffer.from(JSON.stringify(o)).toString('base64');
+const salesA = { authorization: `Bearer ${b64({ workspaceId: 'ws-a', userId: 'marketing-a', role: 'sales' })}` };
+const salesB = { authorization: `Bearer ${b64({ workspaceId: 'ws-a', userId: 'sales-b', role: 'sales' })}` };
+const salesC = { authorization: `Bearer ${b64({ workspaceId: 'ws-a', userId: 'sales-c', role: 'sales' })}` };
+const foreign = { authorization: `Bearer ${b64({ workspaceId: 'ws-b', userId: 'sales-9', role: 'sales' })}` };
 
 function makeController(): PilotLoopController {
-  return new PilotLoopController(new AuthService(), new RbacService(), new PilotLoopService());
+  const audit = new AuditStore();
+  const store = new InMemoryPilotStore(audit);
+  return new PilotLoopController(new AuthService(), new RbacService(), new PilotLoopService(store, new ManualAdapter()));
 }
 
-describe('PilotLoopController — auth & RBAC (T3-03/T3-04 wiring)', () => {
+describe('PilotLoopController — auth & RBAC wiring (T3-03/T3-04 unit-level; LIVE HTTP evidence = scripts/pilot-smoke.sh, PG durability = pilot-loop.integration.spec.ts)', () => {
   let ctrl: PilotLoopController;
 
   beforeEach(() => {
@@ -22,12 +29,14 @@ describe('PilotLoopController — auth & RBAC (T3-03/T3-04 wiring)', () => {
     ctrl = makeController();
   });
 
-  it('rejects unauthenticated non-demo request with 401 (R-02)', () => {
-    expect(() => ctrl.intake({}, { displayName: 'x', utterance: 'y', speaker: 'customer', connection: 'c', externalRecordId: 'r' })).toThrow(UnauthorizedException);
+  it('rejects unauthenticated non-demo request with 401 (R-02)', async () => {
+    await expect(
+      ctrl.intake({}, { displayName: 'x', utterance: 'y', speaker: 'customer', connection: 'c', externalRecordId: 'r' }),
+    ).rejects.toThrow(UnauthorizedException);
   });
 
-  it('does not read workspaceId from body — server-derived auth context wins (QA-32)', () => {
-    const res = ctrl.intake(userHeaders, {
+  it('does not read workspaceId from body — server-derived auth context wins (QA-32)', async () => {
+    const res = await ctrl.intake(salesA, {
       displayName: 'Phụ huynh A',
       utterance: 'Thứ Sáu em gọi lại cho chị nhé',
       speaker: 'customer',
@@ -35,52 +44,79 @@ describe('PilotLoopController — auth & RBAC (T3-03/T3-04 wiring)', () => {
       externalRecordId: 'msg-1',
       workspaceId: 'ws-EVIL', // body attempts to pick workspace
     } as never);
-    const view = ctrl.getLead(userHeaders, res.leadId);
+    const view = await ctrl.getLead(salesA, res.leadId);
     expect(view.lead.workspaceId).toBe('ws-a');
   });
 
-  it('cross-workspace access is invisible — 404, not 403 (AC-03, I-09)', () => {
-    const res = ctrl.intake(userHeaders, { displayName: 'd', utterance: 'u', speaker: 'customer', connection: 'c', externalRecordId: 'r' });
-    expect(() => ctrl.getLead(foreignWsHeaders, res.leadId)).toThrow(NotFoundException);
+  it('cross-workspace access is invisible — 404, not 403 (AC-03, I-09)', async () => {
+    const res = await ctrl.intake(salesA, { displayName: 'd', utterance: 'u', speaker: 'customer', connection: 'c', externalRecordId: 'r' });
+    await expect(ctrl.getLead(foreign, res.leadId)).rejects.toThrow(NotFoundException);
   });
 
-  it('unassigned sales in same workspace gets 403 on accepted lead of another sales (I-09)', () => {
-    const res = ctrl.intake(userHeaders, { displayName: 'd', utterance: 'u', speaker: 'customer', connection: 'c', externalRecordId: 'r' });
-    const handed = ctrl.handoff(userHeaders, res.leadId, { context: 'c', proposedAction: 'Gọi lại', responsibleParty: 'internal', origin: 'explicit-request' });
-    ctrl.accept(userHeaders, res.leadId, { workId: handed.workItemId, reason: 'Sales 1 nhận' });
-    expect(() => ctrl.getLead(otherUserHeaders, res.leadId)).toThrow(ForbiddenException);
-    // owner vẫn xem được
-    expect(ctrl.getLead(userHeaders, res.leadId).lead.id).toBe(res.leadId);
+  it('Marketing A → Sales B: B được xem và accept gói bàn giao addressed to them (I-09, PM-1 pending)', async () => {
+    const res = await ctrl.intake(salesA, { displayName: 'd', utterance: 'u', speaker: 'customer', connection: 'c', externalRecordId: 'r' });
+    const handed = await ctrl.handoff(salesA, res.leadId, {
+      context: 'c',
+      proposedAction: 'Gọi lại',
+      responsibleParty: 'internal',
+      origin: 'explicit-request',
+      recipientUserId: 'sales-b',
+    });
+    expect(handed.recipient).toBe('sales-b');
+    // B xem được gói trước khi accept (recipient quyền xem lead cụ thể này)
+    const bView = await ctrl.getLead(salesB, res.leadId);
+    expect(bView.handoff?.context).toBe('c');
+    // C không liên quan → 403
+    await expect(ctrl.getLead(salesC, res.leadId)).rejects.toThrow(ForbiddenException);
+    // B accept → owner = B
+    const accepted = await ctrl.accept(salesB, res.leadId, { workId: handed.workItemId, reason: 'B nhận' });
+    expect(accepted.owner).toBe('sales-b');
+    expect(accepted.leadStatus).toBe('Accepted');
   });
 
-  it('demo workspace passes without token (R-02 AC)', () => {
-    const res = ctrl.intake(demoHeaders, { displayName: 'd', utterance: 'u', speaker: 'customer', connection: 'c', externalRecordId: 'r' });
+  it('demo workspace passes without token (R-02 AC)', async () => {
+    const res = await ctrl.intake(demoHeaders, { displayName: 'd', utterance: 'u', speaker: 'customer', connection: 'c', externalRecordId: 'r' });
     expect(res.status).toBe('New');
-    const view = ctrl.getLead(demoHeaders, res.leadId);
+    const view = await ctrl.getLead(demoHeaders, res.leadId);
     expect(view.lead.workspaceId).toBe('ws-demo');
   });
 
-  it('runs the loop end-to-end over the HTTP surface', () => {
-    const res = ctrl.intake(userHeaders, { displayName: 'Phụ huynh B', utterance: 'Gửi chị học phí nhé', speaker: 'customer', connection: 'manual', externalRecordId: 'msg-2' });
-    const handed = ctrl.handoff(userHeaders, res.leadId, { context: 'c', proposedAction: 'Gửi bảng học phí', responsibleParty: 'internal', origin: 'explicit-commitment' });
-    ctrl.accept(userHeaders, res.leadId, { workId: handed.workItemId, reason: 'Sales nhận' });
-    expect(handed.leadStatus).toBe('New');
-    const done = ctrl.complete(userHeaders, res.leadId, { workId: handed.workItemId, evidence: 'declared', reason: 'đã gửi qua Zalo' });
+  it('runs the loop end-to-end over the controller surface', async () => {
+    const res = await ctrl.intake(salesA, { displayName: 'Phụ huynh B', utterance: 'Gửi chị học phí nhé', speaker: 'customer', connection: 'manual', externalRecordId: 'msg-2' });
+    const handed = await ctrl.handoff(salesA, res.leadId, { context: 'c', proposedAction: 'Gửi bảng học phí', responsibleParty: 'internal', origin: 'explicit-commitment', recipientUserId: 'sales-b' });
+    await ctrl.accept(salesB, res.leadId, { workId: handed.workItemId, reason: 'B nhận' });
+    const done = await ctrl.complete(salesB, res.leadId, { workId: handed.workItemId, evidence: 'declared', reason: 'đã gửi qua Zalo' });
     expect(done.workStatus).toBe('completed');
     expect(done.evidence).toBe('declared');
     expect(done.occurredAt).toBe('unknown'); // Q4: không backfill occurredAt
-    const adv1 = ctrl.advance(userHeaders, res.leadId, { to: 'Contacting', reason: 'đã gọi' });
+    const adv1 = await ctrl.advance(salesB, res.leadId, { to: 'Contacting', reason: 'đã gọi' });
     expect(adv1.leadStatus).toBe('Contacting');
-    const adv2 = ctrl.advance(userHeaders, res.leadId, { to: 'Follow-up', reason: 'chờ phản hồi' });
+    const adv2 = await ctrl.advance(salesB, res.leadId, { to: 'Follow-up', reason: 'chờ phản hồi' });
     expect(adv2.leadStatus).toBe('Follow-up');
-    const out = ctrl.outcome(userHeaders, res.leadId, { value: 'Won', reason: 'đã deposit' });
+    const out = await ctrl.outcome(salesB, res.leadId, { value: 'Won', reason: 'đã deposit' });
     expect(out.leadStatus).toBe('Won');
     expect(out.assertionStatus).toBe('claimed'); // R-15: claim, không tự verified
   });
 
-  it('observed completion without evidence pointer fails closed (Q3)', () => {
-    const res = ctrl.intake(userHeaders, { displayName: 'd', utterance: 'em gửi rồi nhé', speaker: 'staff', connection: 'c', externalRecordId: 'r' });
-    const handed = ctrl.handoff(userHeaders, res.leadId, { context: 'c', proposedAction: 'a', responsibleParty: 'internal', origin: 'explicit-commitment' });
-    expect(() => ctrl.complete(userHeaders, res.leadId, { workId: handed.workItemId, evidence: 'observed' })).toThrow(/system evidence pointer/);
+  it('guardrail refusals map to 4xx business codes, not raw 500', async () => {
+    const res = await ctrl.intake(salesA, { displayName: 'd', utterance: 'em gửi rồi nhé', speaker: 'staff', connection: 'c', externalRecordId: 'r' });
+    const handed = await ctrl.handoff(salesA, res.leadId, { context: 'c', proposedAction: 'a', responsibleParty: 'internal', origin: 'explicit-commitment', recipientUserId: 'sales-b' });
+    await expect(ctrl.complete(salesA, res.leadId, { workId: handed.workItemId, evidence: 'observed' })).rejects.toMatchObject({
+      status: 422,
+      response: { code: 'EVIDENCE_POINTER_REQUIRED' },
+    });
+    // New→Contacting nằm ngoài hypothesis CE-1 → PilotDomainError 422 CE1_BOUNDARY, controller map thành HttpException
+    await expect(ctrl.advance(salesA, res.leadId, { to: 'Contacting', reason: 'x' })).rejects.toMatchObject({
+      status: 422,
+      response: { code: 'CE1_BOUNDARY' },
+    });
+  });
+
+  it('external expectation → unobserved endpoint returns awaiting-external, never failure', async () => {
+    const res = await ctrl.intake(salesA, { displayName: 'd', utterance: 'u', speaker: 'customer', connection: 'c', externalRecordId: 'r-ext' });
+    const handed = await ctrl.handoff(salesA, res.leadId, { context: 'c', proposedAction: 'Chị A trao đổi với bé', responsibleParty: 'external', origin: 'explicit-request', recipientUserId: 'sales-b' });
+    const marked = await ctrl.unobserved(salesA, res.leadId, { workId: handed.workItemId });
+    expect(marked.workStatus).toBe('awaiting-external');
+    expect(marked.evidence).toBe('absent');
   });
 });

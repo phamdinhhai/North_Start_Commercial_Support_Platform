@@ -34,7 +34,7 @@ const migrations: MigrationFile[] = [
 describe('Migrator — PH3 T3-08', () => {
   it('loads ordered migration pairs from product/migrations', () => {
     const files = loadMigrations();
-    expect(files.map((m) => m.version)).toEqual(['001_domain', '002_telemetry_feedback']);
+    expect(files.map((m) => m.version)).toEqual(['001_domain', '002_telemetry_feedback', '003_pilot_loop']);
     expect(files.every((m) => m.up.length > 0 && m.down.length > 0)).toBe(true);
   });
 

@@ -1,135 +1,69 @@
-import { randomUUID } from 'node:crypto';
 import { Injectable } from '@nestjs/common';
-import { ManualAdapter } from '../../adapters/manual/manual-adapter';
+import { randomUUID } from 'node:crypto';
 import { createLead, type Lead, type LeadId } from '../../domain/lead/lead';
 import { transitionLead } from '../../domain/lead/lead-state';
-import { createHandoff, type Handoff } from '../../domain/handoff/handoff';
-import { createOutcome, correctOutcome, type Outcome } from '../../domain/outcome/outcome';
+import { createHandoff } from '../../domain/handoff/handoff';
+import { createOutcome, correctOutcome } from '../../domain/outcome/outcome';
 import { UNKNOWN_SENTINEL } from '../../domain/unknown-states/unknown-states';
-import { AuditStore } from '../../infra/audit/audit-store';
+import { ManualAdapter } from '../../adapters/manual/manual-adapter';
+import type { AuditDraft, AuditHistoryEntry, CompletionEvidence, PilotLoopState, ResponsibleParty, ScenarioInput, WorkItem, WorkOrigin, WorkStatus } from './pilot.types';
+import { PilotDomainError } from './pilot.types';
+import type { PilotLoopStore } from './pilot.store';
 
 /**
- * P0 pilot loop — education B2C candidate flow, in-memory (PH1/PH2 domain + audit).
+ * P0 pilot loop — education B2C candidate flow over a durable store (C-03).
  *
- * Luồng: nhập tình huống → bàn giao → Sales nhận → ghi next action →
- * xác nhận thực hiện (kèm evidence status) → ghi kết quả tối thiểu.
+ * Luồng: nhập tình huống → bàn giao (cho người nhận B) → B nhận việc → ghi next
+ * action → xác nhận thực hiện (kèm evidence status) → ghi kết quả tối thiểu.
  *
- * Phạm vi: CHỈ dùng state machine hypothesis ADR-001 (CE-1) và CommercialEvent
- * inferred-only (CE-2). Không tạo entity Journey/Obligation/Contact/Organization —
- * các work item dưới đây là candidate validation constructs cho Q3, không phải
- * canonical model (RFC-005 Q3 vẫn Draft, EXP-06 vẫn proposed).
+ * CHỈ dùng state machine hypothesis ADR-001 (CE-1) và CommercialEvent inferred-only
+ * (CE-2). Không tạo entity Journey/Obligation/Contact/Organization — work axes là
+ * candidate validation constructs cho Q3 (RFC-005 Draft, EXP-06 proposed).
  *
  * Guardrails đã mã hóa (V2 §§4, 7.3, 9.2–9.3, 9.6):
  * - Observation không đầy đủ: message observed ≠ hành động được mô tả observed.
- * - Kỳ vọng bên ngoài qua mốc → `no-observation`, KHÔNG bao giờ thành Overdue/thất bại.
+ * - Kỳ vọng bên ngoài qua mốc → `no-observation`, KHÔNG bao giờ Overdue/thất bại.
  * - `occurredAt` không rõ → giữ UNKNOWN + `recordedAt` riêng; không backfill.
- * - AI/proposal không tự đóng việc: completion cần người xác nhận.
- * - Mọi mutation append-audited (I-05), raw envelope immutable (I-12), Lead ID stable (I-07).
+ * - AI/inferred completion không tự đóng: cần người xác nhận (I-03).
+ * - Mọi mutation append-audited atomically với state (I-05, QA-35, qua store).
+ * - Handoff A→B: tạo lead (A) bàn giao cho B; B (chưa phải owner) được xem + nhận
+ *   gói bàn giao addressed to them. Quyền chi tiết vẫn OPEN: PM-1.
  */
-
-/** Q3 candidate axes — validation-only, not a frozen model. */
-export type ResponsibleParty = 'internal' | 'external';
-export type WorkOrigin = 'explicit-request' | 'explicit-commitment' | 'policy-sla' | 'inferred';
-export type CompletionEvidence = 'observed' | 'declared' | 'inferred' | 'absent' | 'conflicted';
-export type WorkStatus =
-  | 'proposed'
-  | 'accepted'
-  | 'open'
-  | 'completed'
-  | 'cancelled'
-  | 'rescheduled'
-  | 'awaiting-external';
-
-export interface WorkItem {
-  readonly id: string;
-  readonly leadId: LeadId;
-  readonly workspaceId: string;
-  readonly action: string;
-  readonly responsibleParty: ResponsibleParty;
-  readonly origin: WorkOrigin;
-  readonly status: WorkStatus;
-  readonly completionEvidence: CompletionEvidence;
-  /** ISO time or UNKNOWN_SENTINEL — never filled from recordedAt (Q4). */
-  readonly occurredAt: string;
-  readonly dueAt?: string;
-  readonly evidenceRef?: string;
-  readonly recordedAt: string;
-  /** Set when this item supersedes an earlier one (reschedule/cancel) — no stale reminders (I-05). */
-  readonly supersedesWorkId?: string;
-  readonly actor: string;
-  readonly reason?: string;
-}
-
-export interface PilotLoopState {
-  readonly lead: Lead;
-  readonly handoff?: Handoff;
-  readonly workItems: readonly WorkItem[];
-  readonly outcomes: readonly Outcome[];
-  /**
-   * Current lead owner (I-09). Set to the intake operator on create;
-   * updated on salesAccept — "conversation assignment ≠ Sales ownership"
-   * but pilot needs a single accountable owner (DOMAIN_MODEL §3.4).
-   */
-  readonly ownerUserId?: string;
-}
-
-export interface ScenarioInput {
-  readonly workspaceId: string;
-  readonly displayName: string;
-  readonly utterance: string;
-  readonly speaker: 'customer' | 'staff';
-  readonly connection: string;
-  readonly externalRecordId: string;
-  readonly conversationSource?: string;
-  readonly isSynthetic?: boolean;
-  /** Time asserted by evidence; omit or pass UNKNOWN_SENTINEL when unclear. */
-  readonly occurredAt?: string;
-  /** Server-derived operator (I-09) — never trusted from client body. */
-  readonly ownerUserId?: string;
-}
-
 @Injectable()
 export class PilotLoopService {
-  private readonly adapter: ManualAdapter;
-  private readonly audit: AuditStore;
-  private readonly cases = new Map<string, PilotLoopState>();
+  constructor(private readonly store: PilotLoopStore, private readonly adapter = new ManualAdapter()) {}
 
-  /** Test hook — inject collaborators; production DI uses the parameterless path. */
-  constructor(adapter?: ManualAdapter, audit?: AuditStore) {
-    this.adapter = adapter ?? new ManualAdapter();
-    this.audit = audit ?? new AuditStore();
+  /** CE-1 boundary violation is a business refusal (422), never a raw 500. */
+  private ce1Transition(lead: Lead, input: { readonly to: Lead['status']; readonly actor: string; readonly reason: string }): Lead {
+    try {
+      return transitionLead(lead, input).lead;
+    } catch (err) {
+      if (err instanceof Error && /frozen boundary/.test(err.message)) {
+        throw new PilotDomainError('CE1_BOUNDARY', 422, `transition ${lead.status} → ${input.to} is outside the CE-1 hypothesis (ADR-001)`);
+      }
+      throw err;
+    }
   }
 
   /** Bước 1 — nhập tình huống: raw envelope immutable (I-12) + Lead create (I-07). */
-  ingestScenario(input: ScenarioInput): PilotLoopState {
-    if (!input.workspaceId) throw new Error('workspaceId is required');
-    if (!input.utterance) throw new Error('utterance is required');
+  async ingestScenario(input: ScenarioInput): Promise<PilotLoopState> {
+    if (!input.workspaceId) throw new PilotDomainError('INPUT_REQUIRED', 400, 'workspaceId is required');
+    if (!input.utterance) throw new PilotDomainError('INPUT_REQUIRED', 400, 'utterance is required');
 
     const envelope = this.adapter.ingest({
       connection: input.connection,
       externalRecordId: input.externalRecordId,
       externalEventType: 'message',
-      sourceCapturedAt: new Date().toISOString(),
+      sourceCapturedAt: input.occurredAt ?? new Date().toISOString(),
       rawPayload: { utterance: input.utterance, speaker: input.speaker },
       isSynthetic: input.isSynthetic ?? true,
     });
 
-    const lead = createLead({
+    const lead: Lead = createLead({
       workspaceId: input.workspaceId,
       displayName: input.displayName,
       conversationSource: input.conversationSource,
-      // Acquisition Lineage và Revenue Attribution giữ riêng (I-02) — không suy từ utterance.
-      attribution: UNKNOWN_SENTINEL,
-    });
-
-    this.audit.append({
-      entityType: 'lead',
-      entityId: lead.id,
-      workspaceId: lead.workspaceId,
-      actor: input.speaker === 'staff' ? 'staff:intake' : 'operator:intake',
-      newValue: JSON.stringify({ status: lead.status, envelopeId: envelope.envelopeId }),
-      reason: 'scenario ingested',
-      eventType: 'lead_created',
+      attribution: UNKNOWN_SENTINEL, // I-02/MM-1 — không suy lineage/attribution từ utterance
     });
 
     const state: PilotLoopState = {
@@ -137,13 +71,29 @@ export class PilotLoopService {
       workItems: [],
       outcomes: [],
       ownerUserId: input.ownerUserId ?? (input.speaker === 'staff' ? 'staff:intake' : 'operator:intake'),
+      sourceEnvelopeId: envelope.envelopeId,
+      envelope,
     };
-    this.cases.set(lead.id, state);
+
+    await this.store.save(state, [
+      {
+        entityType: 'lead',
+        entityId: lead.id,
+        workspaceId: lead.workspaceId,
+        actor: state.ownerUserId!,
+        newValue: JSON.stringify({ status: lead.status, envelopeId: envelope.envelopeId }),
+        reason: 'scenario ingested',
+        eventType: 'lead_created',
+      },
+    ]);
     return state;
   }
 
-  /** Bước 2 — bàn giao: context + evidence refs + proposed next action (R-11). */
-  handoffToSales(
+  /**
+   * Bước 2 — bàn giao cho người nhận B: context + evidence refs + proposed next
+   * action. Work item starts `proposed` (gửi bàn giao ≠ nhận trách nhiệm, V2 §6).
+   */
+  async handoffToSales(
     leadId: LeadId,
     input: {
       readonly context: string;
@@ -152,13 +102,19 @@ export class PilotLoopService {
       readonly origin: WorkOrigin;
       readonly dueAt?: string;
       readonly actor: string;
+      readonly recipientUserId: string;
       readonly evidenceRef?: string;
     },
-  ): PilotLoopState {
-    const state = this.require(leadId);
+  ): Promise<PilotLoopState> {
+    if (!input.recipientUserId) {
+      throw new PilotDomainError('INPUT_REQUIRED', 400, 'recipientUserId is required — a handoff must name the receiver');
+    }
+    const state = await this.require(leadId);
     const evidenceRefs = input.evidenceRef
       ? [{ envelopeId: input.evidenceRef, rawPayloadHash: 'pending', capturedAt: new Date().toISOString() }]
-      : [];
+      : state.envelope
+        ? [{ envelopeId: state.envelope.envelopeId, rawPayloadHash: state.envelope.rawPayloadHash, capturedAt: state.envelope.sourceCapturedAt }]
+        : [];
 
     const handoff = createHandoff({
       leadId: state.lead.id,
@@ -168,7 +124,6 @@ export class PilotLoopService {
       proposedNextAction: { kind: 'follow-up', summary: input.proposedAction, ...(input.dueAt !== undefined && { dueAt: input.dueAt }) },
     });
 
-    // Work item starts as PROPOSED — chưa phải trách nhiệm đã giao (V2 §9.2, khoảng trống trách nhiệm).
     const work: WorkItem = {
       id: randomUUID(),
       leadId: state.lead.id,
@@ -182,55 +137,91 @@ export class PilotLoopService {
       ...(input.dueAt !== undefined && { dueAt: input.dueAt }),
       ...(input.evidenceRef !== undefined && { evidenceRef: input.evidenceRef }),
       recordedAt: new Date().toISOString(),
-      actor: input.actor,
+      actor: input.recipientUserId, // receiver is accountable once accepted
     };
 
-    this.audit.append({
-      entityType: 'handoff',
-      entityId: handoff.id,
-      workspaceId: handoff.workspaceId,
-      actor: input.actor,
-      newValue: JSON.stringify({ leadId: handoff.leadId, workStatus: work.status, origin: work.origin }),
-      reason: 'handoff created with proposed work item',
-      eventType: 'handoff_created',
-    });
+    const next: PilotLoopState = {
+      ...state,
+      handoff,
+      workItems: [...state.workItems, work],
+      handoffRecipient: input.recipientUserId,
+    };
 
-    const next: PilotLoopState = { ...state, handoff, workItems: [...state.workItems, work] };
-    this.cases.set(leadId, next);
-    return next;
-  }
-
-  /** Bước 3 — Sales nhận việc: transition New→Accepted (CE-1 hypothesis) + accept work. */
-  salesAccept(leadId: LeadId, input: { readonly actor: string; readonly reason: string; readonly workId: string }): PilotLoopState {
-    const state = this.require(leadId);
-    const { lead } = transitionLead(state.lead, { to: 'Accepted', actor: input.actor, reason: input.reason });
-    this.audit.append({
-      entityType: 'lead',
-      entityId: lead.id,
-      workspaceId: lead.workspaceId,
-      actor: input.actor,
-      previousValue: state.lead.status,
-      newValue: lead.status,
-      reason: input.reason,
-      eventType: 'lead_transition',
-    });
-
-    const workItems = state.workItems.map((w) =>
-      w.id === input.workId ? { ...w, status: 'accepted' as WorkStatus, actor: input.actor } : w,
-    );
-    if (!workItems.some((w) => w.id === input.workId)) throw new Error('workId not found');
-
-    const next: PilotLoopState = { ...state, lead, workItems, ownerUserId: input.actor };
-    this.cases.set(leadId, next);
+    const audits: AuditDraft[] = [
+      {
+        entityType: 'handoff',
+        entityId: handoff.id,
+        workspaceId: handoff.workspaceId,
+        actor: input.actor,
+        newValue: JSON.stringify({ leadId: handoff.leadId, recipient: input.recipientUserId, workStatus: 'proposed', origin: work.origin }),
+        reason: 'handoff created with proposed work item',
+        eventType: 'handoff_created',
+      },
+    ];
+    await this.store.save(next, audits.map(stripDraft));
     return next;
   }
 
   /**
-   * Bước 4 — ghi/xác nhận next action completion.
-   * `observed` chỉ được đặt khi có evidenceRef là sự kiện hệ thống quan sát được
-   * phù hợp tiêu chí hoàn thành; lời khai người dùng → `declared` (V2 §9.3).
+   * Bước 3 — người nhận B chấp nhận: transition New→Accepted (CE-1) + work→accepted
+   * + owner := B. B có được xem/n nhận là vì handoff addressed to them (I-09 lead-
+   * scope), KHÔNG vì mở rộng quyền. Quyền manager/admin chi tiết vẫn PM-1.
    */
-  completeWork(
+  async salesAccept(
+    leadId: LeadId,
+    input: { readonly actor: string; readonly reason: string; readonly workId: string },
+  ): Promise<PilotLoopState> {
+    const state = await this.require(leadId);
+    const target = state.workItems.find((w) => w.id === input.workId);
+    if (!target) throw new PilotDomainError('WORK_NOT_FOUND', 404, 'workId not found');
+    // Chỉ người được bàn giao (recipient) hoặc owner hiện tại mới được accept.
+    if (input.actor !== state.handoffRecipient && input.actor !== state.ownerUserId) {
+      throw new PilotDomainError('NOT_ASSIGNED_RECIPIENT', 403, 'only the handoff recipient or current owner may accept this work');
+    }
+
+    const lead = this.ce1Transition(state.lead, { to: 'Accepted', actor: input.actor, reason: input.reason });
+    const workItems = state.workItems.map((w) => (w.id === input.workId ? { ...w, status: 'accepted' as WorkStatus, actor: input.actor } : w));
+    const next: PilotLoopState = { ...state, lead, workItems, ownerUserId: input.actor };
+    await this.store.save(next, [
+      {
+        entityType: 'lead',
+        entityId: lead.id,
+        workspaceId: lead.workspaceId,
+        actor: input.actor,
+        previousValue: state.lead.status,
+        newValue: lead.status,
+        reason: input.reason,
+        eventType: 'lead_transition',
+      },
+    ]);
+    return next;
+  }
+
+  /** Bước 3b — advance Contacting/Follow-up (CE-1 hypothesis; abort ngoài boundary). */
+  async advance(leadId: LeadId, input: { readonly to: 'Contacting' | 'Follow-up'; readonly actor: string; readonly reason: string }): Promise<PilotLoopState> {
+    const state = await this.require(leadId);
+    const lead = this.ce1Transition(state.lead, { to: input.to, actor: input.actor, reason: input.reason });
+    const next = { ...state, lead };
+    await this.store.save(next, [
+      {
+        entityType: 'lead',
+        entityId: lead.id,
+        workspaceId: lead.workspaceId,
+        actor: input.actor,
+        previousValue: state.lead.status,
+        newValue: lead.status,
+        reason: input.reason,
+        eventType: 'lead_transition',
+      },
+    ]);
+    return next;
+  }
+
+  /**
+   * Bước 4 — complete. `observed` CẦN evidence pointer (message observed ≠ hành động);
+   * `inferred` không tự đóng (V2 §9.6); external không declare-complete hộ khách.
+   */
+  async completeWork(
     leadId: LeadId,
     input: {
       readonly workId: string;
@@ -240,23 +231,20 @@ export class PilotLoopService {
       readonly occurredAt?: string;
       readonly reason?: string;
     },
-  ): PilotLoopState {
-    const state = this.require(leadId);
+  ): Promise<PilotLoopState> {
+    const state = await this.require(leadId);
     const current = state.workItems.find((w) => w.id === input.workId);
-    if (!current) throw new Error('workId not found');
-    if (current.status === 'completed') throw new Error('work already completed');
+    if (!current) throw new PilotDomainError('WORK_NOT_FOUND', 404, 'workId not found');
+    if (current.status === 'completed') throw new PilotDomainError('WORK_ALREADY_COMPLETED', 409, 'work already completed');
 
-    // Q3 guardrail: một message observed không tự chứng minh hành động được mô tả.
     if (input.evidence === 'observed' && !input.evidenceRef) {
-      throw new Error('observed completion requires a system evidence pointer');
+      throw new PilotDomainError('EVIDENCE_POINTER_REQUIRED', 422, 'observed completion requires a system evidence pointer');
     }
-    // AI/inferred completion không được tự đóng (V2 §9.6).
     if (input.evidence === 'inferred') {
-      throw new Error('inferred evidence cannot close work; require user confirmation');
+      throw new PilotDomainError('INFERRED_CANNOT_CLOSE', 422, 'inferred evidence cannot close work; require user confirmation');
     }
-    // External expectation: không có "completion" phía khách — chỉ ghi nhận quan sát/khai báo.
     if (current.responsibleParty === 'external' && input.evidence === 'declared') {
-      throw new Error('external expectation cannot be marked complete on internal declaration alone');
+      throw new PilotDomainError('EXTERNAL_NOT_DECLAREABLE', 422, 'external expectation cannot be completed on internal declaration alone');
     }
 
     const workItems = state.workItems.map((w) =>
@@ -265,40 +253,37 @@ export class PilotLoopService {
             ...w,
             status: 'completed' as WorkStatus,
             completionEvidence: input.evidence,
-            // Q4 guardrail: occurredAt không rõ → giữ UNKNOWN, không thay bằng recordedAt.
-            occurredAt: input.occurredAt ?? UNKNOWN_SENTINEL,
+            occurredAt: input.occurredAt ?? UNKNOWN_SENTINEL, // Q4: không backfill occurredAt
             ...(input.evidenceRef !== undefined && { evidenceRef: input.evidenceRef }),
           }
         : w,
     );
-
-    this.audit.append({
-      entityType: 'commercial-event',
-      entityId: input.workId,
-      workspaceId: state.lead.workspaceId,
-      actor: input.actor,
-      previousValue: current.status,
-      newValue: JSON.stringify({ status: 'completed', evidence: input.evidence, occurredAt: workItems.find((w) => w.id === input.workId)?.occurredAt }),
-      reason: input.reason ?? 'work completed',
-      eventType: 'work_completed',
-    });
-
     const next = { ...state, workItems };
-    this.cases.set(leadId, next);
+    await this.store.save(next, [
+      {
+        entityType: 'commercial-event',
+        entityId: input.workId,
+        workspaceId: state.lead.workspaceId,
+        actor: input.actor,
+        previousValue: current.status,
+        newValue: JSON.stringify({ status: 'completed', evidence: input.evidence }),
+        reason: input.reason ?? 'work completed',
+        eventType: 'work_completed',
+      },
+    ]);
     return next;
   }
 
-  /** Bước 4b — dời lịch: item cũ superseded, item mới thay thế → không còn nhắc lịch cũ. */
-  rescheduleWork(
+  /** Bước 4b — dời lịch (chỉ việc còn mở): item cũ superseded, item mới thay thế. */
+  async rescheduleWork(
     leadId: LeadId,
     input: { readonly workId: string; readonly actor: string; readonly newDueAt: string; readonly reason: string },
-  ): PilotLoopState {
-    const state = this.require(leadId);
+  ): Promise<PilotLoopState> {
+    const state = await this.require(leadId);
     const old = state.workItems.find((w) => w.id === input.workId);
-    if (!old) throw new Error('workId not found');
-    // Một việc đã hoàn thành không còn lịch để dời — dời phải mở lại assertion mới (I-05).
+    if (!old) throw new PilotDomainError('WORK_NOT_FOUND', 404, 'workId not found');
     if (old.status === 'completed' || old.status === 'cancelled') {
-      throw new Error('closed work cannot be rescheduled; record a correction instead');
+      throw new PilotDomainError('WORK_ALREADY_CLOSED', 409, 'closed work cannot be rescheduled; record a correction instead');
     }
 
     const superseded: WorkItem = { ...old, status: 'rescheduled', completionEvidence: 'absent' };
@@ -312,87 +297,55 @@ export class PilotLoopService {
       actor: input.actor,
       reason: input.reason,
     };
-
-    const workItems = state.workItems
-      .filter((w) => w.id !== old.id)
-      .concat(superseded, replacement);
-
-    this.audit.append({
-      entityType: 'commercial-event',
-      entityId: old.id,
-      workspaceId: state.lead.workspaceId,
-      actor: input.actor,
-      previousValue: JSON.stringify({ dueAt: old.dueAt ?? null, status: old.status }),
-      newValue: JSON.stringify({ dueAt: input.newDueAt, status: 'rescheduled', replacementId: replacement.id }),
-      reason: input.reason,
-      eventType: 'work_rescheduled',
-      supersedesRecordId: undefined,
-    });
-
+    const workItems = state.workItems.filter((w) => w.id !== old.id).concat(superseded, replacement);
     const next = { ...state, workItems };
-    this.cases.set(leadId, next);
+    await this.store.save(next, [
+      {
+        entityType: 'commercial-event',
+        entityId: old.id,
+        workspaceId: state.lead.workspaceId,
+        actor: input.actor,
+        previousValue: JSON.stringify({ dueAt: old.dueAt ?? null, status: old.status }),
+        newValue: JSON.stringify({ dueAt: input.newDueAt, status: 'rescheduled', replacementId: replacement.id }),
+        reason: input.reason,
+        eventType: 'work_rescheduled',
+      },
+    ]);
     return next;
   }
 
-  /**
-   * Bước 4c — mốc bên ngoài đã qua mà chưa có evidence → `no-observation`.
-   * Không kết luận khách thất bại (V2 §8.3, §9.3).
-   */
-  markExternalUnobserved(leadId: LeadId, input: { readonly workId: string; readonly actor: string }): PilotLoopState {
-    const state = this.require(leadId);
+  /** Bước 4c — external qua mốc chưa có evidence → `awaiting-external`, không thất bại. */
+  async markExternalUnobserved(leadId: LeadId, input: { readonly workId: string; readonly actor: string }): Promise<PilotLoopState> {
+    const state = await this.require(leadId);
     const item = state.workItems.find((w) => w.id === input.workId);
-    if (!item) throw new Error('workId not found');
-    if (item.responsibleParty !== 'external') throw new Error('only external expectations can be marked no-observation');
-    if (item.completionEvidence === 'observed') throw new Error('already observed; no-observation not applicable');
+    if (!item) throw new PilotDomainError('WORK_NOT_FOUND', 404, 'workId not found');
+    if (item.responsibleParty !== 'external') throw new PilotDomainError('NOT_EXTERNAL_EXPECTATION', 422, 'only external expectations can be marked no-observation');
+    if (item.completionEvidence === 'observed') throw new PilotDomainError('ALREADY_OBSERVED', 409, 'already observed; no-observation not applicable');
 
     const workItems = state.workItems.map((w) =>
       w.id === input.workId ? { ...w, status: 'awaiting-external' as WorkStatus, completionEvidence: 'absent' as CompletionEvidence } : w,
     );
-
-    this.audit.append({
-      entityType: 'commercial-event',
-      entityId: item.id,
-      workspaceId: state.lead.workspaceId,
-      actor: input.actor,
-      newValue: JSON.stringify({ status: 'awaiting-external', evidence: 'absent' }),
-      reason: 'past expected time; outcome not observed — absence is not failure',
-      eventType: 'external_no_observation',
-    });
-
     const next = { ...state, workItems };
-    this.cases.set(leadId, next);
+    await this.store.save(next, [
+      {
+        entityType: 'commercial-event',
+        entityId: item.id,
+        workspaceId: state.lead.workspaceId,
+        actor: input.actor,
+        newValue: JSON.stringify({ status: 'awaiting-external', evidence: 'absent' }),
+        reason: 'past expected time; outcome not observed — absence is not failure',
+        eventType: 'external_no_observation',
+      },
+    ]);
     return next;
   }
 
-  /**
-   * Bước 3b — ghi nhận bước nghiệp vụ trung gian (contact attempt → Contacting,
-   * hẹn follow-up → Follow-up). Chỉ đi trong hypothesis CE-1; transitionLead abort
-   * nếu vượt frozen boundary.
-   */
-  advance(leadId: LeadId, input: { readonly to: 'Contacting' | 'Follow-up'; readonly actor: string; readonly reason: string }): PilotLoopState {
-    const state = this.require(leadId);
-    const { lead } = transitionLead(state.lead, { to: input.to, actor: input.actor, reason: input.reason });
-    this.audit.append({
-      entityType: 'lead',
-      entityId: lead.id,
-      workspaceId: lead.workspaceId,
-      actor: input.actor,
-      previousValue: state.lead.status,
-      newValue: lead.status,
-      reason: input.reason,
-      eventType: 'lead_transition',
-    });
-    const next = { ...state, lead };
-    this.cases.set(leadId, next);
-    return next;
-  }
-
-  /** Bước 5 — ghi kết quả tối thiểu kèm evidence (R-15) + transition Follow-up→Won/Lost/Unknown. */
-  recordOutcome(
+  /** Bước 5 — ghi kết quả tối thiểu (R-15, claimed) + transition → Won/Lost/Unknown. */
+  async recordOutcome(
     leadId: LeadId,
     input: { readonly value: 'Won' | 'Lost' | 'Unknown'; readonly actor: string; readonly reason?: string },
-  ): PilotLoopState {
-    const state = this.require(leadId);
+  ): Promise<PilotLoopState> {
+    const state = await this.require(leadId);
     const outcome = createOutcome({
       leadId: state.lead.id,
       workspaceId: state.lead.workspaceId,
@@ -401,71 +354,74 @@ export class PilotLoopService {
       acquisitionMode: 'user_confirmed',
       ...(input.reason !== undefined && { reason: input.reason }),
     });
-
-    // Outcome là claim cho tới khi có bằng chứng độc lập (TRUST §4) — assertionStatus 'claimed'.
-    const to = input.value;
-    const { lead } = transitionLead(state.lead, { to, actor: input.actor, reason: input.reason ?? 'outcome recorded' });
-
-    this.audit.append({
-      entityType: 'outcome',
-      entityId: outcome.id,
-      workspaceId: outcome.workspaceId,
-      actor: input.actor,
-      previousValue: state.lead.status,
-      newValue: JSON.stringify({ outcome: outcome.value, assertionStatus: outcome.assertionStatus }),
-      reason: input.reason ?? 'outcome recorded',
-      eventType: 'outcome_created',
-    });
-
+    const lead = this.ce1Transition(state.lead, { to: input.value, actor: input.actor, reason: input.reason ?? 'outcome recorded' });
     const next = { ...state, lead, outcomes: [...state.outcomes, outcome] };
-    this.cases.set(leadId, next);
+    await this.store.save(next, [
+      {
+        entityType: 'outcome',
+        entityId: outcome.id,
+        workspaceId: outcome.workspaceId,
+        actor: input.actor,
+        previousValue: state.lead.status,
+        newValue: JSON.stringify({ outcome: outcome.value, assertionStatus: outcome.assertionStatus }),
+        reason: input.reason ?? 'outcome recorded',
+        eventType: 'outcome_created',
+      },
+    ]);
     return next;
   }
 
   /** Sửa kết quả — append assertion mới, giữ lịch sử (I-05). */
-  correctOutcomeRecord(
+  async correctOutcomeRecord(
     leadId: LeadId,
     input: { readonly outcomeId: string; readonly newValue: 'Won' | 'Lost' | 'Unknown'; readonly actor: string; readonly reason: string },
-  ): PilotLoopState {
-    const state = this.require(leadId);
+  ): Promise<PilotLoopState> {
+    const state = await this.require(leadId);
     const previous = state.outcomes.find((o) => o.id === input.outcomeId);
-    if (!previous) throw new Error('outcomeId not found');
+    if (!previous) throw new PilotDomainError('WORK_NOT_FOUND', 404, 'outcomeId not found');
 
     const corrected = correctOutcome(previous, { newValue: input.newValue, actor: input.actor, reason: input.reason });
-    const { lead } = transitionLead(state.lead, { to: input.newValue, actor: input.actor, reason: input.reason });
-
-    this.audit.append({
-      entityType: 'outcome',
-      entityId: corrected.id,
-      workspaceId: corrected.workspaceId,
-      actor: input.actor,
-      previousValue: previous.value,
-      newValue: corrected.value,
-      reason: input.reason,
-      eventType: 'outcome_corrected',
-      supersedesRecordId: previous.id,
-    });
-
+    const lead = this.ce1Transition(state.lead, { to: input.newValue, actor: input.actor, reason: input.reason });
     const next = { ...state, lead, outcomes: [...state.outcomes, corrected] };
-    this.cases.set(leadId, next);
+    await this.store.save(next, [
+      {
+        entityType: 'outcome',
+        entityId: corrected.id,
+        workspaceId: corrected.workspaceId,
+        actor: input.actor,
+        previousValue: previous.value,
+        newValue: corrected.value,
+        reason: input.reason,
+        eventType: 'outcome_corrected',
+        supersedesRecordId: previous.id,
+      },
+    ]);
     return next;
   }
 
-  get(leadId: LeadId): PilotLoopState | undefined {
-    return this.cases.get(leadId);
+  async get(leadId: LeadId): Promise<PilotLoopState | undefined> {
+    return this.store.load(leadId);
+  }
+
+  /** Append-only audit history for a case (I-05) — durable in PG, ordered by time. */
+  async auditHistory(leadId: LeadId): Promise<readonly AuditHistoryEntry[]> {
+    await this.require(leadId);
+    return this.store.history(leadId);
   }
 
   /** Overdue chỉ áp dụng cho việc NỘI BỘ còn mở và có hạn hợp lệ (V2 §9.3). */
-  openInternalWorkDueBefore(leadId: LeadId, at: string): readonly WorkItem[] {
-    const state = this.require(leadId);
+  async openInternalWorkDueBefore(leadId: LeadId, at: string): Promise<readonly WorkItem[]> {
+    const state = await this.require(leadId);
     return state.workItems.filter(
       (w) => w.responsibleParty === 'internal' && (w.status === 'open' || w.status === 'accepted') && w.dueAt !== undefined && w.dueAt < at,
     );
   }
 
-  private require(leadId: LeadId): PilotLoopState {
-    const state = this.cases.get(leadId);
-    if (!state) throw new Error('lead not found in pilot loop');
+  private async require(leadId: LeadId): Promise<PilotLoopState> {
+    const state = await this.store.load(leadId);
+    if (!state) throw new PilotDomainError('LEAD_NOT_FOUND', 404, 'lead not found in pilot loop');
     return state;
   }
 }
+
+const stripDraft = (d: AuditDraft) => d;

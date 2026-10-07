@@ -17,8 +17,14 @@ integration('Postgres integration — T3-05/T3-08', () => {
   });
 
   afterAll(async () => {
-    if (migrator) await migrator.down(2);
-    if (db) await db.onModuleDestroy();
+    // Cleanup test rows only. Schema is left migrated on purpose: specs share one
+    // dev DB, and tearing down migrations here (down(2)) previously WIPED 003_pilot_loop
+    // from under other suites. Rollback itself is covered by migrator unit tests +
+    // migrate:down CLI evidence recorded in state/progress.md.
+    if (db) {
+      await db.query("DELETE FROM workspace WHERE id LIKE 'it-%'").catch(() => {});
+      await db.onModuleDestroy();
+    }
   });
 
   it('SELECT 1 health check and workspace rows remain after pool restart', async () => {

@@ -1,63 +1,152 @@
 #!/usr/bin/env bash
-# Live HTTP smoke test for the P0 pilot loop (run against dist/main.js).
-BASE="${BASE:-http://localhost:3111/v1}"
-ROOT="${ROOT:-http://localhost:3111}"
-DEMO=(-H 'content-type: application/json' -H 'x-demo-workspace: ws-demo')
+# Live HTTP smoke test — P0 pilot loop over PostgreSQL with app-process restart.
+#
+# Usage:
+#   scripts/pilot-smoke.sh                     # starts postgres + app (DATABASE_URL set → PgPilotStore), asserts everything
+#   BASE=http://host:port/v1 scripts/pilot-smoke.sh   # test an already-running app (restart step then skipped)
+#
+# Design notes:
+# - Asserts EVERY expectation; exits non-zero on the first mismatch (no "expect
+#   non-2xx" printing without checking).
+# - Guardrail refusals must return 4xx with a machine-readable business `code`
+#   (EVIDENCE_POINTER_REQUIRED, WORK_ALREADY_CLOSED, CE1_BOUNDARY, …) — never raw 500.
+# - Uses dev unsigned-stub Bearer tokens (AUTH_DEV_UNSIGNED_TOKENS=true, set here
+#   for THIS LOCAL SMOKE RUN ONLY) so three distinct identities can be tested.
+#   Real credential model = OPEN: PM-1 (QA-28) — do NOT ship this auth mode.
+# - Two-person handoff: marketing-A creates + hands to sales-B; B views+accepts;
+#   unrelated sales-C is forbidden. No role-scope widening (PM-1 pending).
+set -u
+cd "$(dirname "$0")/.." || exit 1
 
-code() { curl -s -o /dev/null -w '%{http_code}' "$@"; }
-post() { curl -s -X POST "$@"; }
+PG_PORT="${PG_PORT:-55432}"
+APP_PORT="${APP_PORT:-3111}"
+APP_MANAGED=0
+RUN="smoke-$(date +%s)-$$"
+WS="ws-$RUN"
 
-echo "== 1. health =="
-curl -s "$ROOT/health"; echo; echo
+if [ -z "${BASE:-}" ]; then
+  export POSTGRES_PORT="$PG_PORT"
+  docker compose up -d postgres >/dev/null || { echo "FAIL: postgres unavailable"; exit 1; }
+  for _ in $(seq 1 30); do
+    [ "$(docker inspect --format '{{.State.Health.Status}}' north-star-pg 2>/dev/null)" = "healthy" ] && break
+    sleep 2
+  done
+  export DATABASE_URL="postgres://north_star:north_star@localhost:${PG_PORT}/north_star"
+  npm run build >/dev/null 2>&1 || { echo "FAIL: build"; exit 1; }
+  # Ensure schema is current before booting the app (idempotent; migrator no-ops if applied).
+  node dist/scripts/migrate.js up >/dev/null 2>&1 || { echo "FAIL: migrate up"; exit 1; }
+  AUTH_DEV_UNSIGNED_TOKENS=true PORT="$APP_PORT" node dist/main.js > /tmp/pilot-smoke-app.log 2>&1 &
+  APP_PID=$!
+  trap 'kill "$APP_PID" 2>/dev/null' EXIT
+  APP_MANAGED=1
+  BASE="http://localhost:${APP_PORT}/v1"
+  ROOT="http://localhost:${APP_PORT}"
+  sleep 3
+else
+  ROOT="${ROOT:-${BASE%/v1}}"
+fi
 
-echo "== 2. unauthenticated non-demo -> expect 401 =="
-code -X POST "$BASE/pilot/scenarios" -H 'content-type: application/json' \
-  -d '{"displayName":"d","utterance":"u","speaker":"customer","connection":"c","externalRecordId":"r1"}'
-echo; echo
+PASS=0; FAIL=0
+ok()   { echo "  ok: $1"; PASS=$((PASS+1)); }
+fail() { echo "  FAIL: $1"; FAIL=$((FAIL+1)); }
+expect_eq()       { if [ "$2" = "$3" ]; then ok "$1"; else fail "$1 — expected [$3] got [$2]"; fi; }
+expect_contains() { case "$2" in *"$3"*) ok "$1";; *) fail "$1 — [$3] missing in: $2";; esac; }
 
-echo "== 3. demo intake =="
-RESP=$(post "$BASE/pilot/scenarios" "${DEMO[@]}" -d '{"displayName":"Phu huynh A","utterance":"Thu Sau em goi lai cho chi nhe, chi trao doi voi be da.","speaker":"customer","connection":"manual","externalRecordId":"r2"}')
-echo "$RESP"; echo
-LEAD=$(printf '%s' "$RESP" | sed -E 's/.*"leadId":"([^"]+)".*/\1/')
+b64() { node -e 'process.stdout.write(Buffer.from(process.argv[1]).toString("base64"))' "$1"; }
+TOK_A="Bearer $(b64 "{\"workspaceId\":\"$WS\",\"userId\":\"marketing-a\",\"role\":\"sales\"}")"
+TOK_B="Bearer $(b64 "{\"workspaceId\":\"$WS\",\"userId\":\"sales-b\",\"role\":\"sales\"}")"
+TOK_C="Bearer $(b64 "{\"workspaceId\":\"$WS\",\"userId\":\"sales-c\",\"role\":\"sales\"}")"
+A=(-H 'content-type: application/json' -H "authorization: $TOK_A")
+B=(-H 'content-type: application/json' -H "authorization: $TOK_B")
+C=(-H 'content-type: application/json' -H "authorization: $TOK_C")
+DEMO=(-H 'content-type: application/json' -H "x-demo-workspace: $WS")
+jget() { printf '%s' "$1" | grep -oE "\"$2\":[^,}]*" | head -1 | sed -E "s/\"$2\"://; s/\"//g"; }
 
-echo "== 4. handoff (work item starts proposed) =="
-HO=$(post "$BASE/pilot/leads/$LEAD/handoff" "${DEMO[@]}" -d '{"context":"Phu huynh muon con hoc thu","proposedAction":"Goi lai 15:00 thu Sau","responsibleParty":"internal","origin":"explicit-request","dueAt":"2026-10-09T15:00:00+07:00"}')
-echo "$HO"; echo
-WORK=$(printf '%s' "$HO" | sed -E 's/.*"workItemId":"([^"]+)".*/\1/')
+step() { echo; echo "== $1 =="; }
 
-echo "== 5. accept =="
-post "$BASE/pilot/leads/$LEAD/accept" "${DEMO[@]}" -d "{\"workId\":\"$WORK\",\"reason\":\"Sales nhan phu trach\"}"; echo; echo
+step "1. health"
+expect_contains "status ok" "$(curl -s "$ROOT/health")" '"status":"ok"'
 
-echo "== 6. reschedule OPEN work (old reminder must disappear) =="
-post "$BASE/pilot/leads/$LEAD/reschedule" "${DEMO[@]}" -d "{\"workId\":\"$WORK\",\"newDueAt\":\"2026-10-12T16:00:00+07:00\",\"reason\":\"Phu huynh doi sang thu Hai\"}"; echo
-WORK_NEW=$(curl -s "$BASE/pilot/leads/$LEAD" "${DEMO[@]}" | grep -oE '"[0-9a-f-]{36}","action":"Goi lai 15:00 thu Sau","responsibleParty":"internal","origin":"explicit-request","status":"open"' | head -1 | cut -d'"' -f2)
-echo;
+step "2. R-02: unauthenticated -> 401; demo header -> allowed"
+expect_eq "401 without creds" "$(curl -s -o /dev/null -w '%{http_code}' -X POST "$BASE/pilot/scenarios" -H 'content-type: application/json' -d "{\"displayName\":\"d\",\"utterance\":\"u\",\"speaker\":\"customer\",\"connection\":\"c-$RUN\",\"externalRecordId\":\"x0\"}")" "401"
+D=$(curl -s -X POST "$BASE/pilot/scenarios" "${DEMO[@]}" -d "{\"displayName\":\"demo lead\",\"utterance\":\"u\",\"speaker\":\"customer\",\"connection\":\"c-$RUN\",\"externalRecordId\":\"xdemo\"}")
+expect_eq "demo intake ok" "$(jget "$D" status)" "New"
 
-echo "== 7. complete declared on the rescheduled item (no backfill of occurredAt) =="
-post "$BASE/pilot/leads/$LEAD/complete" "${DEMO[@]}" -d "{\"workId\":\"$WORK_NEW\",\"evidence\":\"declared\",\"reason\":\"Da goi, hen cuoi tuan dang ky\"}"; echo; echo
+step "3. intake as marketing-A"
+R=$(curl -s -X POST "$BASE/pilot/scenarios" "${A[@]}" -d "{\"displayName\":\"Phu huynh A\",\"utterance\":\"Thu Sau em goi lai cho chi nhe, chi trao doi voi be da.\",\"speaker\":\"customer\",\"connection\":\"c-$RUN\",\"externalRecordId\":\"msg1\",\"conversationSource\":\"Messenger\"}")
+LEAD=$(jget "$R" leadId)
+expect_eq "status New" "$(jget "$R" status)" "New"
+[ -n "$LEAD" ] && ok "leadId present" || fail "no leadId: $R"
 
-echo "== 8. observed completion without evidence pointer -> expect non-2xx fail-closed =="
-HO2=$(post "$BASE/pilot/leads/$LEAD/handoff" "${DEMO[@]}" -d '{"context":"gui hoc phi","proposedAction":"Gui bang hoc phi","responsibleParty":"internal","origin":"explicit-commitment"}')
-WORK2=$(printf '%s' "$HO2" | sed -E 's/.*"workItemId":"([^"]+)".*/\1/')
-code -X POST "$BASE/pilot/leads/$LEAD/complete" "${DEMO[@]}" -d "{\"workId\":\"$WORK2\",\"evidence\":\"observed\"}"
-echo " (expect non-2xx)"; echo
+step "4. handoff A -> B: work item proposed, recipient=B, owner still A"
+HO=$(curl -s -X POST "$BASE/pilot/leads/$LEAD/handoff" "${A[@]}" -d "{\"context\":\"Phu huynh muon con hoc thu\",\"proposedAction\":\"Goi lai 15:00 thu Sau\",\"responsibleParty\":\"internal\",\"origin\":\"explicit-request\",\"recipientUserId\":\"sales-b\",\"dueAt\":\"2026-10-09T15:00:00+07:00\"}")
+WORK=$(jget "$HO" workItemId)
+expect_eq "lead still New" "$(jget "$HO" leadStatus)" "New"
+expect_eq "recipient sales-b" "$(jget "$HO" recipient)" "sales-b"
 
-echo "== 9. reschedule COMPLETED work -> expect non-2xx (correction, not silent reopen) =="
-code -X POST "$BASE/pilot/leads/$LEAD/reschedule" "${DEMO[@]}" -d "{\"workId\":\"$WORK_NEW\",\"newDueAt\":\"2026-10-20T09:00:00+07:00\",\"reason\":\"lo tay\"}"
-echo " (expect non-2xx)"; echo
+step "5. unrelated sales-C cannot see the case (403 — I-09, no role widening)"
+expect_eq "C GET -> 403" "$(curl -s -o /dev/null -w '%{http_code}' "$BASE/pilot/leads/$LEAD" "${C[@]}")" "403"
+V_B=$(curl -s "$BASE/pilot/leads/$LEAD" "${B[@]}")
+expect_contains "B can view handoff context" "$V_B" '"context":"Phu huynh muon con hoc thu"'
 
-echo "== 10. advance CE-1 hypothesis path (from Accepted) =="
-post "$BASE/pilot/leads/$LEAD/advance" "${DEMO[@]}" -d '{"to":"Contacting","reason":"Da goi"}'; echo
-post "$BASE/pilot/leads/$LEAD/advance" "${DEMO[@]}" -d '{"to":"Follow-up","reason":"Cho phan hoi"}'; echo
+step "6. B accepts -> owner becomes B"
+AC=$(curl -s -X POST "$BASE/pilot/leads/$LEAD/accept" "${B[@]}" -d "{\"workId\":\"$WORK\",\"reason\":\"B nhan trach nhiem\"}")
+expect_eq "Accepted" "$(jget "$AC" leadStatus)" "Accepted"
+expect_eq "owner=B" "$(jget "$AC" owner)" "sales-b"
 
-echo "== 11. outcome Won (claimed, not verified) =="
-post "$BASE/pilot/leads/$LEAD/outcome" "${DEMO[@]}" -d '{"value":"Won","reason":"Da deposit"}'; echo; echo
+step "7. reschedule open work by B"
+expect_contains "reschedule ok" "$(curl -s -X POST "$BASE/pilot/leads/$LEAD/reschedule" "${B[@]}" -d "{\"workId\":\"$WORK\",\"newDueAt\":\"2026-10-12T16:00:00+07:00\",\"reason\":\"doi sang thu Hai\"}")" '"workCount"'
 
-echo "== 12. GET view =="
-curl -s "$BASE/pilot/leads/$LEAD" "${DEMO[@]}"; echo
+step "8. complete declared (Q4: occurredAt NOT backfilled)"
+CM=$(curl -s -X POST "$BASE/pilot/leads/$LEAD/complete" "${B[@]}" -d "{\"workId\":\"$WORK\",\"evidence\":\"declared\",\"reason\":\"da goi, hen cuoi tuan\"}")
+expect_eq "completed" "$(jget "$CM" workStatus)" "completed"
+expect_eq "evidence declared" "$(jget "$CM" evidence)" "declared"
+expect_eq "occurredAt unknown" "$(jget "$CM" occurredAt)" "unknown"
 
-echo "== 13. transition beyond CE-1 boundary on a fresh lead -> expect error =="
-R3=$(post "$BASE/pilot/scenarios" "${DEMO[@]}" -d '{"displayName":"Lead moi","utterance":"u","speaker":"customer","connection":"manual","externalRecordId":"r3"}')
-L3=$(printf '%s' "$R3" | sed -E 's/.*"leadId":"([^"]+)".*/\1/')
-code -X POST "$BASE/pilot/leads/$L3/outcome" "${DEMO[@]}" -d '{"value":"Won"}'
-echo " (expect non-2xx: New -> Won is outside the hypothesis)"
+step "9. observed without pointer -> 422 EVIDENCE_POINTER_REQUIRED"
+HO2=$(curl -s -X POST "$BASE/pilot/leads/$LEAD/handoff" "${B[@]}" -d "{\"context\":\"gui hoc phi\",\"proposedAction\":\"Gui bang hoc phi\",\"responsibleParty\":\"internal\",\"origin\":\"explicit-commitment\",\"recipientUserId\":\"sales-b\"}")
+WORK2=$(jget "$HO2" workItemId)
+expect_contains "422 code" "$(curl -s -X POST "$BASE/pilot/leads/$LEAD/complete" "${B[@]}" -d "{\"workId\":\"$WORK2\",\"evidence\":\"observed\"}")" "EVIDENCE_POINTER_REQUIRED"
+
+step "10. reschedule completed work -> 409 WORK_ALREADY_CLOSED"
+expect_contains "409 code" "$(curl -s -X POST "$BASE/pilot/leads/$LEAD/reschedule" "${B[@]}" -d "{\"workId\":\"$WORK\",\"newDueAt\":\"2026-10-20T09:00:00+07:00\",\"reason\":\"lo tay\"}")" 'WORK_ALREADY_CLOSED'
+
+step "11. external expectation -> unobserved (awaiting-external, never failure)"
+HO3=$(curl -s -X POST "$BASE/pilot/leads/$LEAD/handoff" "${B[@]}" -d "{\"context\":\"ky vong khach\",\"proposedAction\":\"Chi A trao doi voi be\",\"responsibleParty\":\"external\",\"origin\":\"explicit-request\",\"recipientUserId\":\"sales-b\"}")
+WORK3=$(jget "$HO3" workItemId)
+expect_eq "awaiting-external" "$(jget "$(curl -s -X POST "$BASE/pilot/leads/$LEAD/unobserved" "${B[@]}" -d "{\"workId\":\"$WORK3\"}")" workStatus)" "awaiting-external"
+
+step "12. CE-1 boundary on fresh lead -> 422 CE1_BOUNDARY"
+L2=$(jget "$(curl -s -X POST "$BASE/pilot/scenarios" "${A[@]}" -d "{\"displayName\":\"fresh\",\"utterance\":\"u\",\"speaker\":\"customer\",\"connection\":\"c-$RUN\",\"externalRecordId\":\"msg2\"}")" leadId)
+expect_contains "422 code" "$(curl -s -X POST "$BASE/pilot/leads/$L2/outcome" "${A[@]}" -d '{"value":"Won"}')" 'CE1_BOUNDARY'
+
+step "13. valid path to outcome Won (claimed, not verified)"
+curl -s -X POST "$BASE/pilot/leads/$LEAD/advance" "${B[@]}" -d '{"to":"Contacting","reason":"da goi"}' >/dev/null
+curl -s -X POST "$BASE/pilot/leads/$LEAD/advance" "${B[@]}" -d '{"to":"Follow-up","reason":"cho phan hoi"}' >/dev/null
+OV=$(curl -s -X POST "$BASE/pilot/leads/$LEAD/outcome" "${B[@]}" -d '{"value":"Won","reason":"da deposit"}')
+expect_eq "Won" "$(jget "$OV" leadStatus)" "Won"
+expect_eq "claimed" "$(jget "$OV" assertionStatus)" "claimed"
+
+step "14. restart APP process (PgPilotStore = durable), re-read everything from PG"
+if [ "$APP_MANAGED" = "1" ]; then
+  kill "$APP_PID" 2>/dev/null; wait "$APP_PID" 2>/dev/null || true
+  AUTH_DEV_UNSIGNED_TOKENS=true PORT="$APP_PORT" node dist/main.js > /tmp/pilot-smoke-app2.log 2>&1 &
+  APP_PID=$!
+  trap 'kill "$APP_PID" 2>/dev/null' EXIT
+  sleep 3
+  V=$(curl -s "$BASE/pilot/leads/$LEAD" "${B[@]}")
+  expect_contains "lead survives restart (Won)" "$V" '"status":"Won"'
+  expect_contains "work item survives (completed)" "$V" "\"id\":\"$WORK\",\"action\":\"Goi lai 15:00 thu Sau\",\"responsibleParty\":\"internal\",\"origin\":\"explicit-request\",\"status\":\"completed\""
+  expect_contains "outcome survives claimed" "$V" '"assertionStatus":"claimed"'
+  expect_contains "envelope ref survives (I-12)" "$V" '"evidenceRefs":['
+  AH=$(curl -s "$BASE/pilot/leads/$LEAD/audit" "${B[@]}")
+  for t in lead_created handoff_created lead_transition work_completed outcome_created external_no_observation; do
+    expect_contains "audit has $t (append-only, I-05)" "$AH" "\"eventType\":\"$t\""
+  done
+else
+  fail "restart step needs script-managed app (BASE given) — durability NOT proven this run"
+fi
+
+echo; echo "======================================"
+echo "PASS=$PASS FAIL=$FAIL"
+if [ "$FAIL" -eq 0 ]; then echo "ALL CHECKS PASSED"; exit 0; else echo "SMOKE FAILED"; exit 1; fi

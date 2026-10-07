@@ -17,7 +17,7 @@
     "test:watch": "vitest",
     "test:cov": "vitest run --coverage",
     "test:e2e": "vitest run --config vitest.config.e2e.ts",
-    "test:integration": "vitest run integration",
+    "test:integration": "vitest run integration --no-file-parallelism",
     "migrate:up": "npm run build && node dist/scripts/migrate.js up",
     "migrate:down": "npm run build && node dist/scripts/migrate.js down",
     "db:up": "docker compose up -d postgres",
