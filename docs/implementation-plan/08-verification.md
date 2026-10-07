@@ -68,8 +68,9 @@ Sau mỗi phase, cập nhật phần này:
 | Remote | `origin/main` — checkpoint `b81edd9..0f1da07` (8 commit) đã push 2026-10-08; correction của migration 004 push tiếp sau đó (xem commit cuối bảng) |
 | Bug-fix commits | `2d3ce38` P1-1 · `948851b` P1-2 · `406ca8e` P1-3 · `e62a0b2` P1-4 + demo workspace · `a04f162` P1-5 · `e93e82d` migrator race (self-found) |
 | Docs commits | `00e2b2a` (3 drift) · `0f1da07` (coverage + 004 proof) |
-| Pending sau checkpoint | correction của migration 004 (quarantine thay vì delete) — commit riêng, **chưa push cho tới khi bạn xác nhận** |
-| Tạm dừng theo chỉ đạo | optimistic locking (vòng sau khi review checkpoint) |
+| Correction sau review | `35c18b5` — migration 004 quarantine thay vì delete + integration spec chứng minh; `e04d555` sửa SHA tự tham chiếu. **Đã push lên `origin/main`.** |
+| Tạm dừng theo chỉ đạo | optimistic locking (vòng sau khi bạn review checkpoint) |
+
 
 
 ---
