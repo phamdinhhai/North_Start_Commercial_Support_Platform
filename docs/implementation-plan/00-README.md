@@ -3,6 +3,8 @@
 **Phiên:** 2026-09-20
 **Trạng thái:** Bước 0–1 hoàn thành; chờ Human Gate trước Bước 2.
 
+> **Problem framing hiện hành:** [`../Dinh_nghia_bai_toan_V2.md`](../Dinh_nghia_bai_toan_V2.md) (2026-10-06) là định nghĩa bài toán và kế hoạch kiểm chứng; **chưa phải đặc tả sản phẩm/mô hình đã freeze**. Dùng cùng `discovery/v2-validation-and-traceability.md` để nối giả thuyết với tài liệu hiện có. Canonical Tier 1 vẫn có thẩm quyền cao nhất; V2 không tự thay đổi quyết định canonical.
+
 ## Cấu trúc thư mục
 
 ```

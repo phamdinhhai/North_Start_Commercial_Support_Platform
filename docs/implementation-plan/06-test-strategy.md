@@ -57,9 +57,24 @@ vitest --coverage
 - [ ] I-11: Adapter boundary — envelope test
 - [ ] I-12: Raw preserved + UNKNOWN valid — raw immutability test
 
-## 6. Human gates (không tự động)
+## 6. Learning / validation checks (V2 — research gate, not domain tests)
+
+`docs/Dinh_nghia_bai_toan_V2.md` adds a separate evidence-evaluation layer. It supplements, and does not replace, invariant tests or the existing human gates.
+
+- Maintain H1–H8 in the learning/evidence artifacts only; do not add hypothesis IDs or validation-only fields to production schema, API, or telemetry.
+- Before evaluation, pre-register the hypothesis, proposed threshold, eligible sample/denominator, exclusions, metric/rule/model/prompt version, and locked evaluation split. V2 thresholds are internal proposals, not industry benchmarks.
+- Every hypothesis result must be **proceed**, **fail**, or **insufficient data**. Report numerator, denominator, missingness, exclusions, uncertainty and business clustering; do not treat unknown as complete evidence.
+- For AI extraction (H3), report precision/recall and action/owner/due-date agreement on a locked set; small-sample success is not authorization for unsupervised business actions.
+- For off-system capture (H4), independently establish the eligible interaction denominator; counts of user-entered records alone cannot measure omissions.
+- For attribution (H8), show eligible cohort and each deterministic linkage segment. Linkage is not causation; H8 is not a prerequisite for the handoff/follow-up MVP.
+- Keep the Validation Schema disposable and outside application dependencies. Promote findings into canonical/domain/requirements only through the relevant human-reviewed RFC/ADR.
+
+Protocol and proposed thresholds: `discovery/v2-validation-and-traceability.md` §§4–8. Do not run or interpret a locked evaluation until data permission, consent, retention, and access conditions are approved.
+
+## 7. Human gates (không tự động)
 
 - Gate #A: RFC CE-1/CE-2 review (trước PH2 domain state machine).
 - Gate trước PH3: persistence + migration review.
 - Gate trước PH4: Pancake spike verdict (Q-03/Q-04).
+- V2 learning gate: review H1–H8 evidence and disposition; distinct from Gate #A, persistence, or provider feasibility gates.
 - Gate L5: direction decision (Continue/Narrow/Pivot/Stop).

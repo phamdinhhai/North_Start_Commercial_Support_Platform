@@ -2,6 +2,8 @@ Dưới đây là phiên bản tôi sẽ coi là **“North Star Product”** �
 
 # Product Vision — Closed-loop Revenue Platform
 
+> **Đọc cùng `docs/Dinh_nghia_bai_toan_V2.md`:** tài liệu này mô tả end-state mong muốn, không phải bằng chứng về mức độ phổ biến của vấn đề hay khả năng quan sát mọi tương tác/doanh thu. Mọi báo cáo/cam kết phải nêu phạm vi, độ phủ, provenance và phần chưa rõ. “Journey” ở đây là khái niệm hành trình kinh doanh, chưa quyết định cần entity `Journey`; LVP chỉ mở rộng theo kết quả kiểm chứng và canonical/human gates.
+
 Tên category tạm thời phù hợp nhất:
 
 **Commercial Continuity / Closed-loop Revenue Platform**
