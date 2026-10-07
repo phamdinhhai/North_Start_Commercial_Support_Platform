@@ -46,13 +46,21 @@ export class Migrator {
     private readonly migrations: readonly MigrationFile[],
   ) {}
 
+  /**
+   * `schema_migrations` bootstrap — also serialized: two processes running
+   * `CREATE TABLE IF NOT EXISTS` concurrently can still collide on the catalog, so the
+   * statement runs inside a transaction holding an advisory lock on the table name.
+   */
   private async ensureTable(): Promise<void> {
-    await this.db.query(
-      `CREATE TABLE IF NOT EXISTS schema_migrations (
-         version TEXT PRIMARY KEY,
-         applied_at TIMESTAMPTZ NOT NULL DEFAULT now()
-       )`,
-    );
+    await this.db.withTransaction(async (tx) => {
+      await tx.query('SELECT pg_advisory_xact_lock(hashtext($1))', ['schema_migrations']);
+      await tx.query(
+        `CREATE TABLE IF NOT EXISTS schema_migrations (
+           version TEXT PRIMARY KEY,
+           applied_at TIMESTAMPTZ NOT NULL DEFAULT now()
+         )`,
+      );
+    });
   }
 
   async applied(): Promise<string[]> {
@@ -61,17 +69,29 @@ export class Migrator {
     return result.rows.map((r) => r.version);
   }
 
-  /** Áp dụng mọi migration chưa chạy, theo thứ tự. Trả về các version vừa áp dụng. */
+  /**
+   * Áp dụng mọi migration chưa chạy, theo thứ tự. Trả về các version vừa áp dụng.
+   *
+   * Mỗi version chạy trong MỘT transaction cùng `pg_advisory_xact_lock(version)`:
+   * vitest chạy các integration spec file SONG SONG trên cùng một dev DB, nên hai
+   * migrator có thể cùng thấy "chưa chạy" và cùng ALTER — một bên nhận
+   * `column/table already exists` hoặc unique violation trên `schema_migrations`,
+   * transaction rollback và để lại schema nửa vời. Advisory lock + re-check BÊN TRONG
+   * lock đảm bảo đúng một bên apply, bên kia thấy row bookkeeping đã có → skip.
+   */
   async up(): Promise<string[]> {
-    const done = new Set(await this.applied());
+    await this.ensureTable();
     const ran: string[] = [];
     for (const m of this.migrations) {
-      if (done.has(m.version)) continue;
-      await this.db.withTransaction(async (tx) => {
+      const applied = await this.db.withTransaction(async (tx) => {
+        await tx.query('SELECT pg_advisory_xact_lock(hashtext($1))', [m.version]);
+        const already = await tx.query<{ version: string }>('SELECT version FROM schema_migrations WHERE version = $1', [m.version]);
+        if (already.rows.length > 0) return false;
         await tx.query(m.up);
         await tx.query('INSERT INTO schema_migrations (version) VALUES ($1)', [m.version]);
+        return true;
       });
-      ran.push(m.version);
+      if (applied) ran.push(m.version);
     }
     return ran;
   }
@@ -85,6 +105,7 @@ export class Migrator {
       const m = this.migrations.find((x) => x.version === version);
       if (!m) throw new Error(`No migration file for applied version ${version}`);
       await this.db.withTransaction(async (tx) => {
+        await tx.query('SELECT pg_advisory_xact_lock(hashtext($1))', [version]);
         await tx.query(m.down);
         await tx.query('DELETE FROM schema_migrations WHERE version = $1', [version]);
       });
