@@ -64,20 +64,22 @@ This is a validation scope, not an approved expansion of implementation phases. 
 
 No H-number, sample ID, validation label, or Validation Schema field may become a production entity, enum, database column, telemetry key, or behavior dependency merely because it appears here.
 
-## 4. Proposed validation hypotheses and thresholds
+## 4. Proposed validation hypotheses and thresholds (`VH1–VH8` series)
+
+> **Namespace rule (`HYPOTHESIS_REGISTER.md`):** Every `H1–H8` reference in this document refers to the **V2 (2026-10-06) `VH1–VH8` validation-screen series**, never the 2026-09-10 `H0–H8` v1 problem-hypothesis series.
 
 The following are V2 §18.1’s **proposed internal screening thresholds**, not industry benchmarks, empirical findings, or permission for unsupervised automation. Product owner must pre-register threshold, sample, denominator, exclusions, and analysis before opening the locked evaluation set. Every result is `proceed`, `fail`, or `insufficient data`.
 
 | ID | Question | Proposed screen (V2 §18.1) | Main caveat |
 |---|---|---|---|
-| H1 | Is handoff context loss frequent and valuable to fix? | ≥30% of assessable handoffs miss a critical item; pilot reduces median preparation/acceptance time ≥30% without lowering context quality. | Define critical fields and assessability before sampling. |
-| H2 | Are useful internal actions frequent enough? | ≥30% of commercial files have a concrete follow-up task operators confirm useful. | Do not count AI-generated tasks as demand evidence. |
-| H3 | Can AI extract work accurately enough to assist? | Precision ≥95%, recall ≥80%; action/owner match ≥90%; due-date match ≥90% among cases with resolvable due dates. | At least 40 gold tasks and 40 predictions on locked set; small samples do not justify unsupervised action. |
-| H4 | Can execution be known without excessive input? | ≥70% of due important work has evidence-backed status (completion, confirmed incomplete, or valid cancellation); quick capture median ≤20s and used for ≥80% of independently checked off-system interactions requiring capture. | Independent observation/log is necessary to form the off-system denominator. Report declared completion separately. |
-| H5 | Does the package create operating and buyer value? | ≥25% relative reduction in overdue/unresolved internal work vs suitable comparison; ≥2/3 validated buyers accept paid pilot at pre-set price. | Require ≥3 validated buyers for 2/3 rule; control workload/case mix; interest is not payment acceptance. |
-| H6 | Is `Journey` needed beyond Lead/Opportunity? | Consequential unrepresentable cases ≥10% of representative sample or ≥20% of verified revenue, plus a distinct invariant and no simpler representation. | Do not use estimated opportunity value for verified revenue; avoid duplicate counting; test across ≥2 businesses for a shared core. |
-| H7 | Are buying-group roles needed per demand episode? | ≥15% of files have multiple participants in one decision and missing role causes a handoff/next-step error. | Frequency alone does not justify a new core model. |
-| H8 | Is an ad-result feedback loop worth investigating? | ≥70% of ad-origin files with assessable outcomes have a deterministic full-chain linkage. | Internal screen only; not a platform requirement or launch authorization. Also satisfy V2 §19 prerequisites. |
+| VH1 (V2 H1) | Is handoff context loss frequent and valuable to fix? | ≥30% of assessable handoffs miss a critical item; pilot reduces median preparation/acceptance time ≥30% without lowering context quality. | Define critical fields and assessability before sampling. |
+| VH2 (V2 H2) | Are useful internal actions frequent enough? | ≥30% of commercial files have a concrete follow-up task operators confirm useful. | Do not count AI-generated tasks as demand evidence. |
+| VH3 (V2 H3) | Can AI extract work accurately enough to assist? | Precision ≥95%, recall ≥80%; action/owner match ≥90%; due-date match ≥90% among cases with resolvable due dates. | At least 40 gold tasks and 40 predictions on locked set; small samples do not justify unsupervised action. |
+| VH4 (V2 H4) | Can execution be known without excessive input? | ≥70% of due important work has evidence-backed status (completion, confirmed incomplete, or valid cancellation); quick capture median ≤20s and used for ≥80% of independently checked off-system interactions requiring capture. | Independent observation/log is necessary to form the off-system denominator. Report declared completion separately. |
+| VH5 (V2 H5) | Does the package create operating and buyer value? | ≥25% relative reduction in overdue/unresolved internal work vs suitable comparison; ≥2/3 validated buyers accept paid pilot at pre-set price. | Require ≥3 validated buyers for 2/3 rule; control workload/case mix; interest is not payment acceptance. |
+| VH6 (V2 H6) | Is `Journey` needed beyond Lead/Opportunity? | Consequential unrepresentable cases ≥10% of representative sample or ≥20% of verified revenue, plus a distinct invariant and no simpler representation. | Do not use estimated opportunity value for verified revenue; avoid duplicate counting; test across ≥2 businesses for a shared core. |
+| VH7 (V2 H7) | Are buying-group roles needed per demand episode? | ≥15% of files have multiple participants in one decision and missing role causes a handoff/next-step error. | Frequency alone does not justify a new core model. |
+| VH8 (V2 H8) | Is an ad-result feedback loop worth investigating? | ≥70% of ad-origin files with assessable outcomes have a deterministic full-chain linkage. | Internal screen only; not a platform requirement or launch authorization. Also satisfy V2 §19 prerequisites. |
 
 ### Decision hygiene
 

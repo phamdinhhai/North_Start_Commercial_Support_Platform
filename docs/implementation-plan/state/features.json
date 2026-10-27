@@ -1,7 +1,7 @@
 {
-  "version": 1,
-  "generated": "2026-10-02",
-  "notes": "PH1+PH2 code done (132 tests, 2026-09-22). F-025…F-037 là đề xuất từ 03-requirements §10 (R-29…R-41) và discovery QA-01…59 — chưa duyệt vào LVP, không tự mở rộng PH3. CE-1/CE-2/PM-1/MM-1/ID-1/ID-2/LG-1 vẫn BLOCKED-BY.",
+  "version": 2,
+  "generated": "2026-10-27",
+  "notes": "R-ID map aligned to 03-requirements.md (R-19 Audit, R-20 AI Draft-Only, R-21 Telemetry, R-22 Release Version + Experiment Exposure, R-23 Structured Feedback, R-24 Manager View, R-25 Data Health). Status rule: 'done' chỉ khi không còn P1 mở chạm tính năng đó và notes không tự khai hạng mục còn hoãn. F-025…F-038 là đề xuất/di trú từ 03-requirements §10 (R-29…R-41) và discovery QA-01…59 — chưa duyệt vào LVP, không tự mở rộng PH3. CE-1/CE-2/PM-1/MM-1/ID-1/ID-2/LG-1 vẫn BLOCKED-BY. Kiểm định HTTP độc lập 2026-10-27 tại 1b72b61: P1-1, P1-2, P1-4 còn mở (xem docs/reports/project-status-and-handover.md).",
   "features": [
     {
       "feature_id": "F-001",
@@ -45,8 +45,8 @@
       "R_ids": ["R-05", "R-06"],
       "C_ids": ["C-11", "C-05"],
       "phases": ["PH0", "PH1", "PH4"],
-      "status": "done",
-      "notes": "envelope 12 tests, idempotency + raw immutability done. Provider extension deferred to PH4 (Q-03/Q-04). 2026-10-07 P1-1: idempotency key = (workspace, connection, externalRecordId) in both the adapter and the PG constraint/ON CONFLICT (was cross-tenant reusable); migration 004 backfills only where derivable and refuses to guess otherwise."
+      "status": "in_progress",
+      "notes": "envelope 12 tests, raw immutability done. Provider extension deferred to PH4 (Q-03/Q-04). 2026-10-07 P1-1: idempotency key = (workspace, connection, externalRecordId) in both the adapter and the PG constraint/ON CONFLICT (was cross-tenant reusable); migration 004 backfills only where derivable and refuses to guess otherwise. STILL OPEN (repro HTTP 2026-10-27): the key is colon-joined without escaping, so a connection name containing ':' collides across tenants in InMemoryPilotStore (P1-1)."
     },
     {
       "feature_id": "F-006",
@@ -63,17 +63,17 @@
       "R_ids": ["R-08"],
       "C_ids": ["C-01", "C-02"],
       "phases": ["PH2", "PH5"],
-      "status": "done",
-      "notes": "lead-state 18 tests — assign/accept/reject/reassign append-audited. Pending-access/revoke scope (QA-16/32) needs PM-1 RFC in PH5."
+      "status": "in_progress",
+      "notes": "lead-state 18 tests — assign/accept/reject/reassign append-audited. Pending-access/revoke scope (QA-16/32) needs PM-1 RFC in PH5. STILL OPEN (repro HTTP 2026-10-27): salesAccept does not check the recipient of the targeted work item, so the current owner can accept work addressed to someone else, and a second handoff silently re-targets the single handoffRecipient slot (P1-2)."
     },
     {
       "feature_id": "F-008",
       "name": "Context Summary (Evidence-Backed)",
       "R_ids": ["R-09"],
       "C_ids": ["C-01"],
-      "phases": ["PH2"],
-      "status": "done",
-      "notes": "handoff + lead cover evidence ref + audit; AI draft distinguish pending (I-03)."
+      "phases": ["PH2", "PH5"],
+      "status": "in_progress",
+      "notes": "PH2 domain model done (handoff + lead cover evidence ref + audit); AI draft visual distinction and summary edit workflow pending (I-03)."
     },
     {
       "feature_id": "F-009",
@@ -89,9 +89,9 @@
       "name": "Handoff Package",
       "R_ids": ["R-11"],
       "C_ids": ["C-01", "C-02"],
-      "phases": ["PH2"],
-      "status": "done",
-      "notes": "handoff 7 tests — recipient/context/channel/action/evidence-or-reason (QA-14). 2026-10-07: caller-supplied evidenceRef must resolve to stored raw evidence in the same workspace (P1-4 — the fabricated rawPayloadHash:'pending' placeholder is gone); creating a handoff is a mutation, so it requires the current owner (P1-2)."
+      "phases": ["PH2", "PH3"],
+      "status": "in_progress",
+      "notes": "handoff 7 tests — recipient/context/channel/action/evidence-or-reason (QA-14). 2026-10-07: caller-supplied evidenceRef must resolve to stored raw evidence in the same workspace (P1-4 — the fabricated rawPayloadHash:'pending' placeholder is gone); creating a handoff is a mutation, so it requires the current owner (P1-2). STILL OPEN (repro HTTP 2026-10-27): single-slot state.handoffRecipient is overwritten by a second handoff, revoking view access (403) from the earlier recipient while their work item is still open (P1-2)."
     },
     {
       "feature_id": "F-011",
@@ -99,8 +99,8 @@
       "R_ids": ["R-12"],
       "C_ids": ["C-01", "C-06"],
       "phases": ["PH2", "PH5"],
-      "status": "done",
-      "notes": "Outcome + audit done (correction append-only). Backdate occurredAt/recordedAt (QA-19) pending PH5 workflow."
+      "status": "in_progress",
+      "notes": "PH2 outcome + audit done (correction append-only). Backdate occurredAt/recordedAt (QA-19) and dedicated contact-attempt recording workflow pending PH5."
     },
     {
       "feature_id": "F-012",
@@ -109,7 +109,7 @@
       "C_ids": ["C-01", "C-06"],
       "phases": ["PH2", "PH5"],
       "status": "in_progress",
-      "notes": "State model done; PH5: overdue queue, primary cardinality (QA-18), Won/Lost open-action gate (QA-20). 2026-10-07 P0 pilot: work-item lifecycle is durable + guardrailed — superseded items are 409 WORK_SUPERSEDED with details.replacementId (P1-3, both in-memory and PG), and completion/reschedule/no-observation require the current owner (P1-2). Overdue remains internal-only (V2 §9.3); external past-due is awaiting-external, never failure. Won/Lost open-action gate NOT implemented — outcome can still be recorded while work items are open (PH5)."
+      "notes": "State model done; PH5: overdue queue, primary cardinality (QA-18), Won/Lost open-action gate (QA-20). 2026-10-07 P0 pilot: work-item lifecycle is durable + guardrailed — superseded items are 409 WORK_SUPERSEDED with details.replacementId (P1-3, both in-memory and PG). STILL OPEN (repro HTTP 2026-10-27): (1) P1-2 — current owner can complete a work item addressed to another recipient before that recipient accepts; (2) P1-4 — completeWork accepts the customer's intake message (sourceEnvelopeId) as observed proof of staff action completion, and allows evidence='absent' or 'conflicted' to transition the item to completed. Overdue remains internal-only (V2 §9.3); external past-due is awaiting-external, never failure. Won/Lost open-action gate NOT implemented — outcome can still be recorded while work items are open (PH5)."
     },
     {
       "feature_id": "F-013",
@@ -127,8 +127,8 @@
       "R_ids": ["R-15"],
       "C_ids": ["C-01", "C-06"],
       "phases": ["PH2", "PH5"],
-      "status": "done",
-      "notes": "outcome 7 tests — claimed + supersedes. QA-57 Lost policy + QA-59 payment allocation need PH5 schema review."
+      "status": "in_progress",
+      "notes": "PH2 domain outcome (7 tests — claimed + supersedes) done. QA-57 Lost policy, QA-59 payment allocation, and open-action gate before Won/Lost pending PH5."
     },
     {
       "feature_id": "F-015",
@@ -160,30 +160,30 @@
     {
       "feature_id": "F-018",
       "name": "Append-Only Audit Trail",
-      "R_ids": ["R-19", "R-20"],
+      "R_ids": ["R-19"],
       "C_ids": ["C-06", "C-01"],
-      "phases": ["PH2", "PH5"],
+      "phases": ["PH2", "PH3", "PH5"],
       "status": "done",
       "notes": "audit-store 8 tests + invariants 25 tests — append-only; 2026-10-07: mutation+audit atomic in one PG transaction (QA-35), refusal leaves no partial state (integration), full eventType history survives app restart (smoke step 14). P1-5: in-memory history() was workspace-wide (leaked other leads' trails) → now lead-scoped, unknown lead → empty. P1-3/P1-4: superseded-item refusals are recorded with replacementId, and work_completed stores the referenced evidence's raw hash."
     },
     {
       "feature_id": "F-019",
       "name": "AI Draft-Only Pipeline",
-      "R_ids": ["R-21"],
+      "R_ids": ["R-20"],
       "C_ids": ["C-01", "C-10", "C-06"],
       "phases": ["PH2", "PH5"],
-      "status": "done",
+      "status": "in_progress",
       "blocked_by": ["CE-2"],
-      "notes": "Draft-only + CE→evidence→policy guard done, flag OFF. Real inference (QA-39/40) deferred P1."
+      "notes": "PH2 draft-only + CE→evidence→policy guard done, flag OFF. Real inference and review/approve workflow (QA-39/40) deferred P1/PH5."
     },
     {
       "feature_id": "F-020",
-      "name": "Product Telemetry",
-      "R_ids": ["R-22", "R-23"],
+      "name": "Product Telemetry & Structured Feedback",
+      "R_ids": ["R-21", "R-22", "R-23"],
       "C_ids": ["C-07", "C-08"],
       "phases": ["PH3", "PH5", "PH6"],
-      "status": "planned",
-      "notes": "Spec QA-53/54 — needs PH3 wiring (release version + flag exposure)."
+      "status": "in_progress",
+      "notes": "TelemetryService + FeedbackService + migration 002_telemetry_feedback implemented with unit tests (5 tests total); HTTP endpoint wiring + pilot loop instrumentation (releaseVersion + flagExposure) pending."
     },
     {
       "feature_id": "F-021",

@@ -3,7 +3,7 @@
 **Owner:** Founder / Product Lead  
 **Maturity:** Living, append-only  
 **Evidence status:** Decisions are not evidence  
-**Last updated:** 2026-09-10
+**Last updated:** 2026-10-27 (cập nhật cross-reference namespace `VH1–VH8` từ `HYPOTHESIS_REGISTER.md` và tiến độ PH3/pilot-loop; toàn bộ mã `H0–H8` trong tài liệu này là **dãy v1 ngày 2026-09-10**, KHÔNG được nhầm với dãy V2 `VH1–VH8` ngày 2026-10-06)
 
 ## Status model
 

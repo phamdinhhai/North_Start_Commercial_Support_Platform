@@ -150,6 +150,8 @@ Hai chế độ dùng chung một template phần mềm. Sơ đồ dưới là *
 
 ### 3.3 Hai cách chọn lõi sản phẩm
 
+> **Guardrail phạm vi (2026-10-27).** Mục 3.3 chỉ là **đề xuất dài hạn ở Tier 2**, chưa được duyệt thành quyết định kiến trúc. Thực tại dự án: **Đường B đang được đi** — modular monolith TypeScript tự xây tại `product/` (xem `docs/canonical/ARCHITECTURE_CONSTITUTION.md`, `ADR-002`, `04-architecture.md` C-01…C-12). Việc "chạy Đường A để thử với 1–3 khách đầu" **không** nằm trong P0 LVP scope và **không** được phép import ngữ nghĩa ngoại lai vào canonical (I-10, I-11); nếu sau này kích hoạt Đường A, phải qua RFC + human gate riêng. Các mục §1–3 và §5–10 (control plane, licensing, installer, fleet ops, SLA) là backlog deferred `R-29…R-41` / `PH7+`, không tự mở rộng PH3.
+
 - **Đường A – Ghép module mã nguồn mở rồi bọc lại.** Twenty (CRM/pipeline) + Chatwoot (inbox) + n8n/Dittofeed (automation) + Metabase (báo cáo) + lớp định danh/attribution của bạn. Ra thị trường nhanh nhất. Đổi lại phải tích hợp nhiều thành phần, giấy phép phức tạp, trải nghiệm kém liền mạch.
 - **Đường B – Tự xây lõi** (Next.js/React + Node/TypeScript hoặc Python/FastAPI + PostgreSQL), dùng thư viện mã nguồn mở cho phần phụ trợ. Kiểm soát giấy phép và trải nghiệm tốt nhất, tốn công nhất.
 - **Gợi ý:** chạy Đường A để thử với 1–3 khách đầu, đồng thời xây dần lớp riêng (Customer 360, attribution, AI) bằng code của bạn để có thể thay các module dần.
@@ -181,6 +183,14 @@ Hai chế độ dùng chung một template phần mềm. Sơ đồ dưới là *
 ---
 
 ## 4. Lõi sản phẩm: thực thể và AI
+
+> [!IMPORTANT]
+> **Mục 4 subordinate to canonical Tier 1 — không phải mô hình dữ liệu đã duyệt.** Các điểm dưới đây là phác thảo dài hạn và bị ràng buộc bởi:
+> - `Contact` (hồ sơ hợp nhất) **chưa phải entity lõi đã duyệt** — `docs/canonical/DOMAIN_MODEL.md` §2 và `IDENTITY_MODEL.md` §§1–2 chỉ định nghĩa `Customer` / `CustomerRef` / `Identity`.RFC-005 Q2 đang để ngỏ; không tạo bảng/cột `Contact` chỉ vì mô tả này.
+> - `Order` / `Payment` / `Campaign/Ad/Source` là dữ liệu **thuộc module hoặc hệ bên ngoài**; nền tảng chỉ giữ claim/pointer cho tới khi adapter được duyệt (I-10, I-11).
+> - **Attribution "truy ngược được về Campaign và Conversation đầu tiên" không được bảo đảm bởi schema** — mô hình ghi công vẫn `OPEN: MM-1`, và mọi chuỗi không nối được phải hiển thị UNKNOWN (I-02, I-08), không suy đoán.
+> - **Gộp trùng theo SĐT/Zalo ID/PSID không được tự động** — merge là manual, cần bằng chứng và hoàn tác được (I-06, `OPEN: ID-1`).
+> - **AI chỉ draft** — tóm tắt / soạn nháp / RAG đều không được tự mutate dữ liệu thương mại (I-03, I-04); mọi suy diễn đi qua Commercial Event + Evidence + Policy (CE-2 vẫn mở).
 
 ### 4.1 Mô hình dữ liệu tối thiểu
 `Contact` (hồ sơ hợp nhất), `Identity` (SĐT, email, Zalo ID, PSID...), `Campaign/Ad/Source`, `Conversation/Message`, `Lead/Opportunity`, `Order/Payment`, `Activity/Task`, `EventLog` (nguyên liệu của AI).

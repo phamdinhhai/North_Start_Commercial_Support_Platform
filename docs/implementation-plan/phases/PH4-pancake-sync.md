@@ -29,7 +29,7 @@
 | T4-00 | Re-verify spike Q-03/Q-04 live + ghi verdict (Gate trước PH4) | R-26, R-27 | C-05, C-11 | `docs/implementation-plan/spike/pancake-verdict.md` (API paging/auth + webhook semantics/payload shape) | **Quyết định 2026-10-02: 2-A — engineering tự chạy spike live** (cần credential/fixture thật); nếu không accessible → giữ flag OFF, manual loop đủ (ADR-003) |
 | T4-01 | Pancake adapter read-only (fetch conversations/messages/customers) — encrypted credential per-workspace, server-side | R-26, R-27 | C-05, C-11 | `product/src/adapters/pancake/pancake-adapter.ts` + test flag OFF → 0 API calls | I-11 boundary, không inherited semantics; reuse `ManualAdapter` pattern (envelope+idempotency) |
 | T4-02 | Envelope mapping + raw preserve + hash — mapping lỗi giữ raw, không fabricate | R-05, R-26 | C-11 | mapping test với fixture Pancake anonymized | I-12 |
-| T4-03 | Idempotency đúng QA-10: same event/version+payload → no-op; update hợp lệ → append raw version; same event/version khác payload → conflict/quarantine; không đoán thứ tự khi thiếu version contract | R-06, R-26 | C-05, C-06 | idempotency + quarantine test | Spec draft BR-05/AC-02; `idempotencyKey = connection:externalRecordId` + version tách riêng |
+| T4-03 | Idempotency đúng QA-10: same event/version+payload → no-op; update hợp lệ → append raw version; same event/version khác payload → conflict/quarantine; không đoán thứ tự khi thiếu version contract | R-06, R-26 | C-05, C-06 | idempotency + quarantine test | Spec draft BR-05/AC-02; khoá chống trùng phải bao gồm `(workspaceId, connection, externalRecordId)` có tách cấu trúc an toàn (tránh va chạm ký tự phân cách — P1-1) + version tách riêng |
 | T4-04 | Checkpoint/cursor store tách biệt | R-26, R-27 | C-09 | `product/src/infra/checkpoint/` — cursor không gộp canonical state | — |
 | T4-05 | Redaction PII/token trong logs/telemetry | R-27 | C-12, C-05 | redaction test | INTEGRATION_PRINCIPLES §6; QA-38 |
 | T4-06 | Feature flag wiring OFF mặc định + manual fallback | R-26, R-27 | C-07 | flag test + E2E manual loop vẫn pass khi flag OFF | — |
@@ -56,5 +56,5 @@
 
 ## Liên kết
 
-- Plan chi tiết: `C:\Users\admin\.claude\plans\shimmering-whistling-cupcake.md`
+- Tổng quan kế hoạch & kiểm chứng: `../05-phase-map.md`, `../08-verification.md`
 - QA: QA-07, QA-10 · Spec draft: BR-05, AC-02 · Invariants: I-11, I-12 · Open: Q-03/Q-04

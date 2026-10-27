@@ -31,7 +31,7 @@ CE-1 chỉ freeze sau Gate #A RFC review (Product + Architecture + Data). Code P
 
 ## 2. CE-2 — Commercial Event Scope (Hypothesis, chưa freeze)
 
-### 2.1 Phạm vi LVP (interim — ADR-003)
+### 2.1 Phạm vi LVP (interim — ADR-001)
 
 - **Inferred-only**: AI draft trong `CommercialEvent` pipeline — `Inferred → Evidence → Policy → Action`.
 - AI **draft-only, never autonomous mutation** (I-03, I-04). Feature-flag OFF mặc định.
@@ -42,7 +42,7 @@ CE-1 chỉ freeze sau Gate #A RFC review (Product + Architecture + Data). Code P
 - AI output → `CommercialEvent` với `confidence + evidence + suggested mutation + policy check`.
 - Manual loop luôn fully functional khi AI flag OFF — không block L0 loop (I-03).
 - Invalid AI output → fails closed → manual input (I-03).
-- Bất kỳ autonomous mutation → **abort** với comment `// OPEN: CE-2 — see ADR-003`.
+- Bất kỳ autonomous mutation → **abort** với comment `// OPEN: CE-2 — see ADR-001`.
 
 ### 2.3 Assertion & Provenance (non-inferred — scope boundary rõ)
 
@@ -63,10 +63,10 @@ observed / claimed / imported
 - Assertion envelope lưu raw immutable trước canonical mapping (I-12) — không overwrite, không fabricate.
 - `UNKNOWN` / `not_applicable` / `not_observed` / `not_requested` là valid states, không collapse (I-08).
 - Mọi correction là append + audit (I-05) — reversible.
-- AI inferred CE không tự gộp vào assertion envelope — hai path tách biệt cho tới khi CE-2 chốt (ADR-003 interim).
+- AI inferred CE không tự gộp vào assertion envelope — hai path tách biệt cho tới khi CE-2 chốt (ADR-001 interim).
 
 > Đây là seam marker nơi code chạm CE-2 inferred/non-inferred:
-> `// OPEN: CE-2 — see ADR-003 — inferred-only interim; observed/claimed/imported → Assertion envelope`
+> `// OPEN: CE-2 — see ADR-001 — inferred-only interim; observed/claimed/imported → Assertion envelope`
 
 ---
 
@@ -74,7 +74,7 @@ observed / claimed / imported
 
 ```ts
 // OPEN: CE-1 — see ADR-001 — interim: New→Accepted→Contacting→Follow-up→Won/Lost+Unknown
-// OPEN: CE-2 — see ADR-003 — interim: inferred-only, draft-only, flag OFF
+// OPEN: CE-2 — see ADR-001 — interim: inferred-only, draft-only, flag OFF
 ```
 
 Mọi nơi chạm CE-1/CE-2 phải có marker này.

@@ -1,13 +1,13 @@
 # Progress Tracker
 
-**Updated:** 2026-10-07 (đợt sửa 5 P1 theo review của user tại `b81edd9` + 1 race self-found)
-**Mode:** Build — PH1 + PH2 code reported done; PH3 persistence verified on real PostgreSQL 16; pilot-loop P0 flow running live (in-memory).
+**Updated:** 2026-10-27 (đối chiếu tái kiểm định HTTP độc lập tại `1b72b61` / `7c26944` — xem `docs/reports/project-status-and-handover.md`)
+**Mode:** Build — PH1 + PH2 code reported done; PH3 persistence verified on real PostgreSQL 16; pilot-loop P0 flow running live over HTTP + PostgreSQL (with in-memory fallback when `DATABASE_URL` is unset).
 **Problem framing:** `docs/Dinh_nghia_bai_toan_V2.md` (2026-10-06) is a problem-definition and validation-plan source, not a frozen product/domain specification; see `discovery/v2-validation-and-traceability.md`.
 **Sources:** `docs/implementation-plan/discovery/2026-10-01-qa.md` (QA-01…59), `discovery/2026-10-01-specification-draft.md`, `discovery/v2-validation-and-traceability.md`, `discovery/q3-annotation-guide.md`, `discovery/q4-provenance-time-mapping.md`, `discovery/q3-q4-synthetic-scenarios-edu-b2c.md`, `03-requirements.md` (R-01…R-41), `SERVICE_MODEL.md`, `state/features.json`
-**Code evidence (2026-10-07→08 — P1 checkpoint `0f1da07` đã push, cộng correction của migration 004 commit `35c18b5`+):** `product/` — `npm run typecheck` exit 0; `npm run build` exit 0; `npm test` **không** set DB env → exit 0, **228 pass / 10 skipped** (3 integration specs skip theo thiết kế); `npm test` **có** `TEST_DATABASE_URL` → exit 0, **238 pass / 0 skip** (3 run liên tiếp sạch, flaky đã hết sau `e93e82d`); `npm run test:integration` exit 0 (**10 pass**); `scripts/pilot-smoke.sh` exit 0 (**PASS=53 FAIL=0**, gồm restart tiến trình app). PostgreSQL 16 thật: docker `postgres:16-alpine`, host **:55432** (5432 bị `edura-postgres` của dự án khác chiếm — không đụng), `migrate up/down 4/re-up` exit 0.
+**Code evidence (measured at `1b72b61`):** `product/` — `npm run typecheck` exit 0; `npm run build` exit 0; `npm test` **không** set DB env → exit 0, **228 pass / 10 skipped** (3 integration specs skip theo thiết kế); `npm test` **có** `TEST_DATABASE_URL` → exit 0, **238 pass / 0 skip** (26 spec files; 3 run liên tiếp sạch sau `e93e82d`); `npm run test:integration` exit 0 (**10 pass**); `scripts/pilot-smoke.sh` exit 0 (**PASS=53 FAIL=0**, gồm restart tiến trình app). PostgreSQL 16 thật: docker `postgres:16-alpine`, host **:55432**, `migrate up/down 4/re-up` exit 0. **Lưu ý trung thực (kiểm định HTTP độc lập 2026-10-27):** P1-3, P1-5 và migrator race đã đóng thật; tuy nhiên **P1-1** (va chạm dấu `:` trong `idempotencyKey`), **P1-2** (`salesAccept`/`completeWork` chưa kiểm theo recipient của từng work item; `state.handoffRecipient` bị ghi đè khi có handoff thứ hai), và **P1-4** (`sourceEnvelopeId` của tin nhắn intake vẫn được nhận làm bằng chứng `observed` đóng việc, và `absent`/`conflicted` vẫn đóng được work item; 3 file test/smoke đang assert hành vi sai này) **vẫn còn mở**.
 **Verification report:** `08-verification.md` đã được điền cho PH3 + matrix I-01…I-12 (kèm ghi chú trung thực: **repo không có `.github/workflows/`** nên không có CI host — mọi con số là local).
 
-> **Evidence boundary:** V2 H1–H8 and numeric thresholds are proposed validation hypotheses, not empirical results or industry benchmarks. QA-01…59/spec draft are intent/proposal records, not frozen requirements. R-29…R-41 remain proposed/deferred and do not expand PH3. CE-1/CE-2/PM-1/MM-1/ID-1/ID-2/LG-1 remain open; no canonical decision is resolved by V2.
+> **Evidence boundary:** V2 `VH1–VH8` (ghi là H1–H8 trong bản gốc V2) and numeric thresholds are proposed validation hypotheses, not empirical results or industry benchmarks. QA-01…59/spec draft are intent/proposal records, not frozen requirements. R-29…R-41 remain proposed/deferred and do not expand PH3. CE-1/CE-2/PM-1/MM-1/ID-1/ID-2/LG-1 remain open; no canonical decision is resolved by V2.
 
 ---
 
@@ -16,7 +16,7 @@
 - [x] T0-02: Q-04 spike (webhook semantics + payload) — như trên
 - [x] T0-03: Envelope schema v1 draft — `domain/envelope` đã implement + test (12 tests)
 - [x] T0-04: RFC CE-1 + CE-2 draft — ADR-001 interim hypothesis (citations đã fix 51f9732 — chỉ là rà soát trích dẫn, không phải phê duyệt gate)
-- [x] T0-05: Synthetic/manual adapter spec — `adapters/manual` (7 tests), synthetic demo path có
+- [x] T0-05: Synthetic/manual adapter spec — `adapters/manual` (7 tests ban đầu → 11 tests hiện tại), synthetic demo path có
 - [~] T0-06: Human Gate #A — **VẪN CHỜ** (sửa 2026-10-07): ADR-001 vẫn `Proposed — chờ Human Gate #A`; CE-1/CE-2 chưa có phê duyệt transition table/scope. Code chỉ chạy hypothesis interim và abort ngoài boundary (422 CE1_BOUNDARY). Citation fix 51f9732 chỉ là rà soát trích dẫn, không tự chứng minh gate đã được duyệt — đánh dấu [x] trước đó là quá phạm vi.
 
 **Kết luận PH0:** Spike + envelope đủ để không block PH1/PH2; Pancake feasibility (Q-03/Q-04) vẫn BLOCKED-BY cho PH4.
@@ -27,9 +27,9 @@
 - [x] T1-03: Health endpoint — `health.controller` + test (3 tests)
 - [x] T1-04: Lead entity (stable ID) — `domain/lead/lead.ts` + `lead.spec` (13 tests)
 - [x] T1-05: Handoff entity — `domain/handoff` (7 tests)
-- [x] T1-06: Manual adapter shell — `adapters/manual` (7 tests), raw preserved, no fabrication
+- [x] T1-06: Manual adapter shell — `adapters/manual` (7 tests ban đầu → 11 tests hiện tại), raw preserved, no fabrication
 - [x] T1-07: Workspace isolation shell — `infra/workspace` (10 tests), synthetic segregation
-- [x] T1-08: npm ci/typecheck/test/build pass — pass 2026-09-22 (132 tests)
+- [x] T1-08: npm ci/typecheck/test/build pass — pass 2026-09-22 (132 tests ban đầu → 238 tests tại `1b72b61`)
 
 **Gate L1:** Comprehension — smoke health + domain shell + workspace isolation shell → **đạt (code).**
 
@@ -42,7 +42,7 @@
 - [x] T2-06: Outcome Won/Lost/Unknown — `outcome` (7 tests), claimed + correction append-only
 - [x] T2-07: Lead state machine (hypothesis) — `lead-state` interim New→Accepted→Contacting→Follow-up→Won/Lost/Unknown, reversible + audit (BLOCKED-BY CE-1, ADR-001)
 - [x] T2-08: Audit/Provenance store — `infra/audit` (8 tests), append-only in-memory
-- [x] T2-09: Invariant sweep tests — `domain/invariants.spec` (19 tests), mỗi I-01…I-12 ≥1 test (I-06/I-09 cần thay bằng meaningful check ở lần sweep tới — xem qa.md §10)
+- [x] T2-09: Invariant sweep tests — `domain/invariants.spec` (19 tests ban đầu → 25 tests hiện tại), mỗi I-01…I-12 ≥1 test (I-06/I-10 vẫn ở mức placeholder/anti-corruption cơ bản, cần meaningful check ở lần sweep tới)
 
 **Gate L2:** Vertical slice — lead lifecycle + audit + UNKNOWN visible → **code đạt, chờ human review ADR-001 + sweep I-06/I-09 meaningful.**
 
@@ -80,7 +80,7 @@
 - [✓code][✓live] Error contract: guardrail refusal trả **4xx + machine code**, không còn 500: 400 `INPUT_INVALID` (validate boundary: required/enum/ISO date/`leadId` UUID), 422 `EVIDENCE_POINTER_REQUIRED` (message observed ≠ hành động), 422 `EVIDENCE_NOT_FOUND`/`EVIDENCE_NOT_RELATED`, 403 `EVIDENCE_OUT_OF_SCOPE`, 422 `INFERRED_CANNOT_CLOSE` (I-03/V2 §9.6), 422 `EXTERNAL_NOT_DECLAREABLE`, 422 `CE1_BOUNDARY` (New→Won ngoài hypothesis), 409 `WORK_ALREADY_CLOSED`/`WORK_ALREADY_COMPLETED`, **409 `WORK_SUPERSEDED` + `details.replacementId`**, 403 `NOT_ASSIGNED_RECIPIENT`/`NOT_OWNER`, 404 `WORK_NOT_FOUND`/`OUTCOME_NOT_FOUND`/cross-workspace (QA-32/AC-03), 401 unauth (R-02). Smoke **assert mã lỗi** và assert state không đổi sau khi bị từ chối.
 - [✓live] Demo route vẫn chạy (`x-demo-workspace`, không token — R-02 AC) nhưng **đã sandbox + opt-in** (xem T3-03). Token Bearer unsigned dùng trong smoke chỉ với `AUTH_DEV_UNSIGNED_TOKENS=true` — **dev-only**, credential model thật chờ RFC PM-1/QA-28.
 - Trạng thái Q3/Q4: work axes (`responsibleParty`/`origin`/`completionEvidence`) và `occurredAt=unknown` không backfill là **candidate validation constructs** — RFC-005 vẫn Draft, EXP-06 vẫn proposed; migration `003_pilot_loop` là pilot-validation schema, không phải canonical model đã duyệt.
-- Còn thiếu cho Gate L2→L3: telemetry/feedback endpoints chưa wire vào luồng (T3-06/07 mới `[✓code]`), auth chưa qua middleware toàn cục, **optimistic locking chưa làm** (`version` được bump nhưng chưa có check nếu-nhiều-người-cùng-sửa — vòng kế tiếp trước pilot nhiều người), RFC-005 Q3/Q4 chưa có kết quả gán nhãn thật, chưa có E2E/contract suite thật (`vitest.config.e2e.ts` được package.json tham chiếu nhưng file không tồn tại).
+- Còn thiếu cho **Gate L2→L3 (milestone kỹ thuật)**: (1) đóng triệt để 3 cạnh P1 còn mở (**P1-1** va chạm dấu `:` trong `idempotencyKey`, **P1-2** kiểm quyền accept/complete theo recipient của từng work item và giữ quyền view cho các recipient có work item mở, **P1-4** không cho phép dùng `sourceEnvelopeId` của tin nhắn intake hoặc `absent`/`conflicted` để đóng work item sang `completed`, đồng thời sửa 3 file test/smoke đang assert hành vi sai), (2) **optimistic locking** (`version` được bump nhưng chưa có check nếu-nhiều-người-cùng-sửa), (3) telemetry/feedback endpoints wire vào luồng (T3-06/07 mới `[✓code]`), (4) auth qua guard toàn cục, và (5) tạo hoặc gỡ tham chiếu `vitest.config.e2e.ts` trong `package.json`. *(Lưu ý: theo `RFC-005:90`, kết quả gán nhãn Q3/Q4 thật và full PM-1 matrix thuộc cổng pre-pilot dữ liệu thật, không chặn prototype thủ công L2→L3.)*
 
 
 ## PH4 — Pancake Sync (P1 flagged)

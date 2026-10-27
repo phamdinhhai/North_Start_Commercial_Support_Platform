@@ -36,9 +36,9 @@ External Source → [Adapter] → Envelope (v1, immutable) → [Anti-Corruption 
 
 ## 3. Idempotency
 
-**Key = `connection` + `externalRecordId`**
+**Key = `(workspaceId, connection, externalRecordId)`** *(cập nhật theo P1-1 — xem `ADR-003` và `docs/reports/project-status-and-handover.md`; bản gốc PH0 thiếu `workspaceId`)*
 
-- Duplicate ingest (same connection + externalRecordId) → return existing envelope, no new record.
+- Duplicate ingest (same `workspaceId` + `connection` + `externalRecordId`, với tách cấu trúc an toàn để không va chạm khi tên `connection` chứa dấu `:`) → return existing envelope, no new record.
 - External IDs immutable once stored (I-11, I-12).
 - Cursor/checkpoint tách khỏi canonical state — ingest pipeline không phụ thuộc domain state.
 

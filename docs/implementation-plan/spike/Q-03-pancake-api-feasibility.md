@@ -1,6 +1,6 @@
 # Spike Q-03 — Pancake API Feasibility
 
-**PH0** · **Trạng thái:** Draft — chờ Human review
+**PH0** · **Trạng thái:** Draft — mới đối chiếu trên **tài liệu KB snapshot**, **chưa** kiểm chứng live với dịch vụ Pancake thật (`T4-00` trước PH4)
 **Mục đích:** Xác định feasibility đọc dữ liệu commercial từ Pancake qua API.
 
 ---
@@ -9,30 +9,30 @@
 
 | Kết luận | Chi tiết |
 |----------|----------|
-| **Đọc dữ liệu Pancake qua API** | ✅ Feasible (read-only sync) |
+| **Đọc dữ liệu Pancake qua API** | 📄 KB-SNAPSHOT (cần re-verify live ở `T4-00` trước khi bật PH4) |
 | **Webhook/push realtime** | ⚠️ Chưa xác định — BLOCKED-BY Q-04 |
 | **Block PH1 coding?** | ❌ Không — manual/synthetic P0 adapter unblocked |
 
 ---
 
-## 2. Evidence
+## 2. Evidence (từ KB snapshot — chưa verify live)
 
 ### Auth
-- API key-based ✅ VERIFIED — server-side encrypted store (I-11)
+- API key-based 📄 KB-SNAPSHOT — server-side encrypted store (I-11); cần live verify tại `T4-00`
 - OAuth/token: ⚠️ ASSUMED — cần verify, không block adapter boundary
 
 ### Paging
-- Cursor-based: ✅ VERIFIED — `next_cursor` + `has_more`
-- Limit/offset: ✅ VERIFIED
+- Cursor-based: 📄 KB-SNAPSHOT — `next_cursor` + `has_more` (cần live verify)
+- Limit/offset: 📄 KB-SNAPSHOT
 
 ### Payload & Envelope
-- Envelope shape: ✅ VERIFIED — connection + external ID + timestamps + raw payload + hash
-- Record types: ✅ VERIFIED — Conversation / Message / Customer / Note / Order
-- Raw evidence: ✅ VERIFIED — immutable (I-12), SHA-256 hash
+- Envelope shape: ✅ DESIGNED IN DOMAIN — `(workspaceId, connection, externalRecordId)` + timestamps + raw payload + hash
+- Record types: 📄 KB-SNAPSHOT — Conversation / Message / Customer / Note / Order
+- Raw evidence: ✅ ENFORCED IN DOMAIN — immutable (I-12), SHA-256 hash
 
 ### Idempotency
-- External record IDs: ✅ VERIFIED — immutable (I-11, I-12)
-- Cursor checkpoint: ✅ VERIFIED — tách biệt canonical state
+- External record IDs: 📄 KB-SNAPSHOT — giả định immutable phía Pancake (I-11, I-12); cần live verify
+- Cursor checkpoint: ✅ DESIGNED — tách biệt canonical state
 
 ---
 

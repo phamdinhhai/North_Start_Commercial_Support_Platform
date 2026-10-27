@@ -51,5 +51,5 @@
 
 ## Liên kết
 
-- Plan chi tiết: `C:\Users\admin\.claude\plans\shimmering-whistling-cupcake.md`
+- Tổng quan kế hoạch & kiểm chứng: `../05-phase-map.md`, `../08-verification.md`
 - QA: QA-11, QA-17…27, QA-33…35, QA-57…59 · Spec draft: BR-11…26, AC-05, §7 · Invariants: I-05, I-08, I-09

@@ -2,6 +2,11 @@
 
 Status: APPROVED — Human Gate #1
 
+> [!WARNING]
+> **Artifact lịch sử — đã supersede (2026-10-27).** Story này mô tả **PH1 Walking Skeleton** và đã hoàn thành vai trò của nó tại commit `44ef6a1`. Các ràng buộc "persistence is deferred", "DO NOT implement: Lead semantics / Customer semantics / authentication / migrations", "`product/tests/**`", và "Human Gate #2" **không còn áp dụng**: từ PH2–PH3 dự án đã build domain entities, PostgreSQL migrations 001–004, auth/RBAC và pilot-loop, với test đặt cạnh source (`product/src/**/*.spec.ts`).
+> **Nguồn chỉ đạo hiện hành:** `docs/implementation-plan/phases/PH1…PH6.md`, `docs/implementation-plan/state/progress.md`, `docs/implementation-plan/decisions/ADR-002-persistence.md`, `docs/reports/project-status-and-handover.md`.
+> Giữ nguyên nội dung bên dưới để bảo toàn lịch sử quyết định (I-05). **Không sửa, không mở rộng, không dùng làm căn cứ cho PR mới.**
+
 ## Objective
 
 Bootstrap the isolated executable product runtime for the Revenue Continuity

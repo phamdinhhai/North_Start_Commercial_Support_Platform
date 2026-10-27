@@ -22,7 +22,7 @@
    ```
    Mapping error: preserve raw envelope; không fabricate canonical fields.
 
-2. **Idempotency:** `connection_key + external_record_id` → idempotent ingestion; retry bounded; duplicate dropped với audit.
+2. **Idempotency:** `(workspace_id, connection_key, external_record_id)` → idempotent ingestion; retry bounded; duplicate dropped với audit. **Ba thành phần, có tách cấu trúc an toàn** (không dùng chuỗi nối bằng ký tự phân cách có thể xuất hiện trong tên connection — xem P1-1 trong `docs/reports/project-status-and-handover.md`); `workspace_id` server-derived, không lấy từ body.
 
 3. **Live verification (spike):** Pancake read spike trong PH0 trước khi code path production dùng Pancake. Snapshot KB không justified production attribute claims.
 

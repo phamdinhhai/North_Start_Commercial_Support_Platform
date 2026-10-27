@@ -1,7 +1,7 @@
 # ADR-002 — Persistence Strategy (BOOT-001 vs LVP)
 
 **Ngày:** 2026-09-21
-**Trạng thái:** Proposed
+**Trạng thái:** Accepted — PH3 đã build và kiểm chứng trên PostgreSQL 16 thật (migrations 001–004; `product/src/infra/postgres/`; `state/progress.md`)
 **Liên quan:** `03-requirements.md` R-01/R-18; `04-architecture.md` C-03; BOOT-001; `ARCHITECTURE_CONSTITUTION.md` §2 seam 5
 
 ## Context

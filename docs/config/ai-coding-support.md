@@ -2,7 +2,8 @@
 
 > **Consolidated:** 2026-09-21
 > **Sources:** `.agents/skills/*`, `templates/skills/*`, `templates/teams/typescript.toml`, `templates/prompts/*`
-> **Archive originals:** `docs/_archive/skills-templates-2026-09/`
+> **Archive originals:** `docs/_archive/skills-templates-2026-09/` (`templates/**` and `src/bernstein/**` were moved there; `.agents/skills/**` remains forbidden to modify per `AGENTS.md`)
+> **Tooling note:** Commands using `npx @claude-flow/cli` below are optional external CLI helpers, not project dependencies in `product/package.json`.
 
 ---
 
@@ -122,10 +123,10 @@ Every task is a **vertical slice** that crosses every layer it needs in one ship
   "complexity": "low | medium | high",
   "estimated_minutes": 60,
   "depends_on": ["title of dependency task"],
-  "owned_files": ["product/src/domain/lead.ts"],
+  "owned_files": ["product/src/domain/lead/lead.ts"],
   "completion_signals": [
-    {"type": "test_passes", "value": "npm test -- --filter lead"},
-    {"type": "file_contains", "value": "export class Lead"}
+    {"type": "test_passes", "value": "npm --prefix product test -- lead"},
+    {"type": "file_contains", "value": "export interface Lead"}
   ]
 }
 ```

@@ -7,7 +7,7 @@
 
 ## Context
 
-V2 consolidates the business-problem definition into six layers (pain → causes → measurement → organizational constraints → product behavior → external constraints), proposes three behavioral principles (incomplete observation; distinguish fact origin/reliability; user value before data-entry burden), narrows the first validation package to role A (lightweight operational layer, Pancake as candidate first conversation source, handoff context + follow-up tracking), and defines a disposable validation plan over 50–100 demand-episode files with hypotheses H1–H8 and proposed screening thresholds.
+V2 consolidates the business-problem definition into six layers (pain → causes → measurement → organizational constraints → product behavior → external constraints), proposes three behavioral principles (incomplete observation; distinguish fact origin/reliability; user value before data-entry burden), narrows the first validation package to role A (lightweight operational layer, Pancake as candidate first conversation source, handoff context + follow-up tracking), and defines a disposable validation plan over 50–100 demand-episode files with hypotheses `VH1–VH8` (written as `H1–H8` inside V2 §18.1; versioned as `VH1–VH8` in `HYPOTHESIS_REGISTER.md` to avoid colliding with the 2026-09-10 `H0–H8` v1 series) and proposed screening thresholds.
 
 The existing canonical and implementation-plan sources already defer attribution/merge/CRM mapping and keep LVP as an instrumented usable loop, but several north-star, research, and delivery descriptions read as stronger-than-evidenced product promises (full observability, deterministic attribution, Journey as entity, service/control-plane commitments). V2 explicitly says its MVP scope and thresholds are proposed screens, not proof of market demand, pricing, willingness to pay, or technical feasibility, and that legal/API/model details remain unverified.
 
@@ -15,7 +15,7 @@ The existing canonical and implementation-plan sources already defer attribution
 
 1. Adopt V2 as the current **problem-framing and validation-hypothesis source**. It does not by itself change frozen canonical semantics, architecture, or phase scope.
 2. Keep its first validation package (role A) as the **candidate** validation scope; do not expand PH3–PH6 or promote R-29…R-41 / SERVICE_MODEL §1–3 commitments without separate human/phase-gate decisions.
-3. Keep `Journey`, Contact/Organization per-demand roles, universal `Outcome`, and full-channel deterministic attribution as **hypotheses** (H6–H8), not entities/columns/behaviors, until conseqential evidence + alternatives have been reviewed.
+3. Keep `Journey`, Contact/Organization per-demand roles, universal `Outcome`, and full-channel deterministic attribution as **hypotheses** (`VH6–VH8`, i.e., V2 §18.1 H6–H8), not entities/columns/behaviors, until consequential evidence + alternatives have been reviewed.
 4. Apply V2 provenance distinctions (observed / declared / inferred; occurred vs recorded time; evidence quality separate) and **defined-denominator coverage** only as measurement/evaluation rules; do not treat the wording as a canonical vocabulary change until a mapping RFC is approved.
 5. Require that every V2-derived evaluation pre-register hypothesis, threshold, sample/denominator, rule/model/prompt version, and evaluation-set partition before scoring, and report `proceed / fail / insufficient data` with numerator/denominator/missingness.
 

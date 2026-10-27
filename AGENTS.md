@@ -8,9 +8,9 @@
 
 **Tech Stack:** TypeScript, Node.js 22, NestJS + Fastify, Vitest
 **Architecture:** Modular monolith, domain-driven, framework-independent domain core
-**Code location:** `product/` (not yet created — PH1 Walking Skeleton)
+**Code location:** `product/` (PH1–PH2 domain core + PH3 PostgreSQL persistence & pilot-loop API in progress; see `docs/reports/project-status-and-handover.md`)
 
-## Quick Start (sau PH1)
+## Quick Start
 
 ```bash
 cd product/
@@ -53,6 +53,7 @@ Tất cả invariant trong `docs/canonical/DOMAIN_INVARIANTS.md`. Code PHẢI en
 - **I-07:** Stable Lead ID — immutable
 - **I-08:** UNKNOWN visible — honest, confident, surfaced
 - **I-09:** Lead-scoped access — RBAC
+- **I-10:** CRM adapters do not own canonical commercial semantics — anti-corruption boundary
 - **I-11:** Adapter = integration boundary — no inherited semantics
 - **I-12:** Raw immutable — no fabrication
 
@@ -68,7 +69,7 @@ CE-1 (state machine), CE-2 (event scope), MM-1 (attribution), ID-1 (merge thresh
 ### File Organization
 - **NEVER** save to root folder
 - `product/src/` — Source code files
-- `product/tests/` — Test files
+- `product/src/**/*.spec.ts` — Unit & integration test files (co-located with source)
 - `docs/` — Documentation
 - `docs/config/` — Configuration files
 
@@ -81,8 +82,8 @@ CE-1 (state machine), CE-2 (event scope), MM-1 (attribution), ID-1 (merge thresh
 - Coverage ≥ 80% line, 100% security-critical
 
 ### Forbidden Paths (DO NOT TOUCH)
-- `src/bernstein/**`
-- `templates/**`
+- `src/bernstein/**` (archived under `docs/_archive/skills-templates-2026-09/` — do not recreate)
+- `templates/**` (archived under `docs/_archive/skills-templates-2026-09/` — do not recreate)
 - `.agents/skills/**`
 - `docs/canonical/**` (frozen normative)
 

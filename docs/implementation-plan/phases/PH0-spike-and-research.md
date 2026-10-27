@@ -1,7 +1,7 @@
 # PH0 — Spike & Research
 
 **Phase:** PH0 · **Gate trước:** — · **Gate sau:** L0 (Ready)
-**Trạng thái:** Draft — chưa bắt đầu
+**Trạng thái:** T0-01…T0-05 đã có tài liệu spike (`spike/`); T0-06 (Human Gate #A cho CE-1/CE-2) vẫn chờ người duyệt, và Q-03/Q-04 vẫn cần kiểm chứng live trước PH4
 **Thời lượng:** 1–2 tuần
 **BLOCKED-BY:** Q-03 (Pancake API accessible?), Q-04 (webhook semantics?) — chỉ cho R-26/R-27; manual/synthetic không block.
 
@@ -40,6 +40,6 @@
 | Spike scope creep thành connector framework | Giới hạn PH0: chỉ Pancake read feasibility, không generic framework (seam #9) |
 
 ## DoD (Definition of Done)
-- [x] T0-01 → T0-06 hoàn thành: spike notes + verdict + RFC draft + Gate record
-- [ ] Envelope schema v1 drafted, chưa freeze
-- [ ] Human Gate #A recorded trong `08-verification-report.md`
+- [x] T0-01 → T0-05 hoàn thành: spike notes + envelope draft + RFC draft + manual adapter spec
+- [x] Envelope schema v1 drafted (`spike/COMMERCIAL_ENVELOPE_SCHEMA_v1.md`), chưa freeze
+- [ ] T0-06 Human Gate #A recorded trong `08-verification.md` (hiện ADR-001 vẫn ở trạng thái interim hypothesis)

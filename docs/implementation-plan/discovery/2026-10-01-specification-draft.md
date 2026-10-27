@@ -1,6 +1,6 @@
 # North Star — Đặc tả tổng hợp (Draft)
 
-**Biên bản gốc:** [Q&A đã xác nhận](file:///d:/AI-for-Enterprise/North_Start_Commercial_Support_Platform/docs/implementation-plan/discovery/2026-10-01-qa.md). Đây là bản chuyển hóa Q&A thành đề xuất đặc tả, không phải transcript. Khi hai tài liệu khác nhau về lựa chọn người dùng, đối chiếu QA-ID và lịch sử thay thế trước; canonical vẫn có thẩm quyền cao hơn cả hai.
+**Biên bản gốc:** [Q&A đã xác nhận](../../implementation-plan/discovery/2026-10-01-qa.md). Đây là bản chuyển hóa Q&A thành đề xuất đặc tả, không phải transcript. Khi hai tài liệu khác nhau về lựa chọn người dùng, đối chiếu QA-ID và lịch sử thay thế trước; canonical vẫn có thẩm quyền cao hơn cả hai.
 
 **Cảnh báo review:** Các AC cụ thể và hàng permission do assistant suy ra (ví dụ chặn tạo tenant khi email chưa verified, quyền đọc theo role, withdrawal, audit-read) là **proposal**, không mặc nhiên đã được người dùng duyệt. Các nhánh Lost, pilot cardinality và payment allocation đã có ý định xác nhận tại QA-57…59; reason taxonomy, data schema và quyền liên quan vẫn cần review. Không dùng bản này làm implementation contract hoàn chỉnh trước khi review các điểm đó.
 

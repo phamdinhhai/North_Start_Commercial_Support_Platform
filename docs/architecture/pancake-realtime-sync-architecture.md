@@ -1,3 +1,8 @@
+> **Tier 2 — Kiến trúc tích hợp dạng khảo sát (exploratory).** Tài liệu này ghi lại quá trình brainstorm phương án đồng bộ Pancake và **không**override Tier 1 (`docs/canonical/**`) hay phase scope đã duyệt.
+> - **Phạm vi P0 hiện hành** theo `docs/canonical/ARCHITECTURE_CONSTITUTION.md` + `ADR-003` + `ADR-004`: manual/synthetic adapter là nguồn duy nhất được bật; **Pancake read-sync thuộc P1, phase PH4, feature flag OFF**, và bị chặn bởi spike live `T4-00` (Q-03/Q-04 — `spike/Q-03-pancake-api-feasibility.md` là **KB snapshot, chưa verify live**).
+> - Bảng xếp hạng phương án ở §12 ("P0", "P0 khi được duyệt", "P0/P1 prototype") phản ánh **thứ tự ưu tiên kỹ thuật trong cuộc thảo luận về riêng lớp đồng bộ Pancake**, **không phải** P0 scope của sản phẩm. Thứ tự bắt buộc của dự án vẫn là PH0→PH1→PH2→PH3→PH5 (PH4 song song, flag OFF) — xem `docs/implementation-plan/05-phase-map.md`.
+> - Không có khả năng API nào dưới đây được xác nhận bởi tài liệu này; chỉ live verification tại `T4-00` mới được phép bật code path Pancake (I-11, I-12).
+
 Đúng. Điểm bạn vừa nêu làm thay đổi khá nhiều cách đánh giá hướng “đi thẳng Meta/TikTok”.
 
 Nếu lấy premise vận hành hiện tại là: **Pancake đã đứng giữa người dùng và các nền tảng, xử lý phần partner/app authorization/review để người dùng chỉ cần đăng nhập/kết nối**, thì với sản phẩm của mình, Pancake không chỉ là một “nguồn dữ liệu”. Nó còn là một **lớp hạ tầng ủy quyền và tuân thủ đã được đóng gói sẵn**.

@@ -1,7 +1,7 @@
 # PH3 — Persistence & Auth
 
-**Phase:** PH3 · **Gate trước:** L2 (PH2 domain verified, sweep I-06/I-09 đã fix) · **Gate sau:** L2→L3 (persistence durable)
-**Trạng thái:** Đang code — P0 slice đã kiểm chứng trên PostgreSQL THẬT (2026-10-07). T3-01/02/05/08 `[✓DB]`; T3-03/04 `[✓code][✓live]` (401/403/404 verify qua HTTP, chưa phải APP_GUARD toàn cục); T3-06/07 mới `[✓code]` (chưa wire endpoint). Chưa đóng Gate L2→L3: credential model + permission matrix vẫn `OPEN: PM-1`, optimistic locking chưa làm, telemetry/feedback chưa nối luồng. Chi tiết theo mức trạng thái: `state/progress.md` (PH3 + Pilot-loop).
+**Phase:** PH3 · **Gate trước:** L2 (PH2 domain verified) · **Gate sau:** L2→L3 (persistence durable)
+**Trạng thái:** Đang code — P0 slice đã kiểm chứng trên PostgreSQL 16 thật (migrations 001–004). T3-01/02/05/08 `[✓DB]`; T3-03/04 `[✓code][✓live]` (401/403/404 verify qua HTTP, chưa phải APP_GUARD toàn cục); T3-06/07 mới `[✓code]` (chưa wire endpoint). **Chưa đóng Gate L2→L3:** kiểm định HTTP độc lập 2026-10-27 tại `1b72b61` xác nhận 3 cạnh P1 còn mở (**P1-1** dấu `:` trong `idempotencyKey`, **P1-2** kiểm quyền accept/complete theo từng work item + giữ quyền view cho recipient có work item mở, **P1-4** không dùng tin nhắn intake `sourceEnvelopeId` hay `absent`/`conflicted` để đóng work item), cộng optimistic locking chưa làm và telemetry/feedback chưa nối luồng. Chi tiết: `state/progress.md`, `08-verification.md`, `docs/reports/project-status-and-handover.md`.
 **Thời lượng:** 2–3 tuần
 **Phạm vi:** R-01, R-02, R-03, R-18, R-21, R-22, R-23 · C-03, C-04, C-06, C-07, C-08, C-12
 **Ranh giới:** Chỉ app/data plane. R-29…R-41 (control plane, licensing, installer, backup/restore P2) KHÔNG thuộc PH3 — giữ `proposed`, cần human gate trước khi promote.
@@ -16,7 +16,7 @@
 ## Kiến trúc & tài liệu cần cập nhật
 
 - `product/docker-compose.yml` (hoặc `product/docker-compose.dev.yml`): Postgres 16 (+ pgvector nếu cần RAG sau), volume, healthcheck; `.env.example` không chứa secret.
-- `product/migrations/` + runner (chọn 1: `node-pg-migrate` hoặc `knex`; không tự chế DSL generic trước nhu cầu thứ 2). Mỗi migration có `up`/`down` + checksum/hash.
+- `product/migrations/` + runner (`product/src/infra/postgres/migrator.ts`, chạy cặp `NNN_name.up.sql` / `NNN_name.down.sql` với `pg_advisory_xact_lock` + kiểm tra lại `schema_migrations` trong cùng transaction).
 - Module wiring theo pattern hiện có (`src/app.module.ts` + `HealthModule`): `src/infra/postgres/`, `src/infra/auth/`, `src/infra/rbac/`, `src/infra/telemetry/`, `src/modules/feedback/`. Reuse `WorkspaceStore` contract nhưng thay in-memory bằng PG ở PH3.
 - `product/README.md`: cách chạy `docker compose up -d`, chạy migration, seed bootstrap.
 
@@ -58,5 +58,5 @@
 
 ## Liên kết
 
-- Plan chi tiết: `C:\Users\admin\.claude\plans\shimmering-whistling-cupcake.md`
+- Tổng quan kế hoạch & kiểm chứng: `../05-phase-map.md`, `../08-verification.md`, `../../reports/project-status-and-handover.md`
 - QA: QA-28…32, QA-36/38, QA-58 · Spec draft: §7 data contract, AC-03 · Invariants: I-01, I-07…I-09, I-12 · Open: PM-1

@@ -2,9 +2,10 @@
 
 ## Nền tảng hợp nhất tiếp thị, bán hàng và quản lý quan hệ khách hàng
 
-**Dự án:** Ultra Platform  
+**Dự án:** Ultra Platform (`North_Start_Commercial_Support_Platform`)  
 **Ngày:** 06/10/2026  
 **Trạng thái:** Định nghĩa bài toán và kế hoạch kiểm chứng; chưa phải đặc tả sản phẩm hay mô hình dữ liệu đã đóng băng.  
+**Liên kết trong repo:** Quyết định áp dụng tại [`docs/implementation-plan/decisions/ADR-004-v2-framing.md`](implementation-plan/decisions/ADR-004-v2-framing.md); bảng truy nguyên tại [`docs/implementation-plan/discovery/v2-validation-and-traceability.md`](implementation-plan/discovery/v2-validation-and-traceability.md); sổ đăng ký giả thuyết tại [`docs/research/pancake-revenue-platform-documentation/10_LEARNING/HYPOTHESIS_REGISTER.md`](research/pancake-revenue-platform-documentation/10_LEARNING/HYPOTHESIS_REGISTER.md) (ghi chú: các mã `H1–H8` ở §18 bên dưới được định danh là **`VH1–VH8`** trong sổ đăng ký để không trùng với dãy `H0–H8` bản v1 ngày 10/09/2026).  
 
 ---
 
@@ -460,6 +461,8 @@ Mỗi nhóm trường phải gắn với giả thuyết và có ánh xạ sang k
 
 ### 18.1. Nguyên tắc
 
+> **Quy ước mã giả thuyết (`VH1–VH8`):** Bảng dưới giữ nguyên ký hiệu `H1–H8` của văn bản V2 gốc, nhưng khi trích dẫn sang các sổ đăng ký và báo cáo kiểm chứng trong repo phải ghi rõ là **`VH1–VH8` (dãy V2 ngày 06/10/2026)** theo quy tắc tại `10_LEARNING/HYPOTHESIS_REGISTER.md`, tuyệt đối không gộp với dãy `H0–H8` bản v1 (10/09/2026).
+
 Mỗi giả thuyết phải xét mức phổ biến, khả năng phát hiện hoặc quan sát và hậu quả kinh doanh. Điểm chính xác cao không đủ nếu thông tin hữu ích hiếm; thông tin phổ biến cũng không đủ để tạo một thực thể mới nếu không làm sai công việc hay đo lường.
 
 Các con số dưới đây là đề xuất cho vòng đầu. Nhóm sản phẩm cần khóa chúng trước khi đọc kết quả. Mọi thay đổi sau đó phải được ghi lại và chỉ áp dụng cho vòng mới.
@@ -539,3 +542,5 @@ Sau vòng này mới viết đặc tả sản phẩm chi tiết cho phạm vi c�
 - **Các kết luận thảo luận tiếp theo:** cơ sở cho vai trò A, gói khởi đầu, hai trục việc cần làm, Journey là giả thuyết, Validation Schema và các điều kiện mở rộng.
 
 Bản DOCX có dẫn tới `NORTH_STAR.md`; phiên bản này kế thừa North Star như đã được ghi trong DOCX, chưa đối chiếu trực tiếp tệp `NORTH_STAR.md`. Bộ mô hình chính thức, tài liệu API và quy định pháp lý hiện hành cũng chưa được cung cấp hoặc xác minh trong công việc biên soạn này. Các ngưỡng kiểm chứng được đề xuất mới và phải được khóa trước khi đánh giá dữ liệu.
+
+> **Chú thích biên tập khi đưa vào repo (10/2026):** `Dinh_nghia_bai_toan.docx` và `Pasted text.txt` là các tệp đầu vào lúc biên soạn bản V2 bên ngoài repo; khi đưa vào kho mã nguồn này, bản V2 đã được đối chiếu chéo với `docs/canonical/**` và `docs/north-star/NORTH_STAR.md` thông qua `ADR-004`, `RFC-005` và `discovery/v2-validation-and-traceability.md`.

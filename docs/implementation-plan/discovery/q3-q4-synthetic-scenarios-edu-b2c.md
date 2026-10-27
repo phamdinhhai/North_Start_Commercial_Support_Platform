@@ -23,4 +23,4 @@
 | 13 | Hủy/hoãn: “Tháng sau bé mới học được, em tạm dừng nhé.” | Hủy/hoãn có lý do; không tự thành Lost. |
 | 14 | Gửi nhầm: tư vấn gửi nhầm file học phí cũ | Gửi sai phiên bản không tính hoàn thành đúng. |
 
-**Cách dùng:** Hai reviewer gán nhãn độc lập theo `q3-annotation-guide.md`, ghi bất đồng, hòa giải, sửa hướng dẫn rồi mới chạy đánh giá chính thức. Tập nhỏ này chỉ kiểm tra ngữ nghĩa; mẫu 50–100 và thí điểm vận hành mới trả lời H2/H4/H5.
+**Cách dùng:** Hai reviewer gán nhãn độc lập theo `q3-annotation-guide.md`, ghi bất đồng, hòa giải, sửa hướng dẫn rồi mới chạy đánh giá chính thức. Tập nhỏ này chỉ kiểm tra ngữ nghĩa; mẫu 50–100 và thí điểm vận hành mới trả lời `VH2/VH4/VH5` (dãy V2 §18.1 — xem `HYPOTHESIS_REGISTER.md`).

@@ -41,7 +41,7 @@ Manual/synthetic adapter là **P0 fallback** — luôn hoạt động kể cả 
 3. Attempt anti-corruption mapping:
    - Success: mappingStatus → mapped, canonicalProjection filled
    - Failure: mappingStatus → error, mappingError = reason, canonicalProjection = null
-4. Store envelope (idempotent by connection + externalRecordId)
+4. Store envelope (idempotent by `(workspaceId, connection, externalRecordId)` — có tách cấu trúc an toàn, tránh va chạm dấu `:`)
 5. If mapped: project to domain (Lead create/update)
 6. Append audit trail entry (I-05)
 ```
@@ -50,7 +50,7 @@ Manual/synthetic adapter là **P0 fallback** — luôn hoạt động kể cả 
 
 ## 4. Idempotency
 
-- **Key:** `connection` + `externalRecordId`
+- **Key:** `(workspaceId, connection, externalRecordId)` *(cập nhật theo P1-1; bản gốc PH0 thiếu `workspaceId`)*
 - Duplicate → return existing envelope, no new record
 - Raw payload immutable after creation (I-12)
 

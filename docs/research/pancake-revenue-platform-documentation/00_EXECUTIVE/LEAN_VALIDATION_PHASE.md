@@ -3,7 +3,7 @@
 **Owner:** Founder / Product Lead  
 **Maturity:** Active decision  
 **Evidence status:** Decision over hypotheses; no primary customer validation yet  
-**Last updated:** 2026-09-10
+**Last updated:** 2026-10-27 (bổ sung namespace `VH1–VH8` và trạng thái PH3/pilot-loop; mã `H0–H8` dưới đây là **dãy v1**, dãy V2 ngày 2026-10-06 dùng `VH1–VH8` theo `10_LEARNING/HYPOTHESIS_REGISTER.md`)
 
 ## Current baseline
 

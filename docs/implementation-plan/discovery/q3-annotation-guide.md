@@ -21,7 +21,11 @@ Một utterance/message hoặc ghi nhận hành động = một đơn vị. Mỗ
 ## Quy tắc
 - Không gán owner/deadline nếu text không có căn cứ.
 - Không coi message “em gửi rồi” là bằng chứng đã gửi/người nhận đã đọc.
-- Kỳ vọng bên ngoài hết mốc mà không có evidence → “chưa quan sát được”, không tự thành failure/overdue của khách.
+- **Bất biến chéo giữa `operationalStatus` và `completionEvidence` (`TRUST_AND_EVIDENCE.md` §4, V2 §9.3, P1-4):**
+  - Chỉ được chuyển `operationalStatus = completed` khi `completionEvidence` là `observed` (kèm `evidenceRef` trỏ tới bằng chứng của **chính hành động hoàn tất**, **tuyệt đối không** dùng lại `sourceEnvelopeId` của tin nhắn khách hỏi ban đầu làm bằng chứng nhân viên đã làm xong việc) hoặc `declared (claimed)` (ghi rõ người khai báo).
+  - `completionEvidence = inferred` (suy diễn AI — I-03), `absent` (thiếu bằng chứng) hoặc `conflicted` (bằng chứng mâu thuẫn) **không được phép** đóng việc sang `completed`.
+  - Nhân viên thực hiện (`complete`) phải đã nhận việc (`accepted`/`assigned`) và khớp người được giao của đúng đầu việc đó (P1-2).
+- Kỳ vọng bên ngoài hết mốc mà không có evidence → “chưa quan sát được” (`no-observation`), không tự thành failure/overdue của khách.
 - Ghi timezone/precision; `recorded_at` chưa định nghĩa thống nhất — ghi chú để Q4 ánh xạ.
 
 ## Phiếu gán nhãn

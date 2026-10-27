@@ -21,7 +21,7 @@ The purpose here is to improve the questions and identify owners, relevant exist
 
 - I-01…I-12 remain authoritative. In particular: Customer ≠ Lead; Lead/AcquisitionEpisode has stable identity; channel, acquisition lineage, and revenue attribution remain distinct; unknown remains visible; identity merges require evidence and reversibility; AI cannot silently mutate commercial truth; changes remain auditable.
 - CE-1, CE-2, MM-1, ID-1, ID-2, PM-1, and LG-1 remain open and unchanged.
-- V2 H1–H8 thresholds are proposed internal screening thresholds, not empirical results, industry standards, or authorization for automation.
+- V2 `VH1–VH8` thresholds (written as `H1–H8` in V2 §18.1 — versioned per `HYPOTHESIS_REGISTER.md` to avoid collision with the 2026-09-10 `H0–H8` v1 series; every `Hn` below means the V2 series) are proposed internal screening thresholds, not empirical results, industry standards, or authorization for automation.
 - The validation schema is disposable. Hypothesis IDs, sample IDs, and test-only labels must not become production model/API/database/telemetry dependencies.
 - This RFC approves no new `Journey`, `Contact`, `Organization`, `Person`, universal `Outcome`, or `Obligation` entity.
 - V2 is not evidence that Pancake is available or required for all validation. Canonical P0 supports manual/synthetic operation; Pancake read is a feasibility-gated P1 experiment and sending is deferred.
@@ -108,7 +108,7 @@ Also, how should V2’s concise `observed / declared / inferred` labels be repre
 
 **Owner / related decisions.** Data + Engineering; Product for interpretation; Architecture for contract impact. Related: CE-2 (event scope), I-05/I-08/I-12. Do not mutate canonical vocabulary from label similarity alone.
 
-**Proposed priority.** Resolve the mapping for the validation/evidence protocol before scoring time-sensitive H1–H4 results; canonical/data-contract change only if required by observed cases and approved separately.
+**Proposed priority.** Resolve the mapping for the validation/evidence protocol before scoring time-sensitive `VH1–VH4` results; canonical/data-contract change only if required by observed cases and approved separately.
 
 ### Q5 — Does the canonical Lead episode need an additional journey structure?
 
