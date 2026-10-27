@@ -17,7 +17,7 @@
 | Câu hỏi | Trả lời |
 |---|---|
 | Product giải quyết gì, cho ai | Tầng "Revenue Operating System" giữ ý nghĩa thương mại liên tục khi khách đi qua nhiều hệ thống/bộ phận; người dùng chính là **Sales được gán một lead** (`docs/canonical/PRODUCT_CONSTITUTION.md:24,49`) |
-| Phạm vi triển khai hiện tại | **P0 pilot loop giáo dục B2C bằng tay/synthetic**: intake → handoff A→B → accept → work item → evidence → outcome. Adapter manual, PostgreSQL durable, 12 route JSON + `/health` |
+| Phạm vi triển khai hiện tại | **P0 pilot loop giáo dục B2C bằng tay/synthetic**: intake → handoff A→B → accept → work item → evidence → outcome. Adapter manual, PostgreSQL durable, 10 route JSON + `/health` |
 | Giai đoạn | PH1 + PH2 code xong; **PH3 đang giữa chừng** (`docs/implementation-plan/05-phase-map.md:17`); PH4 (Pancake) / PH5 / PH6 chưa dòng nào. Gate L2→L3 **CHƯA ĐÓNG** (`08-verification.md:31`) |
 | Luồng chạy/trình diễn được | Toàn bộ loop qua HTTP thật, có restart process, trên PG (`scripts/pilot-smoke.sh`) — `[agent báo]` PASS=53/FAIL=0; tôi xác minh **backend chạy được** bằng app thật + curl `[đo]`. **Không có UI** → người nghiệp vụ chưa tự thao tác được |
 | Còn thiếu để người nghiệp vụ dùng thử | Một lớp dùng được (1 trang/CLI tối thiểu) + một danh tính thật cho từng người (xem mục 6, bước 3) |
@@ -93,7 +93,7 @@ Trạng thái decision records: `ADR-001` = **`Proposed — chờ Human Gate #A`
 | Boundary validation | required/enum/ISO date/UUID → 400 `INPUT_INVALID` + danh sách field | `api/pilot-validation.ts` | **Có** | 8 tests `[đo]`, coverage 94.37 `[đo]` | quy tắc "100% security-critical" **không được enforce** (chỉ `lines:80`) |
 | Telemetry / Feedback | service + bảng `product_event`, `feedback` | `infra/telemetry/`, `modules/feedback/` | **KHÔNG** — chỉ được import bởi spec của chính nó `[đo: grep]` | 5 unit tests `[đo]` | T3-06/07 chưa wire endpoint |
 | `WorkspaceRepository` | CRUD workspace | `infra/workspace/workspace.repository.ts` | **KHÔNG** — không reference nào ngoài spec `[đo: grep]` | — | unwired |
-| **UI** | **không tồn tại** (không `.html/.tsx/.vue`; chỉ 12 route JSON + `/health`) `[đo: find/grep]` | — | — | — | người nghiệp vụ chưa tự dùng được |
+| **UI** | **không tồn tại** (không `.html/.tsx/.vue`; chỉ 10 route JSON + `/health`) `[đo: find/grep]` | — | — | — | người nghiệp vụ chưa tự dùng được |
 | CI / E2E / contract suite | **không có** `.github/workflows/`; `package.json:19` tham chiếu `vitest.config.e2e.ts` **không tồn tại trên đĩa** `[đo]` | — | — | — | mọi con số hiện là local |
 
 ---
@@ -190,7 +190,7 @@ Không cần thêm một vòng nghiên cứu rộng. **Mốc gần nhất: một
 
 ## 8. Context để bắt đầu phiên mới
 
-Repo `North_Start_Commercial_Support_Platform` (Revenue Continuity Platform), `main` @ **`1b72b61c1ef7a208eb0f291d21a61a8149f1b701`**, sync `origin/main`, tree sạch trừ transcript chưa track ở gốc (không commit). Bài toán gốc (`docs/Dinh_nghia_bai_toan_V2.md:33-36,44` — **framing/validation, chưa freeze**): một quá trình kinh doanh liên tục bị chia cắt về dữ liệu và trách nhiệm; chuyển kênh/chuyển người thì giữ được SĐT nhưng mất nhu cầu đã xác định, điều đã hứa, người quyết định và việc cần làm tiếp; Sales phải đọc lại/hỏi lại/**tự nhớ việc**. P0 kiểm chứng H1/H2 bằng **manual loop**: intake → handoff A→B → accept → work item → evidence → outcome. Pancake sync, AI extraction, manager view thuộc **sau L3/L4** (`01-scope:39`) — đừng làm vòng này. **Không có UI**: 12 route JSON + `/health`.
+Repo `North_Start_Commercial_Support_Platform` (Revenue Continuity Platform), `main` @ **`1b72b61c1ef7a208eb0f291d21a61a8149f1b701`**, sync `origin/main`, tree sạch trừ transcript chưa track ở gốc (không commit). Bài toán gốc (`docs/Dinh_nghia_bai_toan_V2.md:33-36,44` — **framing/validation, chưa freeze**): một quá trình kinh doanh liên tục bị chia cắt về dữ liệu và trách nhiệm; chuyển kênh/chuyển người thì giữ được SĐT nhưng mất nhu cầu đã xác định, điều đã hứa, người quyết định và việc cần làm tiếp; Sales phải đọc lại/hỏi lại/**tự nhớ việc**. P0 kiểm chứng H1/H2 bằng **manual loop**: intake → handoff A→B → accept → work item → evidence → outcome. Pancake sync, AI extraction, manager view thuộc **sau L3/L4** (`01-scope:39`) — đừng làm vòng này. **Không có UI**: 10 route JSON + `/health`.
 
 Đã có: NestJS+Fastify+Vitest, PG migrations 001–004, mutation+audit một transaction (QA-35), error contract 13 machine code, boundary validation, demo sandbox, supersession chain (P1-3 **đã đóng**), audit lead-scoped (P1-5 **đã đóng**), RBAC 404/403 verify qua HTTP. Verification `[đo]` tại HEAD: typecheck/build exit 0; `npm test` không DB **228 pass/10 skip**; `test:integration` có DB **10 pass**; `test:cov` có DB **91.43% lines exit 0**, không DB **exit 1 ở 75.79%**; canonical + forbidden paths không đổi trong `b81edd9..HEAD`. **Không có CI host**; smoke **53/53** và migrate up/down là số **`[agent báo]`, chưa xác minh độc lập**.
 
