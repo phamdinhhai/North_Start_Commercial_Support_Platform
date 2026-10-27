@@ -102,21 +102,23 @@ describe('PilotLoopController — auth & RBAC wiring (T3-03/T3-04 unit-level; LI
   it('guardrail refusals map to 4xx business codes, not raw 500', async () => {
     const res = await ctrl.intake(salesA, { displayName: 'd', utterance: 'em gửi rồi nhé', speaker: 'staff', connection: 'c', externalRecordId: 'r' });
     const handed = await ctrl.handoff(salesA, res.leadId, { context: 'c', proposedAction: 'a', responsibleParty: 'internal', origin: 'explicit-commitment', recipientUserId: 'sales-b' });
-    await expect(ctrl.complete(salesA, res.leadId, { workId: handed.workItemId, evidence: 'observed' })).rejects.toMatchObject({
-      status: 422,
-      response: { code: 'EVIDENCE_POINTER_REQUIRED' },
-    });
     // New→Contacting nằm ngoài hypothesis CE-1 → PilotDomainError 422 CE1_BOUNDARY, controller map thành HttpException
     await expect(ctrl.advance(salesA, res.leadId, { to: 'Contacting', reason: 'x' })).rejects.toMatchObject({
       status: 422,
       response: { code: 'CE1_BOUNDARY' },
+    });
+    await ctrl.accept(salesB, res.leadId, { workId: handed.workItemId, reason: 'B nhận' });
+    await expect(ctrl.complete(salesB, res.leadId, { workId: handed.workItemId, evidence: 'observed' })).rejects.toMatchObject({
+      status: 422,
+      response: { code: 'EVIDENCE_POINTER_REQUIRED' },
     });
   });
 
   it('external expectation → unobserved endpoint returns awaiting-external, never failure', async () => {
     const res = await ctrl.intake(salesA, { displayName: 'd', utterance: 'u', speaker: 'customer', connection: 'c', externalRecordId: 'r-ext' });
     const handed = await ctrl.handoff(salesA, res.leadId, { context: 'c', proposedAction: 'Chị A trao đổi với bé', responsibleParty: 'external', origin: 'explicit-request', recipientUserId: 'sales-b' });
-    const marked = await ctrl.unobserved(salesA, res.leadId, { workId: handed.workItemId });
+    await ctrl.accept(salesB, res.leadId, { workId: handed.workItemId, reason: 'B nhận theo dõi kỳ vọng khách' });
+    const marked = await ctrl.unobserved(salesB, res.leadId, { workId: handed.workItemId });
     expect(marked.workStatus).toBe('awaiting-external');
     expect(marked.evidence).toBe('absent');
   });
@@ -190,6 +192,45 @@ describe('P1-2 — controller separates view / accept / mutation rights', () => 
     // A không còn trong recipients → A bị 403 ở gate view của RBAC.
     await expect(ctrl.getLead(salesA, leadId)).rejects.toThrow(ForbiddenException);
     await expect(ctrl.advance(salesA, leadId, { to: 'Contacting', reason: 'x' })).rejects.toThrow(ForbiddenException);
+  });
+
+  it('P1-2: owner A cannot accept or complete B’s proposed item; second handoff to C neither lets C accept B’s item nor revokes B’s GET view', async () => {
+    const { leadId, workItemId: workB } = await handedOver();
+
+    // A (current owner) cannot accept or complete workB addressed to sales-b
+    await expect(ctrl.accept(salesA, leadId, { workId: workB, reason: 'A nhận hộ' })).rejects.toMatchObject({
+      status: 403,
+      response: { code: 'NOT_ASSIGNED_RECIPIENT' },
+    });
+    await expect(ctrl.complete(salesA, leadId, { workId: workB, evidence: 'declared' })).rejects.toMatchObject({
+      status: 403,
+      response: { code: 'NOT_ASSIGNED_RECIPIENT' },
+    });
+
+    // Second handoff from A to sales-c while workB is still proposed
+    const handedC = await ctrl.handoff(salesA, leadId, {
+      context: 'giao thêm cho C',
+      proposedAction: 'C kiểm tra lịch',
+      responsibleParty: 'internal',
+      origin: 'explicit-request',
+      recipientUserId: 'sales-c',
+    });
+
+    // B STILL has view access because workB is still actionable (was 403 before fix)
+    const bView = await ctrl.getLead(salesB, leadId);
+    expect(bView.workItems).toHaveLength(2);
+
+    // C cannot accept B's work item
+    await expect(ctrl.accept(salesC, leadId, { workId: workB, reason: 'C nhận hộ B' })).rejects.toMatchObject({
+      status: 403,
+      response: { code: 'NOT_ASSIGNED_RECIPIENT' },
+    });
+
+    // B accepts workB
+    const acceptedB = await ctrl.accept(salesB, leadId, { workId: workB, reason: 'B nhận việc của B' });
+    expect(acceptedB.owner).toBe('sales-b');
+    // C still has view access while handedC.workItemId is proposed
+    expect((await ctrl.getLead(salesC, leadId)).lead.id).toBe(leadId);
   });
 });
 
@@ -266,14 +307,14 @@ describe('P1-4 + demo isolation at the controller', () => {
   it('rejects an evidence value outside the enum with 400 + field issues instead of persisting it', async () => {
     const res = await ctrl.intake(salesA, { displayName: 'd', utterance: 'u', speaker: 'customer', connection: 'c', externalRecordId: 'r-v' });
     const handed = await ctrl.handoff(salesA, res.leadId, { context: 'c', proposedAction: 'a', responsibleParty: 'internal', origin: 'explicit-commitment', recipientUserId: 'sales-b' });
-    await ctrl.accept(salesA, res.leadId, { workId: handed.workItemId, reason: 'nhận' });
+    await ctrl.accept(salesB, res.leadId, { workId: handed.workItemId, reason: 'nhận' });
 
-    await expect(ctrl.complete(salesA, res.leadId, { workId: handed.workItemId, evidence: 'totally-done' } as never)).rejects.toMatchObject({
+    await expect(ctrl.complete(salesB, res.leadId, { workId: handed.workItemId, evidence: 'totally-done' } as never)).rejects.toMatchObject({
       status: 400,
       response: { code: 'INPUT_INVALID', details: { issues: [{ field: 'evidence' }] } },
     });
     // nothing was written: the item is still accepted, not completed
-    const view = await ctrl.getLead(salesA, res.leadId);
+    const view = await ctrl.getLead(salesB, res.leadId);
     expect(view.workItems[0].status).toBe('accepted');
     expect(view.workItems[0].completionEvidence).toBe('absent');
   });
@@ -283,14 +324,14 @@ describe('P1-4 + demo isolation at the controller', () => {
 
     const res = await ctrl.intake(salesA, { displayName: 'd', utterance: 'u', speaker: 'customer', connection: 'c', externalRecordId: 'r-v2' });
     const handed = await ctrl.handoff(salesA, res.leadId, { context: 'c', proposedAction: 'a', responsibleParty: 'internal', origin: 'explicit-commitment', recipientUserId: 'sales-b' });
-    await ctrl.accept(salesA, res.leadId, { workId: handed.workItemId, reason: 'nhận' });
+    await ctrl.accept(salesB, res.leadId, { workId: handed.workItemId, reason: 'nhận' });
 
     // a pointer that does not resolve is refused even though it is syntactically fine
-    await expect(ctrl.complete(salesA, res.leadId, { workId: handed.workItemId, evidence: 'observed', evidenceRef: 'made-up-pointer' })).rejects.toMatchObject({
+    await expect(ctrl.complete(salesB, res.leadId, { workId: handed.workItemId, evidence: 'observed', evidenceRef: 'made-up-pointer' })).rejects.toMatchObject({
       status: 422,
       response: { code: 'EVIDENCE_NOT_FOUND' },
     });
-    expect((await ctrl.getLead(salesA, res.leadId)).workItems[0].status).toBe('accepted');
+    expect((await ctrl.getLead(salesB, res.leadId)).workItems[0].status).toBe('accepted');
   });
 
   it('unauthenticated callers get 401, never a schema description (auth before validation)', async () => {

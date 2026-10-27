@@ -14,7 +14,7 @@ import {
 } from '@nestjs/common';
 import { AuthService, type AuthContext, type AuthRequestLike } from '../infra/auth/auth.service';
 import { RbacService } from '../infra/rbac/rbac.service';
-import { PilotLoopService } from '../modules/pilot-loop/pilot-loop.service';
+import { PilotLoopService, activeWorkRecipients } from '../modules/pilot-loop/pilot-loop.service';
 import { PilotDomainError, type ScenarioInput } from '../modules/pilot-loop/pilot.types';
 import {
   boundaryRejection,
@@ -320,7 +320,7 @@ export class PilotLoopController {
       id: leadId,
       workspaceId: state.lead.workspaceId,
       assignedTo: state.ownerUserId,
-      recipients: state.handoffRecipient ? [state.handoffRecipient] : [],
+      recipients: activeWorkRecipients(state),
     };
     if (!this.rbac.canAccessLead(ctx, resource)) throw new ForbiddenException('forbidden');
     return {
@@ -335,6 +335,7 @@ export class PilotLoopController {
         completionEvidence: w.completionEvidence,
         occurredAt: w.occurredAt,
         dueAt: w.dueAt,
+        actor: w.actor,
       })),
       outcomes: state.outcomes.map((o) => ({ id: o.id, value: o.value, assertionStatus: o.assertionStatus })),
     };

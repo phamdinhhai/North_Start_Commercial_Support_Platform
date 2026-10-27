@@ -16,8 +16,9 @@ export class RbacService {
     if (ctx.role === 'admin' || ctx.role === 'manager') return true; // workspace-wide — QA-58 thu hẹp ở RFC sau, hiện allow
     // sales / viewer: phải được assign (owner) hoặc được bàn giao tới (recipient)
     if (lead.assignedTo === ctx.userId) return true;
-    // Recipient chưa-accept có quyền XEM + NHẬN gói addressed to them. Đây là lead-scoped
-    // I-09 (một lead cụ thể), KHÔNG mở rộng quyền role — PM-1 matrix vẫn OPEN.
+    // Recipient có item đang actionable (proposed/accepted/open/awaiting-external) giữ quyền
+    // XEM + NHẬN gói addressed to them (derived từ workItems — P1-2, I-09 lead-scoped,
+    // deny-by-default). // OPEN: PM-1 — capability matrix đầy đủ cho manager/admin chờ RFC.
     return lead.recipients?.includes(ctx.userId) ?? false;
   }
 

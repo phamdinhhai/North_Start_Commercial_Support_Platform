@@ -128,21 +128,21 @@ integration('PilotLoop over PostgreSQL — durability + two-person handoff', () 
     }
   });
 
-  it('P1-1: cross-workspace same connection+externalRecordId → distinct envelopes, no shared raw evidence (PG path)', async () => {
-    const wsA = `it-p11-a-${randomUUID()}`;
-    const wsB = `it-p11-b-${randomUUID()}`;
-    const sharedConn = `pancake-page-${randomUUID()}`;
+  it('P1-1: cross-workspace same connection+externalRecordId (including colon delimiter collision) → distinct envelopes, no shared raw evidence (PG path)', async () => {
+    const prefix = `it-p11-${randomUUID()}`;
+    const wsA = prefix;
+    const wsB = `${prefix}:b`;
     const svc = new PilotLoopService(new PgPilotStore(db1), new ManualAdapter());
 
     const a = await svc.ingestScenario({
       workspaceId: wsA, displayName: 'A', utterance: 'evidence A', speaker: 'customer',
-      connection: sharedConn, externalRecordId: 'msg-shared', isSynthetic: true,
+      connection: 'b:inbox', externalRecordId: 'msg-shared', isSynthetic: true,
     });
     const b = await svc.ingestScenario({
       workspaceId: wsB, displayName: 'B', utterance: 'evidence B', speaker: 'customer',
-      connection: sharedConn, externalRecordId: 'msg-shared', isSynthetic: true,
+      connection: 'inbox', externalRecordId: 'msg-shared', isSynthetic: true,
     });
-    // Envelope rows must be distinct per workspace (old UNIQUE(connection,ext) reused A's row)
+    // Both in-memory adapter key and PG rows must be distinct even when `wsA + ":" + connA === wsB + ":" + connB`
     const envA = (await svc.get(a.lead.id))!;
     const envB = (await svc.get(b.lead.id))!;
     expect(envA.sourceEnvelopeId).not.toBe(envB.sourceEnvelopeId);
@@ -150,8 +150,8 @@ integration('PilotLoop over PostgreSQL — durability + two-person handoff', () 
     expect(envB.envelope?.workspaceId).toBe(wsB);
 
     const rows = await db1.query<{ workspace_id: string }>(
-      'SELECT workspace_id FROM commercial_envelope WHERE connection = $1 AND external_record_id = $2',
-      [sharedConn, 'msg-shared'],
+      'SELECT workspace_id FROM commercial_envelope WHERE workspace_id IN ($1,$2) AND external_record_id = $3',
+      [wsA, wsB, 'msg-shared'],
     );
     expect(rows.rows.map((r) => r.workspace_id).sort()).toEqual([wsA, wsB].sort());
 
@@ -235,11 +235,25 @@ integration('PilotLoop over PostgreSQL — durability + two-person handoff', () 
 
     expect((await svc.get(a.lead.id))!.workItems.find((w) => w.id === wid)!.status).toBe('accepted');
 
-    // 3) the case's own envelope → accepted, and the audit records the raw hash (I-12)
+    // 3) P1-4: the case's intake customer message is NOT observed proof that staff sent the fee table,
+    // and absent/conflicted cannot close work either
+    await expect(
+      svc.completeWork(a.lead.id, { workId: wid, actor: 'sales-b', evidence: 'observed', evidenceRef: a.sourceEnvelopeId!, reason: 'intake message ≠ action proof' }),
+    ).rejects.toMatchObject({ code: 'EVIDENCE_NOT_ACTION_PROOF', status: 422 });
+    await expect(
+      svc.completeWork(a.lead.id, { workId: wid, actor: 'sales-b', evidence: 'absent' }),
+    ).rejects.toMatchObject({ code: 'EVIDENCE_INSUFFICIENT_TO_CLOSE', status: 422 });
+    await expect(
+      svc.completeWork(a.lead.id, { workId: wid, actor: 'sales-b', evidence: 'conflicted' }),
+    ).rejects.toMatchObject({ code: 'EVIDENCE_INSUFFICIENT_TO_CLOSE', status: 422 });
+    expect((await svc.get(a.lead.id))!.workItems.find((w) => w.id === wid)!.status).toBe('accepted');
+
+    // 4) manual completion with `declared` + the case's envelope reference succeeds as `declared`
+    // and records the raw hash in the durable audit trail (I-12)
     const done = await svc.completeWork(a.lead.id, {
-      workId: wid, actor: 'sales-b', evidence: 'observed', evidenceRef: a.sourceEnvelopeId!, reason: 'file đã gửi',
+      workId: wid, actor: 'sales-b', evidence: 'declared', evidenceRef: a.sourceEnvelopeId!, reason: 'nhân viên xác nhận đã gửi file',
     });
-    expect(done.workItems.find((w) => w.id === wid)!.completionEvidence).toBe('observed');
+    expect(done.workItems.find((w) => w.id === wid)!.completionEvidence).toBe('declared');
     const audit = await db1.query<{ new_value: unknown }>(
       "SELECT new_value FROM audit_record WHERE entity_id = $1 AND event_type = 'work_completed'",
       [wid],

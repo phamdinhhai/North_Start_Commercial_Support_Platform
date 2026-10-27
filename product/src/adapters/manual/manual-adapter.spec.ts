@@ -112,5 +112,26 @@ describe('ManualAdapter (C-05, C-11, R-04/R-05/R-06, I-12)', () => {
       expect(adapter.getByKey('ws-a', 'c1', 'e1')?.envelopeId).toBe(env.envelopeId);
       expect(adapter.getByKey('ws-b', 'c1', 'e1')).toBeUndefined();
     });
+
+    it('colons in workspaceId or connection do not collide across tenants (P1-1 delimiter collision)', () => {
+      const adapter = new ManualAdapter();
+      const a = adapter.ingest({
+        workspaceId: 'review-tenant',
+        connection: 'b:inbox',
+        externalRecordId: 'msg-1',
+        externalEventType: 'message',
+        rawPayload: { tenant: 'A' },
+      });
+      const b = adapter.ingest({
+        workspaceId: 'review-tenant:b',
+        connection: 'inbox',
+        externalRecordId: 'msg-1',
+        externalEventType: 'message',
+        rawPayload: { tenant: 'B' },
+      });
+      expect(a.envelopeId).not.toBe(b.envelopeId);
+      expect(b.rawPayload).toEqual({ tenant: 'B' });
+      expect(adapter.count()).toBe(2);
+    });
   });
 });

@@ -77,11 +77,18 @@ export function createEnvelope(input: CreateEnvelopeInput): CommercialEnvelope {
 /**
  * Idempotency key = workspaceId + connection + externalRecordId (R-06 within I-09).
  * Connection names collide across tenants, so the workspace is part of the key.
+ *
+ * P1-1: components are encoded as a JSON tuple, not colon-joined. A raw `:` separator is
+ * ambiguous — `("review-tenant", "b:inbox", "msg-1")` and `("review-tenant:b", "inbox",
+ * "msg-1")` both produced `review-tenant:b:inbox:msg-1`, so one tenant could hit another's
+ * idempotent record in the in-memory store. JSON encoding is injective over the string
+ * triple, so distinct scopes never collapse to one key. (The PostgreSQL path is unaffected —
+ * it uses a real three-column UNIQUE constraint.)
  */
 export function idempotencyKey(
   envelope: Pick<CommercialEnvelope, 'workspaceId' | 'connection' | 'externalRecordId'>,
 ): string {
-  return `${envelope.workspaceId}:${envelope.connection}:${envelope.externalRecordId}`;
+  return JSON.stringify([envelope.workspaceId, envelope.connection, envelope.externalRecordId]);
 }
 
 /**

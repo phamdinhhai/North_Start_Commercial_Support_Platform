@@ -89,13 +89,19 @@ export class PgPilotStore implements PilotLoopStore {
    */
   async loadEvidence(envelopeId: string): Promise<EvidenceRefRecord | undefined> {
     if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(envelopeId)) return undefined;
-    const res = await this.db.query<{ workspace_id: string; raw_payload_hash: string; source_captured_at: Date | string }>(
-      'SELECT workspace_id, raw_payload_hash, source_captured_at FROM commercial_envelope WHERE id = $1',
+    const res = await this.db.query<{ workspace_id: string; raw_payload_hash: string; source_captured_at: Date | string; speaker: string | null }>(
+      "SELECT workspace_id, raw_payload_hash, source_captured_at, raw_payload->>'speaker' AS speaker FROM commercial_envelope WHERE id = $1",
       [envelopeId],
     );
     const row = res.rows[0];
     if (!row) return undefined;
-    return { envelopeId, workspaceId: row.workspace_id, rawPayloadHash: row.raw_payload_hash, sourceCapturedAt: iso(row.source_captured_at) };
+    return {
+      envelopeId,
+      workspaceId: row.workspace_id,
+      rawPayloadHash: row.raw_payload_hash,
+      sourceCapturedAt: iso(row.source_captured_at),
+      speaker: row.speaker ?? null,
+    };
   }
 
   async history(leadId: string): Promise<readonly AuditHistoryEntry[]> {

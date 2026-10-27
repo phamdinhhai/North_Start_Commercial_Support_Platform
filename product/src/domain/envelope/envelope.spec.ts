@@ -73,9 +73,18 @@ describe('CommercialEnvelope v1 (R-05, R-06, I-11, I-12)', () => {
   });
 
   describe('idempotency key (R-06)', () => {
-    it('key = workspaceId:connection:externalRecordId (R-06 within I-09)', () => {
+    it('key encodes [workspaceId, connection, externalRecordId] as an injective JSON tuple (R-06 within I-09)', () => {
       const env = createEnvelope(base);
-      expect(idempotencyKey(env)).toBe('ws-env-test:conn-ws-001:ext-123');
+      expect(idempotencyKey(env)).toBe(JSON.stringify(['ws-env-test', 'conn-ws-001', 'ext-123']));
+    });
+
+    it('P1-1: colons inside workspaceId or connection never collide across tenants', () => {
+      const a = idempotencyKey({ workspaceId: 'review-tenant', connection: 'b:inbox', externalRecordId: 'msg-1' });
+      const b = idempotencyKey({ workspaceId: 'review-tenant:b', connection: 'inbox', externalRecordId: 'msg-1' });
+      const c = idempotencyKey({ workspaceId: 'review-tenant', connection: 'b', externalRecordId: 'inbox:msg-1' });
+      expect(a).not.toBe(b);
+      expect(a).not.toBe(c);
+      expect(b).not.toBe(c);
     });
   });
 

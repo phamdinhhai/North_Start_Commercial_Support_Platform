@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import { AuditStore } from '../../infra/audit/audit-store';
 import { InMemoryPilotStore } from './pilot.store';
-import { PilotLoopService } from './pilot-loop.service';
+import { PilotLoopService, activeWorkRecipients } from './pilot-loop.service';
 import { UNKNOWN_SENTINEL } from '../../domain/unknown-states/unknown-states';
 import type { ScenarioInput } from './pilot.types';
 import type { LeadId } from '../../domain/lead/lead';
@@ -434,6 +434,51 @@ describe('P1-2 — mutation authorization is per work item and handoff state', (
     await expect(
       svc.rescheduleWork(stateB.lead.id, { workId: a.workId, actor: 'marketing-lan', newDueAt: '2026-10-20T09:00:00+07:00', reason: 'x' }),
     ).rejects.toMatchObject({ code: 'WORK_NOT_FOUND', status: 404 });
+  });
+
+  it('P1-2: current owner A cannot accept or complete a work item addressed to B, and a second handoff to C does not let C accept B’s item or drop B from active recipients', async () => {
+    const { state, workId: workB } = await handedOver(); // owner = marketing-lan, workB recipient = sales-b
+
+    // (a) Owner A cannot accept workB addressed to sales-b
+    await expect(
+      svc.salesAccept(state.lead.id, { workId: workB, actor: 'marketing-lan', reason: 'A tự nhận hộ B' }),
+    ).rejects.toMatchObject({ code: 'NOT_ASSIGNED_RECIPIENT', status: 403 });
+
+    // (b) Owner A cannot complete or reschedule workB addressed to sales-b
+    await expect(
+      svc.completeWork(state.lead.id, { workId: workB, actor: 'marketing-lan', evidence: 'declared', reason: 'A tự đóng hộ B' }),
+    ).rejects.toMatchObject({ code: 'NOT_ASSIGNED_RECIPIENT', status: 403 });
+    await expect(
+      svc.rescheduleWork(state.lead.id, { workId: workB, actor: 'marketing-lan', newDueAt: '2026-10-20T09:00:00+07:00', reason: 'A tự dời hộ B' }),
+    ).rejects.toMatchObject({ code: 'NOT_ASSIGNED_RECIPIENT', status: 403 });
+
+    // (c) Owner A creates a second handoff to sales-c while workB is still proposed
+    const handedC = await svc.handoffToSales(state.lead.id, {
+      context: 'bàn giao thêm cho C',
+      proposedAction: 'C chuẩn bị tài liệu',
+      responsibleParty: 'internal',
+      origin: 'explicit-request',
+      actor: 'marketing-lan',
+      recipientUserId: 'sales-c',
+    });
+    const workC = handedC.workItems.find((w) => w.actor === 'sales-c')!.id;
+
+    // Both B and C have actionable work items → neither loses recipient status
+    expect(activeWorkRecipients(handedC)).toEqual(expect.arrayContaining(['sales-b', 'sales-c']));
+
+    // C cannot accept B's work item, and B cannot accept C's work item
+    await expect(
+      svc.salesAccept(state.lead.id, { workId: workB, actor: 'sales-c', reason: 'C nhận nhầm việc của B' }),
+    ).rejects.toMatchObject({ code: 'NOT_ASSIGNED_RECIPIENT', status: 403 });
+    await expect(
+      svc.salesAccept(state.lead.id, { workId: workC, actor: 'sales-b', reason: 'B nhận nhầm việc của C' }),
+    ).rejects.toMatchObject({ code: 'NOT_ASSIGNED_RECIPIENT', status: 403 });
+
+    // B can still accept workB, and C can still accept workC
+    const afterB = await svc.salesAccept(state.lead.id, { workId: workB, actor: 'sales-b', reason: 'B nhận việc của B' });
+    expect(afterB.workItems.find((w) => w.id === workB)?.status).toBe('accepted');
+    const afterC = await svc.salesAccept(state.lead.id, { workId: workC, actor: 'sales-c', reason: 'C nhận việc của C' });
+    expect(afterC.workItems.find((w) => w.id === workC)?.status).toBe('accepted');
   });
 });
 

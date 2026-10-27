@@ -38,6 +38,30 @@ import type { PilotLoopStore } from './pilot.store';
  * Recipient chưa accept do đó không complete/dời lịch/advance/ghi kết quả hộ A.
  * Manager/admin mutation? PM-1 vẫn OPEN → P0 không tự nới: owner-only.
  */
+const ACTIONABLE_WORK_STATUSES: ReadonlySet<WorkStatus> = new Set([
+  'proposed',
+  'accepted',
+  'open',
+  'awaiting-external',
+]);
+
+/**
+ * P1-2 (I-09 lead-scoped): recipients who currently hold an actionable work item on this lead.
+ * Derived from `workItems` rather than the single-slot `state.handoffRecipient`, so an earlier
+ * recipient B does not lose view access when a second handoff is created for C while B's item
+ * is still open. Once B's work item is closed (completed/rescheduled/cancelled) and B is not
+ * the lead owner, B's lead-scoped access ends automatically.
+ */
+export function activeWorkRecipients(state: PilotLoopState): readonly string[] {
+  const set = new Set<string>();
+  for (const w of state.workItems) {
+    if (ACTIONABLE_WORK_STATUSES.has(w.status) && w.actor) {
+      set.add(w.actor);
+    }
+  }
+  return [...set];
+}
+
 @Injectable()
 export class PilotLoopService {
   constructor(private readonly store: PilotLoopStore, private readonly adapter = new ManualAdapter()) {}
@@ -96,16 +120,40 @@ export class PilotLoopService {
     return item;
   }
 
-  /** Owner-checked, lead-scoped, actionable work item — the single gate every work mutation passes. */
+  /**
+   * Owner-checked, per-item recipient-checked, lead-scoped, actionable work item —
+   * the single gate every work mutation passes (P1-2, P1-3).
+   *
+   * P1-2: even the current lead owner A may NOT complete, reschedule or mutate a work item
+   * that was addressed to recipient B (`item.actor !== actor`), nor may an unaccepted
+   * (`proposed`) internal handoff item be completed/rescheduled before its recipient accepts it.
+   */
   private requireMutableWork(
     state: PilotLoopState,
     workId: string,
     actor: string,
     action: string,
     closedCodes: Partial<Record<WorkStatus, PilotErrorCode>>,
+    options: { readonly requireAccepted?: boolean } = { requireAccepted: true },
   ): WorkItem {
     this.requireOwner(state, actor, action);
-    return this.requireActionable(state, this.requireWork(state, workId), closedCodes);
+    const workItem = this.requireWork(state, workId);
+    if (workItem.actor !== actor) {
+      throw new PilotDomainError(
+        'NOT_ASSIGNED_RECIPIENT',
+        403,
+        `${actor} may not ${action}: work ${workItem.id} is assigned to recipient ${workItem.actor}, not ${actor}`,
+      );
+    }
+    const item = this.requireActionable(state, workItem, closedCodes);
+    if (options.requireAccepted !== false && item.status === 'proposed') {
+      throw new PilotDomainError(
+        'NOT_ASSIGNED_RECIPIENT',
+        403,
+        `work ${item.id} is still proposed — recipient ${item.actor} must accept the handoff before it can be mutated`,
+      );
+    }
+    return item;
   }
 
   /**
@@ -294,26 +342,47 @@ export class PilotLoopService {
 
   /**
    * Bước 3 — người nhận B chấp nhận: transition New→Accepted (CE-1) + work→accepted
-   * + owner := B. B có được xem/n nhận là vì handoff addressed to them (I-09 lead-
+   * + owner := B. B có được xem/nhận là vì work item addressed to them (I-09 lead-
    * scope), KHÔNG vì mở rộng quyền. Quyền manager/admin chi tiết vẫn PM-1.
+   *
+   * P1-2: kiểm tra theo TỪNG work item (`target.actor === input.actor`), KHÔNG dùng
+   * slot đơn `state.handoffRecipient` và KHÔNG cho phép owner hiện tại A nhận hộ B
+   * hay người nhận C của bàn giao sau nhận hộ item của B.
    */
   async salesAccept(
     leadId: LeadId,
     input: { readonly actor: string; readonly reason: string; readonly workId: string },
   ): Promise<PilotLoopState> {
     const state = await this.require(leadId);
-    // accept là quyền RIÊNG (P1-2): người được bàn giao hoặc owner hiện tại — rộng hơn
-    // mutation (chỉ owner) nhưng vẫn hẹp hơn view (mọi recipient được xem).
-    if (input.actor !== state.handoffRecipient && input.actor !== state.ownerUserId) {
-      throw new PilotDomainError('NOT_ASSIGNED_RECIPIENT', 403, 'only the handoff recipient or current owner may accept this work');
+    const workItem = this.requireWork(state, input.workId);
+    // P1-2: kiểm tra quyền người nhận (403) TRƯỚC khi tiết lộ trạng thái sống/đóng của work item (409).
+    // Chỉ ĐÚNG người nhận của work item này mới được accept nó (owner A không được accept hộ B;
+    // recipient C của handoff thứ hai không được accept item của B).
+    if (input.actor !== workItem.actor) {
+      throw new PilotDomainError(
+        'NOT_ASSIGNED_RECIPIENT',
+        403,
+        `only the recipient assigned to work ${workItem.id} (${workItem.actor}) may accept it`,
+      );
     }
     // Item phải thuộc lead này và còn khả dụng — nhận một item đã superseded/completed
     // sẽ trao ownership dựa trên một work item không còn tồn tại thực thi (P1-3).
-    const target = this.requireActionable(state, this.requireWork(state, input.workId), PilotLoopService.CLOSED_BY_ENDPOINT.accept);
+    const target = this.requireActionable(state, workItem, PilotLoopService.CLOSED_BY_ENDPOINT.accept);
+    if (target.status !== 'proposed') {
+      throw new PilotDomainError('WORK_ALREADY_CLOSED', 409, `work ${target.id} is already ${target.status}`);
+    }
 
-    const lead = this.ce1Transition(state.lead, { to: 'Accepted', actor: input.actor, reason: input.reason });
+    // Nếu lead đang ở New → chuyển New→Accepted (CE-1). Nếu lead đã ở trạng thái đang
+    // xử lý (Accepted / Contacting / Follow-up) và có bàn giao tiếp theo, giữ nguyên
+    // trạng thái lead đang hiệu lực; nếu lead đã đóng (Won / Lost) thì ce1Transition
+    // sẽ từ chối 422 CE1_BOUNDARY.
+    const alreadyActiveStage =
+      state.lead.status === 'Accepted' || state.lead.status === 'Contacting' || state.lead.status === 'Follow-up';
+    const lead = alreadyActiveStage
+      ? state.lead
+      : this.ce1Transition(state.lead, { to: 'Accepted', actor: input.actor, reason: input.reason });
     const workItems = state.workItems.map((w) => (w.id === input.workId ? { ...w, status: 'accepted' as WorkStatus, actor: input.actor } : w));
-    const next: PilotLoopState = { ...state, lead, workItems, ownerUserId: input.actor };
+    const next: PilotLoopState = { ...state, lead, workItems, ownerUserId: input.actor, handoffRecipient: input.actor };
     await this.store.save(next, [
       {
         entityType: 'lead',
@@ -378,6 +447,13 @@ export class PilotLoopService {
     if (input.evidence === 'inferred') {
       throw new PilotDomainError('INFERRED_CANNOT_CLOSE', 422, 'inferred evidence cannot close work; require user confirmation');
     }
+    if (input.evidence === 'absent' || input.evidence === 'conflicted') {
+      throw new PilotDomainError(
+        'EVIDENCE_INSUFFICIENT_TO_CLOSE',
+        422,
+        `${input.evidence} evidence cannot close work as completed — completion requires observed proof or a declared claim (TRUST_AND_EVIDENCE §4, V2 §9.3)`,
+      );
+    }
     if (current.responsibleParty === 'external' && input.evidence === 'declared') {
       throw new PilotDomainError('EXTERNAL_NOT_DECLAREABLE', 422, 'external expectation cannot be completed on internal declaration alone');
     }
@@ -385,6 +461,21 @@ export class PilotLoopService {
     // P1-4: any pointer present must validate — not only `observed` ones, otherwise a bogus
     // ref could be parked on a declared record and reused later.
     const evidence = input.evidenceRef === undefined ? undefined : await this.resolveEvidence(state, input.evidenceRef, 'completion');
+    // P1-4 ("message observed ≠ action observed", TRUST_AND_EVIDENCE §4, V2 §7.3/§9.3):
+    // The intake envelope that opened the lead (or any customer-authored request message)
+    // proves only that the customer spoke — NEVER that staff completed the follow-up action.
+    // Manual P0 completion without separate system action proof must be recorded as `declared`.
+    if (
+      input.evidence === 'observed' &&
+      evidence !== undefined &&
+      (evidence.envelopeId === state.sourceEnvelopeId || evidence.speaker === 'customer')
+    ) {
+      throw new PilotDomainError(
+        'EVIDENCE_NOT_ACTION_PROOF',
+        422,
+        `evidence ${evidence.envelopeId} is the intake/customer request message, not observed proof that "${current.action}" was performed — record manual confirmation as "declared" instead (TRUST_AND_EVIDENCE §4, V2 §7.3)`,
+      );
+    }
 
     const workItems = state.workItems.map((w) =>
       w.id === input.workId

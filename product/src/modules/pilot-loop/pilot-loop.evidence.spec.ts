@@ -85,20 +85,56 @@ describe('P1-4 — evidence must exist, be in workspace scope and relate to the 
     ).rejects.toMatchObject({ code: 'EVIDENCE_NOT_RELATED', status: 422 });
   });
 
-  it('accepts the lead’s own evidence, records the raw hash in the audit, and promotes nothing else', async () => {
+  it('refuses the lead’s intake request message as `observed` proof of staff action (P1-4: message observed ≠ action observed)', async () => {
+    const { state, workId, envelopeId } = await openWork(svc);
+
+    await expect(
+      svc.completeWork(state.lead.id, {
+        workId,
+        actor: 'marketing-lan',
+        evidence: 'observed',
+        evidenceRef: envelopeId,
+        occurredAt: '2026-10-09T15:05:00+07:00',
+        reason: 'tin nhắn khách xin bảng phí không chứng minh nhân viên đã gửi',
+      }),
+    ).rejects.toMatchObject({ code: 'EVIDENCE_NOT_ACTION_PROOF', status: 422 });
+
+    const after = (await svc.get(state.lead.id))!.workItems.find((x) => x.id === workId)!;
+    expect(after.status).toBe('accepted');
+    expect(after.completionEvidence).toBe('absent');
+  });
+
+  it('refuses `absent` and `conflicted` evidence from closing work as completed (P1-4)', async () => {
+    const { state, workId } = await openWork(svc);
+
+    await expect(
+      svc.completeWork(state.lead.id, { workId, actor: 'marketing-lan', evidence: 'absent', reason: 'chưa có bằng chứng' }),
+    ).rejects.toMatchObject({ code: 'EVIDENCE_INSUFFICIENT_TO_CLOSE', status: 422 });
+
+    await expect(
+      svc.completeWork(state.lead.id, { workId, actor: 'marketing-lan', evidence: 'conflicted', reason: 'hai nguồn mâu thuẫn' }),
+    ).rejects.toMatchObject({ code: 'EVIDENCE_INSUFFICIENT_TO_CLOSE', status: 422 });
+
+    const after = (await svc.get(state.lead.id))!.workItems.find((x) => x.id === workId)!;
+    expect(after.status).toBe('accepted');
+    expect(after.completionEvidence).toBe('absent');
+  });
+
+  it('a pointer supplied with `declared` closes work as declared, records the raw hash in audit, and keeps outcome claimed', async () => {
     const { state, workId, envelopeId } = await openWork(svc);
     const env = (await svc.get(state.lead.id))!.envelope!;
 
     const done = await svc.completeWork(state.lead.id, {
       workId,
       actor: 'marketing-lan',
-      evidence: 'observed',
+      evidence: 'declared',
       evidenceRef: envelopeId,
       occurredAt: '2026-10-09T15:05:00+07:00',
-      reason: 'tin nhắn gửi file đã được ghi nhận',
+      reason: 'nhân viên báo đã gửi',
     });
     const w = done.workItems.find((x) => x.id === workId)!;
-    expect(w.completionEvidence).toBe('observed');
+    expect(w.status).toBe('completed');
+    expect(w.completionEvidence).toBe('declared');
     expect(w.evidenceRef).toBe(envelopeId);
 
     // audit is traceable to immutable raw evidence (I-12) — hash, not the pointer string alone
@@ -106,25 +142,11 @@ describe('P1-4 — evidence must exist, be in workspace scope and relate to the 
     const entry = history.find((h) => h.eventType === 'work_completed');
     expect(entry?.newValue).toContain(env.rawPayloadHash);
 
-    // a valid observed pointer does NOT make the later outcome any more verified than a claim
+    // a valid pointer on declared completion does NOT make the later outcome any more verified than a claim
     await svc.advance(state.lead.id, { to: 'Contacting', actor: 'marketing-lan', reason: 'đã gửi' });
     await svc.advance(state.lead.id, { to: 'Follow-up', actor: 'marketing-lan', reason: 'chờ' });
     const won = await svc.recordOutcome(state.lead.id, { value: 'Won', actor: 'marketing-lan', reason: 'báo đã deposit' });
     expect(won.outcomes[0].assertionStatus).toBe('claimed');
-  });
-
-  it('a pointer supplied with `declared` does not upgrade the record to observed', async () => {
-    const { state, workId, envelopeId } = await openWork(svc);
-    const done = await svc.completeWork(state.lead.id, {
-      workId,
-      actor: 'marketing-lan',
-      evidence: 'declared',
-      evidenceRef: envelopeId,
-      reason: 'nhân viên báo đã gửi',
-    });
-    const w = done.workItems.find((x) => x.id === workId)!;
-    expect(w.completionEvidence).toBe('declared');
-    expect(w.evidenceRef).toBe(envelopeId);
   });
 
   it('handoff evidenceRef must resolve — no fabricated "pending" hash (I-12)', async () => {

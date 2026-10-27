@@ -80,11 +80,30 @@ LEAD=$(jget "$R" leadId)
 expect_eq "status New" "$(jget "$R" status)" "New"
 [ -n "$LEAD" ] && ok "leadId present" || fail "no leadId: $R"
 
+step "3b. P1-1 over HTTP: cross-workspace colon-delimiter pair (ws, b:inbox, msg) vs (ws:b, inbox, msg) produces distinct envelopes"
+TOK_COLON="Bearer $(b64 "{\"workspaceId\":\"$WS:b\",\"userId\":\"sales-x\",\"role\":\"sales\"}")"
+COLON_HDR=(-H 'content-type: application/json' -H "authorization: $TOK_COLON")
+R_C1=$(curl -s -X POST "$BASE/pilot/scenarios" "${A[@]}" -d "{\"displayName\":\"Colon1\",\"utterance\":\"tenant-1-raw\",\"speaker\":\"customer\",\"connection\":\"b:inbox\",\"externalRecordId\":\"msg-colon\"}")
+R_C2=$(curl -s -X POST "$BASE/pilot/scenarios" "${COLON_HDR[@]}" -d "{\"displayName\":\"Colon2\",\"utterance\":\"tenant-2-raw\",\"speaker\":\"customer\",\"connection\":\"inbox\",\"externalRecordId\":\"msg-colon\"}")
+L_C1=$(jget "$R_C1" leadId); L_C2=$(jget "$R_C2" leadId)
+curl -s -X POST "$BASE/pilot/leads/$L_C1/handoff" "${A[@]}" -d "{\"context\":\"c1\",\"proposedAction\":\"a1\",\"responsibleParty\":\"internal\",\"origin\":\"explicit-request\",\"recipientUserId\":\"marketing-a\"}" >/dev/null
+curl -s -X POST "$BASE/pilot/leads/$L_C2/handoff" "${COLON_HDR[@]}" -d "{\"context\":\"c2\",\"proposedAction\":\"a2\",\"responsibleParty\":\"internal\",\"origin\":\"explicit-request\",\"recipientUserId\":\"sales-x\"}" >/dev/null
+E_C1=$(curl -s "$BASE/pilot/leads/$L_C1" "${A[@]}" | grep -oE '"envelopeId":"[0-9a-f-]+"' | head -1 | sed -E 's/.*"envelopeId":"//; s/"//')
+E_C2=$(curl -s "$BASE/pilot/leads/$L_C2" "${COLON_HDR[@]}" | grep -oE '"envelopeId":"[0-9a-f-]+"' | head -1 | sed -E 's/.*"envelopeId":"//; s/"//')
+[ -n "$E_C1" ] && [ -n "$E_C2" ] && [ "$E_C1" != "$E_C2" ] && ok "colon-colliding tenants got distinct envelopeIds" || fail "colon collision merged envelopes: $E_C1 vs $E_C2"
+
 step "4. handoff A -> B: work item proposed, recipient=B, owner still A"
 HO=$(curl -s -X POST "$BASE/pilot/leads/$LEAD/handoff" "${A[@]}" -d "{\"context\":\"Phu huynh muon con hoc thu\",\"proposedAction\":\"Goi lai 15:00 thu Sau\",\"responsibleParty\":\"internal\",\"origin\":\"explicit-request\",\"recipientUserId\":\"sales-b\",\"dueAt\":\"2026-10-09T15:00:00+07:00\"}")
 WORK=$(jget "$HO" workItemId)
 expect_eq "lead still New" "$(jget "$HO" leadStatus)" "New"
 expect_eq "recipient sales-b" "$(jget "$HO" recipient)" "sales-b"
+
+step "4b. P1-2 over HTTP: current owner A cannot accept or complete B's proposed item (per-item recipient check)"
+expect_contains "A accept B's item -> 403 NOT_ASSIGNED_RECIPIENT" "$(curl -s -X POST "$BASE/pilot/leads/$LEAD/accept" "${A[@]}" -d "{\"workId\":\"$WORK\",\"reason\":\"A nhan ho B\"}")" 'NOT_ASSIGNED_RECIPIENT'
+expect_contains "A complete B's item -> 403 NOT_ASSIGNED_RECIPIENT" "$(curl -s -X POST "$BASE/pilot/leads/$LEAD/complete" "${A[@]}" -d "{\"workId\":\"$WORK\",\"evidence\":\"declared\"}")" 'NOT_ASSIGNED_RECIPIENT'
+# state untouched — item still proposed, owner still A
+V_4B=$(curl -s "$BASE/pilot/leads/$LEAD" "${A[@]}")
+expect_contains "after refusals item still proposed" "$V_4B" "\"status\":\"proposed\""
 
 step "5. unrelated sales-C cannot see the case (403 — I-09, no role widening)"
 expect_eq "C GET -> 403" "$(curl -s -o /dev/null -w '%{http_code}' "$BASE/pilot/leads/$LEAD" "${C[@]}")" "403"
@@ -131,15 +150,16 @@ expect_eq "no active work left in the supersession chain" "$ACTIVE" "0"
 step "9. observed without pointer -> 422 EVIDENCE_POINTER_REQUIRED"
 HO2=$(curl -s -X POST "$BASE/pilot/leads/$LEAD/handoff" "${B[@]}" -d "{\"context\":\"gui hoc phi\",\"proposedAction\":\"Gui bang hoc phi\",\"responsibleParty\":\"internal\",\"origin\":\"explicit-commitment\",\"recipientUserId\":\"sales-b\"}")
 WORK2=$(jget "$HO2" workItemId)
+curl -s -X POST "$BASE/pilot/leads/$LEAD/accept" "${B[@]}" -d "{\"workId\":\"$WORK2\",\"reason\":\"B nhan viec gui hoc phi\"}" >/dev/null
 expect_contains "422 code" "$(curl -s -X POST "$BASE/pilot/leads/$LEAD/complete" "${B[@]}" -d "{\"workId\":\"$WORK2\",\"evidence\":\"observed\"}")" "EVIDENCE_POINTER_REQUIRED"
 
-step "9b. P1-4 boundary + evidence integrity (bad enum, bad param, bogus or unrelated pointer)"
+step "9b. P1-4 boundary + evidence integrity (bad enum, bad param, bogus/unrelated pointer, intake message ≠ action proof, absent/conflicted refused)"
 expect_contains "400 INPUT_INVALID on evidence outside the enum" "$(curl -s -X POST "$BASE/pilot/leads/$LEAD/complete" "${B[@]}" -d "{\"workId\":\"$WORK2\",\"evidence\":\"totally-done\"}")" 'INPUT_INVALID'
 W2_STATUS=$(curl -s "$BASE/pilot/leads/$LEAD" "${B[@]}" | node -e '
 const v=JSON.parse(require("fs").readFileSync(0,"utf8"));const id=process.argv[1];
 const w=v.workItems.find((x)=>x.id===id);process.stdout.write(`${w?.status}/${w?.completionEvidence}`);
 ' "$WORK2")
-expect_eq "rejected payload left the work item untouched" "$W2_STATUS" "proposed/absent"
+expect_eq "rejected payload left the work item untouched" "$W2_STATUS" "accepted/absent"
 expect_eq "malformed leadId -> 400, not a raw 500" "$(curl -s -o /dev/null -w '%{http_code}' "$BASE/pilot/leads/not-a-uuid" "${B[@]}")" "400"
 expect_contains "pointer that resolves to nothing -> EVIDENCE_NOT_FOUND" "$(curl -s -X POST "$BASE/pilot/leads/$LEAD/complete" "${B[@]}" -d "{\"workId\":\"$WORK2\",\"evidence\":\"observed\",\"evidenceRef\":\"00000000-0000-0000-0000-000000000000\"}")" 'EVIDENCE_NOT_FOUND'
 # a REAL envelope of a DIFFERENT case in the same workspace: exists, in scope, but unrelated
@@ -148,9 +168,13 @@ curl -s -X POST "$BASE/pilot/leads/$L3/handoff" "${A[@]}" -d "{\"context\":\"cas
 OTHER_ENV=$(curl -s "$BASE/pilot/leads/$L3" "${A[@]}" | grep -oE '"envelopeId":"[0-9a-f-]+"' | head -1 | sed -E 's/.*"envelopeId":"//; s/"//')
 [ -n "$OTHER_ENV" ] && ok "captured another case's envelope id" || fail "no envelope id on L3"
 expect_contains "unrelated real pointer -> EVIDENCE_NOT_RELATED" "$(curl -s -X POST "$BASE/pilot/leads/$LEAD/complete" "${B[@]}" -d "{\"workId\":\"$WORK2\",\"evidence\":\"observed\",\"evidenceRef\":\"$OTHER_ENV\"}")" 'EVIDENCE_NOT_RELATED'
-# the case's OWN evidence resolves, so observed completion succeeds through the real path
+# P1-4: the case's intake customer message is NOT observed proof that staff performed the action,
+# and absent/conflicted cannot close work either; manual confirmation closes as `declared`
 OWN_ENV=$(curl -s "$BASE/pilot/leads/$LEAD" "${B[@]}" | grep -oE '"envelopeId":"[0-9a-f-]+"' | head -1 | sed -E 's/.*"envelopeId":"//; s/"//')
-expect_contains "own evidence pointer accepted (observed closes)" "$(curl -s -X POST "$BASE/pilot/leads/$LEAD/complete" "${B[@]}" -d "{\"workId\":\"$WORK2\",\"evidence\":\"observed\",\"evidenceRef\":\"$OWN_ENV\"}")" '"workStatus":"completed"'
+expect_contains "intake customer message refused as observed completion proof -> EVIDENCE_NOT_ACTION_PROOF" "$(curl -s -X POST "$BASE/pilot/leads/$LEAD/complete" "${B[@]}" -d "{\"workId\":\"$WORK2\",\"evidence\":\"observed\",\"evidenceRef\":\"$OWN_ENV\"}")" 'EVIDENCE_NOT_ACTION_PROOF'
+expect_contains "absent evidence refused -> EVIDENCE_INSUFFICIENT_TO_CLOSE" "$(curl -s -X POST "$BASE/pilot/leads/$LEAD/complete" "${B[@]}" -d "{\"workId\":\"$WORK2\",\"evidence\":\"absent\"}")" 'EVIDENCE_INSUFFICIENT_TO_CLOSE'
+expect_contains "conflicted evidence refused -> EVIDENCE_INSUFFICIENT_TO_CLOSE" "$(curl -s -X POST "$BASE/pilot/leads/$LEAD/complete" "${B[@]}" -d "{\"workId\":\"$WORK2\",\"evidence\":\"conflicted\"}")" 'EVIDENCE_INSUFFICIENT_TO_CLOSE'
+expect_contains "declared completion with own envelope ref accepted" "$(curl -s -X POST "$BASE/pilot/leads/$LEAD/complete" "${B[@]}" -d "{\"workId\":\"$WORK2\",\"evidence\":\"declared\",\"evidenceRef\":\"$OWN_ENV\",\"reason\":\"nhan vien xac nhan da gui bang hoc phi\"}")" '"workStatus":"completed"'
 
 step "10. reschedule COMPLETED work -> 409 WORK_ALREADY_CLOSED"
 expect_contains "409 code" "$(curl -s -X POST "$BASE/pilot/leads/$LEAD/reschedule" "${B[@]}" -d "{\"workId\":\"$REPL\",\"newDueAt\":\"2026-10-20T09:00:00+07:00\",\"reason\":\"lo tay\"}")" 'WORK_ALREADY_CLOSED'
@@ -158,6 +182,7 @@ expect_contains "409 code" "$(curl -s -X POST "$BASE/pilot/leads/$LEAD/reschedul
 step "11. external expectation -> unobserved (awaiting-external, never failure)"
 HO3=$(curl -s -X POST "$BASE/pilot/leads/$LEAD/handoff" "${B[@]}" -d "{\"context\":\"ky vong khach\",\"proposedAction\":\"Chi A trao doi voi be\",\"responsibleParty\":\"external\",\"origin\":\"explicit-request\",\"recipientUserId\":\"sales-b\"}")
 WORK3=$(jget "$HO3" workItemId)
+curl -s -X POST "$BASE/pilot/leads/$LEAD/accept" "${B[@]}" -d "{\"workId\":\"$WORK3\",\"reason\":\"B nhan theo doi ky vong khach\"}" >/dev/null
 expect_eq "awaiting-external" "$(jget "$(curl -s -X POST "$BASE/pilot/leads/$LEAD/unobserved" "${B[@]}" -d "{\"workId\":\"$WORK3\"}")" workStatus)" "awaiting-external"
 
 step "12. CE-1 boundary on fresh lead -> 422 CE1_BOUNDARY"

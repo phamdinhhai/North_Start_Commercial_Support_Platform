@@ -1,17 +1,33 @@
 import { Injectable } from '@nestjs/common';
 import { AuditStore, type AuditRecord } from '../../infra/audit/audit-store';
+import type { CommercialEnvelope } from '../../domain/envelope/envelope';
 import type { AuditHistoryEntry, PilotLoopState } from './pilot.types';
+
+function evidenceRecordOf(env: CommercialEnvelope): EvidenceRefRecord {
+  const sp = typeof env.rawPayload === 'object' && env.rawPayload !== null ? (env.rawPayload as { speaker?: unknown }).speaker : undefined;
+  return {
+    envelopeId: env.envelopeId,
+    workspaceId: env.workspaceId,
+    rawPayloadHash: env.rawPayloadHash,
+    sourceCapturedAt: env.sourceCapturedAt,
+    speaker: typeof sp === 'string' ? sp : null,
+  };
+}
 
 /**
  * Minimal, read-only view of stored raw evidence — enough to prove a pointer resolves
- * (P1-4). Deliberately NOT the full envelope: a caller must never learn another tenant's
- * payload through the validation path, only that the id does not resolve in scope.
+ * (P1-4) AND to judge what kind of record it is (P1-4b: the customer's intake question can
+ * never be proof that a staff action happened). Deliberately NOT the full envelope: a caller
+ * must never learn another tenant's payload through the validation path, only that the id does
+ * not resolve in scope. `speaker` is the coarse author role captured at ingest, not message text.
  */
 export interface EvidenceRefRecord {
   readonly envelopeId: string;
   readonly workspaceId: string;
   readonly rawPayloadHash: string;
   readonly sourceCapturedAt: string;
+  /** Author role of the referenced record ('customer' | 'staff'), or null when not recorded. */
+  readonly speaker: string | null;
 }
 
 /**
@@ -59,12 +75,7 @@ export class InMemoryPilotStore implements PilotLoopStore {
   async save(state: PilotLoopState, audits: readonly Omit<AuditRecord, 'id' | 'timestamp'>[]): Promise<void> {
     for (const a of audits) this.audit.append(a);
     if (state.envelope) {
-      this.evidence.set(state.envelope.envelopeId, {
-        envelopeId: state.envelope.envelopeId,
-        workspaceId: state.envelope.workspaceId,
-        rawPayloadHash: state.envelope.rawPayloadHash,
-        sourceCapturedAt: state.envelope.sourceCapturedAt,
-      });
+      this.evidence.set(state.envelope.envelopeId, evidenceRecordOf(state.envelope));
     }
     // Track which entity ids belong to THIS case (lead + every entity its own mutations
     // touched) so history can never serve another case's trail (P1-5). Accumulated across
