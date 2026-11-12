@@ -32,10 +32,20 @@ describe('CommercialEnvelope v1 (R-05, R-06, I-11, I-12)', () => {
       expect(h1).not.toBe(h2);
     });
 
-    it('hash is stable across object key order', () => {
-      const h1 = hashRawPayload({ a: 1, b: 2 });
-      const h2 = hashRawPayload({ b: 2, a: 1 });
+    it('hash is stable across object key order at every nesting depth', () => {
+      const h1 = hashRawPayload({ outer: { z: 2, a: [{ b: 1, a: null }] }, first: true });
+      const h2 = hashRawPayload({ first: true, outer: { a: [{ a: null, b: 1 }], z: 2 } });
       expect(h1).toBe(h2);
+    });
+
+    it('preserves arrays, primitives, and null distinctly', () => {
+      const values = [null, true, false, 0, 1, '', [], [null], {}, { value: null }];
+      expect(new Set(values.map(hashRawPayload)).size).toBe(values.length);
+      expect(hashRawPayload([1, 2])).not.toBe(hashRawPayload([2, 1]));
+    });
+
+    it('does not collapse nested objects with different values', () => {
+      expect(hashRawPayload({ nested: { a: 1 } })).not.toBe(hashRawPayload({ nested: { a: 2 } }));
     });
   });
 
@@ -47,6 +57,8 @@ describe('CommercialEnvelope v1 (R-05, R-06, I-11, I-12)', () => {
       expect(env.connection).toBe('conn-ws-001');
       expect(env.externalRecordId).toBe('ext-123');
       expect(env.mappingStatus).toBe('pending');
+      expect(env.acquisitionMode).toBe('imported_record');
+      expect(env.acquisitionSource).toBe('manual');
     });
 
     it('raw payload is a deep clone (I-12 — immutable)', () => {

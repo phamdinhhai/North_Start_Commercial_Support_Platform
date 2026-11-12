@@ -1,16 +1,13 @@
-import { createEnvelope, idempotencyKey, type CommercialEnvelope } from '../../domain/envelope/envelope';
+import {
+  createEnvelope,
+  EnvelopeIdempotencyConflictError,
+  hashRawPayload,
+  idempotencyKey,
+  type CommercialEnvelope,
+} from '../../domain/envelope/envelope';
 
-/** Input cho manual ingest (R-04, R-05, I-12). */
-export interface ManualIngestInput {
-  /** Authenticated workspace (I-09/R-01) — part of the idempotency scope. */
-  readonly workspaceId: string;
-  readonly connection: string;
-  readonly externalRecordId: string;
-  readonly externalEventType: string; // message | conversation | note | ...
-  readonly rawPayload: unknown;
-  readonly sourceCapturedAt?: string;
-  readonly isSynthetic?: boolean;
-}
+import type { ManualIngestInput, ManualIngestPort } from '../../ports/manual-ingest.port';
+export type { ManualIngestInput } from '../../ports/manual-ingest.port';
 
 /**
  * Manual adapter (C-05, C-11, P0 fallback).
@@ -20,7 +17,7 @@ export interface ManualIngestInput {
  *   riêng (P1-1: connection name từ hệ thống ngoài có thể trùng giữa các tenant).
  * - Raw payload immutable (I-12).
  */
-export class ManualAdapter {
+export class ManualAdapter implements ManualIngestPort {
   private readonly store = new Map<string, CommercialEnvelope>();
 
   ingest(input: ManualIngestInput): CommercialEnvelope {
@@ -31,16 +28,35 @@ export class ManualAdapter {
 
     const key = idempotencyKey(input);
     const existing = this.store.get(key);
-    if (existing) return existing;
+    const externalEventType = input.externalEventType ?? 'message';
+    const sourceCapturedAt = input.sourceCapturedAt ?? existing?.sourceCapturedAt ?? new Date().toISOString();
+    const rawPayloadHash = hashRawPayload(input.rawPayload);
+    if (existing) {
+      const conflicts = [
+        ...(existing.rawPayloadHash !== rawPayloadHash ? ['rawPayloadHash' as const] : []),
+        ...(existing.externalEventType !== externalEventType ? ['externalEventType' as const] : []),
+        ...(existing.sourceCapturedAt !== sourceCapturedAt ? ['sourceCapturedAt' as const] : []),
+      ];
+      if (conflicts.length > 0) {
+        throw new EnvelopeIdempotencyConflictError(key, conflicts, existing, {
+          rawPayloadHash,
+          externalEventType,
+          sourceCapturedAt,
+        });
+      }
+      return existing;
+    }
 
     const envelope = createEnvelope({
       workspaceId: input.workspaceId,
       connection: input.connection,
       externalRecordId: input.externalRecordId,
       externalEventType: input.externalEventType ?? 'message',
-      sourceCapturedAt: input.sourceCapturedAt ?? new Date().toISOString(),
+      sourceCapturedAt,
       rawPayload: input.rawPayload,
       isSynthetic: input.isSynthetic ?? false,
+      acquisitionMode: input.acquisitionMode ?? 'imported_record',
+      acquisitionSource: input.acquisitionSource ?? 'manual',
     });
 
     this.store.set(key, envelope);

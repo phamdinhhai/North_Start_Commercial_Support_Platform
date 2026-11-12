@@ -49,8 +49,25 @@ const migrations: MigrationFile[] = [
 describe('Migrator — PH3 T3-08', () => {
   it('loads ordered migration pairs from product/migrations', () => {
     const files = loadMigrations();
-    expect(files.map((m) => m.version)).toEqual(['001_domain', '002_telemetry_feedback', '003_pilot_loop', '004_envelope_workspace_scope']);
+    expect(files.map((m) => m.version)).toEqual([
+      '001_domain',
+      '002_telemetry_feedback',
+      '003_pilot_loop',
+      '004_envelope_workspace_scope',
+      '005_workspace_consistency',
+      '006_pilot_ingest_command',
+      '007_evidence_acquisition',
+    ]);
     expect(files.every((m) => m.up.length > 0 && m.down.length > 0)).toBe(true);
+
+    const consistency = files.find((m) => m.version === '005_workspace_consistency');
+    expect(consistency?.up).toContain('workspace_consistency_quarantine');
+    expect(consistency?.up.toLowerCase()).toContain('refusing to guess');
+    expect(consistency?.up).toContain('ON DELETE SET NULL (lead_id) NOT VALID');
+    expect(consistency?.up.match(/FOREIGN KEY \(lead_id, workspace_id\)/g)).toHaveLength(5);
+    expect(consistency?.up.match(/\bNOT VALID;/g)).toHaveLength(5);
+    expect(consistency?.up).not.toMatch(/\bDELETE\s+FROM\s+(?:commercial_event|handoff|pilot_work_item|outcome|feedback|audit_record)\b/i);
+    expect(consistency?.down).not.toMatch(/\b(?:DELETE|INSERT)\s+(?:FROM|INTO)\s+(?:commercial_event|handoff|pilot_work_item|outcome|feedback|audit_record)\b/i);
   });
 
   it('applies pending migrations in order and becomes idempotent', async () => {

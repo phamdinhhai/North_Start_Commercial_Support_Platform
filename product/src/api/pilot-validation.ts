@@ -12,7 +12,7 @@
  * wiring a global pipe into Fastify (which would change behaviour for other controllers).
  */
 import { UNKNOWN_SENTINEL } from '../domain/unknown-states/unknown-states';
-import type { CompletionEvidence, PilotErrorCode, ResponsibleParty, WorkOrigin } from '../modules/pilot-loop/pilot.types';
+import type { CompletionEvidence, PilotErrorCode, ResponsibleParty, WorkOrigin } from '../ports/pilot-loop.types';
 
 export interface BoundaryError {
   readonly field: string;

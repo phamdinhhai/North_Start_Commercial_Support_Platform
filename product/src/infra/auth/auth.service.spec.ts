@@ -9,6 +9,7 @@ describe('AuthService — PH3 T3-03 (1-A stub, OPEN: PM-1)', () => {
   const svc = new AuthService();
   const prev = process.env.AUTH_DEV_UNSIGNED_TOKENS;
   const prevDemo = process.env.DEMO_WORKSPACES;
+  const prevBootstrap = process.env.BOOTSTRAP_TOKEN;
   beforeAll(() => {
     process.env.AUTH_DEV_UNSIGNED_TOKENS = 'true';
     process.env.DEMO_WORKSPACES = 'true';
@@ -18,6 +19,8 @@ describe('AuthService — PH3 T3-03 (1-A stub, OPEN: PM-1)', () => {
     else process.env.AUTH_DEV_UNSIGNED_TOKENS = prev;
     if (prevDemo === undefined) delete process.env.DEMO_WORKSPACES;
     else process.env.DEMO_WORKSPACES = prevDemo;
+    if (prevBootstrap === undefined) delete process.env.BOOTSTRAP_TOKEN;
+    else process.env.BOOTSTRAP_TOKEN = prevBootstrap;
   });
 
   it('demo workspace allowed without token, but always SANDBOXED to demo:<name>', () => {
@@ -77,6 +80,30 @@ describe('AuthService — PH3 T3-03 (1-A stub, OPEN: PM-1)', () => {
     expect(ctx).toBeNull();
   });
 
+  it.each(['Bearer', 'Bearer ', 'Bearer  token extra', 'Basic token', 'bearer token'])(
+    'malformed authorization header %j → null',
+    (authorization) => {
+      expect(svc.resolve({ headers: { authorization } })).toBeNull();
+    },
+  );
+
+  it('unsigned bearer cannot spoof a privileged role even with the dev flag enabled', () => {
+    const forged = b64({ workspaceId: 'ws-1', userId: 'attacker', role: 'admin' });
+    expect(svc.resolve({ headers: { authorization: `Bearer ${forged}` } })).toBeNull();
+  });
+
+  it.each(['production', 'prod', 'pilot', 'invalid'])('refuses unsigned tokens in %s even with the dev flag enabled', (mode) => {
+    const previous = process.env.DEPLOYMENT_MODE;
+    process.env.DEPLOYMENT_MODE = mode;
+    try {
+      const token = b64({ workspaceId: 'ws-1', userId: 'owner', role: 'sales' });
+      expect(svc.resolve({ headers: { authorization: `Bearer ${token}` } })).toBeNull();
+    } finally {
+      if (previous === undefined) delete process.env.DEPLOYMENT_MODE;
+      else process.env.DEPLOYMENT_MODE = previous;
+    }
+  });
+
   it('unsigned Bearer token rejected unless dev flag is explicitly on (forgery guard)', () => {
     process.env.AUTH_DEV_UNSIGNED_TOKENS = 'false';
     try {
@@ -108,6 +135,18 @@ describe('AuthService — bootstrap + fallback paths (security-critical, 100% li
   it('with BOOTSTRAP_TOKEN unset the header grants nothing (fail closed)', () => {
     delete process.env.BOOTSTRAP_TOKEN;
     expect(svc.resolve({ headers: { 'x-bootstrap-token': 'anything' } })).toBeNull();
+  });
+
+  it('bootstrap rejects empty, oversized, and near-match secrets', () => {
+    process.env.BOOTSTRAP_TOKEN = 'bootstrap-secret';
+    try {
+      expect(svc.resolve({ headers: { 'x-bootstrap-token': '' } })).toBeNull();
+      expect(svc.resolve({ headers: { 'x-bootstrap-token': 'bootstrap-secret ' } })).toBeNull();
+      process.env.BOOTSTRAP_TOKEN = 'x'.repeat(4097);
+      expect(svc.resolve({ headers: { 'x-bootstrap-token': 'x'.repeat(4097) } })).toBeNull();
+    } finally {
+      delete process.env.BOOTSTRAP_TOKEN;
+    }
   });
 
   it('a base64 token missing userId is rejected; missing role defaults to sales, never admin', () => {

@@ -3,8 +3,8 @@ import { UnauthorizedException, NotFoundException, ForbiddenException } from '@n
 import { PilotLoopController } from './pilot-loop.controller';
 import { AuthService } from '../infra/auth/auth.service';
 import { RbacService } from '../infra/rbac/rbac.service';
-import { PilotLoopService } from '../modules/pilot-loop/pilot-loop.service';
-import { InMemoryPilotStore } from '../modules/pilot-loop/pilot.store';
+import { PilotLoopService } from '../application/pilot/pilot-loop.service';
+import { InMemoryPilotStore } from '../infra/pilot/in-memory-pilot.store';
 import { AuditStore } from '../infra/audit/audit-store';
 import { ManualAdapter } from '../adapters/manual/manual-adapter';
 
@@ -97,6 +97,14 @@ describe('PilotLoopController — auth & RBAC wiring (T3-03/T3-04 unit-level; LI
     const out = await ctrl.outcome(salesB, res.leadId, { value: 'Won', reason: 'đã deposit' });
     expect(out.leadStatus).toBe('Won');
     expect(out.assertionStatus).toBe('claimed'); // R-15: claim, không tự verified
+    const history = await ctrl.auditHistory(salesB, res.leadId);
+    expect(history.metadata).toEqual({
+      trust: 'recorded',
+      provenance: 'audit_record',
+      unknown: ['business_truth', 'runtime_causality'],
+    });
+    expect(history.history.every((entry) => entry.metadata.trust === 'recorded')).toBe(true);
+    expect(JSON.stringify(history)).not.toContain('rawPayload');
   });
 
   it('guardrail refusals map to 4xx business codes, not raw 500', async () => {

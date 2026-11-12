@@ -13,7 +13,7 @@ async function bootstrap() {
   );
 
   app.enableShutdownHooks();
-  app.setGlobalPrefix('v1', { exclude: ['health', 'v1/health'] });
+  app.setGlobalPrefix('v1', { exclude: ['health', 'health/readiness', 'v1/health', 'v1/health/readiness'] });
 
   const port = parseInt(process.env.PORT ?? '3000', 10);
   await app.listen(port, '0.0.0.0');

@@ -1,4 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
+import { timingSafeEqual } from 'node:crypto';
+import type { AuthContext, AuthRequestLike, AuthRole, AuthContextResolver } from '../../ports/auth';
+export type { AuthContext, AuthRequestLike, AuthRole } from '../../ports/auth';
 
 /**
  * Auth stub — PH3 T3-03 (1-A).
@@ -6,25 +9,29 @@ import { Injectable, Logger } from '@nestjs/common';
  * KHÔNG phát token từ email/workspace caller gửi (QA-28).
  * // OPEN: PM-1 — invite one-use/expiring, password/SSO thật chờ RFC; hiện chỉ bootstrap stub.
  */
-export interface AuthContext {
-  workspaceId: string;
-  userId: string;
-  role: string;
-  isDemo: boolean;
-}
-
-export interface AuthRequestLike {
-  headers: Record<string, string | undefined>;
-  query?: Record<string, string | undefined>;
-  body?: Record<string, unknown>;
-}
-
 /** Demo workspace names are sandboxed so the header can never address a real tenant (P1 review). */
 const DEMO_PREFIX = 'demo:';
+const MAX_TOKEN_BYTES = 4096;
+const MAX_BOOTSTRAP_TOKEN_BYTES = 4096;
+const UNSIGNED_TOKEN_ROLES = new Set<AuthRole>(['sales', 'viewer']);
 const sanitizeDemoName = (raw: string): string => raw.slice(0, 48).replace(/[^a-zA-Z0-9._-]/g, '_');
 
+function asSingleHeader(value: string | undefined): string | undefined {
+  return typeof value === 'string' ? value : undefined;
+}
+
+function isNonEmptyString(value: unknown): value is string {
+  return typeof value === 'string' && value.trim().length > 0;
+}
+
+function safeEqual(left: string, right: string): boolean {
+  const leftBytes = Buffer.from(left, 'utf8');
+  const rightBytes = Buffer.from(right, 'utf8');
+  return leftBytes.length === rightBytes.length && timingSafeEqual(leftBytes, rightBytes);
+}
+
 @Injectable()
-export class AuthService {
+export class AuthService implements AuthContextResolver {
   private readonly logger = new Logger(AuthService.name);
 
   /**
@@ -46,26 +53,38 @@ export class AuthService {
       const sandbox = `${DEMO_PREFIX}${sanitizeDemoName(demoWs) || 'anon'}`;
       return { workspaceId: sandbox, userId: `${sandbox}:viewer`, role: 'viewer', isDemo: true };
     }
-    const auth = req.headers['authorization'] ?? req.headers['Authorization'];
-    const bootstrap = req.headers['x-bootstrap-token'];
+    const auth = asSingleHeader(req.headers['authorization'] ?? req.headers['Authorization']);
+    const bootstrap = asSingleHeader(req.headers['x-bootstrap-token']);
     const expectedBootstrap = process.env.BOOTSTRAP_TOKEN;
-    if (expectedBootstrap && bootstrap === expectedBootstrap) {
-      // One-time bootstrap — seed admin, phải rotate sau bootstrap (PM-1)
+    // Bootstrap is deliberately narrow: an explicit, bounded secret is required. It is
+    // still a PM-1 seed hook, not a general session or credential model.
+    if (
+      expectedBootstrap &&
+      expectedBootstrap.length <= MAX_BOOTSTRAP_TOKEN_BYTES &&
+      bootstrap &&
+      bootstrap.length <= MAX_BOOTSTRAP_TOKEN_BYTES &&
+      safeEqual(bootstrap, expectedBootstrap)
+    ) {
       return { workspaceId: 'bootstrap', userId: 'bootstrap-admin', role: 'admin', isDemo: false };
     }
-    if (auth?.startsWith('Bearer ')) {
+    if (auth !== undefined) {
+      // Only the exact Bearer scheme is accepted; malformed auth must not fall through.
+      if (!/^Bearer\s/.test(auth) || !/^Bearer\s+[^\s]+$/.test(auth)) return null;
       const token = auth.slice(7).trim();
-      if (!token) return null;
-      // Token unsigned → ai cũng giả mạo được (kể cả role admin). Chỉ nhận khi bật cờ dev tường minh.
-      if (process.env.AUTH_DEV_UNSIGNED_TOKENS !== 'true') return null;
-      // Stub: token = base64 json {workspaceId,userId,role} — thay bằng JWT verify ở RFC PM-1
+      // Unsigned tokens are strictly test/development-only and intentionally cannot grant
+      // privileged roles. PM-1 must define signed credentials before broader roles exist.
+      const deployment = (process.env.DEPLOYMENT_MODE ?? process.env.APP_MODE ?? process.env.NODE_ENV ?? 'local').trim().toLowerCase();
+      if (process.env.AUTH_DEV_UNSIGNED_TOKENS !== 'true' || token.length > MAX_TOKEN_BYTES ||
+          !['local', 'development', 'dev', 'test', 'demo'].includes(deployment) || process.env.NODE_ENV === 'production') return null;
       try {
-        const decoded = JSON.parse(Buffer.from(token, 'base64').toString('utf8')) as Partial<AuthContext>;
-        if (!decoded.workspaceId || !decoded.userId) return null;
+        const decoded = JSON.parse(Buffer.from(token, 'base64').toString('utf8')) as Record<string, unknown>;
+        if (!isNonEmptyString(decoded.workspaceId) || !isNonEmptyString(decoded.userId)) return null;
+        const role = decoded.role === undefined ? 'sales' : decoded.role;
+        if (typeof role !== 'string' || !UNSIGNED_TOKEN_ROLES.has(role as AuthRole)) return null;
         return {
           workspaceId: decoded.workspaceId,
           userId: decoded.userId,
-          role: (decoded.role as string) ?? 'sales',
+          role: role as AuthRole,
           isDemo: false,
         };
       } catch {

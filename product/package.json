@@ -18,10 +18,16 @@
     "test:cov": "vitest run --coverage",
     "test:e2e": "vitest run --config vitest.config.e2e.ts",
     "test:integration": "vitest run integration --no-file-parallelism",
+    "test:integration:ci": "node scripts/ci-integration.mjs",
+    "test:backup": "node --test scripts/backup-verify.test.mjs",
+    "test:architecture": "node --test scripts/check-architecture.test.mjs",
+    "backup:verify": "node scripts/backup-verify.mjs",
     "migrate:up": "npm run build && node dist/scripts/migrate.js up",
     "migrate:down": "npm run build && node dist/scripts/migrate.js down",
     "db:up": "docker compose up -d postgres",
-    "lint": "eslint \"{src,test}/**/*.ts\""
+    "lint": "eslint \"src/**/*.ts\" \"e2e/**/*.ts\"",
+    "architecture:check": "node scripts/check-architecture.mjs --report",
+    "architecture:check:strict": "node scripts/check-architecture.mjs"
   },
   "dependencies": {
     "@nestjs/common": "^11.0.0",
@@ -36,10 +42,13 @@
   "devDependencies": {
     "@nestjs/cli": "^11.0.0",
     "@nestjs/schematics": "^11.0.0",
+    "@nestjs/testing": "11.2.5",
     "@types/node": "^22.0.0",
     "@types/pg": "^8.23.1",
-    "@vitest/coverage-v8": "^3.0.0",
+    "@typescript-eslint/parser": "8.72.2",
+    "@vitest/coverage-v8": "5.1.0",
+    "eslint": "9.39.1",
     "typescript": "^5.7.0",
-    "vitest": "^3.0.0"
+    "vitest": "5.1.0"
   }
 }

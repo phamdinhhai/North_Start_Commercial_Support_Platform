@@ -11,11 +11,12 @@ import {
   UnauthorizedException,
   NotFoundException,
   ForbiddenException,
+  Inject,
 } from '@nestjs/common';
-import { AuthService, type AuthContext, type AuthRequestLike } from '../infra/auth/auth.service';
-import { RbacService } from '../infra/rbac/rbac.service';
-import { PilotLoopService, activeWorkRecipients } from '../modules/pilot-loop/pilot-loop.service';
-import { PilotDomainError, type ScenarioInput } from '../modules/pilot-loop/pilot.types';
+import { AUTH_CONTEXT_RESOLVER, type AuthContext, type AuthContextResolver, type AuthRequestLike } from '../ports/auth';
+import { LEAD_ACCESS_POLICY, type LeadAccessPolicy } from '../ports/rbac';
+import { PilotLoopService, activeWorkRecipients } from '../application/pilot/pilot-loop.service';
+import { PilotDomainError, type ScenarioInput } from '../ports/pilot-loop.types';
 import {
   boundaryRejection,
   validateAcceptBody,
@@ -87,9 +88,9 @@ function check<T>(issues: readonly BoundaryError[], body: T): T {
 @Controller('pilot')
 export class PilotLoopController {
   constructor(
-    private readonly auth: AuthService,
-    private readonly rbac: RbacService,
-    private readonly loop: PilotLoopService,
+    @Inject(AUTH_CONTEXT_RESOLVER) private readonly auth: AuthContextResolver,
+    @Inject(LEAD_ACCESS_POLICY) private readonly rbac: LeadAccessPolicy,
+    @Inject(PilotLoopService) private readonly loop: PilotLoopService,
   ) {}
 
   @Post('scenarios')
@@ -285,7 +286,15 @@ export class PilotLoopController {
       const ctx = this.authCtx(headers);
       this.checkLeadId(leadId);
       await this.authorizedView(ctx, leadId);
-      return { history: await this.loop.auditHistory(leadId as LeadId) };
+      const history = await this.loop.auditHistory(leadId as LeadId);
+      return {
+        history,
+        metadata: {
+          trust: 'recorded' as const,
+          provenance: 'audit_record' as const,
+          unknown: ['business_truth', 'runtime_causality'] as const,
+        },
+      };
     } catch (err) {
       throw toHttpException(err);
     }

@@ -22,17 +22,34 @@ describe('ManualAdapter (C-05, C-11, R-04/R-05/R-06, I-12)', () => {
     expect(env.rawPayload).toEqual({ text: 'Hello' });
     expect(env.rawPayloadHash).toHaveLength(64);
     expect(env.mappingStatus).toBe('pending');
+    expect(env.acquisitionMode).toBe('imported_record');
+    expect(env.acquisitionSource).toBe('manual');
   });
 
-  it('idempotent: duplicate ingest returns same envelope (R-06)', () => {
+  it('idempotent: duplicate ingest returns same envelope for identical immutable input (R-06)', () => {
     const adapter = new ManualAdapter();
-    const input = { ...base, connection: 'conn-001', externalRecordId: 'ext-dup' };
-    const a = adapter.ingest({ ...input, rawPayload: { text: 'Hi' } });
-    const b = adapter.ingest({ ...input, rawPayload: { text: 'Changed but same key' } });
+    const input = { ...base, connection: 'conn-001', externalRecordId: 'ext-dup', sourceCapturedAt: '2026-09-21T10:00:00Z', rawPayload: { text: 'Hi' } };
+    const a = adapter.ingest(input);
+    const b = adapter.ingest(input);
     expect(a.envelopeId).toBe(b.envelopeId);
     expect(adapter.count()).toBe(1);
-    // raw preserved from first ingest (I-12)
-    expect(b.rawPayload).toEqual({ text: 'Hi' });
+  });
+
+  it('rejects changed immutable payload deterministically without overwrite', () => {
+    const adapter = new ManualAdapter();
+    const input = { ...base, connection: 'conn-001', externalRecordId: 'ext-dup', sourceCapturedAt: '2026-09-21T10:00:00Z', rawPayload: { text: 'Hi' } };
+    const first = adapter.ingest(input);
+    expect(() => adapter.ingest({ ...input, rawPayload: { text: 'Changed' } })).toThrowError(expect.objectContaining({ code: 'IDEMPOTENCY_CONFLICT', conflicts: ['rawPayloadHash'] }));
+    expect(adapter.getByEnvelopeId(first.envelopeId)?.rawPayload).toEqual({ text: 'Hi' });
+  });
+
+  it('rejects changed immutable type and timestamp without overwrite', () => {
+    const adapter = new ManualAdapter();
+    const input = { ...base, connection: 'conn-001', externalRecordId: 'ext-dup', sourceCapturedAt: '2026-09-21T10:00:00Z', rawPayload: { text: 'Hi' } };
+    adapter.ingest(input);
+    expect(() => adapter.ingest({ ...input, externalEventType: 'conversation', sourceCapturedAt: '2026-09-21T11:00:00Z' })).toThrowError(
+      expect.objectContaining({ code: 'IDEMPOTENCY_CONFLICT', conflicts: ['externalEventType', 'sourceCapturedAt'] }),
+    );
   });
 
   it('different externalRecordId creates different envelope', () => {
@@ -90,12 +107,13 @@ describe('ManualAdapter (C-05, C-11, R-04/R-05/R-06, I-12)', () => {
       expect(adapter.count()).toBe(2);
     });
 
-    it('same workspace+connection+externalRecordId → idempotent (unchanged R-06)', () => {
+    it('same workspace+connection+externalRecordId with changed payload is a deterministic conflict', () => {
       const adapter = new ManualAdapter();
-      const a = adapter.ingest({ workspaceId: 'ws-a', connection: 'c1', externalRecordId: 'e1', externalEventType: 'message', rawPayload: { x: 1 } });
-      const b = adapter.ingest({ workspaceId: 'ws-a', connection: 'c1', externalRecordId: 'e1', externalEventType: 'message', rawPayload: { x: 2 } });
-      expect(a.envelopeId).toBe(b.envelopeId);
-      expect(b.rawPayload).toEqual({ x: 1 });
+      const a = adapter.ingest({ workspaceId: 'ws-a', connection: 'c1', externalRecordId: 'e1', externalEventType: 'message', sourceCapturedAt: '2026-09-21T10:00:00Z', rawPayload: { x: 1 } });
+      expect(() => adapter.ingest({ workspaceId: 'ws-a', connection: 'c1', externalRecordId: 'e1', externalEventType: 'message', sourceCapturedAt: '2026-09-21T10:00:00Z', rawPayload: { x: 2 } })).toThrowError(
+        expect.objectContaining({ code: 'IDEMPOTENCY_CONFLICT' }),
+      );
+      expect(adapter.getByEnvelopeId(a.envelopeId)?.rawPayload).toEqual({ x: 1 });
     });
 
     it('rejects ingest without workspaceId — no silent unscoped envelope', () => {

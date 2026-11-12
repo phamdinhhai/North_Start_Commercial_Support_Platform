@@ -6,6 +6,10 @@ export type EnvelopeId = string & { readonly __brand: 'EnvelopeId' };
 /** Mapping status của envelope (C-11, R-05). */
 export type MappingStatus = 'pending' | 'mapped' | 'error';
 
+/** Provenance of an evidence record; automatic observations are the only source of observed action proof. */
+export type EvidenceAcquisitionMode = 'automatic_observation' | 'imported_record';
+export type EvidenceAcquisitionSource = 'system' | 'manual';
+
 /**
  * Commercial Envelope v1 (C-11, R-05, I-11, I-12).
  *
@@ -33,6 +37,9 @@ export interface CommercialEnvelope {
   readonly mappingError?: string;
   readonly canonicalProjection?: unknown;
   readonly isSynthetic: boolean; // I-12 segregation (R-28)
+  /** Explicit provenance; legacy rows are treated as imported records. */
+  readonly acquisitionMode: EvidenceAcquisitionMode;
+  readonly acquisitionSource: EvidenceAcquisitionSource;
 }
 
 export interface CreateEnvelopeInput {
@@ -43,12 +50,53 @@ export interface CreateEnvelopeInput {
   readonly sourceCapturedAt: string;
   readonly rawPayload: unknown;
   readonly isSynthetic?: boolean;
+  readonly acquisitionMode?: EvidenceAcquisitionMode;
+  readonly acquisitionSource?: EvidenceAcquisitionSource;
 }
 
-/** SHA-256 hex digest của JSON-serialized payload (stable ordering). */
+/**
+ * Serialize JSON-shaped values deterministically before hashing.
+ *
+ * Object keys are sorted at every depth, while arrays retain their order.  The
+ * replacer-array form of JSON.stringify only sorted the root object and also
+ * dropped nested keys, which made distinct payloads hash alike.  Explicit
+ * primitive handling keeps null and scalar values in the canonical stream.
+ */
+export function canonicalizePayload(value: unknown): string {
+  if (value === null) return 'null';
+  if (Array.isArray(value)) return `[${value.map(canonicalizePayload).join(',')}]`;
+  if (typeof value === 'object') {
+    if (value instanceof Date) return JSON.stringify(value.toISOString());
+    const entries = Object.entries(value as Record<string, unknown>)
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([key, nested]) => `${JSON.stringify(key)}:${canonicalizePayload(nested)}`);
+    return `{${entries.join(',')}}`;
+  }
+  if (typeof value === 'undefined') return '"[undefined]"';
+  if (typeof value === 'number' && !Number.isFinite(value)) return JSON.stringify(String(value));
+  return JSON.stringify(value);
+}
+
+/** SHA-256 hex digest of the recursively canonicalized raw payload. */
 export function hashRawPayload(rawPayload: unknown): string {
-  const canonical = JSON.stringify(rawPayload, Object.keys(rawPayload ?? {}).sort());
-  return createHash('sha256').update(canonical).digest('hex');
+  return createHash('sha256').update(canonicalizePayload(rawPayload)).digest('hex');
+}
+
+export type ImmutableEnvelopeField = 'rawPayloadHash' | 'externalEventType' | 'sourceCapturedAt';
+
+/** Stable, machine-readable refusal for a reused key with changed immutable evidence. */
+export class EnvelopeIdempotencyConflictError extends Error {
+  readonly code = 'IDEMPOTENCY_CONFLICT' as const;
+
+  constructor(
+    readonly key: string,
+    readonly conflicts: readonly ImmutableEnvelopeField[],
+    readonly existing: Readonly<Pick<CommercialEnvelope, 'rawPayloadHash' | 'externalEventType' | 'sourceCapturedAt'>>,
+    readonly incoming: Readonly<Pick<CommercialEnvelope, 'rawPayloadHash' | 'externalEventType' | 'sourceCapturedAt'>>,
+  ) {
+    super(`idempotency key already exists with different immutable fields: ${conflicts.join(',')}`);
+    this.name = 'EnvelopeIdempotencyConflictError';
+  }
 }
 
 /**
@@ -71,6 +119,8 @@ export function createEnvelope(input: CreateEnvelopeInput): CommercialEnvelope {
     rawPayloadHash: hashRawPayload(input.rawPayload),
     mappingStatus: 'pending',
     isSynthetic: input.isSynthetic ?? false,
+    acquisitionMode: input.acquisitionMode ?? 'imported_record',
+    acquisitionSource: input.acquisitionSource ?? 'manual',
   };
 }
 

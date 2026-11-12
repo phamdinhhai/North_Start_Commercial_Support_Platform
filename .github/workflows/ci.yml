@@ -1,0 +1,63 @@
+name: CI / release gate
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  product:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    defaults:
+      run:
+        working-directory: product
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: north_ci
+          POSTGRES_PASSWORD: north_ci_only
+          POSTGRES_DB: north_start_ci
+        ports:
+          - 127.0.0.1:5432:5432
+        options: >-
+          --health-cmd "pg_isready -U north_ci -d north_start_ci"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+    env:
+      CI: 'true'
+      TEST_DATABASE_URL: postgresql://north_ci:north_ci_only@127.0.0.1:5432/north_start_ci
+      DEPLOYMENT_MODE: test
+      PILOT_STORE_MODE: memory
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: product/package-lock.json
+      - name: Install locked dependencies
+        run: npm ci
+      - name: Typecheck
+        run: npm run typecheck
+      - name: Lint
+        run: npm run lint
+      - name: Architecture checker tests
+        run: npm run test:architecture
+      - name: Strict architecture check
+        run: npm run architecture:check:strict
+      - name: Unit and domain tests
+        run: npm test -- --exclude '**/*.integration.spec.ts'
+      - name: PostgreSQL integration (fail on missing/skipped suites)
+        run: npm run test:integration:ci
+      - name: Coverage (80% line threshold, including PostgreSQL)
+        run: npm run test:cov -- --no-file-parallelism
+      - name: Build
+        run: npm run build
+      - name: E2E HTTP smoke
+        run: npm run test:e2e

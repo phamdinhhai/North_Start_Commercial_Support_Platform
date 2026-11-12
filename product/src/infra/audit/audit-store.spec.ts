@@ -76,13 +76,12 @@ describe('AuditStore — C-06, R-19, I-05', () => {
     expect(store.count).toBe(2);
   });
 
-  it('all() returns full append order', () => {
+  it('all() returns deterministic timestamp then id order', () => {
     const store = new AuditStore();
-    store.append({ entityType: 'lead', entityId: 'l1', workspaceId: ws, actor: 's', newValue: 'a' });
-    store.append({ entityType: 'lead', entityId: 'l2', workspaceId: ws, actor: 's', newValue: 'b' });
+    const first = store.append({ entityType: 'lead', entityId: 'l1', workspaceId: ws, actor: 's', newValue: 'a' });
+    const second = store.append({ entityType: 'lead', entityId: 'l2', workspaceId: ws, actor: 's', newValue: 'b' });
     expect(store.all()).toHaveLength(2);
-    expect(store.all()[0].entityId).toBe('l1');
-    expect(store.all()[1].entityId).toBe('l2');
+    expect(store.all().map((r) => r.id)).toEqual([first.id, second.id]);
   });
 
   it('append works with optional previousValue + reason + eventType', () => {

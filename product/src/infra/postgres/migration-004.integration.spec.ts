@@ -56,7 +56,9 @@ integration('migration 004 — refuses to guess, never deletes raw evidence', ()
   /** Apply only the legacy part of the schema (everything before 004). */
   async function upToLegacy(): Promise<PostgresService> {
     const db = new PostgresService({ connectionString: dbUrl, max: 2 });
-    const legacy = loadMigrations().filter((m) => m.version !== '004_envelope_workspace_scope');
+    const legacy = loadMigrations().filter((m) =>
+      ['001_domain', '002_telemetry_feedback', '003_pilot_loop'].includes(m.version),
+    );
     await new Migrator(db, legacy).up();
     return db;
   }
@@ -142,7 +144,9 @@ integration('migration 004 — refuses to guess, never deletes raw evidence', ()
     const ambUrl = targetUrl(`/${db2Name}`);
     try {
       const db = new PostgresService({ connectionString: ambUrl, max: 2 });
-      const legacy = loadMigrations().filter((m) => m.version !== '004_envelope_workspace_scope');
+      const legacy = loadMigrations().filter((m) =>
+      ['001_domain', '002_telemetry_feedback', '003_pilot_loop'].includes(m.version),
+    );
       await new Migrator(db, legacy).up();
 
       await db.query("INSERT INTO workspace(id,name) VALUES ('wsA','A'),('wsB','B')");
