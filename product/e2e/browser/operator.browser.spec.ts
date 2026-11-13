@@ -39,14 +39,14 @@ test.describe('operator workflow', () => {
     await expect(page.locator('#context')).toContainText('Synthetic browser lead');
     await expect(page.locator('#context')).toContainText('raw payload is not exposed');
     await expect(page.locator('#context')).not.toContainText('rawPayload');
-    await expect(page.locator('#context')).not.toContainText(token);
+    await expect(page.locator('#context')).not.toContainText(authToken('browser-e2e-workspace'));
 
     await page.locator('#accept').click();
     await expect(page.locator('#action-status')).toContainText('Action recorded');
     await page.locator('#complete').click();
     await expect(page.locator('#action-status')).toContainText('Action recorded');
-    await page.locator('#outcome').click();
     page.once('dialog', async (dialog) => await dialog.accept('Won'));
+    await page.locator('#outcome').click();
     await expect(page.locator('#action-status')).toContainText('Action recorded');
     await page.locator('#audit').click();
     await expect(page.locator('#action-status')).toContainText('Audit records:');

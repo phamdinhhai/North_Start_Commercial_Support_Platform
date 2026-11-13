@@ -16,9 +16,9 @@ export default defineConfig({
     ...devices['Desktop Chrome'],
   },
   webServer: {
-    command: 'npm run start',
+    command: 'npm run build && npm run start',
     cwd: '.',
-    url: 'http://127.0.0.1:3100/v1/health',
+    url: 'http://127.0.0.1:3100/v1/operator',
     reuseExistingServer: false,
     timeout: 120_000,
     env: {
