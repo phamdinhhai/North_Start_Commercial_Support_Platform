@@ -21,30 +21,30 @@ The independent Opus review returned four actionable findings. All four were rem
 | Checker false positives and missed import forms | **Accepted** | AST-based imports, aliases, relative paths, dynamic imports, require/import types, exact composition roots and eight fixtures. `test:architecture` passes and strict check reports 0 findings. |
 | Readiness accepted latest migration marker alone | **Accepted** | Probe requires markers 001–007; the missing-prerequisites regression passes. |
 | HTTP smoke did not exercise migrated pilot provider wiring | **Accepted for memory-mode smoke scope** | Unauthenticated intake rejection, authenticated memory intake/read and cross-workspace 404 checks pass. This is not PostgreSQL HTTP or production-auth proof. |
-| Intake timestamps with equivalent timezone offsets produced false conflicts | Implemented; acceptance pending | Intake normalizes known timestamps to UTC; retry comparison accepts equal instants and retains exact non-date sentinel equality. Added same/fresh-service offset/UTC retry regression with changed-instant rejection. Tests have not run. |
-| E2E environment restoration on setup/shutdown failure | Implemented; acceptance pending | Optional application close is wrapped in `try/finally` so mode/auth/demo environment values restore even when setup or close fails. Not executed. |
+| Intake timestamps with equivalent timezone offsets produced false conflicts | **Implemented and verified** | Intake normalizes known timestamps to UTC; retry comparison accepts equal instants and retains exact non-date sentinel equality. The full current test run passed this regression and changed-instant rejection coverage. |
+| E2E environment restoration on setup/shutdown failure | **Implemented and verified** | Optional application close is wrapped in `try/finally` so mode/auth/demo environment values restore even when setup or close fails. The current E2E suite passed. |
 | Test co-location still uses former `modules/` and `health/` paths | **Accepted** | Pilot, feedback and health specs now live with their canonical owners; CI integration path was updated to the canonical PostgreSQL suite. |
 | Strict architecture zero findings | **Accepted** | Eight checker fixtures pass and `architecture:check:strict` reports 0 findings after final migration and test co-location. |
-| Full behavior/PostgreSQL/coverage/clean install | **Accepted for technical baseline** | `npm ci` passes; 278 unit tests pass, 5 E2E tests pass, backup tests pass, PostgreSQL CI gate passes 19/19 without skips, DB-enabled coverage is 297/297 with 91.88% lines / 81.86% branches / 92.47% functions. |
+| Current local executable baseline | **Accepted for technical development scope with limits** | On branch `feat/decision-demand-execution` at starting HEAD `5d6c206`, typecheck, lint, architecture fixtures, strict architecture (0 findings), build, unit/default tests (278 passed, 19 PostgreSQL tests skipped without DB), E2E (5 passed), backup tests (6 passed), coverage (83.76% lines / 71.12% branches / 83.18% functions), and `npm audit --omit=dev` (0 vulnerabilities) passed. The fail-on-skip PostgreSQL gate was invoked correctly with `CI=true` but is blocked because Docker is unavailable and no `TEST_DATABASE_URL` disposable database was supplied. |
 | Independent integrated review | **Accepted with findings remediated** | Opus review found four concrete P1/P2 issues; all four were fixed and regression-tested. No additional verified finding was returned. |
 | Hosted CI | **Not executed** | Workflow includes checker fixtures and strict enforcement; no hosted result. No push or PR requested/performed. |
 | Production credentials, full permissions, retention/export/delete and commercial validation | **Rejected for release** | PM-1 and other canonical decisions remain open. Technical dev baseline does not authorize customer data, production credentials, retention/export/delete, or commercial claims. |
 | Pancake live integration | **Deferred/flag OFF** | Q-03/Q-04 and PH4 gate remain required. |
 
-## Execution blocker
+## Fresh verification record — 2026-11-13
 
-On this continuation, shell inventory, final local acceptance commands and a new Sonnet reviewer could not start because the Claude Code auto-mode classifier reported `claude-sonnet-5[1m] is temporarily unavailable (server error)`. The previous continuation also had an explicit classifier denial. No alternate interpreter, peer session or reverse-engineering tool was used to bypass that boundary. Read-only source inspection and dedicated file edits remained available.
+The current branch was created from `5d6c206`; the working tree contains only the user-provided untracked `docs/decision_and_deepresearch_demand.md` before this documentation update. `git diff --check` passed. The following commands were executed from `product/`:
 
-The following gates have no final result:
+- `npm run typecheck` — **PASS**.
+- `npm run lint` — **PASS**.
+- `npm run test:architecture` — **PASS**, 8/8 fixtures.
+- `npm run architecture:check:strict` — **PASS**, 0 findings.
+- `npm run build` — **PASS**.
+- `npm test -- --no-file-parallelism` — **PASS**, 278 passed and 19 skipped because no PostgreSQL URL was provided.
+- `npm run test:e2e` — **PASS**, 5/5.
+- `npm run test:backup` — **PASS**, 6/6.
+- `npm run test:cov -- --no-file-parallelism` — **PASS**, 83.76% lines, 71.12% branches, 83.18% functions.
+- `npm audit --omit=dev` — **PASS**, 0 production vulnerabilities.
+- `CI=true npm run test:integration:ci` — **BLOCKED**, correctly requiring `TEST_DATABASE_URL`; Docker is unavailable on this host, so no disposable PostgreSQL instance was created.
 
-- Working-tree/branch inventory and `git diff --check`.
-- `npm ci` and runtime/tool version verification.
-- `npm run typecheck`, `npm run lint`, `npm run build`.
-- `npm run test:architecture`, `npm run architecture:check:strict`.
-- `npm test`, `npm run test:e2e`, `npm run test:backup`.
-- Isolated PostgreSQL integration, fail-on-skip CI integration, migration rollback/reapply and coverage.
-- Dependency audit and independent integrated review.
-
-After the user requested main-agent-only completion, the main agent performed a static source review directly without subagents. It checked the migrated application/context/composition boundaries, persistence mappers, E2E fixtures and architecture checker; a search found no TypeScript/MJS import references to the moved production paths within product. This self-review found and corrected the timestamp false-conflict and E2E restoration issues listed above. It is not an independent review or executed verification. The main agent's full local gate attempt was again blocked before execution by the same classifier service error.
-
-Executable gates require restored tool permission/classifier availability before acceptance can close. No user/shared database was accessed or modified, no canonical document was edited, and no commit/push was performed in this continuation.
+These results are current local evidence only. PostgreSQL migration/CAS/concurrency/rollback, hosted CI, production IAM, retention/export/delete, backup restore, provider live verification and commercial/user validation remain unverified or human-gated. No canonical document was edited and no shared/customer database was accessed.
