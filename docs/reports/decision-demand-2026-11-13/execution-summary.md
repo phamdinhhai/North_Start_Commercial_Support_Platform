@@ -3,9 +3,8 @@
 **Date:** 2026-11-13
 **Branch:** `feat/decision-demand-execution`
 **Starting baseline:** `5d6c206`
-**Current local head:** `b957c0f9ed5cbe66ed7ad853e91f876adef1a476`
-**Hosted-verified head:** `3d2e9365a636cfed156df394106afafc82b3b95b`
-**Remote sync:** push of local extension is currently blocked/hanging; no hosted claim is made for `b957c0f`
+**Current/hosted-verified head:** `b15388d8ab753ccc66563e71977e4d6e8f28fe63`
+**Hosted workflows:** https://github.com/phamdinhhai/North_Start_Commercial_Support_Platform/actions/runs/43466941912 and https://github.com/phamdinhhai/North_Start_Commercial_Support_Platform/actions/runs/43466928026
 **PR:** https://github.com/phamdinhhai/North_Start_Commercial_Support_Platform/pull/1
 **Hosted workflow:** https://github.com/phamdinhhai/North_Start_Commercial_Support_Platform/actions/runs/43446276927
 **Status:** technical development baseline improved; commercial and production release **NOT APPROVED**
@@ -42,7 +41,7 @@ Executed from `product/` against the integrated tree:
 - `npm run security:audit` — **PASS** at the configured high/critical threshold; seven low/moderate transitive advisories remain documented.
 - `npm audit --omit=dev` — **PASS**, 0 production vulnerabilities.
 - Hosted GitHub Actions run `43446276927` — **PASS**, exact hosted head `3d2e936`/implementation evidence at `3314cee`; PostgreSQL integration ran 4 suites/20 tests without skips, coverage ran 32 files/323 tests, E2E ran 7/7, strict architecture passed 0 findings, and build passed.
-- `npm run registry:validate` — **PASS locally on `b957c0f`**, 7 decisions, 6 capabilities, 12 assets; unique IDs, source/date/license checks and secret-like text guard. This local extension is not yet hosted.
+- `npm run registry:validate` — **PASS hosted on `b15388d`**, 7 decisions, 6 capabilities, 12 assets; unique IDs, source/date/license checks and secret-like text guard.
 - Browser-level E2E — **BLOCKED**, no clean rebased browser commit/toolchain was accepted; no browser claim is made.
 
 ## Integrated commits
