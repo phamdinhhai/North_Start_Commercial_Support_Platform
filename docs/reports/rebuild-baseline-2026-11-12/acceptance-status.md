@@ -48,3 +48,11 @@ The current branch was created from `5d6c206`; the working tree contains only th
 - `CI=true npm run test:integration:ci` — **BLOCKED**, correctly requiring `TEST_DATABASE_URL`; Docker is unavailable on this host, so no disposable PostgreSQL instance was created.
 
 These results are current local evidence only. PostgreSQL migration/CAS/concurrency/rollback, hosted CI, production IAM, retention/export/delete, backup restore, provider live verification and commercial/user validation remain unverified or human-gated. No canonical document was edited and no shared/customer database was accessed.
+
+## Hosted CI and release-security boundary
+
+The non-canonical workflow at `.github/workflows/ci.yml` is a validation gate, not a production release or deployment workflow. It runs locked installation, a high/critical dependency audit, changed-line whitespace validation, a narrow added-line credential-pattern check, typecheck, lint, architecture checks, tests, coverage, build, PostgreSQL integration, and HTTP smoke checks. The credential-pattern check is a lightweight guardrail and is not a replacement for a hosted secret scanner.
+
+The repository still has no verified hosted result for the workflow, and no configured hosted SAST/DAST, comprehensive secret-scanning provider, SBOM generation/signing/provenance or artifact-attestation gate, vulnerability exception process, production credential/permission gate, deploy/rollback environment, migration approval gate, or post-deploy health gate. No such capability is claimed by this baseline. Adding those controls requires platform/security ownership, provider selection, credentials, environment policy, and human approval; they remain explicit release blockers rather than guessed infrastructure.
+
+A local `npm ci` completed successfully, and `npm run security:audit` passed its configured high/critical threshold while reporting seven low/moderate advisories in transitive tooling dependencies. `npm run typecheck`, `npm run lint`, and `git diff --check` passed locally. These results are not hosted CI evidence, do not waive the advisories, and do not authorize a production release. No user/shared database was accessed or modified, and no canonical document was edited by this hardening change.

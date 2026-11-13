@@ -1,4 +1,4 @@
-name: CI / release gate
+name: CI / validation gate
 
 on:
   push:
@@ -36,6 +36,8 @@ jobs:
       PILOT_STORE_MODE: memory
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
@@ -43,6 +45,37 @@ jobs:
           cache-dependency-path: product/package-lock.json
       - name: Install locked dependencies
         run: npm ci
+      - name: Dependency audit (high and critical)
+        run: npm run security:audit
+      - name: Repository diff and secret-pattern check
+        working-directory: .
+        env:
+          PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          EVENT_BEFORE_SHA: ${{ github.event.before }}
+          CURRENT_SHA: ${{ github.sha }}
+        run: |
+          set -eu
+          base_sha="$PR_BASE_SHA"
+          if [ -z "$base_sha" ]; then
+            base_sha="$EVENT_BEFORE_SHA"
+          fi
+
+          if [ -n "$base_sha" ] && [ "$base_sha" != "0000000000000000000000000000000000000000" ] && git cat-file -e "$base_sha^{commit}" 2>/dev/null; then
+            git diff --check "$base_sha" "$CURRENT_SHA"
+            changed_lines="$(git diff --unified=0 "$base_sha" "$CURRENT_SHA")"
+          elif git rev-parse "$CURRENT_SHA^" >/dev/null 2>&1; then
+            parent_sha="$(git rev-parse "$CURRENT_SHA^")"
+            git diff --check "$parent_sha" "$CURRENT_SHA"
+            changed_lines="$(git diff --unified=0 "$parent_sha" "$CURRENT_SHA")"
+          else
+            git diff-tree --check --root "$CURRENT_SHA"
+            changed_lines="$(git diff-tree --unified=0 --root --no-commit-id -r "$CURRENT_SHA")"
+          fi
+
+          if printf '%s\n' "$changed_lines" | grep -nE '^\+[^+].*(AKIA[0-9A-Z]{16}|ASIA[0-9A-Z]{16}|-----BEGIN (RSA|OPENSSH|EC|DSA|PGP) PRIVATE KEY-----|gh[pousr]_[A-Za-z0-9_]{20,}|sk-[A-Za-z0-9]{20,})'; then
+            echo 'Potential credential pattern detected in added lines.' >&2
+            exit 1
+          fi
       - name: Typecheck
         run: npm run typecheck
       - name: Lint

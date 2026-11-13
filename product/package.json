@@ -26,6 +26,7 @@
     "migrate:down": "npm run build && node dist/scripts/migrate.js down",
     "db:up": "docker compose up -d postgres",
     "lint": "eslint \"src/**/*.ts\" \"e2e/**/*.ts\"",
+    "security:audit": "npm audit --audit-level=high",
     "architecture:check": "node scripts/check-architecture.mjs --report",
     "architecture:check:strict": "node scripts/check-architecture.mjs"
   },
