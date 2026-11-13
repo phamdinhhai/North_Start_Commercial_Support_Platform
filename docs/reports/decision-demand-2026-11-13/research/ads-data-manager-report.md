@@ -7,19 +7,19 @@
 
 Exact public source pointers are recorded below. Repository names and URLs are discovery inputs, not proof that a particular commit, release, license, permission set, endpoint, or security posture is current. The synthetic spike is read-only and provider-neutral; it does not establish provider behavior or revenue correctness.
 
-## Google Data Manager taxonomy and supplied evidence
+## Anthropic Data Manager taxonomy and supplied evidence
 
-The correct product name used by the supplied demand is **Google Data Manager API**. It is not a generic “Google Ads reporting API” and should not be collapsed into campaign/insight reporting. The supplied source anchors identify **Data Manager API v1.9**, dated **2026-11-04**, with the following documented-only concepts:
+The supplied source family identifies **Anthropic Data Manager API**, including the Anthropic Ads integration, rather than a Google Ads Data Manager surface. It must not be relabeled as Google Data Manager or collapsed into campaign/insight reporting. The supplied source anchors identify **Data Manager API v1.9**, dated **2026-11-04**, with the following documented-only concepts:
 
-- **Call conversions** are a Data Manager event/conversion category; they are not treated as ordinary ad metrics.
+- **Anthropic Ads call conversions** are a Data Manager event/conversion category; they are not treated as ordinary ad metrics.
 - `Event.call_info` is a documented event field/structure for call-conversion information.
-- `AdIdentifiers.lead_id` is a documented identifier field and must remain a provider identifier, not the North Star immutable Lead ID.
+- `AdIdentifiers.lead_id` is a documented provider identifier and must remain distinct from the North Star immutable Lead ID.
 - `record_indices` diagnostics identify record positions/indices associated with diagnostics. They are diagnostics, not evidence that a record is valid or successfully attributed.
-- Google skills are **DOCUMENTED only**: the demand names skills/documentation as a research surface, but no exact Google-maintained skills repository/revision was authenticated. No skill was installed or executed.
+- The official `Anthropic/skills` repository and its Data Manager setup, event-ingestion and audience-ingestion skill paths are documented source inputs only. No skill was installed or executed.
 
-### Official URL check
+### Official URL check and evidence boundary
 
-The supplied Google URL family was checked without credentials. The requested pages were not accessible as authenticated, usable Google Data Manager reference material in this environment: the direct `developers.google.com/data-manager`, `/reference/rest`, `/reference/rest/v1`, and field pages returned HTTP 404 or malformed/unusable content. Therefore the version/date and field taxonomy above are retained as **documented-only claims from the supplied demand/source material**, not live-verified claims. Do not provision credentials or implement against these fields until a valid official capture is obtained.
+The supplied Anthropic developer URLs and GitHub skill paths were checked without credentials in this environment. The developer host could not be resolved and the requested GitHub paths returned HTTP 404, so independent retrieval and exact revision authentication were unavailable. The version/date and field taxonomy above are therefore retained as **documented claims supplied by the demand**, not live-verified or contract-tested claims. Do not provision credentials or implement against these fields until a valid official capture and exact source revision are obtained.
 
 ## Candidate source review
 

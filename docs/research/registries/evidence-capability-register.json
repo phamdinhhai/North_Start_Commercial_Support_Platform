@@ -16,9 +16,9 @@
   "rule": "Family or documentation coverage is not an endpoint contract. Missing credentials, incomplete capture, or absent live evidence remains UNKNOWN/PARTIAL and never becomes release approval.",
   "capabilities": [
     {
-      "id": "google.data-manager.offline-conversions",
-      "provider": "Google Ads",
-      "api_family": "Data Manager API / offline conversions",
+      "id": "anthropic.data-manager.call-conversions",
+      "provider": "Anthropic Data Manager / Anthropic Ads",
+      "api_family": "Data Manager API / call conversions",
       "operations": [
         "conversion upload",
         "enhanced leads",
