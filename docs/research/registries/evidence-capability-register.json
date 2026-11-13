@@ -27,22 +27,21 @@
       "documented_state": "UNKNOWN",
       "live_state": "UNKNOWN",
       "release_state": "UNKNOWN",
-      "evidence": "docs/decision_and_deepresearch_demand.md#IX-deep-research-repositories-google-data-manager-api",
+      "evidence": "docs/reports/decision-demand-2026-11-13/research/ads-data-manager-report.md#anthropic-data-manager-taxonomy-and-supplied-evidence",
       "known_observations": [
-        "The requested Google Data Manager surface is a Google Ads ecosystem integration, not an Anthropic provider integration."
+        "The supplied source family identifies Anthropic Data Manager and Anthropic Ads call conversions, not a Google Ads Data Manager surface.",
+        "The supplied source anchors name v1.9 dated 2026-11-04, Event.call_info, AdIdentifiers.lead_id and record_indices as documented-only concepts."
       ],
       "unknowns": [
-        "official v1.9 specification dated 2026-11-04",
-        "exact conversion/lead identifier contract",
-        "row-level diagnostics schema",
-        "official Agent Skills source",
-        "credentials and live behavior"
+        "independent retrieval and exact revision authentication",
+        "credentials and live behavior",
+        "contract-tested request and response schema"
       ],
-      "production_rule": "Do not claim Data Manager v1.9 or Agent Skills support until the exact official source is re-verified; no live or contract-tested evidence is recorded.",
-      "last_documented": "2026-11-13",
-      "source_url": "docs/decision_and_deepresearch_demand.md#IX-deep-research-repositories-google-data-manager-api",
-      "source_type": "official-or-repository-documentation",
-      "verified_date": "2026-11-13"
+      "production_rule": "Do not claim Data Manager support beyond documented-only supplied evidence until the official source and exact revision are independently re-verified; no live or contract-tested evidence is recorded.",
+      "last_documented": "2026-11-14",
+      "source_url": "https://developers.anthropic.com/data-manager/api/reference",
+      "source_type": "official-documentation-supplied-by-demand",
+      "verified_date": "2026-11-14"
     },
     {
       "id": "pancake.chat.read",

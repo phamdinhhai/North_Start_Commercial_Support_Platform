@@ -45,7 +45,7 @@ For every discovery-pointer row, the exact owner, commit, license, dependency tr
 
 ## Safe normalized observation shape
 
-The executable spike at `product/src/spikes/decision-demand/ads-metrics-normalizer.ts` preserves:
+The executable spike at `product/src/adapters/decision-demand/ads-metrics-normalizer.ts` preserves:
 
 - workspace, provider, provider account/object IDs, native metric name and value;
 - currency, timezone, attribution window, occurred/captured timestamps;

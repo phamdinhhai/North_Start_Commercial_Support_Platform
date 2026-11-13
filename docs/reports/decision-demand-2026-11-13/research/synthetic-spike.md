@@ -4,10 +4,10 @@
 
 ## Executable files
 
-- `product/src/spikes/decision-demand/ads-metrics-normalizer.ts`
-- `product/src/spikes/decision-demand/ads-metrics-normalizer.spec.ts`
-- `product/src/spikes/decision-demand/crm-external-id-mapper.ts`
-- `product/src/spikes/decision-demand/crm-external-id-mapper.spec.ts`
+- `product/src/adapters/decision-demand/ads-metrics-normalizer.ts`
+- `product/src/adapters/decision-demand/ads-metrics-normalizer.spec.ts`
+- `product/src/adapters/decision-demand/crm-external-id-mapper.ts`
+- `product/src/adapters/decision-demand/crm-external-id-mapper.spec.ts`
 
 ## Guarantees exercised
 

@@ -31,7 +31,7 @@ For OneChat and any similarly named discovery result, no exact source can be tre
 
 ## Executable synthetic spike
 
-`product/src/spikes/decision-demand/crm-external-id-mapper.ts` implements a read-only mapper with provider/external ID/internal Lead ID, field authority, provenance, confidence and workspace scope. It diagnoses malformed, duplicate, conflicting and cross-workspace mappings while never performing network or domain mutation. Tests cover all of those cases and explicit UNKNOWN confidence/authority.
+`product/src/adapters/decision-demand/crm-external-id-mapper.ts` implements a read-only mapper with provider/external ID/internal Lead ID, field authority, provenance, confidence and workspace scope. It diagnoses malformed, duplicate, conflicting and cross-workspace mappings while never performing network or domain mutation. Tests cover all of those cases and explicit UNKNOWN confidence/authority.
 
 ## Verdict
 
