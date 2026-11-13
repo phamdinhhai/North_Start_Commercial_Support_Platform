@@ -16,8 +16,19 @@
       "license": "Meta Platform License",
       "maintenance": "active; release, Node CI, CodeQL and Dependabot signals documented 2026-11-13",
       "verdict": "REFERENCE",
-      "research_targets": ["Marketing API", "Messenger", "Conversions", "permission and app-review boundary"],
-      "constraints": ["repository evidence is not live account access or contract verification", "do not import provider semantics into canonical domain"]
+      "research_targets": [
+        "Marketing API",
+        "Messenger",
+        "Conversions",
+        "permission and app-review boundary"
+      ],
+      "constraints": [
+        "repository evidence is not live account access or contract verification",
+        "do not import provider semantics into canonical domain"
+      ],
+      "source_url": "https://github.com/facebook/facebook-nodejs-business-sdk",
+      "source_type": "repository",
+      "verified_date": "2026-11-13"
     },
     {
       "id": "asset.hubspot-node-sdk",
@@ -30,8 +41,19 @@
       "license": "Apache-2.0",
       "maintenance": "active release and test/lint/docs workflow signals documented 2026-11-13",
       "verdict": "REFERENCE",
-      "research_targets": ["CRM object APIs", "OAuth", "rate/error handling", "field authority mapping"],
-      "constraints": ["ID-2 remains open", "no bidirectional sync or inherited CRM semantics"]
+      "research_targets": [
+        "CRM object APIs",
+        "OAuth",
+        "rate/error handling",
+        "field authority mapping"
+      ],
+      "constraints": [
+        "ID-2 remains open",
+        "no bidirectional sync or inherited CRM semantics"
+      ],
+      "source_url": "https://github.com/HubSpot/hubspot-api-nodejs",
+      "source_type": "repository",
+      "verified_date": "2026-11-13"
     },
     {
       "id": "asset.jsforce",
@@ -44,8 +66,19 @@
       "license": "MIT",
       "maintenance": "active release/test/dependabot signals documented 2026-11-13",
       "verdict": "REFERENCE",
-      "research_targets": ["OAuth", "REST/query", "retry and limits", "field mapping"],
-      "constraints": ["no Salesforce tenant evidence", "ID-2 and field authority approval required"]
+      "research_targets": [
+        "OAuth",
+        "REST/query",
+        "retry and limits",
+        "field mapping"
+      ],
+      "constraints": [
+        "no Salesforce tenant evidence",
+        "ID-2 and field authority approval required"
+      ],
+      "source_url": "https://github.com/jsforce/jsforce",
+      "source_type": "repository",
+      "verified_date": "2026-11-13"
     },
     {
       "id": "asset.sapo-mcp",
@@ -58,8 +91,19 @@
       "license": "MIT",
       "maintenance": "active signals documented; pre-1.0 and single-shop Private App model",
       "verdict": "REFERENCE",
-      "research_targets": ["POS/order schemas", "credential mode", "write gating", "tenant suitability"],
-      "constraints": ["single-shop Private App assumptions are not SaaS OAuth architecture", "README tests were not executed here"]
+      "research_targets": [
+        "POS/order schemas",
+        "credential mode",
+        "write gating",
+        "tenant suitability"
+      ],
+      "constraints": [
+        "single-shop Private App assumptions are not SaaS OAuth architecture",
+        "README tests were not executed here"
+      ],
+      "source_url": "https://github.com/nguyennguyenit/Sapo-MCP",
+      "source_type": "repository",
+      "verified_date": "2026-11-13"
     },
     {
       "id": "asset.nango",
@@ -72,8 +116,19 @@
       "license": "ELv2",
       "maintenance": "active release/deploy/CLI verification and security policy signals documented 2026-11-13",
       "verdict": "REFERENCE",
-      "research_targets": ["OAuth lifecycle", "credential isolation", "syncs", "webhooks"],
-      "constraints": ["license and embedding fit require separate review", "no live API behavior verified"]
+      "research_targets": [
+        "OAuth lifecycle",
+        "credential isolation",
+        "syncs",
+        "webhooks"
+      ],
+      "constraints": [
+        "license and embedding fit require separate review",
+        "no live API behavior verified"
+      ],
+      "source_url": "https://github.com/NangoHQ/nango",
+      "source_type": "repository",
+      "verified_date": "2026-11-13"
     },
     {
       "id": "asset.chatwoot",
@@ -86,8 +141,18 @@
       "license": "Core MIT; enterprise governed separately",
       "maintenance": "active tests/security/frontend workflow signals documented 2026-11-13",
       "verdict": "REFERENCE",
-      "research_targets": ["conversation/inbox", "assignment", "handoff", "webhooks"],
-      "constraints": ["do not adopt enterprise semantics or replace North Star canonical model"]
+      "research_targets": [
+        "conversation/inbox",
+        "assignment",
+        "handoff",
+        "webhooks"
+      ],
+      "constraints": [
+        "do not adopt enterprise semantics or replace North Star canonical model"
+      ],
+      "source_url": "https://github.com/chatwoot/chatwoot",
+      "source_type": "repository",
+      "verified_date": "2026-11-13"
     },
     {
       "id": "asset.pancake-pos-mcp",
@@ -97,8 +162,22 @@
       "url": "https://github.com/nguyennguyenit/pancake-pos-mcp",
       "classification": "community-reference",
       "verdict": "REFERENCE",
-      "research_targets": ["API client architecture", "MCP tools", "order/customer/inventory schemas", "credential handling", "tests"],
-      "constraints": ["audit against current official API", "no production reuse without license/security review"]
+      "research_targets": [
+        "API client architecture",
+        "MCP tools",
+        "order/customer/inventory schemas",
+        "credential handling",
+        "tests"
+      ],
+      "constraints": [
+        "audit against current official API",
+        "no production reuse without license/security review"
+      ],
+      "source_url": "https://github.com/nguyennguyenit/pancake-pos-mcp",
+      "source_type": "repository",
+      "verified_date": "2026-11-13",
+      "license": "UNKNOWN",
+      "maintenance": "not independently verified in this checkpoint"
     },
     {
       "id": "asset.pancake-mcp-server",
@@ -108,8 +187,20 @@
       "url": "https://github.com/lynguyenvu/pancake-mcp-server",
       "classification": "community-reference",
       "verdict": "REFERENCE",
-      "research_targets": ["conversation/message/media/order wrappers", "tool boundaries", "error handling"],
-      "constraints": ["compare every endpoint with current OpenAPI", "do not treat README claims as contract"]
+      "research_targets": [
+        "conversation/message/media/order wrappers",
+        "tool boundaries",
+        "error handling"
+      ],
+      "constraints": [
+        "compare every endpoint with current OpenAPI",
+        "do not treat README claims as contract"
+      ],
+      "source_url": "https://github.com/lynguyenvu/pancake-mcp-server",
+      "source_type": "repository",
+      "verified_date": "2026-11-13",
+      "license": "UNKNOWN",
+      "maintenance": "not independently verified in this checkpoint"
     },
     {
       "id": "asset.airbyte",
@@ -119,30 +210,22 @@
       "url": "https://github.com/airbytehq/airbyte",
       "classification": "architecture-reference",
       "verdict": "REFERENCE",
-      "research_targets": ["incremental sync", "state/cursor", "backfill", "schema drift", "connector testing"],
-      "constraints": ["assess embedding and operational complexity before adoption", "do not add a connector framework prematurely"]
-    },
-    {
-      "id": "asset.nango",
-      "name": "Nango",
-      "kind": "framework",
-      "provider": "community",
-      "url": "https://github.com/NangoHQ/nango",
-      "classification": "architecture-reference",
-      "verdict": "REFERENCE",
-      "research_targets": ["OAuth connection lifecycle", "credential isolation", "syncs", "webhooks"],
-      "constraints": ["evaluate tenant binding and license/commercial fit"]
-    },
-    {
-      "id": "asset.chatwoot",
-      "name": "Chatwoot",
-      "kind": "application",
-      "provider": "community",
-      "url": "https://github.com/chatwoot/chatwoot",
-      "classification": "workflow-reference",
-      "verdict": "REFERENCE",
-      "research_targets": ["conversation/inbox model", "assignment", "handoff", "permissions", "webhooks"],
-      "constraints": ["do not replace North Star canonical semantics with source abstractions"]
+      "research_targets": [
+        "incremental sync",
+        "state/cursor",
+        "backfill",
+        "schema drift",
+        "connector testing"
+      ],
+      "constraints": [
+        "assess embedding and operational complexity before adoption",
+        "do not add a connector framework prematurely"
+      ],
+      "source_url": "https://github.com/airbytehq/airbyte",
+      "source_type": "repository",
+      "verified_date": "2026-11-13",
+      "license": "UNKNOWN",
+      "maintenance": "not independently verified in this checkpoint"
     },
     {
       "id": "asset.open-telemetry-js",
@@ -152,8 +235,17 @@
       "url": "https://github.com/open-telemetry/opentelemetry-js",
       "classification": "observability-reference",
       "verdict": "REFERENCE",
-      "research_targets": ["tracing and telemetry"],
-      "constraints": ["keep application telemetry distinct from commercial evidence and business audit"]
+      "research_targets": [
+        "tracing and telemetry"
+      ],
+      "constraints": [
+        "keep application telemetry distinct from commercial evidence and business audit"
+      ],
+      "source_url": "https://github.com/open-telemetry/opentelemetry-js",
+      "source_type": "repository",
+      "verified_date": "2026-11-13",
+      "license": "UNKNOWN",
+      "maintenance": "not independently verified in this checkpoint"
     },
     {
       "id": "asset.pgbackrest",
@@ -163,8 +255,19 @@
       "url": "https://github.com/pgbackrest/pgbackrest",
       "classification": "backup-reference",
       "verdict": "REFERENCE",
-      "research_targets": ["encrypted logical backups", "WAL archiving", "PITR"],
-      "constraints": ["current baseline is a dry-run/disposable-database helper, not production backup readiness"]
+      "research_targets": [
+        "encrypted logical backups",
+        "WAL archiving",
+        "PITR"
+      ],
+      "constraints": [
+        "current baseline is a dry-run/disposable-database helper, not production backup readiness"
+      ],
+      "source_url": "https://github.com/pgbackrest/pgbackrest",
+      "source_type": "repository",
+      "verified_date": "2026-11-13",
+      "license": "UNKNOWN",
+      "maintenance": "not independently verified in this checkpoint"
     },
     {
       "id": "asset.testcontainers-node",
@@ -174,8 +277,17 @@
       "url": "https://github.com/testcontainers/testcontainers-node",
       "classification": "testing-candidate",
       "verdict": "REFERENCE",
-      "research_targets": ["isolated PostgreSQL integration tests"],
-      "constraints": ["validate CI runtime and reproducibility before adoption"]
+      "research_targets": [
+        "isolated PostgreSQL integration tests"
+      ],
+      "constraints": [
+        "validate CI runtime and reproducibility before adoption"
+      ],
+      "source_url": "https://github.com/testcontainers/testcontainers-node",
+      "source_type": "repository",
+      "verified_date": "2026-11-13",
+      "license": "UNKNOWN",
+      "maintenance": "not independently verified in this checkpoint"
     }
   ]
 }
