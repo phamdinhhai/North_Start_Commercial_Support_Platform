@@ -17,6 +17,8 @@
     "test:watch": "vitest",
     "test:cov": "vitest run --coverage",
     "test:e2e": "vitest run --config vitest.config.e2e.ts",
+    "test:browser": "playwright test --config playwright.config.ts",
+    "test:browser:install": "playwright install chromium",
     "test:integration": "vitest run integration --no-file-parallelism",
     "test:integration:ci": "node scripts/ci-integration.mjs",
     "test:backup": "node --test scripts/backup-verify.test.mjs",
@@ -44,6 +46,7 @@
   "devDependencies": {
     "@nestjs/cli": "^11.0.0",
     "@nestjs/schematics": "^11.0.0",
+    "@playwright/test": "^1.56.1",
     "@nestjs/testing": "11.2.5",
     "@types/node": "^22.0.0",
     "@types/pg": "^8.23.1",
