@@ -16,7 +16,7 @@ import {
   toOutcome,
   toWork,
 } from '../../infra/postgres/repositories/pilot-persistence.types';
-import { PilotStaleVersionError } from '../../ports/pilot-loop.types';
+import { decodePilotQueueCursor, encodePilotQueueCursor, PilotStaleVersionError } from '../../ports/pilot-loop.types';
 import { assertSameEnvelope } from '../../ports/pilot-loop.store';
 import type { PilotLoopState, AuditHistoryEntry, PilotQueueItem, PilotQueuePage, PilotQueueQuery } from '../../ports/pilot-loop.types';
 import type { EvidenceRefRecord, PilotLoopStore } from '../../ports/pilot-loop.store';
@@ -90,7 +90,7 @@ export class PgPilotStore implements PilotLoopStore {
 
   async queue(query: PilotQueueQuery): Promise<PilotQueuePage> {
     const limit = Math.min(Math.max(query.limit ?? 50, 1), 100);
-    const offset = decodeQueueCursor(query.cursor);
+    const cursor = decodePilotQueueCursor(query, query.cursor);
     const params: unknown[] = [query.workspaceId];
     const where = ['w.workspace_id = $1'];
     if (query.actorRole !== 'admin' && query.actorRole !== 'manager') {
@@ -102,18 +102,31 @@ export class PgPilotStore implements PilotLoopStore {
     if (query.recipientUserId) { params.push(query.recipientUserId); where.push(`w.actor = $${params.length}`); }
     if (query.dueBefore) { params.push(query.dueBefore); where.push(`w.due_at < $${params.length}`); }
     if (query.dueAfter) { params.push(query.dueAfter); where.push(`w.due_at > $${params.length}`); }
-    params.push(limit + 1, offset);
+    if (cursor) {
+      if (cursor.dueAt === null) {
+        params.push(cursor.recordedAt, cursor.id);
+        const cursorParam = params.length - 1;
+        where.push(`w.due_at IS NULL AND (w.recorded_at, w.id) > ($${cursorParam}, $${cursorParam + 1})`);
+      } else {
+        params.push(cursor.dueAt, cursor.recordedAt, cursor.id);
+        const cursorParam = params.length - 2;
+        where.push(`(w.due_at IS NULL OR w.due_at > $${cursorParam} OR (w.due_at = $${cursorParam} AND (w.recorded_at, w.id) > ($${cursorParam + 1}, $${cursorParam + 2})))`);
+      }
+    }
+    params.push(limit + 1);
     const result = await this.db.query<WorkDbRow & { lead_status: string; display_name: string; handoff_recipient: string | null }>(
       `SELECT w.id,w.lead_id,w.workspace_id,w.action,w.responsible_party,w.origin,w.status,w.completion_evidence,w.occurred_at,w.due_at,w.evidence_ref,w.recorded_at,w.supersedes_work_id,w.actor,w.reason,
               l.status AS lead_status,l.display_name,
               (SELECT h.recipient_user_id FROM handoff h WHERE h.lead_id = l.id ORDER BY h.created_at DESC LIMIT 1) AS handoff_recipient
          FROM pilot_work_item w JOIN lead l ON l.id = w.lead_id
         WHERE ${where.join(' AND ')}
-        ORDER BY w.due_at NULLS LAST,w.recorded_at,w.id LIMIT $${params.length - 1} OFFSET $${params.length}`,
+        ORDER BY w.due_at NULLS LAST,w.recorded_at,w.id LIMIT $${params.length}`,
       params,
     );
     const rows = result.rows.map((row) => toQueueItem(row));
-    return { items: rows.slice(0, limit), ...(rows.length > limit ? { nextCursor: encodeQueueCursor(offset + limit) } : {}) };
+    const items = rows.slice(0, limit);
+    const last = items.at(-1);
+    return { items, ...(rows.length > limit && last ? { nextCursor: encodePilotQueueCursor(query, last) } : {}) };
   }
 
   async loadIngest(key: Pick<CommercialEnvelope, 'workspaceId' | 'connection' | 'externalRecordId'>): Promise<PilotLoopState | undefined> {
@@ -351,16 +364,6 @@ export class PgPilotStore implements PilotLoopStore {
     return committed;
   }
 }
-
-function decodeQueueCursor(cursor?: string): number {
-  if (!cursor) return 0;
-  try {
-    const value = Number.parseInt(Buffer.from(cursor, 'base64url').toString('utf8'), 10);
-    return Number.isSafeInteger(value) && value >= 0 ? value : 0;
-  } catch { return 0; }
-}
-
-function encodeQueueCursor(offset: number): string { return Buffer.from(String(offset), 'utf8').toString('base64url'); }
 
 function toQueueItem(row: WorkDbRow & { lead_status: string; display_name: string; handoff_recipient: string | null }): PilotQueueItem {
   return {

@@ -3,7 +3,7 @@
 **Date:** 2026-11-13  
 **Branch:** `feat/decision-demand-execution`  
 **Starting baseline:** `5d6c206`  
-**Current verification head:** `7caf5357ef5369af10edf441548ab56d249cf38a`  
+**Current verification head:** pending commit for queue keyset/operator client/provider registry correction (hosted PR #1)  
 **Status:** technical development baseline improved; commercial and production release **NOT APPROVED**
 
 ## A–J delivery disposition

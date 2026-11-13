@@ -7,6 +7,20 @@
   "rule": "Family or documentation coverage is not an endpoint contract. Missing credentials, incomplete capture, or absent live evidence remains UNKNOWN/PARTIAL and never becomes release approval.",
   "capabilities": [
     {
+      "id": "google.data-manager.offline-conversions",
+      "provider": "Google Ads",
+      "api_family": "Data Manager API / offline conversions",
+      "operations": ["conversion upload", "enhanced leads", "row-level diagnostics"],
+      "documented_state": "UNKNOWN",
+      "live_state": "UNKNOWN",
+      "release_state": "UNKNOWN",
+      "evidence": "docs/decision_and_deepresearch_demand.md#IX-deep-research-repositories-google-data-manager-api",
+      "known_observations": ["The requested Google Data Manager surface is a Google Ads ecosystem integration, not an Anthropic provider integration."],
+      "unknowns": ["official v1.9 specification dated 2026-11-04", "exact conversion/lead identifier contract", "row-level diagnostics schema", "official Agent Skills source", "credentials and live behavior"],
+      "production_rule": "Do not claim Data Manager v1.9 or Agent Skills support until the exact official source is re-verified; no live or contract-tested evidence is recorded.",
+      "last_documented": "2026-11-13"
+    },
+    {
       "id": "pancake.chat.read",
       "provider": "Pancake",
       "api_family": "Pancake Chat / Conversations",
@@ -19,6 +33,20 @@
       "unknowns": ["public API credential and permissions", "complete schema and channel coverage", "rate limits", "replay/version/idempotency semantics"],
       "production_rule": "Do not use private dashboard endpoints or cookies as a production adapter contract.",
       "last_documented": "2026-11-11"
+    },
+    {
+      "id": "pancake.pos.webhooks",
+      "provider": "Pancake POS",
+      "api_family": "POS webhook delivery",
+      "operations": ["JSON delivery", "retry", "recovery by update time"],
+      "documented_state": "DOCUMENTED",
+      "live_state": "UNKNOWN",
+      "release_state": "FLAG_OFF",
+      "evidence": "https://pos.pancake.biz/developers/api/en/webhooks",
+      "known_observations": ["Public HTTPS receiver and JSON POST are documented", "documented retries are approximately 10 and 30 minutes", "configured custom headers can carry a secret", "deduplication uses record ID and update timestamp"],
+      "unknowns": ["complete Conversations webhook schema", "formal signature scheme", "current account eligibility", "live receiver behavior"],
+      "production_rule": "Documentation is contract evidence only; keep PH4 OFF until credential-bound tests and Q-04 review.",
+      "last_documented": "2026-11-13"
     },
     {
       "id": "pancake.webhooks",

@@ -85,6 +85,34 @@ describe('HTTP compatibility smoke suite', () => {
     expect(foreign.statusCode).toBe(404);
   });
 
+  it('serves the operator client without exposing application payloads', async () => {
+    const response = await app.getHttpAdapter().getInstance().inject({ method: 'GET', url: '/v1/operator' });
+    expect(response.statusCode).toBe(200);
+    expect(response.headers['content-type']).toMatch(/text\/html/);
+    expect(response.body).toContain('North Star Operator');
+    expect(response.body).toContain('/v1/pilot/queue');
+    expect(response.body).not.toContain('rawPayload');
+  });
+
+  it('serves the queue projection through authenticated HTTP with redaction and pagination', async () => {
+    const token = (workspaceId: string, userId = 'operator') => `Bearer ${Buffer.from(JSON.stringify({ workspaceId, userId, role: 'sales' })).toString('base64')}`;
+    const server = app.getHttpAdapter().getInstance();
+    const intake = await server.inject({
+      method: 'POST', url: '/v1/pilot/scenarios', headers: { authorization: token('queue-e2e') },
+      payload: { displayName: 'Queue case', utterance: 'Follow up', speaker: 'customer', connection: 'manual', externalRecordId: 'queue-e2e', isSynthetic: true },
+    });
+    const leadId = intake.json().leadId;
+    await server.inject({
+      method: 'POST', url: `/v1/pilot/leads/${leadId}/handoff`, headers: { authorization: token('queue-e2e') },
+      payload: { context: 'redacted context', proposedAction: 'Call back', responsibleParty: 'internal', origin: 'explicit-request', recipientUserId: 'operator' },
+    });
+    const page = await server.inject({ method: 'GET', url: '/v1/pilot/queue?limit=1', headers: { authorization: token('queue-e2e') } });
+    expect(page.statusCode).toBe(200);
+    expect(page.json().items[0]).toMatchObject({ leadId, action: 'Call back', status: 'proposed' });
+    expect(JSON.stringify(page.json())).not.toContain('rawPayload');
+    expect(JSON.stringify(page.json())).not.toContain('redacted context');
+  });
+
   it('preserves the versioned route boundary', async () => {
     const response = await app.getHttpAdapter().getInstance().inject({
       method: 'GET',

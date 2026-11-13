@@ -2,7 +2,7 @@ import { Inject, Injectable } from '@nestjs/common';
 import { AuditStore, compareAuditRecords, rollbackAuditAppend } from '../audit/audit-store';
 import type { AuditRecord } from '../../ports/audit';
 import { idempotencyKey, type CommercialEnvelope } from '../../domain/envelope/envelope';
-import { PilotStaleVersionError, type AuditHistoryEntry, type PilotLoopState, type PilotQueueItem, type PilotQueuePage, type PilotQueueQuery } from '../../ports/pilot-loop.types';
+import { decodePilotQueueCursor, encodePilotQueueCursor, isAfterPilotQueueCursor, PilotStaleVersionError, type AuditHistoryEntry, type PilotLoopState, type PilotQueueItem, type PilotQueuePage, type PilotQueueQuery } from '../../ports/pilot-loop.types';
 import { assertSameEnvelope, type EvidenceRefRecord, type PilotLoopStore } from '../../ports/pilot-loop.store';
 
 function evidenceRecordOf(env: CommercialEnvelope): EvidenceRefRecord {
@@ -32,7 +32,7 @@ export class InMemoryPilotStore implements PilotLoopStore {
 
   async queue(query: PilotQueueQuery): Promise<PilotQueuePage> {
     const limit = Math.min(Math.max(query.limit ?? 50, 1), 100);
-    const offset = decodeQueueCursor(query.cursor);
+    const cursor = decodePilotQueueCursor(query, query.cursor);
     const rows: PilotQueueItem[] = [];
     for (const state of this.cases.values()) {
       if (state.lead.workspaceId !== query.workspaceId) continue;
@@ -47,8 +47,19 @@ export class InMemoryPilotStore implements PilotLoopStore {
       }
     }
     rows.sort(compareQueueItems);
-    const page = rows.slice(offset, offset + limit);
-    return { items: page, ...(offset + limit < rows.length ? { nextCursor: encodeQueueCursor(offset + limit) } : {}) };
+    const page = rows.filter((item) => isAfterPilotQueueCursor(item, cursor)).slice(0, limit);
+    const last = page.at(-1);
+    const hasMore = last !== undefined && rows.some((item) => isAfterPilotQueueCursor(item, {
+      version: 1,
+      scope: JSON.stringify([
+        query.workspaceId, query.actorId, query.actorRole, query.status ?? null,
+        query.dueBefore ?? null, query.dueAfter ?? null, query.ownerUserId ?? null, query.recipientUserId ?? null,
+      ]),
+      dueAt: last.dueAt ?? null,
+      recordedAt: last.recordedAt,
+      id: last.id,
+    }));
+    return { items: page, ...(hasMore && last ? { nextCursor: encodePilotQueueCursor(query, last) } : {}) };
   }
 
   async loadIngest(key: Pick<CommercialEnvelope, 'workspaceId' | 'connection' | 'externalRecordId'>): Promise<PilotLoopState | undefined> {
@@ -117,16 +128,6 @@ export class InMemoryPilotStore implements PilotLoopStore {
       }));
   }
 }
-
-function decodeQueueCursor(cursor?: string): number {
-  if (!cursor) return 0;
-  try {
-    const value = Number.parseInt(Buffer.from(cursor, 'base64url').toString('utf8'), 10);
-    return Number.isSafeInteger(value) && value >= 0 ? value : 0;
-  } catch { return 0; }
-}
-
-function encodeQueueCursor(offset: number): string { return Buffer.from(String(offset), 'utf8').toString('base64url'); }
 
 function canQueueActor(state: PilotLoopState, query: PilotQueueQuery): boolean {
   if (query.actorRole === 'admin' || query.actorRole === 'manager') return true;

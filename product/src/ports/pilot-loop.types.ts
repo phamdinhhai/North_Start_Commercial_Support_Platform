@@ -80,6 +80,66 @@ export interface PilotQueuePage {
   readonly nextCursor?: string;
 }
 
+export interface PilotQueueCursor {
+  readonly version: 1;
+  readonly scope: string;
+  readonly dueAt: string | null;
+  readonly recordedAt: string;
+  readonly id: string;
+}
+
+export function queueCursorScope(query: PilotQueueQuery): string {
+  return JSON.stringify([
+    query.workspaceId,
+    query.actorId,
+    query.actorRole,
+    query.status ?? null,
+    query.dueBefore ?? null,
+    query.dueAfter ?? null,
+    query.ownerUserId ?? null,
+    query.recipientUserId ?? null,
+  ]);
+}
+
+export function encodePilotQueueCursor(query: PilotQueueQuery, item: PilotQueueItem): string {
+  return Buffer.from(JSON.stringify({
+    version: 1,
+    scope: queueCursorScope(query),
+    dueAt: item.dueAt ?? null,
+    recordedAt: item.recordedAt,
+    id: item.id,
+  } satisfies PilotQueueCursor), 'utf8').toString('base64url');
+}
+
+export function decodePilotQueueCursor(query: PilotQueueQuery, value?: string): PilotQueueCursor | undefined {
+  if (!value) return undefined;
+  try {
+    const decoded = JSON.parse(Buffer.from(value, 'base64url').toString('utf8')) as Partial<PilotQueueCursor>;
+    if (decoded.version !== 1 || decoded.scope !== queueCursorScope(query)
+      || (decoded.dueAt !== null && typeof decoded.dueAt !== 'string')
+      || typeof decoded.recordedAt !== 'string' || typeof decoded.id !== 'string' || !decoded.id) {
+      throw new Error('cursor scope mismatch');
+    }
+    return decoded as PilotQueueCursor;
+  } catch {
+    throw new PilotDomainError('INPUT_INVALID', 400, 'cursor is invalid or does not match the requested queue');
+  }
+}
+
+export function isAfterPilotQueueCursor(item: PilotQueueItem, cursor?: PilotQueueCursor): boolean {
+  if (!cursor) return true;
+  const dueOrder = compareQueueDue(item.dueAt ?? null, cursor.dueAt);
+  if (dueOrder !== 0) return dueOrder > 0;
+  return item.recordedAt > cursor.recordedAt || (item.recordedAt === cursor.recordedAt && item.id > cursor.id);
+}
+
+export function compareQueueDue(left: string | null, right: string | null): number {
+  if (left === right) return 0;
+  if (left === null) return 1;
+  if (right === null) return -1;
+  return left.localeCompare(right);
+}
+
 export interface PilotLoopState {
   readonly lead: Lead;
   /** Optimistic-concurrency revision. Undefined only for a brand-new aggregate. */
