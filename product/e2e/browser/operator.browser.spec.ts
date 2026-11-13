@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { expect, test, type APIRequestContext } from '@playwright/test';
 
 const operator = 'operator';
 const authToken = (workspaceId: string) => `Bearer ${Buffer.from(JSON.stringify({ workspaceId, userId: operator, role: 'sales' })).toString('base64')}`;
@@ -11,8 +11,7 @@ const intake = (suffix: string) => ({
   isSynthetic: true,
 });
 
-type ApiRequest = { fetch: (url: string, options: Record<string, unknown>) => Promise<any> };
-async function api(request: ApiRequest, token: string, method: string, url: string, data?: unknown) {
+async function api(request: APIRequestContext, token: string, method: string, url: string, data?: unknown) {
   return request.fetch(url, {
     method,
     headers: { authorization: token, ...(data ? { 'content-type': 'application/json' } : {}) },
