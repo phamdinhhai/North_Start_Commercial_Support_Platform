@@ -54,6 +54,68 @@ describe('PilotLoopController — auth & RBAC wiring (T3-03/T3-04 unit-level; LI
     await expect(ctrl.getLead(foreign, res.leadId)).rejects.toThrow(NotFoundException);
   });
 
+  it('scopes history and evidence pointers at the HTTP boundary across workspaces', async () => {
+    const own = await ctrl.intake(salesA, { displayName: 'own', utterance: 'u', speaker: 'customer', connection: 'c', externalRecordId: 'r-scope-own' });
+    const other = await ctrl.intake(foreign, { displayName: 'other', utterance: 'u', speaker: 'customer', connection: 'c', externalRecordId: 'r-scope-other' });
+
+    // A foreign caller cannot turn a known lead id into a history oracle.
+    await expect(ctrl.auditHistory(foreign, own.leadId)).rejects.toThrow(NotFoundException);
+
+    const loop = (ctrl as unknown as { loop: PilotLoopService }).loop;
+    const foreignEnvelopeId = (await loop.get(other.leadId))?.sourceEnvelopeId;
+    expect(foreignEnvelopeId).toBeDefined();
+
+    const handed = await ctrl.handoff(salesA, own.leadId, {
+      context: 'c',
+      proposedAction: 'gọi lại',
+      responsibleParty: 'internal',
+      origin: 'explicit-request',
+      recipientUserId: 'marketing-a',
+    });
+    await ctrl.accept(salesA, own.leadId, { workId: handed.workItemId, reason: 'nhận' });
+
+    await expect(ctrl.complete(salesA, own.leadId, {
+      workId: handed.workItemId,
+      evidence: 'observed',
+      evidenceRef: foreignEnvelopeId,
+    })).rejects.toMatchObject({ status: 403, response: { code: 'EVIDENCE_OUT_OF_SCOPE' } });
+
+    // A rejected cross-tenant pointer cannot leave a projection or audit artifact behind.
+    const view = await ctrl.getLead(salesA, own.leadId);
+    expect(view.workItems.find((item) => item.id === handed.workItemId)?.status).toBe('accepted');
+    expect((await ctrl.auditHistory(salesA, own.leadId)).history.map((entry) => entry.eventType)).not.toContain('work_completed');
+  });
+
+  it('maps one concurrent mutation winner and one stale CAS conflict to HTTP 409', async () => {
+    const res = await ctrl.intake(salesA, { displayName: 'cas', utterance: 'u', speaker: 'customer', connection: 'c', externalRecordId: 'r-http-cas' });
+    const handed = await ctrl.handoff(salesA, res.leadId, {
+      context: 'c',
+      proposedAction: 'gọi lại',
+      responsibleParty: 'internal',
+      origin: 'explicit-request',
+      recipientUserId: 'marketing-a',
+    });
+    await ctrl.accept(salesA, res.leadId, { workId: handed.workItemId, reason: 'nhận' });
+
+    const results = await Promise.allSettled([
+      ctrl.advance(salesA, res.leadId, { to: 'Contacting', reason: 'winner candidate' }),
+      ctrl.advance(salesA, res.leadId, { to: 'Contacting', reason: 'stale candidate' }),
+    ]);
+    expect(results.filter((result) => result.status === 'fulfilled')).toHaveLength(1);
+    expect(results.filter((result) => result.status === 'rejected')).toHaveLength(1);
+    expect(results.find((result) => result.status === 'rejected')).toMatchObject({
+      reason: { status: 409, response: { code: 'STALE_VERSION' } },
+    });
+
+    const view = await ctrl.getLead(salesA, res.leadId);
+    expect(view.lead.status).toBe('Contacting');
+    const transitions = (await ctrl.auditHistory(salesA, res.leadId)).history.filter(
+      (entry) => entry.eventType === 'lead_transition' && entry.newValue === 'Contacting',
+    );
+    expect(transitions).toHaveLength(1);
+    expect(transitions[0].reason).not.toBe('stale candidate');
+  });
+
   it('Marketing A → Sales B: B được XEM và ACCEPT gói bàn giao addressed to them (I-09, PM-1 pending)', async () => {
     const res = await ctrl.intake(salesA, { displayName: 'd', utterance: 'u', speaker: 'customer', connection: 'c', externalRecordId: 'r' });
     const handed = await ctrl.handoff(salesA, res.leadId, {
