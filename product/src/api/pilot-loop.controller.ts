@@ -74,8 +74,10 @@ function toHttpException(err: unknown): HttpException {
   if (err instanceof HttpException) {
     return err;
   }
-  // Unexpected → 500 (fail closed) nhưng phải là lỗi thật, không phải guardrail.
-  return new HttpException({ code: 'INTERNAL', message: err instanceof Error ? err.message : 'internal error' }, HttpStatus.INTERNAL_SERVER_ERROR);
+  // Unexpected failures are intentionally opaque at the HTTP boundary. Keep the stable
+  // machine-readable code/status, but never reflect exception text (it may contain SQL,
+  // paths, credentials, or other implementation details).
+  return new HttpException({ code: 'INTERNAL', message: 'internal server error' }, HttpStatus.INTERNAL_SERVER_ERROR);
 }
 
 /** Validate a request body at the boundary; returns the typed payload or throws 400. */

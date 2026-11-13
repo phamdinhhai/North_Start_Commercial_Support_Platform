@@ -157,6 +157,42 @@ integration('PilotLoop over PostgreSQL — durability + two-person handoff', () 
       .rejects.toMatchObject({ code: 'IDEMPOTENCY_CONFLICT', status: 409 });
   });
 
+  it('CAS: concurrent same-version mutations have one winner and no stale audit/projection', async () => {
+    const svc = new PilotLoopService(new PgPilotStore(db1), new ManualAdapter());
+    const created = await svc.ingestScenario({
+      workspaceId: wsId, displayName: 'CAS base', utterance: 'base', speaker: 'customer',
+      connection: conn, externalRecordId: `cas-${randomUUID()}`, ownerUserId: 'marketing-a',
+    });
+    const store = new PgPilotStore(db1);
+    const base = await store.load(created.lead.id);
+    expect(base?.version).toBeDefined();
+    const version = base!.version;
+    const stateA = { ...base!, lead: { ...base!.lead, status: 'Accepted' as const }, ownerUserId: 'sales-a' };
+    const stateB = { ...base!, lead: { ...base!.lead, status: 'Contacting' as const }, ownerUserId: 'sales-b' };
+    const audit = (actor: string, status: string) => ({
+      entityType: 'lead' as const, entityId: base!.lead.id, workspaceId: wsId, actor,
+      previousValue: 'New', newValue: status, reason: `CAS ${actor}`, eventType: `cas_${actor}`,
+    });
+
+    const results = await Promise.allSettled([
+      store.save(stateA, [audit('sales-a', 'Accepted')]),
+      store.save(stateB, [audit('sales-b', 'Contacting')]),
+    ]);
+    expect(results.filter((result) => result.status === 'fulfilled')).toHaveLength(1);
+    const stale = results.find((result) => result.status === 'rejected');
+    expect(stale).toMatchObject({ status: 'rejected', reason: { code: 'STALE_VERSION', status: 409 } });
+    expect((stale as PromiseRejectedResult).reason).toBeInstanceOf(Error);
+    expect((stale as PromiseRejectedResult).reason.message).toContain(`expected version ${version}`);
+
+    const persisted = await store.load(base!.lead.id);
+    expect(persisted?.version).toBe(version! + 1);
+    expect(['Accepted', 'Contacting']).toContain(persisted?.lead.status);
+    const audits = await store.history(base!.lead.id);
+    const casAudits = audits.filter((entry) => entry.eventType.startsWith('cas_'));
+    expect(casAudits).toHaveLength(1);
+    expect(casAudits[0].actor).toBe(persisted?.ownerUserId);
+  });
+
   it.each([false, true])('R-06: timestamp-omitted concurrent intake is idempotent with shared adapter=%s', async (shared) => {
     const adapter = new ManualAdapter();
     const input = { workspaceId: wsId, displayName: 'concurrent without event time', utterance: 'immutable evidence',

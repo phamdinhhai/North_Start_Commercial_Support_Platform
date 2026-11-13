@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { UnauthorizedException, NotFoundException, ForbiddenException } from '@nestjs/common';
+import { PilotDomainError } from '../ports/pilot-loop.types';
 import { PilotLoopController } from './pilot-loop.controller';
 import { AuthService } from '../infra/auth/auth.service';
 import { RbacService } from '../infra/rbac/rbac.service';
@@ -167,6 +168,37 @@ describe('PilotLoopController — auth & RBAC wiring (T3-03/T3-04 unit-level; LI
     });
     expect(history.history.every((entry) => entry.metadata.trust === 'recorded')).toBe(true);
     expect(JSON.stringify(history)).not.toContain('rawPayload');
+  });
+
+  it('unexpected errors use an opaque 500 message and do not leak exception text', async () => {
+    const unexpected = 'secret SQL, /private/path, and token=should-not-escape';
+    const loop = {
+      ingestScenario: async () => { throw new Error(unexpected); },
+    } as unknown as PilotLoopService;
+    const isolated = new PilotLoopController(new AuthService(), new RbacService(), loop);
+
+    await expect(isolated.intake(salesA, {
+      displayName: 'd', utterance: 'u', speaker: 'customer', connection: 'c', externalRecordId: 'r-internal',
+    })).rejects.toMatchObject({
+      status: 500,
+      response: { code: 'INTERNAL', message: 'internal server error' },
+    });
+    await expect(isolated.intake(salesA, {
+      displayName: 'd', utterance: 'u', speaker: 'customer', connection: 'c', externalRecordId: 'r-internal-2',
+    })).rejects.not.toThrow(unexpected);
+  });
+
+  it('preserves domain error code/status/message while mapping typed failures', async () => {
+    const domain = new PilotDomainError('IDEMPOTENCY_CONFLICT', 409, 'same request has different evidence', { requestId: 'r-1' });
+    const loop = { ingestScenario: async () => { throw domain; } } as unknown as PilotLoopService;
+    const isolated = new PilotLoopController(new AuthService(), new RbacService(), loop);
+
+    await expect(isolated.intake(salesA, {
+      displayName: 'd', utterance: 'u', speaker: 'customer', connection: 'c', externalRecordId: 'r-domain',
+    })).rejects.toMatchObject({
+      status: 409,
+      response: { code: 'IDEMPOTENCY_CONFLICT', message: 'same request has different evidence', details: { requestId: 'r-1' } },
+    });
   });
 
   it('guardrail refusals map to 4xx business codes, not raw 500', async () => {
