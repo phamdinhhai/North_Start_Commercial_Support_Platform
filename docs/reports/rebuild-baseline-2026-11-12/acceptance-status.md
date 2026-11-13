@@ -40,10 +40,10 @@ The current branch was created from `5d6c206`; the working tree contains only th
 - `npm run test:architecture` — **PASS**, 8/8 fixtures.
 - `npm run architecture:check:strict` — **PASS**, 0 findings.
 - `npm run build` — **PASS**.
-- `npm test -- --no-file-parallelism` — **PASS**, 278 passed and 19 skipped because no PostgreSQL URL was provided.
+- `npm test -- --no-file-parallelism` — **PASS**, 286 passed and 19 skipped because no PostgreSQL URL was provided.
 - `npm run test:e2e` — **PASS**, 5/5.
 - `npm run test:backup` — **PASS**, 6/6.
-- `npm run test:cov -- --no-file-parallelism` — **PASS**, 83.76% lines, 71.12% branches, 83.18% functions.
+- `npm run test:cov -- --no-file-parallelism` — **PASS**, 84.24% lines, 70.84% branches, 83.47% functions.
 - `npm audit --omit=dev` — **PASS**, 0 production vulnerabilities.
 - `CI=true npm run test:integration:ci` — **BLOCKED**, correctly requiring `TEST_DATABASE_URL`; Docker is unavailable on this host, so no disposable PostgreSQL instance was created.
 
