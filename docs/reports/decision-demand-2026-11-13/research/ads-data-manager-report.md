@@ -1,37 +1,59 @@
-# W2b — Ads and data-manager research report
+# W2b — Ads, Google Data Manager, and read-only connector research
 
-**Decision date:** 2026-11-13
-**Status:** non-canonical research; source-level desk review only. No live verification, API call, credential test, or private endpoint was performed.
+**Decision date:** 2026-11-14
+**Status:** non-canonical source-level research plus an executable synthetic spike. No credentials, customer data, private endpoints, live provider calls, or production approval.
 
-## Decision frame
+## Evidence boundary
 
-Ads integrations may provide acquisition evidence, but they must not become the source of truth for Lead identity, commercial state, or revenue attribution. The adapter must retain raw provider payloads, provider IDs and timestamps, expose UNKNOWN when fields are unavailable, and map into the product's anti-corruption boundary.
+Exact public source pointers are recorded below. Repository names and URLs are discovery inputs, not proof that a particular commit, release, license, permission set, endpoint, or security posture is current. The synthetic spike is read-only and provider-neutral; it does not establish provider behavior or revenue correctness.
 
-## Candidate review
+## Google Data Manager taxonomy and supplied evidence
 
-| Candidate | Exact public source URLs | Source type / version or date | License | Maintenance / security / tests | Tenant and credential suitability | Useful capabilities | Limitations | Verdict |
-|---|---|---|---|---|---|---|---|---|
-| Meta Marketing API / Meta Business SDK | https://developers.facebook.com/docs/marketing-api/  /  https://github.com/facebook/facebook-python-business-sdk  /  https://github.com/facebook/facebook-nodejs-business-sdk | Official API docs and Meta-maintained SDK repositories; API/SDK version must be pinned at implementation time | SDK repository license is Apache-2.0 (confirm selected release); platform terms are separate | Official ecosystem and SDK tests are visible in source-level materials; current API version, permissions and advisories not live-verified | Business Manager/ad-account scoping and app credentials are available conceptually; server-side token storage, least privilege, rotation and webhook verification are mandatory | Campaign/ad-set/ad/insight reads, account identifiers, creative and delivery metadata | Permission review, rate limits, attribution windows, API version churn and incomplete conversion evidence; does not prove downstream revenue | **ADAPT** — narrow read-only acquisition adapter |
-| TikTok Business API / SDK | https://business-api.tiktok.com/portal/docs  /  https://github.com/tiktok/tiktok-business-api-sdk  /  https://www.npmjs.com/search?q=tiktok%20business%20api | Official portal and public SDK source; selected API/SDK release must be pinned | **UNKNOWN** for each selected SDK until its repository/package metadata is checked | Public docs/SDK material exists; current maintenance, security and tests not live-verified | Advertiser/account scoping is plausible; credential handling and tenant isolation require a provider-specific review | Campaign and ad reporting, advertiser metadata, conversion-related endpoints depending on permission | Endpoint/version instability, permission approval, incomplete identity and conversion joins; no revenue semantics | **ADAPT** only as a later, read-only adapter |
-| Airbyte TikTok connector | https://github.com/airbytehq/airbyte  /  https://docs.airbyte.com/integrations/sources/tiktok-marketing | GitHub and official connector docs; connector version/date must be pinned | Airbyte core/connectors use Apache-2.0 in upstream materials (confirm selected connector release) | Airbyte has public CI/test conventions; exact connector health and security posture not live-verified | Secret storage, workspace isolation and sync destination controls are deployment responsibilities; raw credentials must not enter this report or fixtures | Scheduled extraction and normalization into a warehouse | Batch sync latency, schema drift, connector-specific gaps and operational overhead; not an event/audit authority | **REFERENCE** for extraction patterns; **ADAPT** only if governed |
-| dbt | https://github.com/dbt-labs/dbt-core  /  https://docs.getdbt.com/ | Official repository/docs; version/date must be pinned | Apache-2.0 for dbt-core (confirm selected release) | Mature public project with tests/docs patterns; current release/security state not live-verified | Credentials belong in the warehouse/orchestrator secret store; dbt itself is not a tenant boundary | Repeatable transformations, tests, lineage and metric models | Transformations can accidentally fabricate certainty or overwrite semantics; cannot replace immutable raw evidence | **ADAPT** for warehouse projections/tests, not ingestion or canonical state |
-| Requested ads MCP repositories | https://github.com/topics/mcp-server  /  https://github.com/topics/marketing-api | Public topic/search pointers; individual repositories and versions are not fixed | **UNKNOWN** until each exact repository/release is selected | No live verification; maintenance/security/tests vary by repository | Credential and prompt/tool boundary suitability **UNKNOWN**; treat all tool servers as untrusted until reviewed | Could expose controlled read-only query tools to operators/agents | Topic listings are not evidence; MCP tools can create hidden authority, leak credentials, or blur draft-only boundaries | **REJECT** as an adoption basis; **REFERENCE** for discovery only |
-| Google Data Manager | https://developers.google.com/data-manager  /  https://developers.google.com/data-manager/reference/rest | Intended official Google documentation and REST reference; **exact official evidence remains UNKNOWN because the supplied Google pages were malformed** | Google API terms apply; client-library license depends on selected library | Official page content could not be authenticated from the supplied malformed-page evidence; API version, tests and security posture therefore remain UNKNOWN | Do not provision or test credentials based on this report; tenant/scoping and consent semantics remain UNKNOWN | Potential first-party data activation/measurement workflows | Exact endpoint/schema/permission claims are deliberately not made; no equivalence to ads reporting is inferred | **REFERENCE / UNKNOWN** — defer decision until valid official evidence is captured |
+The correct product name used by the supplied demand is **Google Data Manager API**. It is not a generic “Google Ads reporting API” and should not be collapsed into campaign/insight reporting. The supplied source anchors identify **Data Manager API v1.9**, dated **2026-11-04**, with the following documented-only concepts:
 
-## Safe integration shape
+- **Call conversions** are a Data Manager event/conversion category; they are not treated as ordinary ad metrics.
+- `Event.call_info` is a documented event field/structure for call-conversion information.
+- `AdIdentifiers.lead_id` is a documented identifier field and must remain a provider identifier, not the North Star immutable Lead ID.
+- `record_indices` diagnostics identify record positions/indices associated with diagnostics. They are diagnostics, not evidence that a record is valid or successfully attributed.
+- Google skills are **DOCUMENTED only**: the demand names skills/documentation as a research surface, but no exact Google-maintained skills repository/revision was authenticated. No skill was installed or executed.
 
-1. **Raw intake:** store provider payload bytes or a redacted hash plus provider/account/object IDs and provider timestamps; never fabricate missing campaign, identity or revenue fields.
-2. **Normalization:** emit a typed acquisition observation with `sourceSystem`, `providerObjectId`, `capturedAt`, `occurredAt` (or explicit UNKNOWN), and `isSynthetic` where applicable.
-3. **Policy boundary:** no ad connector can mutate Lead state, assign ownership, merge identity, close work, or claim revenue. Those actions require the existing Commercial Event and evidence/policy path.
-4. **Warehouse projections:** dbt/Airbyte may build derived reporting tables, but transformations must preserve source lineage and UNKNOWN values.
+### Official URL check
 
-## Synthesis for W2b
+The supplied Google URL family was checked without credentials. The requested pages were not accessible as authenticated, usable Google Data Manager reference material in this environment: the direct `developers.google.com/data-manager`, `/reference/rest`, `/reference/rest/v1`, and field pages returned HTTP 404 or malformed/unusable content. Therefore the version/date and field taxonomy above are retained as **documented-only claims from the supplied demand/source material**, not live-verified claims. Do not provision credentials or implement against these fields until a valid official capture is obtained.
 
-- **ADAPT:** Meta SDK/API is the first candidate for a narrow read-only pilot after permission and rate-limit review. TikTok remains conditional and should follow only after Meta's shape is proven.
-- **REFERENCE/ADAPT:** Airbyte and dbt are infrastructure patterns, not domain authorities.
-- **REJECT:** unpinned MCP repositories as a credential-bearing production dependency.
-- **UNKNOWN:** Google Data Manager until a valid official page/reference capture is available. This is not a negative finding.
+## Candidate source review
 
-## Evidence and honesty boundary
+| Candidate | Exact source pointers | Source-level disposition |
+|---|---|---|
+| Meta Marketing API | https://developers.facebook.com/docs/marketing-api/ | DOCUMENTED/REFERENCE; narrow read-only adapter candidate |
+| Meta Node SDK | https://github.com/facebook/facebook-nodejs-business-sdk | DOCUMENTED/REFERENCE; pin release before use |
+| Meta Python SDK | https://github.com/facebook/facebook-python-business-sdk | DOCUMENTED/REFERENCE; pin release before use |
+| TikTok Business API | https://business-api.tiktok.com/portal/docs | DOCUMENTED/REFERENCE; permission/version review required |
+| TikTok Business SDK | https://github.com/tiktok/tiktok-business-api-sdk | DOCUMENTED/REFERENCE; selected release/license/tests not live verified |
+| RoyAzran/mcp-ads | https://github.com/RoyAzran/mcp-ads | DOCUMENTED discovery pointer only; do not adopt unreviewed credential-bearing MCP |
+| get-mcp-ads Meta | https://github.com/search?q=get-mcp-ads+meta&type=repositories | Discovery pointer; exact repository/revision unresolved |
+| get-mcp-ads Google | https://github.com/search?q=get-mcp-ads+google&type=repositories | Discovery pointer; exact repository/revision unresolved |
+| get-mcp-ads TikTok | https://github.com/search?q=get-mcp-ads+tiktok&type=repositories | Discovery pointer; exact repository/revision unresolved |
+| adport | https://github.com/search?q=adport+ads+api&type=repositories | Discovery pointer; exact repository/revision unresolved |
+| nalarin | https://github.com/search?q=nalarin+ads&type=repositories | Discovery pointer; exact repository/revision unresolved |
+| amekala | https://github.com/search?q=amekala+ads&type=repositories | Discovery pointer; exact repository/revision unresolved |
+| Paid-Media-MCP | https://github.com/search?q=Paid-Media-MCP&type=repositories | Discovery pointer; exact repository/revision unresolved |
+| Airbyte | https://github.com/airbytehq/airbyte and https://docs.airbyte.com/integrations/sources/tiktok-marketing | REFERENCE for cursors/schema drift/contract fixtures; not domain authority |
+| dbt-ad-reporting | https://github.com/search?q=dbt_ad_reporting&type=repositories | Discovery pointer; exact repository/revision unresolved; transformations only |
 
-The URLs are source pointers only. No live requests, authentication, provider-side tests, or production claims were made. The Google Data Manager row intentionally records UNKNOWN rather than filling malformed evidence with assumptions.
+For every discovery-pointer row, the exact owner, commit, license, dependency tree, security policy, tenant behavior, tests, and maintenance state are **UNKNOWN**. Topic/search pages cannot support adoption. Any MCP server is untrusted code and must not receive raw provider credentials or canonical mutation authority.
+
+## Safe normalized observation shape
+
+The executable spike at `product/src/spikes/decision-demand/ads-metrics-normalizer.ts` preserves:
+
+- workspace, provider, provider account/object IDs, native metric name and value;
+- currency, timezone, attribution window, occurred/captured timestamps;
+- explicit `unknown` values rather than null-to-fact fabrication;
+- synthetic/provenance markers and diagnostics for malformed, duplicate, conflict, and cross-workspace records.
+
+It performs no network calls and cannot mutate Lead, Customer, Commercial Event, ownership, revenue, or attribution state. Raw provider payloads remain outside the normalized projection and must be retained by a future adapter boundary according to I-12.
+
+## Verdict
+
+Meta is the first conditional narrow read-only adapter candidate; TikTok is later and conditional. Airbyte/dbt are reference patterns only. Unpinned MCP repositories and unresolved discovery candidates are **REFERENCE/UNKNOWN**, not production dependencies. Google Data Manager remains **DOCUMENTED only / UNKNOWN for live implementation** until valid official evidence is captured. No canonical decision CE-1, CE-2, MM-1, ID-1, ID-2, PM-1, or LG-1 is resolved.
