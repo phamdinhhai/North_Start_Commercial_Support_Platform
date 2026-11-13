@@ -1,0 +1,74 @@
+{
+  "schema": "north-star.evidence-capability-register.v1",
+  "registry_status": "working_non_canonical",
+  "as_of": "2026-11-13",
+  "authority": "documented research only",
+  "state_vocabulary": ["DISCOVERED", "DOCUMENTED", "CONTRACT_TESTED", "LIVE_VERIFIED", "RELEASE_APPROVED", "UNKNOWN", "PARTIAL", "FLAG_OFF"],
+  "rule": "Family or documentation coverage is not an endpoint contract. Missing credentials, incomplete capture, or absent live evidence remains UNKNOWN/PARTIAL and never becomes release approval.",
+  "capabilities": [
+    {
+      "id": "pancake.chat.read",
+      "provider": "Pancake",
+      "api_family": "Pancake Chat / Conversations",
+      "operations": ["read conversations", "read messages", "read customer fields"],
+      "documented_state": "DOCUMENTED",
+      "live_state": "PARTIAL",
+      "release_state": "FLAG_OFF",
+      "evidence": "docs/implementation-plan/spike/pancake-verdict.md",
+      "known_observations": ["authenticated internal dashboard reads returned 200 in a bounded sample", "sample pagination did not establish termination or stable cursor semantics"],
+      "unknowns": ["public API credential and permissions", "complete schema and channel coverage", "rate limits", "replay/version/idempotency semantics"],
+      "production_rule": "Do not use private dashboard endpoints or cookies as a production adapter contract.",
+      "last_documented": "2026-11-11"
+    },
+    {
+      "id": "pancake.webhooks",
+      "provider": "Pancake",
+      "api_family": "Webhook delivery",
+      "operations": ["subscription", "delivery", "verification", "retry", "replay"],
+      "documented_state": "DISCOVERED",
+      "live_state": "UNKNOWN",
+      "release_state": "FLAG_OFF",
+      "evidence": "docs/external-apis/pancake/api-knowledge-base-2026-09-10/REMAINING_GAPS.md",
+      "unknowns": ["event names", "raw payload schema", "signature", "retry/order/replay behavior", "account enablement"],
+      "production_rule": "Realtime sync remains deferred until Q-04 has a separate evidence-backed verdict.",
+      "last_documented": "2026-09-10"
+    },
+    {
+      "id": "meta.catalog",
+      "provider": "Meta",
+      "api_family": "Graph, Messenger, Marketing and Conversions surfaces",
+      "operations": ["family inventory", "selected endpoint research"],
+      "documented_state": "DOCUMENTED",
+      "live_state": "UNKNOWN",
+      "release_state": "UNKNOWN",
+      "evidence": "docs/external-apis/pancake/api-knowledge-base-2026-09-10/SCOPE_AND_COMPLETENESS.md",
+      "known_observations": ["catalog-level coverage is documented", "endpoint-level completeness is explicitly not claimed"],
+      "unknowns": ["app review", "asset permissions", "version-specific method/path/schema", "live credentials"],
+      "production_rule": "Family_verified is not an API contract; verify exact method, path, permissions and schema before implementation.",
+      "last_documented": "2026-09-10"
+    },
+    {
+      "id": "tiktok.catalog",
+      "provider": "TikTok",
+      "api_family": "Business, Shop, Messaging, GO and related surfaces",
+      "operations": ["family inventory", "selected endpoint research"],
+      "documented_state": "DOCUMENTED",
+      "live_state": "UNKNOWN",
+      "release_state": "UNKNOWN",
+      "evidence": "docs/external-apis/pancake/api-knowledge-base-2026-09-10/SCOPE_AND_COMPLETENESS.md",
+      "known_observations": ["catalog-level coverage is documented", "market/version/eligibility differences remain"],
+      "unknowns": ["endpoint version", "market and review eligibility", "live credential behavior", "rate and schema drift"],
+      "production_rule": "Check each endpoint immediately before build and retain verification evidence.",
+      "last_documented": "2026-09-10"
+    }
+  ],
+  "catalog_snapshot": {
+    "source": "docs/external-apis/pancake/api-knowledge-base-2026-09-10/machine_readable/integrity_report.json",
+    "catalog_entries": 497,
+    "endpoint_verified_rows": 83,
+    "family_verified_rows": 405,
+    "official_doc_discovered_rows": 4,
+    "legacy_deprecated_rows": 5,
+    "interpretation": "Inventory counts are source coverage facts, not proof of runtime availability or release readiness."
+  }
+}

@@ -1,0 +1,97 @@
+{
+  "schema": "north-star.reusable-engineering-assets.v1",
+  "registry_status": "working_non_canonical",
+  "as_of": "2026-11-13",
+  "authority": "documented research and source-repository references; no adoption implied",
+  "decision_rule": "Candidate assets remain REFERENCE until license, security, compatibility, maintenance and bounded tests support ADAPT or ADOPT.",
+  "assets": [
+    {
+      "id": "asset.pancake-pos-mcp",
+      "name": "pancake-pos-mcp",
+      "kind": "repository",
+      "provider": "Pancake POS",
+      "url": "https://github.com/nguyennguyenit/pancake-pos-mcp",
+      "classification": "community-reference",
+      "verdict": "REFERENCE",
+      "research_targets": ["API client architecture", "MCP tools", "order/customer/inventory schemas", "credential handling", "tests"],
+      "constraints": ["audit against current official API", "no production reuse without license/security review"]
+    },
+    {
+      "id": "asset.pancake-mcp-server",
+      "name": "pancake-mcp-server",
+      "kind": "repository",
+      "provider": "Pancake",
+      "url": "https://github.com/lynguyenvu/pancake-mcp-server",
+      "classification": "community-reference",
+      "verdict": "REFERENCE",
+      "research_targets": ["conversation/message/media/order wrappers", "tool boundaries", "error handling"],
+      "constraints": ["compare every endpoint with current OpenAPI", "do not treat README claims as contract"]
+    },
+    {
+      "id": "asset.airbyte",
+      "name": "Airbyte",
+      "kind": "framework",
+      "provider": "community",
+      "url": "https://github.com/airbytehq/airbyte",
+      "classification": "architecture-reference",
+      "verdict": "REFERENCE",
+      "research_targets": ["incremental sync", "state/cursor", "backfill", "schema drift", "connector testing"],
+      "constraints": ["assess embedding and operational complexity before adoption", "do not add a connector framework prematurely"]
+    },
+    {
+      "id": "asset.nango",
+      "name": "Nango",
+      "kind": "framework",
+      "provider": "community",
+      "url": "https://github.com/NangoHQ/nango",
+      "classification": "architecture-reference",
+      "verdict": "REFERENCE",
+      "research_targets": ["OAuth connection lifecycle", "credential isolation", "syncs", "webhooks"],
+      "constraints": ["evaluate tenant binding and license/commercial fit"]
+    },
+    {
+      "id": "asset.chatwoot",
+      "name": "Chatwoot",
+      "kind": "application",
+      "provider": "community",
+      "url": "https://github.com/chatwoot/chatwoot",
+      "classification": "workflow-reference",
+      "verdict": "REFERENCE",
+      "research_targets": ["conversation/inbox model", "assignment", "handoff", "permissions", "webhooks"],
+      "constraints": ["do not replace North Star canonical semantics with source abstractions"]
+    },
+    {
+      "id": "asset.open-telemetry-js",
+      "name": "OpenTelemetry JS",
+      "kind": "library",
+      "provider": "community-standard",
+      "url": "https://github.com/open-telemetry/opentelemetry-js",
+      "classification": "observability-reference",
+      "verdict": "REFERENCE",
+      "research_targets": ["tracing and telemetry"],
+      "constraints": ["keep application telemetry distinct from commercial evidence and business audit"]
+    },
+    {
+      "id": "asset.pgbackrest",
+      "name": "pgBackRest",
+      "kind": "operations-tool",
+      "provider": "community",
+      "url": "https://github.com/pgbackrest/pgbackrest",
+      "classification": "backup-reference",
+      "verdict": "REFERENCE",
+      "research_targets": ["encrypted logical backups", "WAL archiving", "PITR"],
+      "constraints": ["current baseline is a dry-run/disposable-database helper, not production backup readiness"]
+    },
+    {
+      "id": "asset.testcontainers-node",
+      "name": "Testcontainers Node",
+      "kind": "test-library",
+      "provider": "community",
+      "url": "https://github.com/testcontainers/testcontainers-node",
+      "classification": "testing-candidate",
+      "verdict": "REFERENCE",
+      "research_targets": ["isolated PostgreSQL integration tests"],
+      "constraints": ["validate CI runtime and reproducibility before adoption"]
+    }
+  ]
+}
