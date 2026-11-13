@@ -3,7 +3,7 @@
 **Date:** 2026-11-13
 **Branch:** `feat/decision-demand-execution`
 **Starting baseline:** `5d6c206`
-**Current verification head:** `3314ceeaf15fb67c47ef88d822f7a966d7a5e129`
+**Current verification head:** pending final registry-validation/PR evidence commit (implementation evidence remains green at `3314ceeaf15fb67c47ef88d822f7a966d7a5e129`)
 **PR:** https://github.com/phamdinhhai/North_Start_Commercial_Support_Platform/pull/1
 **Hosted workflow:** https://github.com/phamdinhhai/North_Start_Commercial_Support_Platform/actions/runs/43446276927
 **Status:** technical development baseline improved; commercial and production release **NOT APPROVED**
@@ -14,12 +14,12 @@
 |---|---|---|
 | A. Engineering baseline | Current-head acceptance/handoff updates, pushed feature branch and PR #1 | Hosted workflow is green for SHA `3314cee`; PostgreSQL-backed gates ran in GitHub Actions using PostgreSQL 16 with no skipped critical suites. |
 | B. Architecture and decisions | Ten proposal RFCs plus security/lifecycle proposals; seven-decision registry | Proposal-only. CE-1, CE-2, PM-1, MM-1, ID-1, ID-2 and LG-1 remain `OPEN`; no canonical file changed. |
-| C. Third-party integration research | Provider readiness and Pancake reports; capability registry | Pancake remains `PARTIAL` and `FLAG_OFF`; Anthropic/Data Manager, Zalo OA, Sapo, HubSpot, Salesforce and Zoho remain incomplete or unknown where evidence is absent. |
-| D. GitHub/reusable assets | Reusable engineering assets registry and research-demand status | Candidates are reference material only. No community repository is treated as adopted or production-approved without license, security, contract and live evidence. |
+| C. Third-party integration research | Provider readiness/Pancake reports, W2 omnichannel/ads/CRM/Vietnam reports, connector/Agent Skills evaluation, synthetic mapping fixture and capability registry | Pancake remains `PARTIAL`/`FLAG_OFF`; Google Ads Data Manager exact v1.9/Agent Skills evidence remains `UNKNOWN` after malformed source responses; all repository/OSS claims remain documented/source-level, not live verified. |
+| D. GitHub/reusable assets | Expanded omnichannel/ads/CRM/Vietnam/connector research reports, reusable-assets registry and research-demand status | Candidate verdicts remain REFERENCE/UNKNOWN unless license, security, compatibility and bounded tests support ADAPT/ADOPT. Unofficial Zalo/WhatsApp/private automation is rejected for production. |
 | E. Integration capability evidence | Evidence/capability registry with lifecycle vocabulary | Documentation and inventory coverage remain distinct from contract-tested, live-verified and release-approved states. |
 | F. Implemented product boundaries | Authenticated feedback/telemetry routes, durable-mode guard, disabled-by-default Pancake contract adapter, redaction-preserving ports, concurrent CAS/scoped-mutation tests | Routes derive workspace and actor from auth context; Pancake Conversations/POS remain distinct; contract-first adapter is mock-transport only and not live verified. |
 | G. Reliability and security | CAS winner/conflict tests, cross-workspace history/evidence tests, opaque HTTP 500 mapping, migration lifecycle tests, CI high/critical audit and changed-line credential-pattern guard | Hosted PostgreSQL integration passed 4 suites/20 tests without skips. Hosted security gate passed; seven low/moderate transitive tooling advisories remain. |
-| H. Operator workflow | Workspace-scoped queue API, keyset cursor, filters, redacted projections, and `/v1/operator` accessible thin client | Queue/context/handoff/complete-reschedule/outcome/audit path is executable against the existing API. Browser client is a minimal served client, not a full product UI; raw evidence remains intentionally redacted. |
+| H. Operator workflow | Workspace-scoped queue API, keyset cursor, filters, redacted projections, and `/v1/operator` accessible thin client | Queue/context/handoff/complete-reschedule/outcome/audit path is executable against the existing API. Browser-level E2E was attempted but blocked because a clean rebased browser commit/toolchain was not produced; HTTP E2E remains green. Raw evidence remains intentionally redacted. |
 | I. Release/operations | Security/lifecycle/tenant/RLS/backup-DR proposal RFCs, pushed PR and hosted validation | Hosted CI and PostgreSQL proof now exist for the PR head; production IAM, RLS, retention/delete/export, encrypted off-site backup, restore rehearsal, deploy/rollback and hosted release-signing remain unimplemented or human-gated. |
 | J. Product validation | Demand and gate registers preserve open questions and unknowns | No real-user, credential-bound provider, customer-data, revenue-uplift or commercial-readiness evidence exists. |
 
@@ -40,6 +40,8 @@ Executed from `product/` against the integrated tree:
 - `npm run security:audit` — **PASS** at the configured high/critical threshold; seven low/moderate transitive advisories remain documented.
 - `npm audit --omit=dev` — **PASS**, 0 production vulnerabilities.
 - Hosted GitHub Actions run `43446276927` — **PASS**, exact SHA `3314cee`; PostgreSQL integration ran 4 suites/20 tests without skips, coverage ran 32 files/323 tests, E2E ran 7/7, strict architecture passed 0 findings, and build passed.
+- `npm run registry:validate` — **PASS**, 7 decisions, 6 capabilities, 12 assets; unique IDs, source/date/license checks and secret-like text guard.
+- Browser-level E2E — **BLOCKED**, no clean rebased browser commit/toolchain was accepted; no browser claim is made.
 
 ## Integrated commits
 
