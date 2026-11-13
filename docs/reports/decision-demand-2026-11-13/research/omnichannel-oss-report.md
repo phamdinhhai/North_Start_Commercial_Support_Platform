@@ -1,0 +1,32 @@
+# W2a — Omnichannel OSS research report
+
+**Decision date:** 2026-11-13  
+**Status:** non-canonical research; source-level desk review only. No live verification, deployment, credential test, security audit, or private-endpoint access was performed.
+
+## Decision frame
+
+The product is a revenue-continuity layer, not a generic inbox. Candidates must preserve raw immutable interaction evidence, explicit workspace/tenant scope, lead-scoped access, append-only audit, and an anti-corruption boundary. A candidate that owns canonical commercial semantics is not suitable for direct adoption.
+
+## Candidate review
+
+| Candidate | Exact public source URLs | Source type / version or date | License | Maintenance / security / tests | Tenant and credential suitability | Useful capabilities | Limitations | Verdict |
+|---|---|---|---|---|---|---|---|---|
+| Chatwoot | https://github.com/chatwoot/chatwoot  /  https://www.chatwoot.com/docs/self-hosted/deployment/security | GitHub repository; public documentation; version/date must be pinned at implementation time | MIT (repository metadata; confirm for selected release) | Active-looking upstream project in the reviewed source set; release, advisory and CI status were not live-verified | Multi-inbox and account concepts are relevant, but deployment secrets, webhook signing and isolation need an operator-controlled review | Conversations, channels, assignments, webhooks, APIs and inboxes | Its inbox/conversation model is broader than the canonical Lead/Event model; provider semantics and retention need mapping | **ADAPT** — use as an optional operator surface or adapter, never as canonical store |
+| ChatbotX | https://github.com/chatbotx/chatbotx | GitHub/project source; version/date not live-verified | **UNKNOWN** until the selected repository/release license is checked | Maintenance, security policy and test depth not established from supplied evidence | Tenant isolation and credential lifecycle are **UNKNOWN**; do not place production credentials without a review | Chatbot/omnichannel experimentation and channel integrations may be useful | Identity, evidence provenance, audit and enterprise controls are not established | **REFERENCE** — research lead only; no production dependency |
+| OneChat | https://github.com/onechat-io/onechat | GitHub/project source; version/date not live-verified | **UNKNOWN** for the selected source/release | Maintenance, security advisories and tests not live-verified | Credential and tenant model **UNKNOWN**; treat as untrusted integration candidate | Unified channel/inbox concepts and possible connector patterns | Public evidence does not establish durable audit, lead scoping, or commercial-event boundaries | **REFERENCE** |
+| ERPNext / Frappe | https://github.com/frappe/frappe  /  https://github.com/frappe/erpnext  /  https://frappeframework.com/docs/user/en/basics/site_config | GitHub and official docs; release/version must be pinned | MIT for Frappe/ERPNext repositories (confirm selected release) | Mature public project with documented tests and security process in upstream materials; current state not live-verified here | Sites/tenancy, permissions, workflows, CRM and extensibility | Heavy ERP domain; adopting it would import semantics and operational cost outside the pilot | **ADAPT** for a bounded adapter/reference; not an inbox replacement |
+| erxes | https://github.com/erxes/erxes  /  https://erxes.io/ | GitHub and project site; version/date not live-verified | GPL-3.0 (repository metadata; confirm selected release) | Public project and test/build signals exist in source, but current maintenance/security posture not live-verified | Multi-channel and customer-data concepts are promising; credential/tenant deployment review required | Customer engagement, inbox, automation and CRM-adjacent surfaces | GPL obligations and a broad product model complicate embedding; canonical ownership remains unsuitable | **REFERENCE** (possibly **ADAPT** only as externally hosted surface after legal review) |
+| Libredesk | https://github.com/miromannino/Libredesk | GitHub source; version/date not live-verified | AGPL-3.0 (repository metadata; confirm selected release) | Small/newer project signals; security, maintenance and test coverage are **UNKNOWN** | Tenant isolation, secrets and operational hardening are not established | Lightweight support desk and messaging concepts | Small-project risk; no evidence of the required commercial provenance and lead-scoped model | **REJECT** for production core; **REFERENCE** for UX ideas |
+| Other / self-built inboxes | https://github.com/topics/omnichannel  /  https://github.com/topics/customer-support | Topic indexes; no single version/date or identity | **UNKNOWN** per repository | Cannot infer maintenance, security or tests from topic membership | Credentials and tenancy are **UNKNOWN** | Broad discovery only | Topic lists are not evidence of suitability and must not be treated as verified candidates | **REJECT** as a decision basis |
+
+## Synthesis for W2a
+
+1. **No candidate is ADOPT as the canonical commercial-event or lead store.** This follows the anti-corruption boundary and avoids importing a vendor's identity, state, or retention semantics.
+2. Chatwoot is the strongest **ADAPT** candidate for a controlled operator/inbox integration, subject to release pinning, webhook authenticity, tenant isolation, credential rotation, retention, and evidence mapping.
+3. Frappe is a possible **ADAPT** reference where ERP/CRM workflows are needed, but its breadth makes it unsuitable for the pilot's minimal loop.
+4. erxes, Libredesk, ChatbotX and OneChat remain **REFERENCE** or **REJECT** until license, maintenance, security and tenant evidence is gathered for a pinned release.
+5. Required next probe: reproduce one synthetic inbound interaction and one handoff in a disposable tenant, record only hashes/shape, and verify that source envelope, actor, recipient, audit and deletion/retention semantics can be represented without overwriting raw data. This is future work, not performed here.
+
+## Evidence and honesty boundary
+
+The URLs above are public source pointers, not proof that pages were reachable on 2026-11-13. Versions, dates, licenses and maintenance statements must be rechecked against pinned commit/release metadata before an implementation decision. No credentials, customer data, private endpoints or live claims are included.
