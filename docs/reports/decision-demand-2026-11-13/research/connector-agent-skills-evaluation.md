@@ -1,8 +1,8 @@
 # Connector and Agent Skills evaluation
 
-**Document class:** Non-canonical research artifact  
-**Prepared:** 2026-11-13  
-**Scope:** Source-level evaluation of connector/integration frameworks and Agent Skills/MCP repositories named by the decision-demand brief.  
+**Document class:** Non-canonical research artifact
+**Prepared:** 2026-11-13
+**Scope:** Source-level evaluation of connector/integration frameworks and Agent Skills/MCP repositories named by the decision-demand brief.
 **Decision status:** Recommendation for bounded research and architecture planning only; no production approval, live verification, credential use, installation, or execution is implied.
 
 ## 1. Evidence boundary and method

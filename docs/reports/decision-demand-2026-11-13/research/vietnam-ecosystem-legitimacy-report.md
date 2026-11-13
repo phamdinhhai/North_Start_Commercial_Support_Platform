@@ -1,6 +1,6 @@
 # W2d — Vietnam ecosystem and legitimacy research report
 
-**Decision date:** 2026-11-13  
+**Decision date:** 2026-11-13
 **Status:** non-canonical research; source-level desk review only. No live verification, OA login, partner approval, credential test, or private endpoint was performed.
 
 ## Decision frame

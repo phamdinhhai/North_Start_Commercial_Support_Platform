@@ -1,6 +1,6 @@
 # W2b — Ads and data-manager research report
 
-**Decision date:** 2026-11-13  
+**Decision date:** 2026-11-13
 **Status:** non-canonical research; source-level desk review only. No live verification, API call, credential test, or private endpoint was performed.
 
 ## Decision frame

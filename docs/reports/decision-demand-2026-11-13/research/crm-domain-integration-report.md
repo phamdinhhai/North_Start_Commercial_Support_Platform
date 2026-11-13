@@ -1,6 +1,6 @@
 # W2c — CRM and domain-integration research report
 
-**Decision date:** 2026-11-13  
+**Decision date:** 2026-11-13
 **Status:** non-canonical research; source-level desk review only. No live verification, tenant login, credential test, or private endpoint was performed.
 
 ## Decision frame

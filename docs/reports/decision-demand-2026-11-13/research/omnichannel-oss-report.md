@@ -1,6 +1,6 @@
 # W2a — Omnichannel OSS research report
 
-**Decision date:** 2026-11-13  
+**Decision date:** 2026-11-13
 **Status:** non-canonical research; source-level desk review only. No live verification, deployment, credential test, security audit, or private-endpoint access was performed.
 
 ## Decision frame
