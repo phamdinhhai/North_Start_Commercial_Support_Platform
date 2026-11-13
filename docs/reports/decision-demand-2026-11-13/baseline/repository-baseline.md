@@ -1,7 +1,7 @@
 # Repository baseline for decision demand
 
-**As of:** 2026-11-13  
-**Status:** working, non-canonical  
+**As of:** 2026-11-13
+**Status:** working, non-canonical
 **Source basis:** current repository documents and the 2026-11-12 rebuild baseline. No live process, external account, or hosted CI verification was performed for this artifact.
 
 ## What is established by existing records

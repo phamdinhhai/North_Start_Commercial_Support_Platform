@@ -1,8 +1,8 @@
 # RFC-DATA-LIFECYCLE — Retention, Export, Delete, and Legal Hold Proposal
 
-**Status: Proposal only — non-canonical; pending Product, Legal/Privacy, Security, and Engineering approval**  
-**Date:** 2026-11-13  
-**Decision owners:** Legal/Privacy + Product, with Security/Data/Engineering implementation review  
+**Status: Proposal only — non-canonical; pending Product, Legal/Privacy, Security, and Engineering approval**
+**Date:** 2026-11-13
+**Decision owners:** Legal/Privacy + Product, with Security/Data/Engineering implementation review
 **Scope:** Lifecycle governance for raw evidence, projections, assertions, audit, telemetry, exports, backups, and legal holds
 
 > This RFC deliberately proposes policy questions and controls rather than retention durations or destructive behavior. It does not edit canonical policy, implement retention/export/delete, or authorize real-data ingestion.

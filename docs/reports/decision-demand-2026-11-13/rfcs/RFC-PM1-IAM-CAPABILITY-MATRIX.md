@@ -1,8 +1,8 @@
 # RFC-PM1 — IAM and Capability Matrix Proposal
 
-**Status: Proposal only — non-canonical; pending human approval**  
-**Date:** 2026-11-13  
-**Decision owner:** Security + Product, with Engineering implementation review  
+**Status: Proposal only — non-canonical; pending human approval**
+**Date:** 2026-11-13
+**Decision owner:** Security + Product, with Engineering implementation review
 **Scope:** PM-1 permissions and credential boundary for the LVP pilot
 
 > This RFC does not resolve canonical PM-1, change a frozen invariant, or authorize production IAM. It is a review artifact under `docs/reports/`; no production IAM implementation is included.

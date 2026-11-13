@@ -1,9 +1,9 @@
 # Decision and deep-research demand execution summary
 
-**Date:** 2026-11-13  
-**Branch:** `feat/decision-demand-execution`  
-**Starting baseline:** `5d6c206`  
-**Current verification head:** pending commit for queue keyset/operator client/provider registry correction (hosted PR #1)  
+**Date:** 2026-11-13
+**Branch:** `feat/decision-demand-execution`
+**Starting baseline:** `5d6c206`
+**Current verification head:** pending commit for queue keyset/operator client/provider registry correction (hosted PR #1)
 **Status:** technical development baseline improved; commercial and production release **NOT APPROVED**
 
 ## A–J delivery disposition

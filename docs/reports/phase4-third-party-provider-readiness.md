@@ -1,7 +1,7 @@
 # Phase 4 third-party provider readiness
 
-**Document class:** Non-canonical research artifact  
-**Prepared:** 2026-11-13  
+**Document class:** Non-canonical research artifact
+**Prepared:** 2026-11-13
 **Decision scope:** Readiness evidence for PH4 planning only; this is not a production approval, a provider contract, or a resolution of any canonical open decision.
 
 ## 1. Evidence boundary

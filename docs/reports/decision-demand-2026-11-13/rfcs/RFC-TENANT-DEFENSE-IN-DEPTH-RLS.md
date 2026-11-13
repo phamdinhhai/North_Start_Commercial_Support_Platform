@@ -1,8 +1,8 @@
 # RFC-TENANT — Tenant Defense-in-Depth and PostgreSQL RLS Proposal
 
-**Status: Proposal only — non-canonical; pending human and engineering approval**  
-**Date:** 2026-11-13  
-**Decision owners:** Security + Engineering, with Product/Data review  
+**Status: Proposal only — non-canonical; pending human and engineering approval**
+**Date:** 2026-11-13
+**Decision owners:** Security + Engineering, with Product/Data review
 **Scope:** Workspace/tenant isolation for the PostgreSQL-backed pilot
 
 > This RFC does not claim that RLS is implemented, does not change canonical documents, and does not authorize production data. It proposes controls for review only.

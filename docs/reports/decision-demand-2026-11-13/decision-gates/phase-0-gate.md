@@ -1,7 +1,7 @@
 # Phase 0 decision and research gate
 
-**Date:** 2026-11-13  
-**Status:** NOT PASSED — working, non-canonical  
+**Date:** 2026-11-13
+**Status:** NOT PASSED — working, non-canonical
 **Scope:** T0-01…T0-06 and the CE-1/CE-2 approval boundary.
 
 ## Recorded inputs

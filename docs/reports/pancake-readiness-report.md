@@ -1,8 +1,8 @@
 # Pancake readiness report for PH4
 
-**Status:** `PARTIAL`  
-**PH4 feature flag:** `OFF`  
-**Prepared:** 2026-11-13  
+**Status:** `PARTIAL`
+**PH4 feature flag:** `OFF`
+**Prepared:** 2026-11-13
 **Artifact class:** Non-canonical repository research; not a release approval or live verification record.
 
 ## Executive decision

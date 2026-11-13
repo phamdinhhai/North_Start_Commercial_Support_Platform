@@ -1,7 +1,7 @@
 # Open-decision gate register
 
-**Date:** 2026-11-13  
-**Status:** NOT PASSED — working, non-canonical  
+**Date:** 2026-11-13
+**Status:** NOT PASSED — working, non-canonical
 **Approval rule:** every row is `OPEN`; only the named human owner(s) may approve a canonical change. This record does not resolve any decision.
 
 | ID | Current state | Guardrail before approval | Required approval | Required evidence |

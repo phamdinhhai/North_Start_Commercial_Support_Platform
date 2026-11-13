@@ -1,7 +1,7 @@
 # Research demand status
 
-**As of:** 2026-11-13  
-**Status:** working, non-canonical  
+**As of:** 2026-11-13
+**Status:** working, non-canonical
 **Purpose:** normalize existing documented demand without converting plans, hypotheses or candidate repositories into verified facts.
 
 ## Demand lanes

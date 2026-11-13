@@ -1,7 +1,7 @@
 # Phase 4 Pancake integration gate
 
-**Date:** 2026-11-13  
-**Status:** NOT PASSED — feature flag OFF  
+**Date:** 2026-11-13
+**Status:** NOT PASSED — feature flag OFF
 **Scope:** read-only Pancake feasibility and the manual fallback boundary.
 
 ## Current disposition

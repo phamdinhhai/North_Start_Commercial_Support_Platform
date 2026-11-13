@@ -1,8 +1,8 @@
 # RFC-BACKUP-DR — Backup, Restore, and Disaster Recovery Proposal
 
-**Status: Proposal only — non-canonical; pending Engineering, Security, Product, and Legal/Operations approval**  
-**Date:** 2026-11-13  
-**Decision owners:** Engineering + Security/SRE, with Product and Legal/Privacy review  
+**Status: Proposal only — non-canonical; pending Engineering, Security, Product, and Legal/Operations approval**
+**Date:** 2026-11-13
+**Decision owners:** Engineering + Security/SRE, with Product and Legal/Privacy review
 **Scope:** PostgreSQL pilot durability, backup, restore, disaster recovery, and operational evidence
 
 > This RFC does not claim production backup/DR capability, select a provider, set RPO/RTO commitments, or modify production code. It is a proposal for human review.

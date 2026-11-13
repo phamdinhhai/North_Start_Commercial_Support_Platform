@@ -1,8 +1,8 @@
 # Decision and deep-research demand traceability
 
-**Date:** 2026-11-13  
-**Status:** working, non-canonical  
-**Scope:** Phase 0 research and Phase 4 integration readiness  
+**Date:** 2026-11-13
+**Status:** working, non-canonical
+**Scope:** Phase 0 research and Phase 4 integration readiness
 **Canonical boundary:** `docs/canonical/**` was not edited. This package records traceability; it does not approve a decision, connector, or release.
 
 ## Traceability matrix
