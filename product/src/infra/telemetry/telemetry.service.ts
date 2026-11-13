@@ -1,30 +1,14 @@
 import { Injectable } from '@nestjs/common';
 import type { QueryResultRow } from 'pg';
 import { PostgresService } from '../postgres/postgres.service';
+import type { ProductEvent, RecordEventInput, TelemetryServicePort } from '../../ports/telemetry';
+export type { ProductEvent, RecordEventInput } from '../../ports/telemetry';
 
 /**
  * ProductEvent telemetry (R-21/R-22, C-07/C-08) — tagged releaseVersion + flag exposure.
  * Feedback (R-23) là bảng riêng; không gộp vào payload.
  * Persist only bounded telemetry metadata; sanitize payload and validate all tags at this boundary (QA-36/38).
  */
-export interface ProductEvent {
-  readonly id: string;
-  readonly workspaceId: string;
-  readonly eventType: string;
-  readonly payload: Record<string, unknown>;
-  readonly releaseVersion: string;
-  readonly flagExposure: Record<string, string>;
-  readonly createdAt: string;
-}
-
-export interface RecordEventInput {
-  workspaceId: string;
-  eventType: string;
-  payload?: Record<string, unknown>;
-  releaseVersion?: string;
-  flagExposure?: Record<string, string>;
-}
-
 interface ProductEventDbRow extends QueryResultRow {
   id: string;
   workspace_id: string;
@@ -144,7 +128,7 @@ function validateFlags(flags: unknown): Record<string, string> {
 }
 
 @Injectable()
-export class TelemetryService {
+export class TelemetryService implements TelemetryServicePort {
   constructor(private readonly db: PostgresService) {}
 
   async record(input: RecordEventInput): Promise<ProductEvent> {
