@@ -424,3 +424,36 @@ describe('P1-4 + demo isolation at the controller', () => {
     await expect(ctrl.intake({ 'x-demo-workspace': 'ws-any' }, { displayName: 'd', utterance: 'u', speaker: 'customer', connection: 'c', externalRecordId: 'r-off' })).rejects.toThrow(UnauthorizedException);
   });
 });
+
+describe('GET /pilot/queue — bounded redacted operator projection', () => {
+  let ctrl: PilotLoopController;
+  beforeEach(() => {
+    process.env.AUTH_DEV_UNSIGNED_TOKENS = 'true';
+    ctrl = makeController();
+  });
+
+  it('filters by actor/status, paginates deterministically, and omits evidence contents', async () => {
+    const first = await ctrl.intake(salesA, { displayName: 'first', utterance: 'u', speaker: 'customer', connection: 'c', externalRecordId: 'queue-1' });
+    const firstWork = await ctrl.handoff(salesA, first.leadId, { context: 'private context', proposedAction: 'call', responsibleParty: 'internal', origin: 'explicit-request', recipientUserId: 'sales-b' });
+    const second = await ctrl.intake(salesA, { displayName: 'second', utterance: 'u', speaker: 'customer', connection: 'c', externalRecordId: 'queue-2' });
+    await ctrl.handoff(salesA, second.leadId, { context: 'other', proposedAction: 'email', responsibleParty: 'internal', origin: 'explicit-request', recipientUserId: 'sales-b' });
+
+    const page = await ctrl.queue(salesB, { status: 'proposed', limit: '1' });
+    expect(page.items).toHaveLength(1);
+    expect(['first', 'second']).toContain(page.items[0].lead.displayName);
+    expect(page.nextCursor).toBeDefined();
+    expect(JSON.stringify(page)).not.toContain('evidenceRef');
+    expect(JSON.stringify(page)).not.toContain('private context');
+
+    const next = await ctrl.queue(salesB, { status: 'proposed', limit: '1', cursor: page.nextCursor });
+    expect(next.items).toHaveLength(1);
+    expect(['first', 'second']).toContain(next.items[0].lead.displayName);
+  });
+
+  it('keeps cross-workspace and unrelated recipient items out of the queue', async () => {
+    const res = await ctrl.intake(salesA, { displayName: 'owned', utterance: 'u', speaker: 'customer', connection: 'c', externalRecordId: 'queue-3' });
+    await ctrl.handoff(salesA, res.leadId, { context: 'c', proposedAction: 'call', responsibleParty: 'internal', origin: 'explicit-request', recipientUserId: 'sales-c' });
+    await expect(ctrl.queue(salesB, {})).resolves.toEqual({ items: [] });
+    await expect(ctrl.queue(foreign, {})).resolves.toEqual({ items: [] });
+  });
+});

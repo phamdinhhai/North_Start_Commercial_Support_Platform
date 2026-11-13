@@ -5,6 +5,7 @@ import {
   Body,
   Headers,
   Param,
+  Query,
   HttpCode,
   HttpException,
   HttpStatus,
@@ -30,6 +31,7 @@ import {
   type BoundaryError,
 } from './pilot-validation';
 import type { LeadId } from '../domain/lead/lead';
+import type { PilotQueueQuery, WorkStatus } from '../ports/pilot-loop.types';
 
 /**
  * P0 pilot HTTP surface — education B2C loop (T3-03/T3-04 wiring).
@@ -114,6 +116,35 @@ export class PilotLoopController {
     } catch (err) {
       throw toHttpException(err);
     }
+  }
+
+  @Get('queue')
+  async queue(
+    @Headers() headers: Record<string, string | undefined>,
+    @Query() query: { status?: string; dueBefore?: string; dueAfter?: string; ownerUserId?: string; recipientUserId?: string; cursor?: string; limit?: string },
+  ) {
+    try {
+      const ctx = this.authCtx(headers);
+      const limit = query.limit === undefined ? undefined : Number(query.limit);
+      if (limit !== undefined && (!Number.isInteger(limit) || limit < 1 || limit > 100)) {
+        throw new HttpException({ code: 'INPUT_INVALID', message: 'limit must be an integer from 1 to 100' }, 400);
+      }
+      const statuses: WorkStatus[] = ['proposed', 'accepted', 'open', 'completed', 'cancelled', 'rescheduled', 'awaiting-external'];
+      if (query.status !== undefined && !statuses.includes(query.status as WorkStatus)) {
+        throw new HttpException({ code: 'INPUT_INVALID', message: 'status is invalid' }, 400);
+      }
+      const page = await this.loop.queue({
+        workspaceId: ctx.workspaceId, actorId: ctx.userId, actorRole: ctx.role,
+        ...(query.status !== undefined && { status: query.status as WorkStatus }),
+        ...(query.dueBefore !== undefined && { dueBefore: query.dueBefore }),
+        ...(query.dueAfter !== undefined && { dueAfter: query.dueAfter }),
+        ...(query.ownerUserId !== undefined && { ownerUserId: query.ownerUserId }),
+        ...(query.recipientUserId !== undefined && { recipientUserId: query.recipientUserId }),
+        ...(query.cursor !== undefined && { cursor: query.cursor }),
+        ...(limit !== undefined && { limit }),
+      });
+      return page;
+    } catch (err) { throw toHttpException(err); }
   }
 
   @Get('leads/:leadId')

@@ -18,7 +18,7 @@ import {
 } from '../../infra/postgres/repositories/pilot-persistence.types';
 import { PilotStaleVersionError } from '../../ports/pilot-loop.types';
 import { assertSameEnvelope } from '../../ports/pilot-loop.store';
-import type { PilotLoopState, AuditHistoryEntry } from '../../ports/pilot-loop.types';
+import type { PilotLoopState, AuditHistoryEntry, PilotQueueItem, PilotQueuePage, PilotQueueQuery } from '../../ports/pilot-loop.types';
 import type { EvidenceRefRecord, PilotLoopStore } from '../../ports/pilot-loop.store';
 
 /**
@@ -86,6 +86,34 @@ export class PgPilotStore implements PilotLoopStore {
       handoffRecipient: latestHandoff?.recipient_user_id ?? undefined,
       envelope: envelopes.rows[0] ? toEnvelope(envelopes.rows[0]) : undefined,
     };
+  }
+
+  async queue(query: PilotQueueQuery): Promise<PilotQueuePage> {
+    const limit = Math.min(Math.max(query.limit ?? 50, 1), 100);
+    const offset = decodeQueueCursor(query.cursor);
+    const params: unknown[] = [query.workspaceId];
+    const where = ['w.workspace_id = $1'];
+    if (query.actorRole !== 'admin' && query.actorRole !== 'manager') {
+      params.push(query.actorId);
+      where.push(`(l.owner_user_id = $${params.length} OR w.actor = $${params.length})`);
+    }
+    if (query.status) { params.push(query.status); where.push(`w.status = $${params.length}`); }
+    if (query.ownerUserId) { params.push(query.ownerUserId); where.push(`l.owner_user_id = $${params.length}`); }
+    if (query.recipientUserId) { params.push(query.recipientUserId); where.push(`w.actor = $${params.length}`); }
+    if (query.dueBefore) { params.push(query.dueBefore); where.push(`w.due_at < $${params.length}`); }
+    if (query.dueAfter) { params.push(query.dueAfter); where.push(`w.due_at > $${params.length}`); }
+    params.push(limit + 1, offset);
+    const result = await this.db.query<WorkDbRow & { lead_status: string; display_name: string; handoff_recipient: string | null }>(
+      `SELECT w.id,w.lead_id,w.workspace_id,w.action,w.responsible_party,w.origin,w.status,w.completion_evidence,w.occurred_at,w.due_at,w.evidence_ref,w.recorded_at,w.supersedes_work_id,w.actor,w.reason,
+              l.status AS lead_status,l.display_name,
+              (SELECT h.recipient_user_id FROM handoff h WHERE h.lead_id = l.id ORDER BY h.created_at DESC LIMIT 1) AS handoff_recipient
+         FROM pilot_work_item w JOIN lead l ON l.id = w.lead_id
+        WHERE ${where.join(' AND ')}
+        ORDER BY w.due_at NULLS LAST,w.recorded_at,w.id LIMIT $${params.length - 1} OFFSET $${params.length}`,
+      params,
+    );
+    const rows = result.rows.map((row) => toQueueItem(row));
+    return { items: rows.slice(0, limit), ...(rows.length > limit ? { nextCursor: encodeQueueCursor(offset + limit) } : {}) };
   }
 
   async loadIngest(key: Pick<CommercialEnvelope, 'workspaceId' | 'connection' | 'externalRecordId'>): Promise<PilotLoopState | undefined> {
@@ -322,6 +350,28 @@ export class PgPilotStore implements PilotLoopStore {
     }
     return committed;
   }
+}
+
+function decodeQueueCursor(cursor?: string): number {
+  if (!cursor) return 0;
+  try {
+    const value = Number.parseInt(Buffer.from(cursor, 'base64url').toString('utf8'), 10);
+    return Number.isSafeInteger(value) && value >= 0 ? value : 0;
+  } catch { return 0; }
+}
+
+function encodeQueueCursor(offset: number): string { return Buffer.from(String(offset), 'utf8').toString('base64url'); }
+
+function toQueueItem(row: WorkDbRow & { lead_status: string; display_name: string; handoff_recipient: string | null }): PilotQueueItem {
+  return {
+    id: row.id, leadId: row.lead_id as PilotQueueItem['leadId'], workspaceId: row.workspace_id, action: row.action,
+    responsibleParty: row.responsible_party as PilotQueueItem['responsibleParty'], origin: row.origin as PilotQueueItem['origin'],
+    status: row.status as PilotQueueItem['status'], completionEvidence: row.completion_evidence as PilotQueueItem['completionEvidence'],
+    occurredAt: row.occurred_at, ...(row.due_at !== null && { dueAt: iso(row.due_at) }), recordedAt: iso(row.recorded_at),
+    ...(row.supersedes_work_id !== null && { supersedesWorkId: row.supersedes_work_id }), actor: row.actor,
+    lead: { status: row.lead_status as PilotQueueItem['lead']['status'], displayName: row.display_name },
+    ...(row.handoff_recipient ? { handoff: { recipientUserId: row.handoff_recipient } } : {}),
+  };
 }
 
 async function insertEnvelope(tx: SqlExecutor, env: CommercialEnvelope, options: { readonly checkSourceCapturedAt?: boolean }): Promise<string> {

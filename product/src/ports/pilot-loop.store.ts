@@ -1,6 +1,6 @@
 import { EnvelopeIdempotencyConflictError, idempotencyKey, type CommercialEnvelope } from '../domain/envelope/envelope';
 import type { AuditRecord } from './audit';
-import type { AuditHistoryEntry, PilotLoopState } from './pilot-loop.types';
+import type { AuditHistoryEntry, PilotLoopState, PilotQueuePage, PilotQueueQuery } from './pilot-loop.types';
 
 export interface EvidenceRefRecord {
   readonly envelopeId: string;
@@ -18,6 +18,7 @@ export interface PilotLoopStore {
   save(state: PilotLoopState, audits: readonly Omit<AuditRecord, 'id' | 'timestamp'>[], options?: { readonly checkSourceCapturedAt?: boolean }): Promise<PilotLoopState>;
   history(leadId: string): Promise<readonly AuditHistoryEntry[]>;
   loadEvidence(envelopeId: string): Promise<EvidenceRefRecord | undefined>;
+  queue(query: PilotQueueQuery): Promise<PilotQueuePage>;
 }
 
 export function assertSameEnvelope(

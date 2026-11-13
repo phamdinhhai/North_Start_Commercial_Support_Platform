@@ -42,6 +42,44 @@ export interface WorkItem {
   readonly reason?: string;
 }
 
+export interface PilotQueueQuery {
+  readonly workspaceId: string;
+  readonly actorId: string;
+  readonly actorRole: 'admin' | 'manager' | 'sales' | 'viewer';
+  readonly status?: WorkStatus;
+  readonly dueBefore?: string;
+  readonly dueAfter?: string;
+  readonly ownerUserId?: string;
+  readonly recipientUserId?: string;
+  /** Opaque cursor returned by the previous page. */
+  readonly cursor?: string;
+  readonly limit?: number;
+}
+
+/** Redacted operator projection: no raw payloads, evidence contents, or evidence pointers. */
+export interface PilotQueueItem {
+  readonly id: string;
+  readonly leadId: LeadId;
+  readonly workspaceId: string;
+  readonly action: string;
+  readonly responsibleParty: ResponsibleParty;
+  readonly origin: WorkOrigin;
+  readonly status: WorkStatus;
+  readonly completionEvidence: CompletionEvidence;
+  readonly occurredAt: string;
+  readonly dueAt?: string;
+  readonly recordedAt: string;
+  readonly supersedesWorkId?: string;
+  readonly actor: string;
+  readonly lead: { readonly status: Lead['status']; readonly displayName: string };
+  readonly handoff?: { readonly recipientUserId: string };
+}
+
+export interface PilotQueuePage {
+  readonly items: readonly PilotQueueItem[];
+  readonly nextCursor?: string;
+}
+
 export interface PilotLoopState {
   readonly lead: Lead;
   /** Optimistic-concurrency revision. Undefined only for a brand-new aggregate. */

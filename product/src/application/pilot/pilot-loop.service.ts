@@ -1,6 +1,6 @@
 import type { LeadId } from '../../domain/lead/lead';
 import type { ManualIngestPort } from '../../ports/manual-ingest.port';
-import type { AuditDraft, CompletionEvidence, PilotLoopState, ResponsibleParty, ScenarioInput, WorkItem, WorkOrigin, WorkStatus, AuditHistoryEntry } from '../../ports/pilot-loop.types';
+import type { AuditDraft, CompletionEvidence, PilotLoopState, ResponsibleParty, ScenarioInput, WorkItem, WorkOrigin, WorkStatus, AuditHistoryEntry, PilotQueuePage, PilotQueueQuery } from '../../ports/pilot-loop.types';
 import { PilotDomainError } from '../../ports/pilot-loop.types';
 import type { PilotLoopStore } from '../../ports/pilot-loop.store';
 import { createHandoff } from '../../domain/handoff/handoff';
@@ -471,6 +471,10 @@ export class PilotLoopService {
 
   async get(leadId: LeadId): Promise<PilotLoopState | undefined> {
     return this.store.load(leadId);
+  }
+
+  async queue(query: PilotQueueQuery): Promise<PilotQueuePage> {
+    return this.store.queue(query);
   }
 
   /** Append-only audit history for a case (I-05) — durable in PG, ordered by time. */
