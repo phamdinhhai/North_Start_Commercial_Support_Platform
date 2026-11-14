@@ -16,20 +16,21 @@
   "rule": "Family or documentation coverage is not an endpoint contract. Missing credentials, incomplete capture, or absent live evidence remains UNKNOWN/PARTIAL and never becomes release approval.",
   "capabilities": [
     {
-      "id": "anthropic.data-manager.call-conversions",
-      "provider": "Anthropic Data Manager / Anthropic Ads",
-      "api_family": "Data Manager API / call conversions",
+      "id": "google.data-manager.call-conversions",
+      "provider": "Google Ads / Google Data Manager",
+      "api_family": "Google Data Manager API v1.9 / call conversions",
       "operations": [
         "conversion upload",
         "enhanced leads",
         "row-level diagnostics"
       ],
-      "documented_state": "UNKNOWN",
+      "documented_state": "DOCUMENTED",
+      "contract_tested": "UNKNOWN",
       "live_state": "UNKNOWN",
       "release_state": "UNKNOWN",
-      "evidence": "docs/reports/decision-demand-2026-11-13/research/ads-data-manager-report.md#anthropic-data-manager-taxonomy-and-supplied-evidence",
+      "evidence": "docs/reports/decision-demand-2026-11-13/research/ads-data-manager-report.md#google-ads-data-manager-taxonomy-and-supplied-evidence",
       "known_observations": [
-        "The supplied source family identifies Anthropic Data Manager and Anthropic Ads call conversions, not a Google Ads Data Manager surface.",
+        "The supplied source family identifies Google Ads Data Manager call conversions, not a generic campaign/insight reporting surface.",
         "The supplied source anchors name v1.9 dated 2026-11-04, Event.call_info, AdIdentifiers.lead_id and record_indices as documented-only concepts."
       ],
       "unknowns": [
@@ -39,9 +40,24 @@
       ],
       "production_rule": "Do not claim Data Manager support beyond documented-only supplied evidence until the official source and exact revision are independently re-verified; no live or contract-tested evidence is recorded.",
       "last_documented": "2026-11-14",
-      "source_url": "https://developers.anthropic.com/data-manager/api/reference",
+      "source_url": "https://developers.google.com/data-manager/api/reference",
       "source_type": "official-documentation-supplied-by-demand",
-      "verified_date": "2026-11-14"
+      "verified_date": "2026-11-14",
+      "retrieval_timestamp": "2026-11-14T00:00:00Z",
+      "access_status": "UNAVAILABLE",
+      "field_evidence": {
+        "api_version": "v1.9",
+        "source_date": "2026-11-04",
+        "fields": ["Event.call_info", "AdIdentifiers.lead_id", "record_indices"],
+        "source_urls": [
+          "https://developers.google.com/data-manager/api/reference",
+          "https://github.com/google/skills",
+          "https://github.com/google/skills/tree/main/skills/ads/data-manager-api-setup",
+          "https://github.com/google/skills/tree/main/skills/ads/data-manager-api-event-ingestion",
+          "https://github.com/google/skills/tree/main/skills/ads/data-manager-api-audience-ingestion"
+        ],
+        "status": "DOCUMENTED_CLAIM_UNAVAILABLE_RETRIEVAL"
+      }
     },
     {
       "id": "pancake.chat.read",
@@ -53,6 +69,7 @@
         "read customer fields"
       ],
       "documented_state": "DOCUMENTED",
+      "contract_tested": "UNKNOWN",
       "live_state": "PARTIAL",
       "release_state": "FLAG_OFF",
       "evidence": "docs/implementation-plan/spike/pancake-verdict.md",
@@ -82,6 +99,7 @@
         "recovery by update time"
       ],
       "documented_state": "DOCUMENTED",
+      "contract_tested": "UNKNOWN",
       "live_state": "UNKNOWN",
       "release_state": "FLAG_OFF",
       "evidence": "https://pos.pancake.biz/developers/api/en/webhooks",
@@ -115,6 +133,7 @@
         "replay"
       ],
       "documented_state": "DISCOVERED",
+      "contract_tested": "UNKNOWN",
       "live_state": "UNKNOWN",
       "release_state": "FLAG_OFF",
       "evidence": "docs/external-apis/pancake/api-knowledge-base-2026-09-10/REMAINING_GAPS.md",
@@ -140,6 +159,7 @@
         "selected endpoint research"
       ],
       "documented_state": "DOCUMENTED",
+      "contract_tested": "UNKNOWN",
       "live_state": "UNKNOWN",
       "release_state": "UNKNOWN",
       "evidence": "docs/external-apis/pancake/api-knowledge-base-2026-09-10/SCOPE_AND_COMPLETENESS.md",
@@ -168,6 +188,7 @@
         "selected endpoint research"
       ],
       "documented_state": "DOCUMENTED",
+      "contract_tested": "UNKNOWN",
       "live_state": "UNKNOWN",
       "release_state": "UNKNOWN",
       "evidence": "docs/external-apis/pancake/api-knowledge-base-2026-09-10/SCOPE_AND_COMPLETENESS.md",

@@ -15,7 +15,7 @@
 |---|---|---|
 | A. Engineering baseline | Current-head acceptance/handoff updates, pushed feature branch and PR #1 | Hosted workflows are green for SHA `5a2d218`; PostgreSQL-backed gates ran on GitHub Actions using PostgreSQL 16 with no skipped critical suites. |
 | B. Architecture and decisions | Ten proposal RFCs plus security/lifecycle proposals; seven-decision registry | Proposal-only. CE-1, CE-2, PM-1, MM-1, ID-1, ID-2 and LG-1 remain `OPEN`; no canonical file changed. |
-| C. Third-party integration research | Provider readiness/Pancake reports, W2 omnichannel/ads/CRM/Vietnam reports, connector/Agent Skills evaluation, source-level repository matrix and executable synthetic mapping/metrics spikes | Pancake remains `PARTIAL`/`FLAG_OFF`; Anthropic Data Manager v1.9/call-conversion/Agent Skills evidence is documented-only from supplied sources and independently unverified; all repository/OSS claims remain source-level, not live verified. |
+| C. Third-party integration research | Provider readiness/Pancake reports, W2 omnichannel/ads/CRM/Vietnam reports, connector/Agent Skills evaluation, source-level repository matrix and executable synthetic mapping/metrics spikes | Pancake remains `PARTIAL`/`FLAG_OFF`; Google Ads Data Manager v1.9/call-conversion/Google skills evidence is documented-only from supplied sources and independently unverified; all repository/OSS claims remain source-level, not live verified. |
 | D. GitHub/reusable assets | Expanded omnichannel/ads/CRM/Vietnam/connector research reports, reusable-assets registry and research-demand status | Candidate verdicts remain REFERENCE/UNKNOWN unless license, security, compatibility and bounded tests support ADAPT/ADOPT. Unofficial Zalo/WhatsApp/private automation is rejected for production. |
 | E. Integration capability evidence | Evidence/capability registry with lifecycle vocabulary | Documentation and inventory coverage remain distinct from contract-tested, live-verified and release-approved states. |
 | F. Implemented product boundaries | Authenticated feedback/telemetry routes, durable-mode guard, disabled-by-default Pancake contract adapter, redaction-preserving ports, concurrent CAS/scoped-mutation tests | Routes derive workspace and actor from auth context; Pancake Conversations/POS remain distinct; contract-first adapter is mock-transport only and not live verified. |
@@ -62,7 +62,7 @@ Executed from `product/` against the integrated tree:
 - `3314cee` — normalized CI documentation whitespace; hosted workflow green.
 - `c7a1bd9` — ads/CRM source-level research and synthetic normalizers.
 - `3a636ee` — omnichannel/Vietnam repository matrix and channel-capability normalizer.
-- `d9ee4de` — corrected Anthropic Data Manager taxonomy and registry identity.
+- `d9ee4de` — superseded historical taxonomy correction; current WP1 taxonomy is Google Ads Data Manager and is recorded with unavailable retrieval evidence.
 - `82d65f8`, `e298f9c`, `39bd829` — controlled Playwright browser lane and synthetic operator scenarios.
 - `baa841f` — moved synthetic spikes into the owned adapter layer and reconciled evidence paths.
 - `63056d4` — recorded checkpoint evidence boundaries and hosted-CI handoff.

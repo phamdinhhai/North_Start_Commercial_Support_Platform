@@ -28,7 +28,7 @@ The reviewed commit/metadata references are reproducibility anchors, not a claim
 | MCP servers | https://github.com/modelcontextprotocol/servers | `main` | README/source states transition from MIT to Apache-2.0; docs CC-BY-4.0; contribution-level provenance matters | 91,969 stars; 11,961 forks; 18 open issues; pushed 2026-11-12 |
 | Anthropic skills | https://github.com/Anthropic/skills | `main` | README/source describes directory-specific licensing; many document skills Apache-2.0 | Source/revision independently unverified in this checkpoint |
 | Agent Skills specification | https://github.com/agentskills/agentskills | `main` | Apache-2.0 source; documentation may be CC-BY-4.0 and directory-specific terms can apply | 27,258 stars; 2,031 forks; 125 open issues; pushed 2026-11-04 |
-| Google skills | Exact repository/source was not supplied in the brief and was not identified as a canonical source in this review | — | Unknown | No claim made |
+| Google skills | https://github.com/google/skills plus the three supplied Data Manager skill paths | `main` (exact revision unavailable) | Unknown pending retrieval | No installation or execution |
 
 The metadata was queried through the GitHub API; source links above are the durable review references. GitHub's SPDX field reported `NOASSERTION` for several repositories even where the repository license file was directly inspected; the license-file text is authoritative for this report's limited assessment.
 
@@ -246,17 +246,17 @@ Each candidate is assessed against the requested dimensions:
 
 **Assessment and verdict:** **REFERENCE.** Adopt the metadata/progressive-disclosure *concept* only if North Star's own allowlist, static review, resource limits, no-secret-by-default policy, and verification checklist are implemented. Do not treat format compliance as security approval.
 
-### 3.10 Anthropic Data Manager skills — **DOCUMENTED / UNKNOWN for execution**
+### 3.10 Google Data Manager skills — **DOCUMENTED / UNKNOWN for execution**
 
-The supplied demand identifies `https://github.com/Anthropic/skills` and the Data Manager setup, event-ingestion and audience-ingestion paths as official source inputs. Independent retrieval of those paths returned HTTP 404 in this environment, so exact revision, source files, license scope, scripts, tests, credential custody and security posture remain UNKNOWN. No skill was installed or executed.
+The supplied demand identifies `https://github.com/google/skills` and these exact Data Manager paths as official source inputs: `https://github.com/google/skills/tree/main/skills/ads/data-manager-api-setup`, `https://github.com/google/skills/tree/main/skills/ads/data-manager-api-event-ingestion`, and `https://github.com/google/skills/tree/main/skills/ads/data-manager-api-audience-ingestion`. Retrieval was **UNAVAILABLE** on 2026-11-14 in this environment, so exact revision, source files, license scope, scripts, tests, credential custody and security posture remain UNKNOWN. No skill was installed or executed.
 
 **Verdict:** **DOCUMENTED source input only**; do not treat the skill paths as execution approval or provider contract evidence. Re-open after an exact source revision and static/security review are available.
 
-### 3.11 Google skills — **UNKNOWN / REJECT for current scope**
+### 3.11 Google skills retrieval boundary — **UNKNOWN / REJECT for current scope**
 
-No exact Google-maintained skills repository, commit, license, source files or official documentation was supplied in the decision-demand brief. The brief names Anthropic skills, `agentskills/agentskills`, and MCP servers, but does not identify a Google skills source. Therefore license, maintenance, security, tenant isolation, credential custody, OAuth, state/replay, tests/CI and embedding fit are all **UNKNOWN**.
+The exact Google-maintained source URLs are now recorded, but retrieval and exact revision authentication were unavailable in this environment. License, maintenance, security, tenant isolation, credential custody, OAuth, state/replay, tests/CI and embedding fit therefore remain **UNKNOWN**.
 
-**Verdict:** **REJECT as an implementation input for this checkpoint** (not a claim that Google has no skills). Re-open only after an exact official URL/revision and source-level license/security review are provided.
+**Verdict:** **REJECT as an implementation input for this checkpoint** (not a claim that Google has no skills). Re-open only after an exact official revision and source-level license/security review are available.
 
 ## 4. Comparative decision matrix
 
@@ -269,9 +269,9 @@ No exact Google-maintained skills repository, commit, license, source files or o
 | Meltano/Singer | MIT core; plugin licenses vary | Not tenant-isolation solution | High cursor/state reference value | Medium/high | Medium as conceptual reference | **REFERENCE** |
 | Chatwoot | MIT core; enterprise/dependencies separate | Useful inbox model, not canonical authority | Medium conversation-history reference | Very high as app | Low runtime / high UX reference | **REFERENCE** |
 | MCP servers | Mixed MIT/Apache/CC-BY provenance | Protocol security requirements strong; server-specific isolation unknown | Low business-state value | Low-to-high depending transport | **ADAPT** protocol boundary only | **REFERENCE/ADAPT** |
-| Anthropic skills | Directory-specific; many Apache-2.0 examples | No intrinsic isolation/custody | None intrinsic | Low static / high scripts | Medium as reviewed local assets | **REFERENCE** |
+| Google skills | Unknown until exact source retrieval | No intrinsic isolation/custody established | None intrinsic | Unknown | Unknown | **REJECT pending evidence** |
 | Agent Skills spec | Apache-2.0 source; docs terms | No intrinsic security guarantees | None intrinsic | Low format, host controls required | Medium as local convention | **REFERENCE** |
-| Google skills | Unknown source/license | Unknown | Unknown | Unknown | Unknown | **REJECT pending evidence** |
+| Google skills | Unknown until retrieval | Unknown | Unknown | Unknown | Unknown | **REJECT pending evidence** |
 
 ## 5. Recommended North Star posture
 

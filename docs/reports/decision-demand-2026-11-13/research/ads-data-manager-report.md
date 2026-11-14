@@ -1,4 +1,4 @@
-# W2b — Ads, Anthropic Data Manager, and read-only connector research
+# W2b — Ads, Google Data Manager, and read-only connector research
 
 **Decision date:** 2026-11-14
 **Status:** non-canonical source-level research plus an executable synthetic spike. No credentials, customer data, private endpoints, live provider calls, or production approval.
@@ -7,19 +7,33 @@
 
 Exact public source pointers are recorded below. Repository names and URLs are discovery inputs, not proof that a particular commit, release, license, permission set, endpoint, or security posture is current. The synthetic spike is read-only and provider-neutral; it does not establish provider behavior or revenue correctness.
 
-## Anthropic Data Manager taxonomy and supplied evidence
+## Google Ads Data Manager taxonomy and supplied evidence
 
-The supplied source family identifies **Anthropic Data Manager API**, including the Anthropic Ads integration, rather than a Google Ads Data Manager surface. It must not be relabeled as Google Data Manager or collapsed into campaign/insight reporting. The supplied source anchors identify **Data Manager API v1.9**, dated **2026-11-04**, with the following documented-only concepts:
+The supplied source family identifies the **Google Data Manager API** in the Google Ads ecosystem. It must not be collapsed into campaign/insight reporting or confused with legacy offline-upload surfaces. The supplied source anchors identify **Data Manager API v1.9**, dated **2026-11-04**, with the following documented-only concepts:
 
-- **Anthropic Ads call conversions** are a Data Manager event/conversion category; they are not treated as ordinary ad metrics.
+- **Google Ads call conversions** are a Data Manager event/conversion category; they are not treated as ordinary ad metrics.
 - `Event.call_info` is a documented event field/structure for call-conversion information.
-- `AdIdentifiers.lead_id` is a documented provider identifier and must remain distinct from the North Star immutable Lead ID.
+- `AdIdentifiers.lead_id` is a documented Google Ads provider identifier and must remain distinct from the North Star immutable Lead ID.
 - `record_indices` diagnostics identify record positions/indices associated with diagnostics. They are diagnostics, not evidence that a record is valid or successfully attributed.
-- The official `Anthropic/skills` repository and its Data Manager setup, event-ingestion and audience-ingestion skill paths are documented source inputs only. No skill was installed or executed.
+- The official `google/skills` repository and its Data Manager setup, event-ingestion and audience-ingestion skill paths are documented source inputs only. No skill was installed or executed.
 
 ### Official URL check and evidence boundary
 
-The supplied Anthropic developer URLs and GitHub skill paths were checked without credentials in this environment. The developer host could not be resolved and the requested GitHub paths returned HTTP 404, so independent retrieval and exact revision authentication were unavailable. The version/date and field taxonomy above are therefore retained as **documented claims supplied by the demand**, not live-verified or contract-tested claims. Do not provision credentials or implement against these fields until a valid official capture and exact source revision are obtained.
+The supplied Google sources were checked without credentials in this environment on **2026-11-14**. Retrieval status is **UNAVAILABLE**: the developer reference and skill URLs could not be independently authenticated into a usable exact revision in this environment. The version/date and field taxonomy above are therefore retained as **documented claims supplied by the demand**, not live-verified or contract-tested claims. Do not provision credentials or implement against these fields until a valid official capture and exact source revision are obtained.
+
+**Retrieval evidence (field-level, documented only):**
+
+| Field/claim | Source URL | Retrieved at | Access status | Evidence status |
+|---|---|---|---|---|
+| API family, v1.9, date 2026-11-04 | https://developers.google.com/data-manager/api/reference | 2026-11-14 | UNAVAILABLE | DOCUMENTED / UNKNOWN |
+| `Event.call_info` | https://developers.google.com/data-manager/api/reference | 2026-11-14 | UNAVAILABLE | DOCUMENTED / UNKNOWN |
+| `AdIdentifiers.lead_id` | https://developers.google.com/data-manager/api/reference | 2026-11-14 | UNAVAILABLE | DOCUMENTED / UNKNOWN |
+| `record_indices` | https://developers.google.com/data-manager/api/reference | 2026-11-14 | UNAVAILABLE | DOCUMENTED / UNKNOWN |
+| setup skill | https://github.com/google/skills/tree/main/skills/ads/data-manager-api-setup | 2026-11-14 | UNAVAILABLE | DOCUMENTED / UNKNOWN |
+| event-ingestion skill | https://github.com/google/skills/tree/main/skills/ads/data-manager-api-event-ingestion | 2026-11-14 | UNAVAILABLE | DOCUMENTED / UNKNOWN |
+| audience-ingestion skill | https://github.com/google/skills/tree/main/skills/ads/data-manager-api-audience-ingestion | 2026-11-14 | UNAVAILABLE | DOCUMENTED / UNKNOWN |
+
+**Superseded historical contradiction:** an earlier checkpoint incorrectly labeled this source family Anthropic Data Manager / Anthropic Ads. That statement is retained only as a superseded historical note in the checkpoint history; current taxonomy and registry identity are Google Ads / Google Data Manager. It is not evidence for the current contract.
 
 ## Candidate source review
 
@@ -56,4 +70,4 @@ It performs no network calls and cannot mutate Lead, Customer, Commercial Event,
 
 ## Verdict
 
-Meta is the first conditional narrow read-only adapter candidate; TikTok is later and conditional. Airbyte/dbt are reference patterns only. Unpinned MCP repositories and unresolved discovery candidates are **REFERENCE/UNKNOWN**, not production dependencies. Anthropic Data Manager remains **DOCUMENTED only / UNKNOWN for live implementation** until the supplied official evidence can be independently retrieved and its exact revision captured. No canonical decision CE-1, CE-2, MM-1, ID-1, ID-2, PM-1, or LG-1 is resolved.
+Meta is the first conditional narrow read-only adapter candidate; TikTok is later and conditional. Airbyte/dbt are reference patterns only. Unpinned MCP repositories and unresolved discovery candidates are **REFERENCE/UNKNOWN**, not production dependencies. Google Ads Data Manager remains **DOCUMENTED only / UNKNOWN for live implementation** until the supplied official evidence can be independently retrieved and its exact revision captured. No canonical decision CE-1, CE-2, MM-1, ID-1, ID-2, PM-1, or LG-1 is resolved.

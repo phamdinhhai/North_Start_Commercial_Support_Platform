@@ -1,15 +1,26 @@
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 
-const root = fileURLToPath(new URL('../../', import.meta.url));
-const registryRoot = resolve(root, 'docs', 'research', 'registries');
-const files = ['decision-register.json', 'evidence-capability-register.json', 'reusable-engineering-assets.json'];
-const statuses = new Set(['DISCOVERED', 'DOCUMENTED', 'CONTRACT_TESTED', 'LIVE_VERIFIED', 'RELEASE_APPROVED', 'UNKNOWN', 'PARTIAL', 'FLAG_OFF', 'REFERENCE', 'ADAPT', 'ADOPT', 'REJECT', 'OPEN']);
+const ROOT = resolve(fileURLToPath(new URL('../', import.meta.url)));
+const DEFAULT_REGISTRY_ROOT = resolve(ROOT, '..', 'docs', 'research', 'registries');
+const FILES = ['decision-register.json', 'evidence-capability-register.json', 'reusable-engineering-assets.json'];
+const STATES = new Set(['DISCOVERED', 'DOCUMENTED', 'CONTRACT_TESTED', 'LIVE_VERIFIED', 'RELEASE_APPROVED', 'UNKNOWN', 'PARTIAL', 'FLAG_OFF', 'REFERENCE', 'ADAPT', 'ADOPT', 'REJECT', 'OPEN']);
+const MATURITY_FIELDS = ['documented_state', 'contract_tested', 'live_state', 'release_state'];
+const GOOGLE_REFERENCE = 'https://developers.google.com/data-manager/api/reference';
+const GOOGLE_SKILLS = [
+  'https://github.com/google/skills',
+  'https://github.com/google/skills/tree/main/skills/ads/data-manager-api-setup',
+  'https://github.com/google/skills/tree/main/skills/ads/data-manager-api-event-ingestion',
+  'https://github.com/google/skills/tree/main/skills/ads/data-manager-api-audience-ingestion',
+];
 const secret = /(bearer\s+[A-Za-z0-9._~-]{12,}|(?:api[_-]?key|password|secret|cookie|private[_-]?key)\s*[:=]\s*\S+|gh[pousr]_[A-Za-z0-9_]{20,}|sk-[A-Za-z0-9]{20,})/i;
 
-function fail(message) { throw new Error(`REGISTRY_INVALID: ${message}`); }
-function load(file) {
+export class RegistryValidationError extends Error {
+  constructor(message) { super(`REGISTRY_INVALID: ${message}`); this.name = 'RegistryValidationError'; }
+}
+function fail(message) { throw new RegistryValidationError(message); }
+function load(registryRoot, file) {
   try { return JSON.parse(readFileSync(resolve(registryRoot, file), 'utf8')); }
   catch (error) { fail(`${file}: ${error instanceof Error ? error.message : 'invalid JSON'}`); }
 }
@@ -26,21 +37,49 @@ function unique(rows, field, label) {
     seen.add(row[field]);
   }
 }
-
-const [decisions, capabilities, assets] = files.map(load);
-for (const [name, registry] of [['decision', decisions], ['capability', capabilities], ['assets', assets]]) {
-  if (!registry.schema || !registry.registry_status || !registry.as_of) fail(`${name}: missing schema/status/date`);
-  walk(registry, name);
-}
-unique(decisions.decisions, 'id', 'decisions');
-if ((decisions.decisions ?? []).length !== 7 || decisions.decisions.some((row) => row.status !== 'OPEN')) fail('decisions: all seven canonical decisions must remain OPEN');
-unique(capabilities.capabilities, 'id', 'capabilities');
-unique(assets.assets, 'id', 'assets');
-for (const row of capabilities.capabilities ?? []) {
-  for (const field of ['documented_state', 'live_state', 'release_state']) if (!statuses.has(row[field])) fail(`capability ${row.id}: invalid ${field}`);
+function validateCapability(row) {
+  for (const field of MATURITY_FIELDS) {
+    if (!(field in row) || typeof row[field] !== 'string' || !STATES.has(row[field])) fail(`capability ${row.id}: invalid ${field}`);
+  }
   if (!row.evidence || !row.last_documented) fail(`capability ${row.id}: missing evidence/date`);
+  if (row.contract_tested === 'CONTRACT_TESTED' && row.contract_tested_evidence === undefined) fail(`capability ${row.id}: missing contract evidence`);
+  if (row.live_state === 'LIVE_VERIFIED' && !row.live_evidence) fail(`capability ${row.id}: missing live evidence`);
+  if (row.release_state === 'RELEASE_APPROVED' && !row.release_evidence) fail(`capability ${row.id}: missing release evidence`);
 }
-for (const row of assets.assets ?? []) {
-  if (!row.url || !row.license || !row.verdict || !statuses.has(row.verdict)) fail(`asset ${row.id}: missing source/license/verdict`);
+function validateGoogleCapability(row) {
+  const text = JSON.stringify(row);
+  if (!text.includes('google.data-manager') || row.provider !== 'Google Ads / Google Data Manager') fail('Google Data Manager capability taxonomy drift');
+  if (text.includes('Anthropic Data Manager') || text.includes('anthropic.data-manager') || text.includes('developers.anthropic.com')) fail('stale Anthropic Data Manager taxonomy');
+  if (row.source_url !== GOOGLE_REFERENCE) fail('Google Data Manager: incorrect reference URL');
+  if (row.access_status !== 'UNAVAILABLE') fail('Google Data Manager: unavailable retrieval must remain UNKNOWN');
+  if (!row.retrieval_timestamp || Number.isNaN(Date.parse(row.retrieval_timestamp))) fail('Google Data Manager: missing retrieval timestamp');
+  const fields = row.field_evidence;
+  if (!fields || fields.api_version !== 'v1.9' || fields.source_date !== '2026-11-04') fail('Google Data Manager: missing version/date evidence');
+  for (const field of ['Event.call_info', 'AdIdentifiers.lead_id', 'record_indices']) if (!fields.fields?.includes(field)) fail(`Google Data Manager: missing field evidence ${field}`);
+  for (const url of [GOOGLE_REFERENCE, ...GOOGLE_SKILLS]) if (!fields.source_urls?.includes(url)) fail(`Google Data Manager: missing source evidence ${url}`);
+  if (row.documented_state !== 'DOCUMENTED' || row.contract_tested !== 'UNKNOWN' || row.live_state !== 'UNKNOWN' || row.release_state !== 'UNKNOWN') fail('Google Data Manager: maturity states overclaim unavailable evidence');
 }
-console.log(`Registry validation: PASS (${decisions.decisions.length} decisions, ${capabilities.capabilities.length} capabilities, ${assets.assets.length} assets)`);
+export function validateRegistries(registryRoot = DEFAULT_REGISTRY_ROOT) {
+  const [decisions, capabilities, assets] = FILES.map((file) => load(registryRoot, file));
+  for (const [name, registry] of [['decision', decisions], ['capability', capabilities], ['assets', assets]]) {
+    if (!registry.schema || !registry.registry_status || !registry.as_of) fail(`${name}: missing schema/status/date`);
+    walk(registry, name);
+  }
+  unique(decisions.decisions, 'id', 'decisions');
+  if ((decisions.decisions ?? []).length !== 7 || decisions.decisions.some((row) => row.status !== 'OPEN')) fail('decisions: all seven canonical decisions must remain OPEN');
+  unique(capabilities.capabilities, 'id', 'capabilities');
+  unique(assets.assets, 'id', 'assets');
+  for (const row of capabilities.capabilities ?? []) {
+    validateCapability(row);
+    if (row.id === 'google.data-manager.call-conversions') validateGoogleCapability(row);
+  }
+  for (const row of assets.assets ?? []) if (!row.url || !row.license || !row.verdict || !STATES.has(row.verdict)) fail(`asset ${row.id}: missing source/license/verdict`);
+  return { decisions: decisions.decisions.length, capabilities: capabilities.capabilities.length, assets: assets.assets.length };
+}
+
+if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {
+  try {
+    const result = validateRegistries();
+    console.log(`Registry validation: PASS (${result.decisions} decisions, ${result.capabilities} capabilities, ${result.assets} assets)`);
+  } catch (error) { console.error(error instanceof Error ? error.message : error); process.exitCode = 1; }
+}

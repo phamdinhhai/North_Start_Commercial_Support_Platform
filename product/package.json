@@ -30,6 +30,7 @@
     "lint": "eslint \"src/**/*.ts\" \"e2e/**/*.ts\"",
     "security:audit": "npm audit --audit-level=high",
     "registry:validate": "node scripts/registry-validation.mjs",
+    "test:registry": "node --test scripts/registry-validation.test.mjs",
     "architecture:check": "node scripts/check-architecture.mjs --report",
     "architecture:check:strict": "node scripts/check-architecture.mjs"
   },
