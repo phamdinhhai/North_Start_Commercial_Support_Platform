@@ -1,6 +1,8 @@
-import { UNKNOWN_SENTINEL } from '../../domain/unknown-states/unknown-states';
+import { canonicalizePayload } from '../../domain/envelope/envelope';
+import { isValidUnknownState, UNKNOWN_SENTINEL, type UnknownState } from '../../domain/unknown-states/unknown-states';
 
 export type AdsProvider = 'google' | 'meta' | 'tiktok';
+export type AdsValue = string | UnknownState;
 export type NormalizationDiagnostic =
   | 'MALFORMED_INPUT'
   | 'DUPLICATE_RECORD'
@@ -14,15 +16,20 @@ export interface RawAdsMetric {
   readonly providerObjectId: string;
   readonly metricName: string;
   readonly value: number;
-  readonly currency: string | typeof UNKNOWN_SENTINEL;
-  readonly timezone: string | typeof UNKNOWN_SENTINEL;
-  readonly attributionWindow: string | typeof UNKNOWN_SENTINEL;
-  readonly occurredAt: string | typeof UNKNOWN_SENTINEL;
+  readonly currency: AdsValue;
+  readonly timezone: AdsValue;
+  readonly dateGranularity?: AdsValue;
+  readonly attributionWindow: AdsValue;
+  readonly occurredAt: AdsValue;
   readonly capturedAt: string;
   readonly nativeMetric: string;
+  /** Provider/API version used to produce the observation; never inferred. */
+  readonly sourceVersion?: AdsValue;
 }
 
 export interface NormalizedAdsMetric extends RawAdsMetric {
+  readonly dateGranularity: AdsValue;
+  readonly sourceVersion: AdsValue;
   readonly isSynthetic: true;
   readonly sourceSystem: AdsProvider;
   readonly unknownFields: readonly string[];
@@ -34,10 +41,16 @@ export interface AdsNormalizationResult {
   readonly diagnostics: readonly NormalizationDiagnostic[];
 }
 
+const providers: readonly AdsProvider[] = ['google', 'meta', 'tiktok'];
 const requiredStrings: readonly (keyof RawAdsMetric)[] = [
   'workspaceId', 'providerAccountId', 'providerObjectId', 'metricName', 'capturedAt', 'nativeMetric',
 ];
 
+/**
+ * Normalize provider observations without assigning commercial meaning.
+ * The identity is an encoded tuple, not a delimiter-joined string: every
+ * component remains distinguishable even when it contains ':' or '\\'.
+ */
 export function normalizeSyntheticAdsMetrics(
   expectedWorkspaceId: string,
   rows: readonly RawAdsMetric[],
@@ -55,31 +68,43 @@ export function normalizeSyntheticAdsMetrics(
       diagnostics.add('CROSS_WORKSPACE_RECORD');
       continue;
     }
-    const key = `${row.provider}:${row.providerAccountId}:${row.providerObjectId}:${row.metricName}:${row.occurredAt}`;
-    const fingerprint = JSON.stringify(row);
+
+    const dateGranularity = row.dateGranularity ?? UNKNOWN_SENTINEL;
+    const sourceVersion = row.sourceVersion ?? UNKNOWN_SENTINEL;
+    const key = JSON.stringify([
+      row.workspaceId, row.provider, row.providerAccountId, row.providerObjectId,
+      row.metricName, row.occurredAt, dateGranularity,
+    ]);
+    const fingerprint = canonicalizePayload({ ...row, dateGranularity, sourceVersion });
     const previous = seen.get(key);
     if (previous !== undefined) {
       diagnostics.add(previous === fingerprint ? 'DUPLICATE_RECORD' : 'CONFLICTING_RECORD');
       continue;
     }
     seen.set(key, fingerprint);
+
     const unknownFields = [
-      ['currency', row.currency], ['timezone', row.timezone],
+      ['currency', row.currency], ['timezone', row.timezone], ['dateGranularity', dateGranularity],
       ['attributionWindow', row.attributionWindow], ['occurredAt', row.occurredAt],
+      ['sourceVersion', sourceVersion],
     ].filter(([, value]) => value === UNKNOWN_SENTINEL).map(([field]) => field);
-    observations.push({ ...row, isSynthetic: true, sourceSystem: row.provider, unknownFields, provenance: 'synthetic-read-only' });
+    observations.push({
+      ...row,
+      dateGranularity,
+      sourceVersion,
+      isSynthetic: true,
+      sourceSystem: row.provider,
+      unknownFields,
+      provenance: 'synthetic-read-only',
+    });
   }
   return { observations, diagnostics: [...diagnostics].sort() };
 }
 
 function isValidRow(row: RawAdsMetric): boolean {
-  if (!row || typeof row !== 'object') return false;
-  if (!['google', 'meta', 'tiktok'].includes(row.provider)) return false;
-  if (requiredStrings.some((field) => typeof row[field] !== 'string' || row[field].length === 0)) return false;
+  if (!row || typeof row !== 'object' || !providers.includes(row.provider)) return false;
+  if (requiredStrings.some((field) => typeof row[field] !== 'string' || row[field]!.length === 0)) return false;
   if (typeof row.value !== 'number' || !Number.isFinite(row.value)) return false;
-  if (!['string', 'unknown'].includes(typeof row.currency)
-    || !['string', 'unknown'].includes(typeof row.timezone)
-    || !['string', 'unknown'].includes(typeof row.attributionWindow)
-    || !['string', 'unknown'].includes(typeof row.occurredAt)) return false;
-  return true;
+  return [row.currency, row.timezone, row.dateGranularity, row.attributionWindow, row.occurredAt, row.sourceVersion]
+    .every((value) => value === undefined || typeof value === 'string' && (value.length > 0 || isValidUnknownState(value)));
 }
