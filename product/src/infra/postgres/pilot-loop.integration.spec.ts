@@ -66,7 +66,7 @@ integration('PilotLoop over PostgreSQL — durability + two-person handoff', () 
     const accepted = await svc.salesAccept(handed.lead.id, { workId, actor: 'sales-b', reason: 'B nhận trách nhiệm' });
     expect(accepted.ownerUserId).toBe('sales-b');
 
-    await svc.completeWork(accepted.lead.id, { workId, actor: 'sales-b', evidence: 'declared', occurredAt: '2026-10-09T15:05:00+07:00', reason: 'đã gọi' });
+    await svc.completeWork(accepted.lead.id, { workId, actor: 'sales-b', evidence: 'declared', declaration: 'Operator confirmed completion', confirmed: true, occurredAt: '2026-10-09T15:05:00+07:00', reason: 'đã gọi' });
     const adv = await svc.advance(accepted.lead.id, { to: 'Contacting', actor: 'sales-b', reason: 'đã gọi' });
     const adv2 = await svc.advance(adv.lead.id, { to: 'Follow-up', actor: 'sales-b', reason: 'chờ' });
     await svc.recordOutcome(adv2.lead.id, { value: 'Won', actor: 'sales-b', reason: 'đã deposit' });
@@ -283,7 +283,7 @@ integration('PilotLoop over PostgreSQL — durability + two-person handoff', () 
     // fresh service = another request/process: refusal must come from persisted rows
     const svc2 = new PilotLoopService(new PgPilotStore(db1), new ManualAdapter());
     let caught: unknown;
-    await svc2.completeWork(state.lead.id, { workId: oldId, actor: 'sales-b', evidence: 'declared' }).catch((e) => (caught = e));
+    await svc2.completeWork(state.lead.id, { workId: oldId, actor: 'sales-b', evidence: 'declared', declaration: 'Operator confirmed completion', confirmed: true }).catch((e) => (caught = e));
     expect(caught).toMatchObject({ code: 'WORK_SUPERSEDED', status: 409 });
     expect((caught as { details?: Record<string, unknown> }).details).toMatchObject({ replacementId });
 
@@ -295,7 +295,7 @@ integration('PilotLoop over PostgreSQL — durability + two-person handoff', () 
     expect(before.rows.find((r) => r.id === oldId)?.status).toBe('rescheduled');
     expect(before.rows.find((r) => r.id === replacementId)?.status).toBe('open');
 
-    const done = await svc2.completeWork(state.lead.id, { workId: replacementId, actor: 'sales-b', evidence: 'declared', reason: 'đã gọi' });
+    const done = await svc2.completeWork(state.lead.id, { workId: replacementId, actor: 'sales-b', evidence: 'declared', declaration: 'Operator confirmed completion', confirmed: true, reason: 'đã gọi' });
     expect(done.workItems.find((w) => w.id === oldId)!.status).toBe('rescheduled');
 
     const after = await db1.query<{ n: string }>(
@@ -355,7 +355,7 @@ integration('PilotLoop over PostgreSQL — durability + two-person handoff', () 
     // 4) manual completion with `declared` + the case's envelope reference succeeds as `declared`
     // and records the raw hash in the durable audit trail (I-12)
     const done = await svc.completeWork(a.lead.id, {
-      workId: wid, actor: 'sales-b', evidence: 'declared', evidenceRef: a.sourceEnvelopeId!, reason: 'nhân viên xác nhận đã gửi file',
+      workId: wid, actor: 'sales-b', evidence: 'declared', declaration: 'Operator confirmed completion', confirmed: true, evidenceRef: a.sourceEnvelopeId!, reason: 'nhân viên xác nhận đã gửi file',
     });
     expect(done.workItems.find((w) => w.id === wid)!.completionEvidence).toBe('declared');
     const audit = await db1.query<{ new_value: unknown }>(

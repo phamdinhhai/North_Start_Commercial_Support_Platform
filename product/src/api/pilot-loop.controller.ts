@@ -229,7 +229,7 @@ export class PilotLoopController {
   async complete(
     @Headers() headers: Record<string, string | undefined>,
     @Param('leadId') leadId: string,
-    @Body() body: { workId: string; evidence: 'observed' | 'declared' | 'inferred' | 'absent' | 'conflicted'; evidenceRef?: string; occurredAt?: string; reason?: string },
+    @Body() body: { workId: string; evidence: 'observed' | 'declared' | 'inferred' | 'absent' | 'conflicted'; evidenceRef?: string; occurredAt?: string; reason?: string; declaration?: string; confirmed?: boolean },
   ) {
     try {
       const ctx = this.authCtx(headers);
@@ -238,7 +238,7 @@ export class PilotLoopController {
       await this.authorizedView(ctx, leadId);
       const state = await this.loop.completeWork(leadId as LeadId, { ...body, actor: ctx.userId });
       const w = state.workItems.find((x) => x.id === body.workId);
-      return { workStatus: w?.status, evidence: w?.completionEvidence, occurredAt: w?.occurredAt, evidenceRef: w?.evidenceRef };
+      return { workStatus: w?.status, evidence: w?.completionEvidence, occurredAt: w?.occurredAt, evidenceRef: w?.evidenceRef, declaration: w?.declaration, confirmed: w?.confirmed };
     } catch (err) {
       throw toHttpException(err);
     }

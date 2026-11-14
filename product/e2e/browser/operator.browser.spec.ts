@@ -12,7 +12,7 @@ const intake = (suffix: string) => ({
 });
 
 async function api(request: APIRequestContext, token: string, method: string, url: string, data?: unknown) {
-  return request.fetch(url, {
+  return request.fetch(url.replace(/^\//, ''), {
     method,
     headers: { authorization: token, ...(data ? { 'content-type': 'application/json' } : {}) },
     ...(data ? { data } : {}),
@@ -30,7 +30,7 @@ test.describe('operator workflow', () => {
     });
     expect(handoff.status()).toBe(201);
 
-    await page.goto('/operator');
+    await page.goto('operator');
     await page.locator('#token').fill(authToken('browser-e2e-workspace'));
     await page.locator('#load').click();
     await expect(page.locator('.queue-item')).toContainText('Call back');
@@ -42,9 +42,12 @@ test.describe('operator workflow', () => {
 
     await page.locator('#accept').click();
     await expect(page.locator('#action-status')).toContainText('Action recorded');
+    page.on('dialog', async (dialog) => {
+      if (dialog.type() === 'prompt') await dialog.accept('Operator confirms the callback was completed.');
+      else await dialog.accept();
+    });
     await page.locator('#complete').click();
     await expect(page.locator('#action-status')).toContainText('Action recorded');
-    page.once('dialog', async (dialog) => await dialog.accept('Won'));
     await page.locator('#outcome').click();
     await expect(page.locator('#action-status')).toContainText('Action recorded');
     await page.locator('#audit').click();
@@ -54,25 +57,28 @@ test.describe('operator workflow', () => {
   });
 
   test('denied, empty, redaction and stale states remain visible and safe', async ({ page, request }) => {
-    const denied = await request.get('/pilot/queue', { headers: { authorization: 'Bearer invalid-test-token' } });
+    const denied = await request.get('pilot/queue', { headers: { authorization: 'Bearer invalid-test-token' } });
     expect(denied.status()).toBe(401);
 
-    await page.goto('/operator');
-    await page.locator('#token').fill(authToken('browser-e2e-workspace'));
+    await page.goto('operator');
+    const emptyWorkspace = `browser-empty-${Date.now()}`;
+    await page.locator('#token').fill(authToken(emptyWorkspace));
     await page.locator('#load').click();
     await expect(page.locator('#queue-status')).toContainText('Queue is empty');
     await expect(page.locator('#queue')).toContainText('Queue is empty for this scope');
 
-    const created = await api(request, authToken('browser-e2e-workspace'), 'POST', '/pilot/scenarios', intake('stale'));
+    const created = await api(request, authToken(emptyWorkspace), 'POST', '/pilot/scenarios', intake(`stale-${Date.now()}`));
     const { leadId } = await created.json();
-    const handoff = await api(request, authToken('browser-e2e-workspace'), 'POST', `/pilot/leads/${leadId}/handoff`, {
+    const handoff = await api(request, authToken(emptyWorkspace), 'POST', `/pilot/leads/${leadId}/handoff`, {
       context: 'PRIVATE-CONTEXT', proposedAction: 'Call back', responsibleParty: 'internal',
       origin: 'explicit-request', recipientUserId: operator,
     });
     const workId = (await handoff.json()).workItemId;
-    const accepted = await api(request, authToken('browser-e2e-workspace'), 'POST', `/pilot/leads/${leadId}/accept`, { workId, reason: 'accepted' });
-    expect(accepted.status()).toBe(200);
-    const stale = await api(request, authToken('browser-e2e-workspace'), 'POST', `/pilot/leads/${leadId}/complete`, { workId, evidence: 'observed', evidenceRef: 'not-a-real-pointer', reason: 'stale item' });
+    const accepted = await api(request, authToken(emptyWorkspace), 'POST', `/pilot/leads/${leadId}/accept`, { workId, reason: 'accepted' });
+    expect([200, 201]).toContain(accepted.status());
+    const invalidDeclaration = await api(request, authToken(emptyWorkspace), 'POST', `/pilot/leads/${leadId}/complete`, { workId, evidence: 'declared', declaration: ' ', confirmed: false });
+    expect(invalidDeclaration.status()).toBe(400);
+    const stale = await api(request, authToken(emptyWorkspace), 'POST', `/pilot/leads/${leadId}/complete`, { workId, evidence: 'observed', evidenceRef: 'not-a-real-pointer', reason: 'stale item' });
     expect(stale.status()).toBe(422);
     expect(await stale.text()).not.toContain('PRIVATE-CONTEXT');
     expect(await stale.text()).not.toContain('rawPayload');

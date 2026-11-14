@@ -42,7 +42,7 @@ async function twoLeadsInOneWorkspace() {
   });
   const wid = bHanded.workItems[0].id;
   await svc.salesAccept(b.lead.id, { workId: wid, actor: 'sales-b', reason: 'B nhận' });
-  await svc.completeWork(b.lead.id, { workId: wid, actor: 'sales-b', evidence: 'declared', reason: 'B đã gửi bảng phí' });
+  await svc.completeWork(b.lead.id, { workId: wid, actor: 'sales-b', evidence: 'declared', declaration: 'Operator confirmed completion', confirmed: true, reason: 'B đã gửi bảng phí' });
   return { svc, a, b, bWorkId: wid };
 }
 

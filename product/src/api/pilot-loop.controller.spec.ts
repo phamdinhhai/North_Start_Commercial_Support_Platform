@@ -149,7 +149,7 @@ describe('PilotLoopController — auth & RBAC wiring (T3-03/T3-04 unit-level; LI
     const res = await ctrl.intake(salesA, { displayName: 'Phụ huynh B', utterance: 'Gửi chị học phí nhé', speaker: 'customer', connection: 'manual', externalRecordId: 'msg-2' });
     const handed = await ctrl.handoff(salesA, res.leadId, { context: 'c', proposedAction: 'Gửi bảng học phí', responsibleParty: 'internal', origin: 'explicit-commitment', recipientUserId: 'sales-b' });
     await ctrl.accept(salesB, res.leadId, { workId: handed.workItemId, reason: 'B nhận' });
-    const done = await ctrl.complete(salesB, res.leadId, { workId: handed.workItemId, evidence: 'declared', reason: 'đã gửi qua Zalo' });
+    const done = await ctrl.complete(salesB, res.leadId, { workId: handed.workItemId, evidence: 'declared', declaration: 'Operator confirmed completion', confirmed: true, reason: 'đã gửi qua Zalo' });
     expect(done.workStatus).toBe('completed');
     expect(done.evidence).toBe('declared');
     expect(done.occurredAt).toBe('unknown'); // Q4: không backfill occurredAt
@@ -258,7 +258,7 @@ describe('P1-2 — controller separates view / accept / mutation rights', () => 
     expect((await ctrl.getLead(salesB, leadId)).lead.owner).toBe('marketing-a');
 
     // mutations by B while owner is A → 403 + code (không 200, không 500)
-    await expect(ctrl.complete(salesB, leadId, { workId: workItemId, evidence: 'declared' })).rejects.toMatchObject({
+    await expect(ctrl.complete(salesB, leadId, { workId: workItemId, evidence: 'declared', declaration: 'Operator confirmed completion', confirmed: true })).rejects.toMatchObject({
       status: 403,
       response: { code: 'NOT_OWNER' },
     });
@@ -283,7 +283,7 @@ describe('P1-2 — controller separates view / accept / mutation rights', () => 
     // accept remains B's right; after that mutations succeed
     const accepted = await ctrl.accept(salesB, leadId, { workId: workItemId, reason: 'B nhận' });
     expect(accepted.owner).toBe('sales-b');
-    const done = await ctrl.complete(salesB, leadId, { workId: workItemId, evidence: 'declared', reason: 'đã gọi' });
+    const done = await ctrl.complete(salesB, leadId, { workId: workItemId, evidence: 'declared', declaration: 'Operator confirmed completion', confirmed: true, reason: 'đã gọi' });
     expect(done.workStatus).toBe('completed');
   });
 
@@ -304,7 +304,7 @@ describe('P1-2 — controller separates view / accept / mutation rights', () => 
       status: 403,
       response: { code: 'NOT_ASSIGNED_RECIPIENT' },
     });
-    await expect(ctrl.complete(salesA, leadId, { workId: workB, evidence: 'declared' })).rejects.toMatchObject({
+    await expect(ctrl.complete(salesA, leadId, { workId: workB, evidence: 'declared', declaration: 'Operator confirmed completion', confirmed: true })).rejects.toMatchObject({
       status: 403,
       response: { code: 'NOT_ASSIGNED_RECIPIENT' },
     });
@@ -369,7 +369,7 @@ describe('P1-3 — reschedule returns the replacement; completing the old ID is 
 
     // completing the OLD id must fail loudly and name the successor
     let caught: unknown;
-    await ctrl.complete(salesB, res.leadId, { workId: handed.workItemId, evidence: 'declared' }).catch((e) => (caught = e));
+    await ctrl.complete(salesB, res.leadId, { workId: handed.workItemId, evidence: 'declared', declaration: 'Operator confirmed completion', confirmed: true }).catch((e) => (caught = e));
     expect(caught).toMatchObject({ status: 409, response: { code: 'WORK_SUPERSEDED', details: { replacementId } } });
 
     // and the old item is genuinely still rescheduled (bug was: it flipped to completed)
@@ -378,7 +378,7 @@ describe('P1-3 — reschedule returns the replacement; completing the old ID is 
     expect(view.workItems.find((w) => w.id === replacementId)?.status).toBe('open');
 
     // completing the replacement closes the chain with no active item left
-    const done = await ctrl.complete(salesB, res.leadId, { workId: replacementId, evidence: 'declared', reason: 'đã gọi' });
+    const done = await ctrl.complete(salesB, res.leadId, { workId: replacementId, evidence: 'declared', declaration: 'Operator confirmed completion', confirmed: true, reason: 'đã gọi' });
     expect(done.workStatus).toBe('completed');
     const after = await ctrl.getLead(salesB, res.leadId);
     const active = after.workItems.filter((w) => ['proposed', 'accepted', 'open', 'awaiting-external'].includes(w.status as string));

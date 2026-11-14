@@ -1,6 +1,7 @@
 import { defineConfig, devices } from '@playwright/test';
 
 const browserPort = process.env.BROWSER_PORT ?? '3100';
+const browserBaseURL = `http://127.0.0.1:${browserPort}`;
 
 /** Controlled browser lane: the app uses only synthetic in-memory state and unsigned test tokens. */
 export default defineConfig({
@@ -11,16 +12,16 @@ export default defineConfig({
   workers: 1,
   reporter: process.env.CI ? [['line'], ['html', { open: 'never' }]] : 'list',
   use: {
-    baseURL: `http://127.0.0.1:${browserPort}/v1`,
+    baseURL: `${browserBaseURL}/v1/`,
     trace: 'retain-on-failure',
     screenshot: 'only-on-failure',
     video: 'off',
     ...devices['Desktop Chrome'],
   },
   webServer: {
-    command: 'npm run build && npm run start',
+    command: 'npm run build && npm run start > browser-server.log 2>&1',
     cwd: '.',
-    url: `http://127.0.0.1:${browserPort}/v1/operator`,
+    url: `${browserBaseURL}/v1/operator`,
     reuseExistingServer: false,
     timeout: 120_000,
     env: {

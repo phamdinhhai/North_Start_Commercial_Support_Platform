@@ -35,6 +35,10 @@ export interface WorkItem {
   readonly occurredAt: string;
   readonly dueAt?: string;
   readonly evidenceRef?: string;
+  /** Human declaration text required for declared completion; never inferred from a reason. */
+  readonly declaration?: string;
+  /** Explicit confirmation of the declaration, retained as provenance. */
+  readonly confirmed?: boolean;
   readonly recordedAt: string;
   /** Set when this item supersedes an earlier one (reschedule/cancel) — no stale reminders (I-05). */
   readonly supersedesWorkId?: string;

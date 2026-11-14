@@ -259,6 +259,8 @@ export class PilotLoopService {
       readonly evidenceRef?: string;
       readonly occurredAt?: string;
       readonly reason?: string;
+      readonly declaration?: string;
+      readonly confirmed?: boolean;
     },
   ): Promise<PilotLoopState> {
     const state = await this.require(leadId);
@@ -267,6 +269,9 @@ export class PilotLoopService {
 
     if (input.evidence === 'observed' && !input.evidenceRef) {
       throw new PilotDomainError('EVIDENCE_POINTER_REQUIRED', 422, 'observed completion requires a system evidence pointer');
+    }
+    if (input.evidence === 'declared' && (!input.declaration || input.declaration.trim() === '' || input.confirmed !== true)) {
+      throw new PilotDomainError('INPUT_INVALID', 422, 'declared completion requires a nonblank declaration and explicit confirmation');
     }
     if (input.evidence === 'inferred') {
       throw new PilotDomainError('INFERRED_CANNOT_CLOSE', 422, 'inferred evidence cannot close work; require user confirmation');
@@ -309,6 +314,8 @@ export class PilotLoopService {
             completionEvidence: input.evidence,
             occurredAt: input.occurredAt ?? UNKNOWN_SENTINEL, // Q4: không backfill occurredAt
             ...(input.evidenceRef !== undefined && { evidenceRef: input.evidenceRef }),
+            ...(input.declaration !== undefined && { declaration: input.declaration }),
+            ...(input.confirmed !== undefined && { confirmed: input.confirmed }),
           }
         : w,
     );
@@ -326,6 +333,8 @@ export class PilotLoopService {
           status: 'completed',
           evidence: input.evidence,
           ...(input.evidenceRef !== undefined && { evidenceRef: input.evidenceRef, evidenceHash: evidence?.rawPayloadHash }),
+          ...(input.declaration !== undefined && { declaration: input.declaration }),
+          ...(input.confirmed !== undefined && { confirmed: input.confirmed }),
         }),
         reason: input.reason ?? 'work completed',
         eventType: 'work_completed',

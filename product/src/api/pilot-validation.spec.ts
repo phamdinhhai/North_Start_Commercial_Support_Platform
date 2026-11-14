@@ -15,7 +15,7 @@ describe('pilot boundary validation — 400 before the domain is touched', () =>
     expect(
       validateHandoffBody({ context: 'c', proposedAction: 'a', responsibleParty: 'internal', origin: 'explicit-request', recipientUserId: 'sales-b' }),
     ).toEqual([]);
-    expect(validateCompleteBody({ workId: 'w', evidence: 'declared' })).toEqual([]);
+    expect(validateCompleteBody({ workId: 'w', evidence: 'declared', declaration: 'Operator confirmed completion', confirmed: true })).toEqual([]);
     expect(validateRescheduleBody({ workId: 'w', newDueAt: '2026-10-12T16:00:00+07:00', reason: 'dời' })).toEqual([]);
     expect(validateOutcomeBody({ value: 'Won' })).toEqual([]);
   });
@@ -26,12 +26,22 @@ describe('pilot boundary validation — 400 before the domain is touched', () =>
     expect(issues[0]).toMatchObject({ field: 'evidence', code: 'ENUM_INVALID' });
   });
 
+  it('requires a nonblank declaration and explicit confirmation for declared completion', () => {
+    expect(validateCompleteBody({ workId: 'w', evidence: 'declared' })).toEqual(expect.arrayContaining([
+      expect.objectContaining({ field: 'declaration', code: 'REQUIRED' }),
+      expect.objectContaining({ field: 'confirmed', code: 'CONFIRMATION_REQUIRED' }),
+    ]));
+    expect(validateCompleteBody({ workId: 'w', evidence: 'declared', declaration: 'done', confirmed: false })).toEqual([
+      expect.objectContaining({ field: 'confirmed', code: 'CONFIRMATION_INVALID' }),
+    ]);
+  });
+
   it('rejects missing required strings and empty/whitespace-only values', () => {
     expect(validateIntakeBody({ ...intakeOk, utterance: '   ' })).toEqual([{ field: 'utterance', code: 'REQUIRED', message: expect.any(String) }]);
     expect(validateHandoffBody({ context: '', proposedAction: 'a', responsibleParty: 'internal', origin: 'explicit-request', recipientUserId: 'sales-b' })[0]).toMatchObject({
       field: 'context',
     });
-    expect(validateCompleteBody({ workId: '', evidence: 'declared' })[0]).toMatchObject({ field: 'workId' });
+    expect(validateCompleteBody({ workId: '', evidence: 'declared', declaration: 'Operator confirmed completion', confirmed: true })[0]).toMatchObject({ field: 'workId' });
     expect(validateRescheduleBody({ workId: 'w', newDueAt: '2026-10-12T16:00:00+07:00' })[0]).toMatchObject({ field: 'reason' });
   });
 
@@ -42,8 +52,8 @@ describe('pilot boundary validation — 400 before the domain is touched', () =>
       code: 'DATE_INVALID',
     });
     // an explicit unknown sentinel for occurredAt stays legal (Q4: never backfill)
-    expect(validateCompleteBody({ workId: 'w', evidence: 'declared', occurredAt: 'unknown' })).toEqual([]);
-    expect(validateCompleteBody({ workId: 'w', evidence: 'declared', occurredAt: 'hôm kia' })[0]).toMatchObject({ field: 'occurredAt', code: 'DATE_INVALID' });
+    expect(validateCompleteBody({ workId: 'w', evidence: 'declared', declaration: 'Operator confirmed completion', confirmed: true, occurredAt: 'unknown' })).toEqual([]);
+    expect(validateCompleteBody({ workId: 'w', evidence: 'declared', declaration: 'Operator confirmed completion', confirmed: true, occurredAt: 'hôm kia' })[0]).toMatchObject({ field: 'occurredAt', code: 'DATE_INVALID' });
   });
 
   it('rejects non-object bodies and unknown speaker/party/origin/value enums', () => {
@@ -76,8 +86,8 @@ describe('pilot boundary validation — non-object bodies on every endpoint', ()
   });
 
   it('optional fields are only checked when present (blank reason/evidenceRef rejected, absent accepted)', () => {
-    expect(validateCompleteBody({ workId: 'w', evidence: 'declared' })).toEqual([]);
-    expect(validateCompleteBody({ workId: 'w', evidence: 'declared', reason: '  ' })).toEqual([{ field: 'reason', code: 'REQUIRED', message: expect.any(String) }]);
+    expect(validateCompleteBody({ workId: 'w', evidence: 'declared', declaration: 'Operator confirmed completion', confirmed: true })).toEqual([]);
+    expect(validateCompleteBody({ workId: 'w', evidence: 'declared', declaration: 'Operator confirmed completion', confirmed: true, reason: '  ' })).toEqual([{ field: 'reason', code: 'REQUIRED', message: expect.any(String) }]);
     expect(validateHandoffBody({ context: 'c', proposedAction: 'a', responsibleParty: 'internal', origin: 'explicit-request', recipientUserId: 'b', evidenceRef: '' })).toHaveLength(1);
     expect(validateOutcomeBody({ value: 'Lost', reason: 'ok' })).toEqual([]);
     expect(validateUnobservedBody({ workId: 'w' })).toEqual([]);
