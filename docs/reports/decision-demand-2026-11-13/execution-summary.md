@@ -66,7 +66,8 @@ Executed from `product/` against the integrated tree:
 - `82d65f8`, `e298f9c`, `39bd829` — controlled Playwright browser lane and synthetic operator scenarios.
 - `baa841f` — moved synthetic spikes into the owned adapter layer and reconciled evidence paths.
 - `63056d4` — recorded checkpoint evidence boundaries and hosted-CI handoff.
-- `5a2d218` — normalized research whitespace; final hosted CI passed.
+- `5a2d218` — normalized research whitespace; hosted CI passed.
+- `25124ad` — recorded final hosted coverage and run evidence; hosted CI passed.
 
 ## Release disposition and next gate
 
