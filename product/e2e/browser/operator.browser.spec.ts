@@ -60,6 +60,14 @@ test.describe('operator workflow', () => {
     const denied = await request.get('pilot/queue', { headers: { authorization: 'Bearer invalid-test-token' } });
     expect(denied.status()).toBe(401);
 
+    const sourceWorkspace = `browser-source-${Date.now()}`;
+    const sourceCreated = await api(request, authToken(sourceWorkspace), 'POST', '/pilot/scenarios', intake(`source-${Date.now()}`));
+    expect(sourceCreated.status()).toBe(201);
+    const { leadId: sourceLeadId } = await sourceCreated.json();
+    const otherWorkspace = `browser-other-${Date.now()}`;
+    const crossWorkspaceLead = await request.get(`pilot/leads/${sourceLeadId}`, { headers: { authorization: authToken(otherWorkspace) } });
+    expect(crossWorkspaceLead.status()).toBe(404);
+
     await page.goto('operator');
     const emptyWorkspace = `browser-empty-${Date.now()}`;
     await page.locator('#token').fill(authToken(emptyWorkspace));
@@ -78,9 +86,25 @@ test.describe('operator workflow', () => {
     expect([200, 201]).toContain(accepted.status());
     const invalidDeclaration = await api(request, authToken(emptyWorkspace), 'POST', `/pilot/leads/${leadId}/complete`, { workId, evidence: 'declared', declaration: ' ', confirmed: false });
     expect(invalidDeclaration.status()).toBe(400);
-    const stale = await api(request, authToken(emptyWorkspace), 'POST', `/pilot/leads/${leadId}/complete`, { workId, evidence: 'observed', evidenceRef: 'not-a-real-pointer', reason: 'stale item' });
-    expect(stale.status()).toBe(422);
+
+    const rescheduled = await api(request, authToken(emptyWorkspace), 'POST', `/pilot/leads/${leadId}/reschedule`, {
+      workId, newDueAt: '2030-01-02T10:00:00Z', reason: 'synthetic stale fixture',
+    });
+    expect(rescheduled.status()).toBe(200);
+    const { replacementId } = await rescheduled.json();
+    expect(replacementId).toBeTruthy();
+
+    const stale = await api(request, authToken(emptyWorkspace), 'POST', `/pilot/leads/${leadId}/complete`, {
+      workId, evidence: 'declared', declaration: 'Attempted completion of superseded work', confirmed: true,
+    });
+    expect(stale.status()).toBe(409);
+    expect(await stale.text()).toContain('WORK_SUPERSEDED');
     expect(await stale.text()).not.toContain('PRIVATE-CONTEXT');
     expect(await stale.text()).not.toContain('rawPayload');
+
+    const replacement = await api(request, authToken(emptyWorkspace), 'POST', `/pilot/leads/${leadId}/complete`, {
+      workId: replacementId, evidence: 'declared', declaration: 'Replacement work completed by operator', confirmed: true,
+    });
+    expect(replacement.status()).toBe(200);
   });
 });
