@@ -3,10 +3,10 @@
 **Date:** 2026-11-14
 **Branch:** `feat/decision-demand-execution`
 **Starting baseline:** `5d6c206`
-**Current/hosted-verified head:** `5a2d21816f7a66db21dcf4ca92284b96afa904bc`
-**Hosted workflows:** https://github.com/phamdinhhai/North_Start_Commercial_Support_Platform/actions/runs/43547598460 and https://github.com/phamdinhhai/North_Start_Commercial_Support_Platform/actions/runs/43547594102
+**Current/hosted-verified head:** `b9fd1b6301eb4ed019b1099aced794a7ff407bfc`
+**Hosted workflows:** https://github.com/phamdinhhai/North_Start_Commercial_Support_Platform/actions/runs/43548854855 and https://github.com/phamdinhhai/North_Start_Commercial_Support_Platform/actions/runs/43548849451
 **PR:** https://github.com/phamdinhhai/North_Start_Commercial_Support_Platform/pull/1
-**Hosted job evidence:** https://github.com/phamdinhhai/North_Start_Commercial_Support_Platform/actions/runs/43547598460/job/132302427863 and https://github.com/phamdinhhai/North_Start_Commercial_Support_Platform/actions/runs/43547594102/job/132302413826
+**Hosted job evidence:** https://github.com/phamdinhhai/North_Start_Commercial_Support_Platform/actions/runs/43548854855/job/132306390242 and https://github.com/phamdinhhai/North_Start_Commercial_Support_Platform/actions/runs/43548849451/job/132306373814
 **Status:** technical development baseline improved; commercial and production release **NOT APPROVED**
 
 ## A–J delivery disposition
@@ -68,6 +68,7 @@ Executed from `product/` against the integrated tree:
 - `63056d4` — recorded checkpoint evidence boundaries and hosted-CI handoff.
 - `5a2d218` — normalized research whitespace; hosted CI passed.
 - `25124ad` — recorded final hosted coverage and run evidence; hosted CI passed.
+- `b9fd1b6` — anchored the final hosted run in the execution summary; hosted CI passed.
 
 ## Release disposition and next gate
 
