@@ -1,6 +1,6 @@
 # Streams A/D deep-research spike
 
-Date: 2026-11-14  
+Date: 2026-11-14
 Scope: public GitHub pages and repository metadata only; no credentials, private endpoints, live MCP calls, or customer data. This spike does not change canonical domain documents.
 
 ## Method and legitimacy rubric
