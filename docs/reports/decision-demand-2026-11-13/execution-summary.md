@@ -3,17 +3,17 @@
 **Date:** 2026-11-14
 **Branch:** `feat/decision-demand-execution`
 **Starting baseline:** `5d6c206`
-**Current candidate head:** `baa841f` (hosted CI pending)
-**Hosted workflows for prior head:** https://github.com/phamdinhhai/North_Start_Commercial_Support_Platform/actions/runs/43467587059 and https://github.com/phamdinhhai/North_Start_Commercial_Support_Platform/actions/runs/43467574115
+**Current/hosted-verified head:** `5a2d21816f7a66db21dcf4ca92284b96afa904bc`
+**Hosted workflows:** https://github.com/phamdinhhai/North_Start_Commercial_Support_Platform/actions/runs/43547598460 and https://github.com/phamdinhhai/North_Start_Commercial_Support_Platform/actions/runs/43547594102
 **PR:** https://github.com/phamdinhhai/North_Start_Commercial_Support_Platform/pull/1
-**Hosted workflow for current candidate:** pending push
+**Hosted job evidence:** https://github.com/phamdinhhai/North_Start_Commercial_Support_Platform/actions/runs/43547598460/job/132302427863 and https://github.com/phamdinhhai/North_Start_Commercial_Support_Platform/actions/runs/43547594102/job/132302413826
 **Status:** technical development baseline improved; commercial and production release **NOT APPROVED**
 
 ## A–J delivery disposition
 
 | Area | Delivered | Disposition and evidence boundary |
 |---|---|---|
-| A. Engineering baseline | Current-head acceptance/handoff updates, pushed feature branch and PR #1 | Prior head was hosted-green; current candidate includes reviewed research/spikes and browser harness and requires a new hosted run. |
+| A. Engineering baseline | Current-head acceptance/handoff updates, pushed feature branch and PR #1 | Hosted workflows are green for SHA `5a2d218`; PostgreSQL-backed gates ran on GitHub Actions using PostgreSQL 16 with no skipped critical suites. |
 | B. Architecture and decisions | Ten proposal RFCs plus security/lifecycle proposals; seven-decision registry | Proposal-only. CE-1, CE-2, PM-1, MM-1, ID-1, ID-2 and LG-1 remain `OPEN`; no canonical file changed. |
 | C. Third-party integration research | Provider readiness/Pancake reports, W2 omnichannel/ads/CRM/Vietnam reports, connector/Agent Skills evaluation, source-level repository matrix and executable synthetic mapping/metrics spikes | Pancake remains `PARTIAL`/`FLAG_OFF`; Anthropic Data Manager v1.9/call-conversion/Agent Skills evidence is documented-only from supplied sources and independently unverified; all repository/OSS claims remain source-level, not live verified. |
 | D. GitHub/reusable assets | Expanded omnichannel/ads/CRM/Vietnam/connector research reports, reusable-assets registry and research-demand status | Candidate verdicts remain REFERENCE/UNKNOWN unless license, security, compatibility and bounded tests support ADAPT/ADOPT. Unofficial Zalo/WhatsApp/private automation is rejected for production. |
@@ -36,14 +36,13 @@ Executed from `product/` against the integrated tree:
 - `npm test -- --no-file-parallelism` — **PASS**, 315 passed; 21 PostgreSQL tests skipped locally without a database.
 - `npm run test:e2e` — **PASS**, 7/7.
 - `npm run test:backup` — **PASS**, 6/6.
-- `npm run test:cov -- --no-file-parallelism` — **PASS locally**, 83.84% lines, 80.42% statements, 71.84% branches and 83.68% functions; hosted PostgreSQL-inclusive coverage for the prior head was 89.88% lines, 79.22% branches and 90.84% functions.
+- `npm run test:cov -- --no-file-parallelism` — **PASS locally**, 83.84% lines, 80.42% statements, 71.84% branches and 83.68% functions; hosted PostgreSQL-inclusive coverage on `5a2d218` was 90.23% lines, 86.15% statements, 79.60% branches and 91.13% functions.
 - `npm run build` — **PASS**.
 - `npm run security:audit` — **PASS** at the configured high/critical threshold; seven low/moderate transitive advisories remain documented.
 - `npm audit --omit=dev` — **PASS**, 0 production vulnerabilities.
-- Prior hosted GitHub Actions runs `43467587059` and `43467574115` — **PASS** for head `0a54ed9`; PostgreSQL integration ran 4 suites/20 tests without skips, coverage ran 32 files/323 tests, HTTP E2E ran 7/7, strict architecture passed 0 findings, and build passed.
-- `npm run registry:validate` — **PASS locally** on the current candidate, 7 decisions, 6 capabilities, 12 assets; unique IDs, source/date/license checks and secret-like text guard.
+- Hosted GitHub Actions runs `43547598460` and `43547594102` — **PASS** for head `5a2d218`; PostgreSQL integration ran 4 suites/20 tests without skips, coverage ran 35 files/336 tests, HTTP E2E ran 7/7, strict architecture passed 0 findings, and build passed.
+- `npm run registry:validate` — **PASS locally and hosted** on `5a2d218`, 7 decisions, 6 capabilities, 12 assets; unique IDs, source/date/license checks and secret-like text guard.
 - Browser-level E2E — **BLOCKED locally**: default port 3100 was occupied; `BROWSER_PORT=3117 npm run test:browser` reached Playwright but failed page setup after 30 seconds and then worker exit `3221225794`. No browser pass is claimed.
-- New hosted CI for the current candidate — pending push.
 
 ## Integrated commits
 
@@ -66,6 +65,8 @@ Executed from `product/` against the integrated tree:
 - `d9ee4de` — corrected Anthropic Data Manager taxonomy and registry identity.
 - `82d65f8`, `e298f9c`, `39bd829` — controlled Playwright browser lane and synthetic operator scenarios.
 - `baa841f` — moved synthetic spikes into the owned adapter layer and reconciled evidence paths.
+- `63056d4` — recorded checkpoint evidence boundaries and hosted-CI handoff.
+- `5a2d218` — normalized research whitespace; final hosted CI passed.
 
 ## Release disposition and next gate
 
