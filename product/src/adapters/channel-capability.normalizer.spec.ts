@@ -2,67 +2,124 @@ import { describe, expect, it } from 'vitest';
 import { normalizeChannelCapabilities } from './channel-capability.normalizer';
 
 describe('normalizeChannelCapabilities', () => {
-  it('retains official transport, provider capability, webhook schema/version and boundaries', () => {
+  it('retains official transport, provider capability, webhook schema/version and human/agent boundaries', () => {
     expect(normalizeChannelCapabilities({
-      channel: 'chatwoot', transport: 'official', providerCapability: 'conversation.assignment',
-      conversation: true, contact: true, assignment: true, handoff: 'not_observed', inbound: true, outbound: true,
-      humanBoundary: true, agentBoundary: false,
-      webhook: { inbound: true, retry: 'unknown', audit: 'not_requested', schema: 'chatwoot.webhook', version: 'v3' },
+      channel: 'whatsapp-cloud-api',
+      transport: 'official',
+      providerCapability: 'messages.cloud_webhook',
+      conversation: true,
+      contact: true,
+      assignment: 'unsupported',
+      handoff: 'not_observed',
+      inbound: true,
+      outbound: true,
+      humanBoundary: true,
+      agentBoundary: false,
+      webhook: { inbound: true, retry: true, audit: 'not_requested', schema: 'whatsapp_business_account', version: 'v21.0' },
     })).toEqual({
-      channel: 'chatwoot', transport: 'official', providerCapability: 'conversation.assignment',
-      conversation: true, contact: true, assignment: true, handoff: 'not_observed', inbound: true, outbound: true,
-      humanBoundary: true, agentBoundary: false,
-      webhook: { inbound: true, retry: 'unknown', audit: 'not_requested', schema: 'chatwoot.webhook', version: 'v3' },
+      channel: 'whatsapp-cloud-api',
+      transport: 'official',
+      productionEligibleTransport: true,
+      providerCapability: 'messages.cloud_webhook',
+      conversation: true,
+      contact: true,
+      assignment: 'unsupported',
+      handoff: 'not_observed',
+      inbound: true,
+      outbound: true,
+      humanBoundary: true,
+      agentBoundary: false,
+      webhook: { inbound: true, retry: true, audit: 'not_requested', schema: 'whatsapp_business_account', version: 'v21.0' },
       limitations: [],
     });
   });
 
+  it('distinguishes inbound-only observation adapters from bidirectional channels', () => {
+    const result = normalizeChannelCapabilities({
+      channel: 'pancake-pos-webhook',
+      transport: 'official',
+      providerCapability: 'pos.order.webhook',
+      conversation: 'unsupported',
+      contact: true,
+      assignment: 'unsupported',
+      handoff: 'unsupported',
+      inbound: true,
+      outbound: 'unsupported',
+      humanBoundary: true,
+      agentBoundary: 'unsupported',
+      webhook: { inbound: true, retry: true, audit: 'unknown', schema: 'pancake.pos.order', version: 'v1' },
+    });
+    expect(result.inbound).toBe(true);
+    expect(result.outbound).toBe('unsupported');
+    expect(result.conversation).toBe('unsupported');
+    expect(result.webhook.audit).toBe('unknown');
+    expect(result.productionEligibleTransport).toBe(true);
+  });
+
   it.each([
-    ['zalo-bridge', 'unofficial'], ['wa-private', 'unofficial'], ['pancake', 'official'],
-  ] as const)('retains %s transport status without upgrading support', (channel, transport) => {
-    const result = normalizeChannelCapabilities({ channel, transport, providerCapability: 'message.send', outbound: true });
+    ['zca-bridge', 'unofficial', false],
+    ['wateaminbox-whatsmeow', 'unofficial', false],
+    ['zalo-oa-official', 'official', true],
+    ['pancake-partner', 'partner', true],
+  ] as const)('classifies %s (%s) production eligibility=%s without upgrading unknown capabilities', (channel, transport, eligible) => {
+    const result = normalizeChannelCapabilities({
+      channel,
+      transport,
+      providerCapability: 'message.receive',
+      inbound: true,
+      outbound: 'unknown',
+    });
     expect(result.channel).toBe(channel);
     expect(result.transport).toBe(transport);
-    expect(result.outbound).toBe(true);
-    expect(result.inbound).toBe('unknown');
-  });
-
-  it('does not infer false from missing or malformed evidence', () => {
-    const result = normalizeChannelCapabilities({
-      channel: 'zca-bridge', transport: 'not_observed', providerCapability: 'unsupported', contact: 'yes' as never,
-      webhook: { inbound: false },
-    });
-    expect(result.conversation).toBe('unknown');
-    expect(result.contact).toBe('unknown');
-    expect(result.assignment).toBe('unknown');
-    expect(result.handoff).toBe('unknown');
-    expect(result.inbound).toBe('unknown');
+    expect(result.productionEligibleTransport).toBe(eligible);
+    expect(result.inbound).toBe(true);
     expect(result.outbound).toBe('unknown');
-    expect(result.webhook).toEqual({ inbound: false, retry: 'unknown', audit: 'unknown', schema: 'unknown', version: 'unknown' });
-    expect(result.limitations).toHaveLength(12);
+    if (transport === 'unofficial') {
+      expect(result.limitations).toContain('unofficial transport is rejected for production connector enablement');
+    }
   });
 
-  it('keeps unsupported distinct from unknown and emits deterministic diagnostics', () => {
+  it('enforces I-03 human/agent permission boundary when agentBoundary exceeds humanBoundary', () => {
     const result = normalizeChannelCapabilities({
-      channel: 'custom', transport: 'official', providerCapability: 'unsupported',
-      webhook: { schema: 'unsupported', version: 'v1' },
+      channel: 'chatwoot',
+      transport: 'official',
+      providerCapability: 'conversation.reply',
+      conversation: true,
+      contact: true,
+      assignment: true,
+      handoff: true,
+      inbound: true,
+      outbound: true,
+      humanBoundary: false,
+      agentBoundary: true,
+      webhook: { inbound: true, retry: false, audit: false, schema: 'chatwoot.event', version: 'v4' },
     });
+    expect(result.humanBoundary).toBe(false);
+    expect(result.agentBoundary).toBe('unknown');
+    expect(result.limitations).toContain('agentBoundary cannot exceed humanBoundary (I-03 draft-only); downgraded to unknown');
+  });
+
+  it('keeps unsupported and false distinct from unknown when inputs are missing or malformed', () => {
+    const result = normalizeChannelCapabilities({
+      channel: 'custom-channel',
+      transport: 'not_observed',
+      providerCapability: 'unsupported',
+      contact: 'yes' as never,
+      outbound: 'unsupported',
+      webhook: { inbound: false, schema: 'unsupported', version: 'v1' },
+    });
+    expect(result.productionEligibleTransport).toBe(false);
     expect(result.providerCapability).toBe('unsupported');
-    expect(result.webhook.schema).toBe('unsupported');
-    expect(result.webhook.version).toBe('v1');
-    expect(result.limitations).toEqual([
-      'conversation is invalid or absent; preserved as unknown',
-      'contact is invalid or absent; preserved as unknown',
-      'assignment is invalid or absent; preserved as unknown',
-      'handoff is invalid or absent; preserved as unknown',
-      'inbound is invalid or absent; preserved as unknown',
-      'outbound is invalid or absent; preserved as unknown',
-      'humanBoundary is invalid or absent; preserved as unknown',
-      'agentBoundary is invalid or absent; preserved as unknown',
-      'webhook.inbound is invalid or absent; preserved as unknown',
-      'webhook.retry is invalid or absent; preserved as unknown',
-      'webhook.audit is invalid or absent; preserved as unknown',
-    ]);
+    expect(result.outbound).toBe('unsupported');
+    expect(result.contact).toBe('unknown');
+    expect(result.conversation).toBe('unknown');
+    expect(result.webhook).toEqual({
+      inbound: false,
+      retry: 'unknown',
+      audit: 'unknown',
+      schema: 'unsupported',
+      version: 'v1',
+    });
   });
 
   it('rejects an empty channel label without fabricating identity', () => {

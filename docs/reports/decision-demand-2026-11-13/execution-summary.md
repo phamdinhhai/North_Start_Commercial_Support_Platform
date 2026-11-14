@@ -3,75 +3,46 @@
 **Date:** 2026-11-14
 **Branch:** `feat/decision-demand-execution`
 **Starting baseline:** `5d6c206`
-**Current/hosted-verified head:** `b9fd1b6301eb4ed019b1099aced794a7ff407bfc`
-**Hosted workflows:** https://github.com/phamdinhhai/North_Start_Commercial_Support_Platform/actions/runs/43548854855 and https://github.com/phamdinhhai/North_Start_Commercial_Support_Platform/actions/runs/43548849451
-**PR:** https://github.com/phamdinhhai/North_Start_Commercial_Support_Platform/pull/1
-**Hosted job evidence:** https://github.com/phamdinhhai/North_Start_Commercial_Support_Platform/actions/runs/43548854855/job/132306390242 and https://github.com/phamdinhhai/North_Start_Commercial_Support_Platform/actions/runs/43548849451/job/132306373814
-**Status:** technical development baseline improved; commercial and production release **NOT APPROVED**
+**Prior hosted-verified head:** `b9fd1b6301eb4ed019b1099aced794a7ff407bfc` (superseded by corrective checkpoint below)
+**PR:** https://github.com/phamdinhhai/North_Start_Commercial_Support_Platform/pull/1 (Draft; unmerged)
+**Status:** corrective checkpoint P0-01..P0-03 & P1-01..P1-03 ready for final hosted CI; commercial and production release **NOT APPROVED**
 
 ## A–J delivery disposition
 
 | Area | Delivered | Disposition and evidence boundary |
 |---|---|---|
-| A. Engineering baseline | Current-head acceptance/handoff updates, pushed feature branch and PR #1 | Hosted workflows are green for SHA `5a2d218`; PostgreSQL-backed gates ran on GitHub Actions using PostgreSQL 16 with no skipped critical suites. |
+| A. Engineering baseline | Corrected taxonomy, hardened operator/browser semantics, Ubuntu browser CI job, hardened adapters, source-verified research matrix | Pending push of final corrective SHA; prior SHA `f947b5d` already passed Ubuntu `Browser operator workflow` (`2 passed (6.6s)`) while `product` failed only on a literal `sk-` secret fixture string in `registry-validation.test.mjs` (now fixed). |
 | B. Architecture and decisions | Ten proposal RFCs plus security/lifecycle proposals; seven-decision registry | Proposal-only. CE-1, CE-2, PM-1, MM-1, ID-1, ID-2 and LG-1 remain `OPEN`; no canonical file changed. |
-| C. Third-party integration research | Provider readiness/Pancake reports, W2 omnichannel/ads/CRM/Vietnam reports, connector/Agent Skills evaluation, source-level repository matrix and executable synthetic mapping/metrics spikes | Pancake remains `PARTIAL`/`FLAG_OFF`; Google Ads Data Manager v1.9/call-conversion/Google skills evidence is documented-only from supplied sources and independently unverified; all repository/OSS claims remain source-level, not live verified. |
-| D. GitHub/reusable assets | Expanded omnichannel/ads/CRM/Vietnam/connector research reports, reusable-assets registry and research-demand status | Candidate verdicts remain REFERENCE/UNKNOWN unless license, security, compatibility and bounded tests support ADAPT/ADOPT. Unofficial Zalo/WhatsApp/private automation is rejected for production. |
-| E. Integration capability evidence | Evidence/capability registry with lifecycle vocabulary | Documentation and inventory coverage remain distinct from contract-tested, live-verified and release-approved states. |
-| F. Implemented product boundaries | Authenticated feedback/telemetry routes, durable-mode guard, disabled-by-default Pancake contract adapter, redaction-preserving ports, concurrent CAS/scoped-mutation tests | Routes derive workspace and actor from auth context; Pancake Conversations/POS remain distinct; contract-first adapter is mock-transport only and not live verified. |
-| G. Reliability and security | CAS winner/conflict tests, cross-workspace history/evidence tests, opaque HTTP 500 mapping, migration lifecycle tests, CI high/critical audit and changed-line credential-pattern guard | Hosted PostgreSQL integration passed 4 suites/20 tests without skips. Hosted security gate passed; seven low/moderate transitive tooling advisories remain. |
-| H. Operator workflow | Workspace-scoped queue API, keyset cursor, filters, redacted projections, `/v1/operator` accessible thin client, and a controlled Playwright lane | HTTP E2E remains green and the browser harness is committed, but browser execution is blocked locally: port 3100 was occupied; an alternate-port run reached Playwright but failed page setup after 30 seconds and then worker exit `3221225794`. No browser pass is claimed. Raw evidence remains intentionally redacted. |
-| I. Release/operations | Security/lifecycle/tenant/RLS/backup-DR proposal RFCs, pushed PR and hosted validation | Hosted CI and PostgreSQL proof now exist for the PR head; production IAM, RLS, retention/delete/export, encrypted off-site backup, restore rehearsal, deploy/rollback and hosted release-signing remain unimplemented or human-gated. |
+| C. Third-party integration research | Google Data Manager API v1.9 & `google/skills` direct `HTTP 200` verification (`2026-11-14T05:49:51Z`), source-verified matrix across 20+ repos (`gh api`), hardened synthetic spikes | Google Data Manager v1.9 (2026-11-04), `Event.callInfo`/`CallInfo.startTimestamp`, `AdIdentifiers.leadId`, `recordIndices` and `google/skills` (`67c4dbc8`) are `DOCUMENTED` (`HTTP 200`); `CONTRACT_TESTED` and `LIVE_VERIFIED` remain `UNKNOWN`. Pancake remains `PARTIAL`/`FLAG_OFF`. |
+| D. GitHub/reusable assets | Source-verified matrix (`wp4-p1-02-shortlist-source-matrix.md`) with exact canonical URLs, 40-char SHAs, tags, license blob SHAs, symbols, tests, contradictions & risks; `reusable-engineering-assets.json` updated to 13 assets | Copyleft/restricted or scraping/unofficial-Zalo projects (`OneChat`, `erxes`, `frappe/crm`, `ZaloCRM`, `aiecos-social-crm`, `zca-bridge` personal mode, `lynguyenvu/pancake-mcp-server`) are `REJECT` for code embedding/production. |
+| E. Integration capability evidence | `evidence-capability-register.json` separates `documented_state`, `contract_tested`, `live_state` and `release_state` with `registry-validation.mjs` anti-drift checks | Documentation and source verification never elevate `CONTRACT_TESTED`, `LIVE_VERIFIED` or `RELEASE_APPROVED`. |
+| F. Implemented product boundaries | Confirmed human-declaration enforcement (`declaration` + `confirmed: true`), Observed/Declared/Inferred UI separation, 3 hardened synthetic read-only adapters (`ads-metrics-normalizer`, `crm-external-id-mapper`, `channel-capability.normalizer`) | Synthetic adapters use injective JSON-tuple identity keys, `dateGranularity`/`sourceVersion` provenance, CRM merge/reparenting diagnostics with `canonicalMergeApplied: false`, `contactLeadEquivalent: false`, and I-03 `agentBoundary <= humanBoundary` enforcement. |
+| G. Reliability and security | Anti-drift registry validator + 9 fixture tests, CAS/supersession & cross-workspace isolation tests, CI secret/diff check | Prior hosted PostgreSQL integration passed 4 suites/20 tests without skips; production IAM, RLS and secret custody remain unimplemented/human-gated. |
+| H. Operator workflow | `/v1/operator` explicit completion form (mode selector `declared`/`observed`/`inferred`, human declaration textarea + checkbox, system evidence ref input, no client-fabricated completion reason), `WORK_SUPERSEDED` / `STALE_VERSION` / `403` error surfacing, and Ubuntu Playwright browser CI job | Local Playwright passed **3/3** scenarios on `BROWSER_PORT=3128` covering UI human-declaration/confirmation, UI refusals (`declared` blank/unconfirmed, `inferred`, `observed` missing/customer-intake), reschedule in UI, 2-tab genuine `WORK_SUPERSEDED` conflict + replacement completion, `401`/`403` and cross-workspace `404`. Earlier Windows `0xC0000142` (`3221225794`) failure occurred during forced 30s page-setup timeout kill on a broken baseURL/port setup and was eliminated once fixed. |
+| I. Release/operations | Dedicated `browser` Ubuntu job in `.github/workflows/ci.yml` with Chromium `--with-deps`, ephemeral port allocation, 120s startup timeout and always-uploaded artifacts | Production deploy/rollback, RLS, backup restore rehearsal and signing remain human-gated. |
 | J. Product validation | Demand and gate registers preserve open questions and unknowns | No real-user, credential-bound provider, customer-data, revenue-uplift or commercial-readiness evidence exists. |
 
-## Current executable results
+## Current executable results (pre-commit verification)
 
 Executed from `product/` against the integrated tree:
 
-- `npm ci` — **PASS**; clean install completed. The full development audit reports seven low/moderate transitive tooling advisories.
+- `npm run registry:validate` — **PASS** (7 decisions, 6 capabilities, 13 assets; includes monitored markdown anti-drift checks).
+- `npm run test:registry` — **PASS**, 9/9 tests.
 - `npm run typecheck` — **PASS**.
-- `npm run lint` — **PASS**.
+- `npm run lint -- --no-warn-ignored` — **PASS**.
 - `npm run test:architecture` — **PASS**, 8/8 fixtures.
 - `npm run architecture:check:strict` — **PASS**, 0 findings.
-- `npm test -- --no-file-parallelism` — **PASS**, 315 passed; 21 PostgreSQL tests skipped locally without a database.
-- `npm run test:e2e` — **PASS**, 7/7.
+- `npm test -- --no-file-parallelism` — **PASS**, 338 passed (21 PostgreSQL integration tests skipped locally without Docker/Postgres; verified unskipped in hosted CI).
+- `npm run test:e2e` — **PASS**, 7/7 HTTP E2E tests.
 - `npm run test:backup` — **PASS**, 6/6.
-- `npm run test:cov -- --no-file-parallelism` — **PASS locally**, 83.84% lines, 80.42% statements, 71.84% branches and 83.68% functions; hosted PostgreSQL-inclusive coverage on `5a2d218` was 90.23% lines, 86.15% statements, 79.60% branches and 91.13% functions.
+- `npm run test:cov -- --no-file-parallelism` — **PASS locally**, 84.59% lines, 81.14% statements, 73.09% branches, 83.85% functions.
+- `BROWSER_PORT=3128 npm run test:browser` — **PASS locally**, 3/3 Playwright tests (Chromium).
 - `npm run build` — **PASS**.
-- `npm run security:audit` — **PASS** at the configured high/critical threshold; seven low/moderate transitive advisories remain documented.
+- `npm run security:audit` — **PASS** (0 high/critical; 7 low/moderate transitive dev tooling advisories documented).
 - `npm audit --omit=dev` — **PASS**, 0 production vulnerabilities.
-- Hosted GitHub Actions runs `43547598460` and `43547594102` — **PASS** for head `5a2d218`; PostgreSQL integration ran 4 suites/20 tests without skips, coverage ran 35 files/336 tests, HTTP E2E ran 7/7, strict architecture passed 0 findings, and build passed.
-- `npm run registry:validate` — **PASS locally and hosted** on `5a2d218`, 7 decisions, 6 capabilities, 12 assets; unique IDs, source/date/license checks and secret-like text guard.
-- Browser-level E2E — **BLOCKED locally**: default port 3100 was occupied; `BROWSER_PORT=3117 npm run test:browser` reached Playwright but failed page setup after 30 seconds and then worker exit `3221225794`. No browser pass is claimed.
-
-## Integrated commits
-
-- `7310ff0` — security/lifecycle proposal RFCs.
-- `008e8e2` — authenticated feedback and telemetry API boundaries.
-- `0b0f46b` — CE-1/CE-2/Q1–Q4/MM-1/ID-1/ID-2/LG-1 proposal RFCs.
-- `7c4ba1b` — current-head acceptance and handoff reconciliation.
-- `84dcc17` — concurrent/scoped mutation reliability tests.
-- `290daa2` — provider and Pancake readiness reports.
-- `bd35d47` — demand traceability, decision, evidence/capability and reusable-asset registries.
-- `7caf535` — CI dependency/diff security gates.
-- `bf201bc` — disabled-by-default Pancake contract-first read adapter.
-- `cb1c33b` — workspace-scoped operator queue API and redacted projection.
-- `aa8e895` — opaque unexpected HTTP errors, PostgreSQL CAS/migration lifecycle tests.
-- `4834fea` — keyset cursor correction, served accessible operator client, registry correction.
-- `6cd0154` — neutralized Pancake contracts into ports; strict architecture fix.
-- `3314cee` — normalized CI documentation whitespace; hosted workflow green.
-- `c7a1bd9` — ads/CRM source-level research and synthetic normalizers.
-- `3a636ee` — omnichannel/Vietnam repository matrix and channel-capability normalizer.
-- `d9ee4de` — superseded historical taxonomy correction; current WP1 taxonomy is Google Ads Data Manager and is recorded with unavailable retrieval evidence.
-- `82d65f8`, `e298f9c`, `39bd829` — controlled Playwright browser lane and synthetic operator scenarios.
-- `baa841f` — moved synthetic spikes into the owned adapter layer and reconciled evidence paths.
-- `63056d4` — recorded checkpoint evidence boundaries and hosted-CI handoff.
-- `5a2d218` — normalized research whitespace; hosted CI passed.
-- `25124ad` — recorded final hosted coverage and run evidence; hosted CI passed.
-- `b9fd1b6` — anchored the final hosted run in the execution summary; hosted CI passed.
 
 ## Release disposition and next gate
 
-This branch is suitable as an evidence-backed technical development baseline and reviewable implementation PR, not as a production or commercial release. Before release or real-data pilot, the following remain mandatory: human approval of the seven canonical decisions; PM-1 IAM and credential lifecycle; tested tenant defense-in-depth/RLS; legal retention/export/delete/hold policy; disposable restore rehearsal and approved DR ownership; hosted artifact/signing/deploy evidence; provider credential and live verification; full operator usability validation beyond the thin served client; and L3/L4/L5 product validation.
+This branch remains a reviewable Draft PR (`#1`) and is **not** approved for merge or production release. Mandatory gates before real-data pilot or release remain unchanged: human approval of CE-1, CE-2, MM-1, ID-1, ID-2, PM-1 and LG-1; production IAM/OIDC/MFA and tenant RLS; legal retention/export/delete/hold policy; tested backup/restore DR rehearsal; credential-bound provider contract + live verification; and L3–L5 product validation.
 
-The user-provided `docs/decision_and_deepresearch_demand.md` remains preserved as an untracked input and is intentionally not committed as part of this execution package. No credentials, customer data, private Pancake cookies/endpoints or canonical documents were added or modified.
+The user-provided `docs/decision_and_deepresearch_demand.md` and `docs/login_info/` remain untracked and untouched. No credentials, cookies, private endpoints, customer data or canonical modifications were committed.

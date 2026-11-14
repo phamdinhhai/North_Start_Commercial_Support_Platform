@@ -4,6 +4,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const ROOT = resolve(fileURLToPath(new URL('../', import.meta.url)));
 const DEFAULT_REGISTRY_ROOT = resolve(ROOT, '..', 'docs', 'research', 'registries');
+const DEFAULT_DOCS_ROOT = resolve(ROOT, '..', 'docs');
 const FILES = ['decision-register.json', 'evidence-capability-register.json', 'reusable-engineering-assets.json'];
 const STATES = new Set(['DISCOVERED', 'DOCUMENTED', 'CONTRACT_TESTED', 'LIVE_VERIFIED', 'RELEASE_APPROVED', 'UNKNOWN', 'PARTIAL', 'FLAG_OFF', 'REFERENCE', 'ADAPT', 'ADOPT', 'REJECT', 'OPEN']);
 const MATURITY_FIELDS = ['documented_state', 'contract_tested', 'live_state', 'release_state'];
@@ -14,6 +15,25 @@ const GOOGLE_SKILLS = [
   'https://github.com/google/skills/tree/main/skills/ads/data-manager-api-event-ingestion',
   'https://github.com/google/skills/tree/main/skills/ads/data-manager-api-audience-ingestion',
 ];
+const MONITORED_REPORT_PATHS = [
+  'reports/phase4-third-party-provider-readiness.md',
+  'reports/decision-demand-2026-11-13/execution-summary.md',
+  'reports/decision-demand-2026-11-13/research/ads-data-manager-report.md',
+  'reports/decision-demand-2026-11-13/research/connector-agent-skills-evaluation.md',
+  'reports/decision-demand-2026-11-13/research/omnichannel-oss-report.md',
+  'reports/decision-demand-2026-11-13/research/crm-domain-integration-report.md',
+  'reports/decision-demand-2026-11-13/research/vietnam-ecosystem-legitimacy-report.md',
+  'reports/decision-demand-2026-11-13/research/wp4-p1-02-shortlist-source-matrix.md',
+  'reports/decision-demand-2026-11-13/research/synthetic-spike.md',
+];
+const STALE_TAXONOMY_PATTERNS = [
+  /Anthropic\s+Data\s+Manager/i,
+  /Anthropic\s+Ads/i,
+  /anthropic\.data-manager/i,
+  /developers\.anthropic\.com/i,
+  /github\.com\/anthropic\/skills\/tree\/main\/skills\/ads\/data-manager/i,
+];
+const ALLOWED_ACCESS_STATUSES = new Set(['UNAVAILABLE', 'HTTP_200_VERIFIED']);
 const secret = /(bearer\s+[A-Za-z0-9._~-]{12,}|(?:api[_-]?key|password|secret|cookie|private[_-]?key)\s*[:=]\s*\S+|gh[pousr]_[A-Za-z0-9_]{20,}|sk-[A-Za-z0-9]{20,})/i;
 
 export class RegistryValidationError extends Error {
@@ -49,17 +69,32 @@ function validateCapability(row) {
 function validateGoogleCapability(row) {
   const text = JSON.stringify(row);
   if (!text.includes('google.data-manager') || row.provider !== 'Google Ads / Google Data Manager') fail('Google Data Manager capability taxonomy drift');
-  if (text.includes('Anthropic Data Manager') || text.includes('anthropic.data-manager') || text.includes('developers.anthropic.com')) fail('stale Anthropic Data Manager taxonomy');
+  for (const pattern of STALE_TAXONOMY_PATTERNS) {
+    if (pattern.test(text)) fail('stale Anthropic Data Manager taxonomy');
+  }
   if (row.source_url !== GOOGLE_REFERENCE) fail('Google Data Manager: incorrect reference URL');
-  if (row.access_status !== 'UNAVAILABLE') fail('Google Data Manager: unavailable retrieval must remain UNKNOWN');
+  if (!ALLOWED_ACCESS_STATUSES.has(row.access_status)) fail('Google Data Manager: invalid access_status');
   if (!row.retrieval_timestamp || Number.isNaN(Date.parse(row.retrieval_timestamp))) fail('Google Data Manager: missing retrieval timestamp');
   const fields = row.field_evidence;
   if (!fields || fields.api_version !== 'v1.9' || fields.source_date !== '2026-11-04') fail('Google Data Manager: missing version/date evidence');
   for (const field of ['Event.call_info', 'AdIdentifiers.lead_id', 'record_indices']) if (!fields.fields?.includes(field)) fail(`Google Data Manager: missing field evidence ${field}`);
   for (const url of [GOOGLE_REFERENCE, ...GOOGLE_SKILLS]) if (!fields.source_urls?.includes(url)) fail(`Google Data Manager: missing source evidence ${url}`);
-  if (row.documented_state !== 'DOCUMENTED' || row.contract_tested !== 'UNKNOWN' || row.live_state !== 'UNKNOWN' || row.release_state !== 'UNKNOWN') fail('Google Data Manager: maturity states overclaim unavailable evidence');
+  if (row.documented_state !== 'DOCUMENTED' || row.contract_tested !== 'UNKNOWN' || row.live_state !== 'UNKNOWN' || row.release_state !== 'UNKNOWN') fail('Google Data Manager: maturity states overclaim unverified runtime readiness');
 }
-export function validateRegistries(registryRoot = DEFAULT_REGISTRY_ROOT) {
+function validateReports(docsRoot) {
+  for (const rel of MONITORED_REPORT_PATHS) {
+    const full = resolve(docsRoot, rel);
+    let content;
+    try { content = readFileSync(full, 'utf8'); } catch { continue; }
+    for (const pattern of STALE_TAXONOMY_PATTERNS) {
+      if (pattern.test(content)) fail(`${rel}: stale Data Manager taxonomy reference (${pattern})`);
+    }
+    if (rel.includes('research/') && /https:\/\/github\.com\/search\?/i.test(content)) {
+      fail(`${rel}: GitHub search URL must not substitute for canonical repository URL`);
+    }
+  }
+}
+export function validateRegistries(registryRoot = DEFAULT_REGISTRY_ROOT, docsRoot = DEFAULT_DOCS_ROOT) {
   const [decisions, capabilities, assets] = FILES.map((file) => load(registryRoot, file));
   for (const [name, registry] of [['decision', decisions], ['capability', capabilities], ['assets', assets]]) {
     if (!registry.schema || !registry.registry_status || !registry.as_of) fail(`${name}: missing schema/status/date`);
@@ -68,12 +103,14 @@ export function validateRegistries(registryRoot = DEFAULT_REGISTRY_ROOT) {
   unique(decisions.decisions, 'id', 'decisions');
   if ((decisions.decisions ?? []).length !== 7 || decisions.decisions.some((row) => row.status !== 'OPEN')) fail('decisions: all seven canonical decisions must remain OPEN');
   unique(capabilities.capabilities, 'id', 'capabilities');
+  if (!capabilities.capabilities.some((row) => row.id === 'google.data-manager.call-conversions')) fail('capabilities: missing google.data-manager.call-conversions');
   unique(assets.assets, 'id', 'assets');
   for (const row of capabilities.capabilities ?? []) {
     validateCapability(row);
     if (row.id === 'google.data-manager.call-conversions') validateGoogleCapability(row);
   }
   for (const row of assets.assets ?? []) if (!row.url || !row.license || !row.verdict || !STATES.has(row.verdict)) fail(`asset ${row.id}: missing source/license/verdict`);
+  if (docsRoot) validateReports(docsRoot);
   return { decisions: decisions.decisions.length, capabilities: capabilities.capabilities.length, assets: assets.assets.length };
 }
 

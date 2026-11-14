@@ -1,7 +1,7 @@
 {
   "schema": "north-star.evidence-capability-register.v1",
   "registry_status": "working_non_canonical",
-  "as_of": "2026-11-13",
+  "as_of": "2026-11-14",
   "authority": "documented research only",
   "state_vocabulary": [
     "DISCOVERED",
@@ -30,33 +30,44 @@
       "release_state": "UNKNOWN",
       "evidence": "docs/reports/decision-demand-2026-11-13/research/ads-data-manager-report.md#google-ads-data-manager-taxonomy-and-supplied-evidence",
       "known_observations": [
-        "The supplied source family identifies Google Ads Data Manager call conversions, not a generic campaign/insight reporting surface.",
-        "The supplied source anchors name v1.9 dated 2026-11-04, Event.call_info, AdIdentifiers.lead_id and record_indices as documented-only concepts."
+        "Direct HTTP 200 verification on 2026-11-14 confirmed Google Data Manager API release v1.9 dated 2026-11-04 for Google Ads call conversions.",
+        "Official REST v1 schema (events/ingest.md.txt and requestStatus/retrieve.md.txt) defines Event.callInfo (CallInfo.startTimestamp), AdIdentifiers.leadId, and recordIndices on ErrorCount and WarningCount.",
+        "Official repository google/skills (Apache-2.0, HEAD commit 67c4dbc8ff6313ef117d938e53bb21315fc281ae) contains setup, event-ingestion and audience-ingestion skills."
       ],
       "unknowns": [
-        "independent retrieval and exact revision authentication",
         "credentials and live behavior",
-        "contract-tested request and response schema"
+        "contract-tested request and response fixture against an active Google Ads destination"
       ],
-      "production_rule": "Do not claim Data Manager support beyond documented-only supplied evidence until the official source and exact revision are independently re-verified; no live or contract-tested evidence is recorded.",
+      "production_rule": "Official documentation is DOCUMENTED only; keep contract_tested, live_state and release_state UNKNOWN until credential-bound verification passes.",
       "last_documented": "2026-11-14",
       "source_url": "https://developers.google.com/data-manager/api/reference",
-      "source_type": "official-documentation-supplied-by-demand",
+      "source_type": "official-documentation-verified-http-200",
       "verified_date": "2026-11-14",
-      "retrieval_timestamp": "2026-11-14T00:00:00Z",
-      "access_status": "UNAVAILABLE",
+      "retrieval_timestamp": "2026-11-14T05:49:51Z",
+      "access_status": "HTTP_200_VERIFIED",
       "field_evidence": {
         "api_version": "v1.9",
         "source_date": "2026-11-04",
-        "fields": ["Event.call_info", "AdIdentifiers.lead_id", "record_indices"],
+        "fields": [
+          "Event.call_info",
+          "Event.callInfo",
+          "CallInfo.startTimestamp",
+          "AdIdentifiers.lead_id",
+          "AdIdentifiers.leadId",
+          "record_indices",
+          "recordIndices"
+        ],
         "source_urls": [
           "https://developers.google.com/data-manager/api/reference",
+          "https://developers.google.com/data-manager/api/reference/rest/v1/events/ingest.md.txt",
+          "https://developers.google.com/data-manager/api/reference/rest/v1/requestStatus/retrieve.md.txt",
           "https://github.com/google/skills",
           "https://github.com/google/skills/tree/main/skills/ads/data-manager-api-setup",
           "https://github.com/google/skills/tree/main/skills/ads/data-manager-api-event-ingestion",
           "https://github.com/google/skills/tree/main/skills/ads/data-manager-api-audience-ingestion"
         ],
-        "status": "DOCUMENTED_CLAIM_UNAVAILABLE_RETRIEVAL"
+        "google_skills_commit_sha": "67c4dbc8ff6313ef117d938e53bb21315fc281ae",
+        "status": "DOCUMENTED_OFFICIAL_SOURCE_HTTP_200"
       }
     },
     {

@@ -26,9 +26,9 @@ The reviewed commit/metadata references are reproducibility anchors, not a claim
 | Meltano | https://github.com/meltano/meltano | `main` | `LICENSE` is MIT | 2,679 stars; 281 forks; 169 open issues; pushed 2026-11-13 |
 | Chatwoot | https://github.com/chatwoot/chatwoot | `develop` | `LICENSE`: MIT outside `enterprise/`; enterprise has separate terms | 39,787 stars; 9,667 forks; 1,599 open issues; pushed 2026-11-13 |
 | MCP servers | https://github.com/modelcontextprotocol/servers | `main` | README/source states transition from MIT to Apache-2.0; docs CC-BY-4.0; contribution-level provenance matters | 91,969 stars; 11,961 forks; 18 open issues; pushed 2026-11-12 |
-| Anthropic skills | https://github.com/Anthropic/skills | `main` | README/source describes directory-specific licensing; many document skills Apache-2.0 | Source/revision independently unverified in this checkpoint |
+| Anthropic skills | https://github.com/anthropics/skills | `main` | README/source describes directory-specific licensing; many document skills Apache-2.0 | 194,010 stars; 22,817 forks; 1,528 open issues; pushed 2026-11-06 |
 | Agent Skills specification | https://github.com/agentskills/agentskills | `main` | Apache-2.0 source; documentation may be CC-BY-4.0 and directory-specific terms can apply | 27,258 stars; 2,031 forks; 125 open issues; pushed 2026-11-04 |
-| Google skills | https://github.com/google/skills plus the three supplied Data Manager skill paths | `main` (exact revision unavailable) | Unknown pending retrieval | No installation or execution |
+| Google skills | https://github.com/google/skills plus `skills/ads/data-manager-api-{setup,event-ingestion,audience-ingestion}` | `main` (`67c4dbc8ff6313ef117d938e53bb21315fc281ae`) | Apache-2.0 (verified via GitHub API `2026-11-14T05:49:51Z`) | `DOCUMENTED` source reference; never installed or executed |
 
 The metadata was queried through the GitHub API; source links above are the durable review references. GitHub's SPDX field reported `NOASSERTION` for several repositories even where the repository license file was directly inspected; the license-file text is authoritative for this report's limited assessment.
 
@@ -246,17 +246,23 @@ Each candidate is assessed against the requested dimensions:
 
 **Assessment and verdict:** **REFERENCE.** Adopt the metadata/progressive-disclosure *concept* only if North Star's own allowlist, static review, resource limits, no-secret-by-default policy, and verification checklist are implemented. Do not treat format compliance as security approval.
 
-### 3.10 Google Data Manager skills — **DOCUMENTED / UNKNOWN for execution**
+### 3.10 Google Data Manager skills — **DOCUMENTED (`HTTP 200` / GitHub API verified); NOT EXECUTED**
 
-The supplied demand identifies `https://github.com/google/skills` and these exact Data Manager paths as official source inputs: `https://github.com/google/skills/tree/main/skills/ads/data-manager-api-setup`, `https://github.com/google/skills/tree/main/skills/ads/data-manager-api-event-ingestion`, and `https://github.com/google/skills/tree/main/skills/ads/data-manager-api-audience-ingestion`. Retrieval was **UNAVAILABLE** on 2026-11-14 in this environment, so exact revision, source files, license scope, scripts, tests, credential custody and security posture remain UNKNOWN. No skill was installed or executed.
+Independent GitHub API verification on **2026-11-14T05:49:51Z** confirmed `https://github.com/google/skills` (`Apache-2.0`, default branch `main`, HEAD commit `67c4dbc8ff6313ef117d938e53bb21315fc281ae`) and verified the exact paths and `SKILL.md` blob SHAs for:
 
-**Verdict:** **DOCUMENTED source input only**; do not treat the skill paths as execution approval or provider contract evidence. Re-open after an exact source revision and static/security review are available.
+- `skills/ads/data-manager-api-setup` (`bc390439db829fbd383420ad9c97947a6738a831`)
+- `skills/ads/data-manager-api-event-ingestion` (`f440dc32525d4187ed5864aa549c42cca8ed9912`)
+- `skills/ads/data-manager-api-audience-ingestion` (`ad7e9bc76a99abf9b3bb062de8fe6591813cddb8`)
 
-### 3.11 Google skills retrieval boundary — **UNKNOWN / REJECT for current scope**
+No skill was installed, imported or executed. Documentation presence does not verify runtime contract behavior or authorize production credentials.
 
-The exact Google-maintained source URLs are now recorded, but retrieval and exact revision authentication were unavailable in this environment. License, maintenance, security, tenant isolation, credential custody, OAuth, state/replay, tests/CI and embedding fit therefore remain **UNKNOWN**.
+**Verdict:** **REFERENCE / DOCUMENTED source input only**; keep `CONTRACT_TESTED = UNKNOWN` and `LIVE_VERIFIED = UNKNOWN`. Do not execute unreviewed scripts or provide real Google Ads credentials.
 
-**Verdict:** **REJECT as an implementation input for this checkpoint** (not a claim that Google has no skills). Re-open only after an exact official revision and source-level license/security review are available.
+### 3.11 Google skills execution boundary — **REFERENCE ONLY (not runtime-approved)**
+
+While exact repository metadata, Apache-2.0 license and `SKILL.md` contents are now verified (`2026-11-14T05:49:51Z`), skill files remain instructional guidance rather than isolated runtime libraries, and have no intrinsic tenant isolation, credential custody or audit enforcement.
+
+**Verdict:** **REFERENCE** for reading official Data Manager SDK/schema pointers; **REJECT automatic skill execution** inside North Star runtime until host-owned sandboxing and security review exist.
 
 ## 4. Comparative decision matrix
 
