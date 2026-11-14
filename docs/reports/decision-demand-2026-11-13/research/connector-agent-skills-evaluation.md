@@ -26,7 +26,7 @@ The reviewed commit/metadata references are reproducibility anchors, not a claim
 | Meltano | https://github.com/meltano/meltano | `main` | `LICENSE` is MIT | 2,679 stars; 281 forks; 169 open issues; pushed 2026-11-13 |
 | Chatwoot | https://github.com/chatwoot/chatwoot | `develop` | `LICENSE`: MIT outside `enterprise/`; enterprise has separate terms | 39,787 stars; 9,667 forks; 1,599 open issues; pushed 2026-11-13 |
 | MCP servers | https://github.com/modelcontextprotocol/servers | `main` | README/source states transition from MIT to Apache-2.0; docs CC-BY-4.0; contribution-level provenance matters | 91,969 stars; 11,961 forks; 18 open issues; pushed 2026-11-12 |
-| Anthropic skills | https://github.com/anthropics/skills | `main` | README/source describes directory-specific licensing; many document skills Apache-2.0 | 194,010 stars; 22,817 forks; 1,528 open issues; pushed 2026-11-06 |
+| Anthropic skills | https://github.com/Anthropic/skills | `main` | README/source describes directory-specific licensing; many document skills Apache-2.0 | Source/revision independently unverified in this checkpoint |
 | Agent Skills specification | https://github.com/agentskills/agentskills | `main` | Apache-2.0 source; documentation may be CC-BY-4.0 and directory-specific terms can apply | 27,258 stars; 2,031 forks; 125 open issues; pushed 2026-11-04 |
 | Google skills | Exact repository/source was not supplied in the brief and was not identified as a canonical source in this review | — | Unknown | No claim made |
 
@@ -246,7 +246,13 @@ Each candidate is assessed against the requested dimensions:
 
 **Assessment and verdict:** **REFERENCE.** Adopt the metadata/progressive-disclosure *concept* only if North Star's own allowlist, static review, resource limits, no-secret-by-default policy, and verification checklist are implemented. Do not treat format compliance as security approval.
 
-### 3.10 Google skills — **UNKNOWN / REJECT for current scope**
+### 3.10 Anthropic Data Manager skills — **DOCUMENTED / UNKNOWN for execution**
+
+The supplied demand identifies `https://github.com/Anthropic/skills` and the Data Manager setup, event-ingestion and audience-ingestion paths as official source inputs. Independent retrieval of those paths returned HTTP 404 in this environment, so exact revision, source files, license scope, scripts, tests, credential custody and security posture remain UNKNOWN. No skill was installed or executed.
+
+**Verdict:** **DOCUMENTED source input only**; do not treat the skill paths as execution approval or provider contract evidence. Re-open after an exact source revision and static/security review are available.
+
+### 3.11 Google skills — **UNKNOWN / REJECT for current scope**
 
 No exact Google-maintained skills repository, commit, license, source files or official documentation was supplied in the decision-demand brief. The brief names Anthropic skills, `agentskills/agentskills`, and MCP servers, but does not identify a Google skills source. Therefore license, maintenance, security, tenant isolation, credential custody, OAuth, state/replay, tests/CI and embedding fit are all **UNKNOWN**.
 

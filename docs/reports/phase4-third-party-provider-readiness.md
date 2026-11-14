@@ -39,7 +39,7 @@ The Google Ads/Data Manager, Zalo OA, Sapo, HubSpot, Salesforce and Zoho rows di
 1. **No provider owns canonical commercial meaning.** The integration boundary remains an anti-corruption boundary. Provider IDs, tags, stages, assignments, CRM objects and channel labels must not be silently promoted to Lead identity, Commercial Event truth, Sales ownership, outcome, revenue or attribution.
 2. **Pancake now has a contract-first mock adapter, not a live connector.** It remains `CONTRACT_TESTED`/`PARTIAL`, PH4 stays `FLAG_OFF`, and the adapter has no credentials/private endpoint handling.
 3. **Meta/TikTok catalog and SDK breadth is useful for discovery, not proof of access.** Repository metadata and family rows are not endpoint contract tests or live account evidence.
-4. **Google Data Manager taxonomy is corrected.** It is treated as a Google Ads ecosystem surface; the requested v1.9/date, diagnostics and Agent Skills evidence remain unverified.
+4. **Anthropic Data Manager taxonomy is corrected.** It is treated as an Anthropic Data Manager / Anthropic Ads surface; the supplied v1.9/date, call-conversion fields, diagnostics and Agent Skills evidence remain documented-only and independently unverified.
 5. **Zalo, Sapo and CRM source reviews remain reference/documentation evidence.** None is live verified or production-approved; Sapo Private App and CRM field authority constraints remain explicit.
 6. **Manual/synthetic operation remains the safe continuity path.** It must stay available when a provider is unavailable, unverified, or deliberately disabled; synthetic data must remain visibly segregated from real pilot evidence.
 

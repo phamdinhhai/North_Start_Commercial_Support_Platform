@@ -1,5 +1,7 @@
 import { defineConfig, devices } from '@playwright/test';
 
+const browserPort = process.env.BROWSER_PORT ?? '3100';
+
 /** Controlled browser lane: the app uses only synthetic in-memory state and unsigned test tokens. */
 export default defineConfig({
   testDir: './e2e/browser',
@@ -9,7 +11,7 @@ export default defineConfig({
   workers: 1,
   reporter: process.env.CI ? [['line'], ['html', { open: 'never' }]] : 'list',
   use: {
-    baseURL: 'http://127.0.0.1:3100/v1',
+    baseURL: `http://127.0.0.1:${browserPort}/v1`,
     trace: 'retain-on-failure',
     screenshot: 'only-on-failure',
     video: 'off',
@@ -18,12 +20,12 @@ export default defineConfig({
   webServer: {
     command: 'npm run build && npm run start',
     cwd: '.',
-    url: 'http://127.0.0.1:3100/v1/operator',
+    url: `http://127.0.0.1:${browserPort}/v1/operator`,
     reuseExistingServer: false,
     timeout: 120_000,
     env: {
       ...process.env,
-      PORT: '3100',
+      PORT: browserPort,
       DEPLOYMENT_MODE: 'test',
       NODE_ENV: 'test',
       PILOT_STORE_MODE: 'memory',

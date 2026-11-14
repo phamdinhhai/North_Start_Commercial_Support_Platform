@@ -1,4 +1,4 @@
-# W2b — Ads, Google Data Manager, and read-only connector research
+# W2b — Ads, Anthropic Data Manager, and read-only connector research
 
 **Decision date:** 2026-11-14
 **Status:** non-canonical source-level research plus an executable synthetic spike. No credentials, customer data, private endpoints, live provider calls, or production approval.
@@ -56,4 +56,4 @@ It performs no network calls and cannot mutate Lead, Customer, Commercial Event,
 
 ## Verdict
 
-Meta is the first conditional narrow read-only adapter candidate; TikTok is later and conditional. Airbyte/dbt are reference patterns only. Unpinned MCP repositories and unresolved discovery candidates are **REFERENCE/UNKNOWN**, not production dependencies. Google Data Manager remains **DOCUMENTED only / UNKNOWN for live implementation** until valid official evidence is captured. No canonical decision CE-1, CE-2, MM-1, ID-1, ID-2, PM-1, or LG-1 is resolved.
+Meta is the first conditional narrow read-only adapter candidate; TikTok is later and conditional. Airbyte/dbt are reference patterns only. Unpinned MCP repositories and unresolved discovery candidates are **REFERENCE/UNKNOWN**, not production dependencies. Anthropic Data Manager remains **DOCUMENTED only / UNKNOWN for live implementation** until the supplied official evidence can be independently retrieved and its exact revision captured. No canonical decision CE-1, CE-2, MM-1, ID-1, ID-2, PM-1, or LG-1 is resolved.
