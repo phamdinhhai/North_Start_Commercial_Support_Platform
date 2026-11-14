@@ -11,7 +11,7 @@ CRM systems are adapters and projections. They do not own canonical Lead identit
 |---|---|---|
 | Twenty | https://github.com/twentyhq/twenty and https://twenty.com/developers | DOCUMENTED/REFERENCE; conditional projection adapter after license/deployment review |
 | erxes | https://github.com/erxes/erxes and https://erxes.io/ | DOCUMENTED/REFERENCE; exact release/license/security/tenant behavior requires pinning |
-| OneChat | https://github.com/search?q=OneChat+CRM&type=repositories | Discovery pointer; exact owner/revision unresolved, therefore UNKNOWN |
+| OneChat | https://github.com/One-Chat/OneChat | Canonical repository pointer; exact owner/revision/license/security evidence unresolved, therefore UNKNOWN |
 | Chatwoot | https://github.com/chatwoot/chatwoot and https://www.chatwoot.com/developers | DOCUMENTED/REFERENCE for inbox/conversation projection, not canonical semantics |
 | Frappe CRM | https://github.com/frappe/frappe and https://github.com/frappe/erpnext | DOCUMENTED/REFERENCE; bounded projection candidate after site/role review |
 | HubSpot SDK/API | https://developers.hubspot.com/docs/api/overview and https://github.com/HubSpot/hubspot-api-nodejs | DOCUMENTED/REFERENCE; best conditional first read/projection target |

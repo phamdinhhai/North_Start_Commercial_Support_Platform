@@ -31,15 +31,15 @@ The supplied Anthropic developer URLs and GitHub skill paths were checked withou
 | TikTok Business API | https://business-api.tiktok.com/portal/docs | DOCUMENTED/REFERENCE; permission/version review required |
 | TikTok Business SDK | https://github.com/tiktok/tiktok-business-api-sdk | DOCUMENTED/REFERENCE; selected release/license/tests not live verified |
 | RoyAzran/mcp-ads | https://github.com/RoyAzran/mcp-ads | DOCUMENTED discovery pointer only; do not adopt unreviewed credential-bearing MCP |
-| get-mcp-ads Meta | https://github.com/search?q=get-mcp-ads+meta&type=repositories | Discovery pointer; exact repository/revision unresolved |
-| get-mcp-ads Google | https://github.com/search?q=get-mcp-ads+google&type=repositories | Discovery pointer; exact repository/revision unresolved |
-| get-mcp-ads TikTok | https://github.com/search?q=get-mcp-ads+tiktok&type=repositories | Discovery pointer; exact repository/revision unresolved |
-| adport | https://github.com/search?q=adport+ads+api&type=repositories | Discovery pointer; exact repository/revision unresolved |
-| nalarin | https://github.com/search?q=nalarin+ads&type=repositories | Discovery pointer; exact repository/revision unresolved |
-| amekala | https://github.com/search?q=amekala+ads&type=repositories | Discovery pointer; exact repository/revision unresolved |
-| Paid-Media-MCP | https://github.com/search?q=Paid-Media-MCP&type=repositories | Discovery pointer; exact repository/revision unresolved |
+| get-mcp-ads Meta | https://github.com/get-mcp-ads/meta-ads-mcp-server | Canonical repository pointer; exact revision/license/dependencies unresolved |
+| get-mcp-ads Google | https://github.com/get-mcp-ads/google-ads-mcp-server | Canonical repository pointer; exact revision/license/dependencies unresolved |
+| get-mcp-ads TikTok | https://github.com/get-mcp-ads/tiktok-ads-mcp-server | Canonical repository pointer; exact revision/license/dependencies unresolved |
+| adport | https://github.com/ynnickw/adport | Canonical repository pointer; exact revision/license/dependencies unresolved |
+| nalarin | https://github.com/masgant99/nalarin-agentic-ads-studio | Canonical repository pointer; exact revision/license/dependencies unresolved |
+| amekala | https://github.com/amekala/paid-media-mcp | Canonical repository pointer; exact revision/license/dependencies unresolved |
+| Paid-Media-MCP | https://github.com/amekala/paid-media-mcp | Canonical repository pointer; exact revision/license/dependencies unresolved |
 | Airbyte | https://github.com/airbytehq/airbyte and https://docs.airbyte.com/integrations/sources/tiktok-marketing | REFERENCE for cursors/schema drift/contract fixtures; not domain authority |
-| dbt-ad-reporting | https://github.com/search?q=dbt_ad_reporting&type=repositories | Discovery pointer; exact repository/revision unresolved; transformations only |
+| dbt-ad-reporting | https://github.com/fivetran/dbt_ad_reporting | Canonical repository pointer; exact revision/license/dependencies unresolved; transformations only |
 
 For every discovery-pointer row, the exact owner, commit, license, dependency tree, security policy, tenant behavior, tests, and maintenance state are **UNKNOWN**. Topic/search pages cannot support adoption. Any MCP server is untrusted code and must not receive raw provider credentials or canonical mutation authority.
 
