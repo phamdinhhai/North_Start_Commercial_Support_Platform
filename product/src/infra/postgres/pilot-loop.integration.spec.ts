@@ -66,7 +66,7 @@ integration('PilotLoop over PostgreSQL — durability + two-person handoff', () 
     const accepted = await svc.salesAccept(handed.lead.id, { workId, actor: 'sales-b', reason: 'B nhận trách nhiệm' });
     expect(accepted.ownerUserId).toBe('sales-b');
 
-    await svc.completeWork(accepted.lead.id, { workId, actor: 'sales-b', evidence: 'declared', occurredAt: '2026-10-09T15:05:00+07:00', reason: 'đã gọi' });
+    await svc.completeWork(accepted.lead.id, { workId, actor: 'sales-b', evidence: 'declared', declaration: 'Operator confirmed completion', confirmed: true, occurredAt: '2026-10-09T15:05:00+07:00', reason: 'đã gọi' });
     const adv = await svc.advance(accepted.lead.id, { to: 'Contacting', actor: 'sales-b', reason: 'đã gọi' });
     const adv2 = await svc.advance(adv.lead.id, { to: 'Follow-up', actor: 'sales-b', reason: 'chờ' });
     await svc.recordOutcome(adv2.lead.id, { value: 'Won', actor: 'sales-b', reason: 'đã deposit' });
@@ -155,6 +155,42 @@ integration('PilotLoop over PostgreSQL — durability + two-person handoff', () 
     expect(rows.rows[0]).toEqual({ leads: '1', audits: '1', commands: '1' });
     await expect(services[0].ingestScenario({ ...input, utterance: 'mutated' }))
       .rejects.toMatchObject({ code: 'IDEMPOTENCY_CONFLICT', status: 409 });
+  });
+
+  it('CAS: concurrent same-version mutations have one winner and no stale audit/projection', async () => {
+    const svc = new PilotLoopService(new PgPilotStore(db1), new ManualAdapter());
+    const created = await svc.ingestScenario({
+      workspaceId: wsId, displayName: 'CAS base', utterance: 'base', speaker: 'customer',
+      connection: conn, externalRecordId: `cas-${randomUUID()}`, ownerUserId: 'marketing-a',
+    });
+    const store = new PgPilotStore(db1);
+    const base = await store.load(created.lead.id);
+    expect(base?.version).toBeDefined();
+    const version = base!.version;
+    const stateA = { ...base!, lead: { ...base!.lead, status: 'Accepted' as const }, ownerUserId: 'sales-a' };
+    const stateB = { ...base!, lead: { ...base!.lead, status: 'Contacting' as const }, ownerUserId: 'sales-b' };
+    const audit = (actor: string, status: string) => ({
+      entityType: 'lead' as const, entityId: base!.lead.id, workspaceId: wsId, actor,
+      previousValue: 'New', newValue: status, reason: `CAS ${actor}`, eventType: `cas_${actor}`,
+    });
+
+    const results = await Promise.allSettled([
+      store.save(stateA, [audit('sales-a', 'Accepted')]),
+      store.save(stateB, [audit('sales-b', 'Contacting')]),
+    ]);
+    expect(results.filter((result) => result.status === 'fulfilled')).toHaveLength(1);
+    const stale = results.find((result) => result.status === 'rejected');
+    expect(stale).toMatchObject({ status: 'rejected', reason: { code: 'STALE_VERSION', status: 409 } });
+    expect((stale as PromiseRejectedResult).reason).toBeInstanceOf(Error);
+    expect((stale as PromiseRejectedResult).reason.message).toContain(`expected version ${version}`);
+
+    const persisted = await store.load(base!.lead.id);
+    expect(persisted?.version).toBe(version! + 1);
+    expect(['Accepted', 'Contacting']).toContain(persisted?.lead.status);
+    const audits = await store.history(base!.lead.id);
+    const casAudits = audits.filter((entry) => entry.eventType.startsWith('cas_'));
+    expect(casAudits).toHaveLength(1);
+    expect(casAudits[0].actor).toBe(persisted?.ownerUserId);
   });
 
   it.each([false, true])('R-06: timestamp-omitted concurrent intake is idempotent with shared adapter=%s', async (shared) => {
@@ -247,7 +283,7 @@ integration('PilotLoop over PostgreSQL — durability + two-person handoff', () 
     // fresh service = another request/process: refusal must come from persisted rows
     const svc2 = new PilotLoopService(new PgPilotStore(db1), new ManualAdapter());
     let caught: unknown;
-    await svc2.completeWork(state.lead.id, { workId: oldId, actor: 'sales-b', evidence: 'declared' }).catch((e) => (caught = e));
+    await svc2.completeWork(state.lead.id, { workId: oldId, actor: 'sales-b', evidence: 'declared', declaration: 'Operator confirmed completion', confirmed: true }).catch((e) => (caught = e));
     expect(caught).toMatchObject({ code: 'WORK_SUPERSEDED', status: 409 });
     expect((caught as { details?: Record<string, unknown> }).details).toMatchObject({ replacementId });
 
@@ -259,7 +295,7 @@ integration('PilotLoop over PostgreSQL — durability + two-person handoff', () 
     expect(before.rows.find((r) => r.id === oldId)?.status).toBe('rescheduled');
     expect(before.rows.find((r) => r.id === replacementId)?.status).toBe('open');
 
-    const done = await svc2.completeWork(state.lead.id, { workId: replacementId, actor: 'sales-b', evidence: 'declared', reason: 'đã gọi' });
+    const done = await svc2.completeWork(state.lead.id, { workId: replacementId, actor: 'sales-b', evidence: 'declared', declaration: 'Operator confirmed completion', confirmed: true, reason: 'đã gọi' });
     expect(done.workItems.find((w) => w.id === oldId)!.status).toBe('rescheduled');
 
     const after = await db1.query<{ n: string }>(
@@ -319,7 +355,7 @@ integration('PilotLoop over PostgreSQL — durability + two-person handoff', () 
     // 4) manual completion with `declared` + the case's envelope reference succeeds as `declared`
     // and records the raw hash in the durable audit trail (I-12)
     const done = await svc.completeWork(a.lead.id, {
-      workId: wid, actor: 'sales-b', evidence: 'declared', evidenceRef: a.sourceEnvelopeId!, reason: 'nhân viên xác nhận đã gửi file',
+      workId: wid, actor: 'sales-b', evidence: 'declared', declaration: 'Operator confirmed completion', confirmed: true, evidenceRef: a.sourceEnvelopeId!, reason: 'nhân viên xác nhận đã gửi file',
     });
     expect(done.workItems.find((w) => w.id === wid)!.completionEvidence).toBe('declared');
     const audit = await db1.query<{ new_value: unknown }>(

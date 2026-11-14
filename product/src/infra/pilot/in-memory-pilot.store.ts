@@ -2,7 +2,7 @@ import { Inject, Injectable } from '@nestjs/common';
 import { AuditStore, compareAuditRecords, rollbackAuditAppend } from '../audit/audit-store';
 import type { AuditRecord } from '../../ports/audit';
 import { idempotencyKey, type CommercialEnvelope } from '../../domain/envelope/envelope';
-import { PilotStaleVersionError, type AuditHistoryEntry, type PilotLoopState } from '../../ports/pilot-loop.types';
+import { decodePilotQueueCursor, encodePilotQueueCursor, isAfterPilotQueueCursor, PilotStaleVersionError, type AuditHistoryEntry, type PilotLoopState, type PilotQueueItem, type PilotQueuePage, type PilotQueueQuery } from '../../ports/pilot-loop.types';
 import { assertSameEnvelope, type EvidenceRefRecord, type PilotLoopStore } from '../../ports/pilot-loop.store';
 
 function evidenceRecordOf(env: CommercialEnvelope): EvidenceRefRecord {
@@ -29,6 +29,38 @@ export class InMemoryPilotStore implements PilotLoopStore {
 
   async load(leadId: string): Promise<PilotLoopState | undefined> { return this.cases.get(leadId); }
   async loadEvidence(envelopeId: string): Promise<EvidenceRefRecord | undefined> { return this.evidence.get(envelopeId); }
+
+  async queue(query: PilotQueueQuery): Promise<PilotQueuePage> {
+    const limit = Math.min(Math.max(query.limit ?? 50, 1), 100);
+    const cursor = decodePilotQueueCursor(query, query.cursor);
+    const rows: PilotQueueItem[] = [];
+    for (const state of this.cases.values()) {
+      if (state.lead.workspaceId !== query.workspaceId) continue;
+      if (!canQueueActor(state, query)) continue;
+      for (const work of state.workItems) {
+        if (query.status && work.status !== query.status) continue;
+        if (query.ownerUserId && state.ownerUserId !== query.ownerUserId) continue;
+        if (query.recipientUserId && work.actor !== query.recipientUserId) continue;
+        if (query.dueBefore && (!work.dueAt || work.dueAt >= query.dueBefore)) continue;
+        if (query.dueAfter && (!work.dueAt || work.dueAt <= query.dueAfter)) continue;
+        rows.push(toQueueItem(state, work));
+      }
+    }
+    rows.sort(compareQueueItems);
+    const page = rows.filter((item) => isAfterPilotQueueCursor(item, cursor)).slice(0, limit);
+    const last = page.at(-1);
+    const hasMore = last !== undefined && rows.some((item) => isAfterPilotQueueCursor(item, {
+      version: 1,
+      scope: JSON.stringify([
+        query.workspaceId, query.actorId, query.actorRole, query.status ?? null,
+        query.dueBefore ?? null, query.dueAfter ?? null, query.ownerUserId ?? null, query.recipientUserId ?? null,
+      ]),
+      dueAt: last.dueAt ?? null,
+      recordedAt: last.recordedAt,
+      id: last.id,
+    }));
+    return { items: page, ...(hasMore && last ? { nextCursor: encodePilotQueueCursor(query, last) } : {}) };
+  }
 
   async loadIngest(key: Pick<CommercialEnvelope, 'workspaceId' | 'connection' | 'externalRecordId'>): Promise<PilotLoopState | undefined> {
     const leadId = this.ingestCommands.get(idempotencyKey(key));
@@ -95,4 +127,24 @@ export class InMemoryPilotStore implements PilotLoopStore {
         metadata: { trust: 'recorded' as const, provenance: 'audit_record' as const, unknown: ['business_truth', 'runtime_causality'] as const },
       }));
   }
+}
+
+function canQueueActor(state: PilotLoopState, query: PilotQueueQuery): boolean {
+  if (query.actorRole === 'admin' || query.actorRole === 'manager') return true;
+  return state.ownerUserId === query.actorId || state.workItems.some((w) => w.actor === query.actorId && ['proposed', 'accepted', 'open', 'awaiting-external'].includes(w.status));
+}
+
+function toQueueItem(state: PilotLoopState, work: PilotLoopState['workItems'][number]): PilotQueueItem {
+  return {
+    id: work.id, leadId: work.leadId, workspaceId: work.workspaceId, action: work.action,
+    responsibleParty: work.responsibleParty, origin: work.origin, status: work.status,
+    completionEvidence: work.completionEvidence, occurredAt: work.occurredAt, dueAt: work.dueAt,
+    recordedAt: work.recordedAt, supersedesWorkId: work.supersedesWorkId, actor: work.actor,
+    lead: { status: state.lead.status, displayName: state.lead.displayName },
+    ...(state.handoffRecipient ? { handoff: { recipientUserId: state.handoffRecipient } } : {}),
+  };
+}
+
+function compareQueueItems(a: PilotQueueItem, b: PilotQueueItem): number {
+  return (a.dueAt ?? '￿').localeCompare(b.dueAt ?? '￿') || a.recordedAt.localeCompare(b.recordedAt) || a.id.localeCompare(b.id);
 }

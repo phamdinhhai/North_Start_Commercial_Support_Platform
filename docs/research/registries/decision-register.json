@@ -1,0 +1,80 @@
+{
+  "schema": "north-star.decision-register.v1",
+  "registry_status": "working_non_canonical",
+  "as_of": "2026-11-13",
+  "authority": "docs/canonical/OPEN_DECISIONS.md",
+  "rule": "This registry mirrors documented decisions and gates; it cannot resolve canonical decisions.",
+  "human_approval_required": true,
+  "decisions": [
+    {
+      "id": "CE-1",
+      "title": "Commercial Event to Commercial State transition table",
+      "status": "OPEN",
+      "impact": "core/state",
+      "current_guardrail": "Keep the lead state graph as an interim hypothesis; reject transitions outside its documented boundary.",
+      "next_evidence": ["transition RFC", "Product and Data review", "Gate #A record"],
+      "approval_required_from": ["Product", "Data"],
+      "source": "docs/canonical/OPEN_DECISIONS.md#CE-1"
+    },
+    {
+      "id": "CE-2",
+      "title": "Commercial Event scope",
+      "status": "OPEN",
+      "impact": "core/event-semantics",
+      "current_guardrail": "Do not generalize inferred CommercialEvent semantics to observed, claimed, imported or operational assertions without an RFC.",
+      "next_evidence": ["scope RFC", "Product and Architecture review", "Gate #A record"],
+      "approval_required_from": ["Product", "Architecture"],
+      "source": "docs/canonical/OPEN_DECISIONS.md#CE-2"
+    },
+    {
+      "id": "MM-1",
+      "title": "Attribution model choice",
+      "status": "OPEN",
+      "impact": "measurement/revenue",
+      "current_guardrail": "Keep attribution UNKNOWN; do not infer revenue credit from source or conversation identity.",
+      "next_evidence": ["validated revenue linkage", "measurement RFC", "Data and Product review"],
+      "approval_required_from": ["Data", "Product"],
+      "source": "docs/canonical/OPEN_DECISIONS.md#MM-1"
+    },
+    {
+      "id": "ID-1",
+      "title": "Identity merge thresholds and undo mechanics",
+      "status": "OPEN",
+      "impact": "identity/access-trust",
+      "current_guardrail": "No automatic merge; Customer and Lead remain distinct and reversible evidence-backed linkage is required.",
+      "next_evidence": ["confidence/evidence policy", "manual approval design", "undo test", "Product, Data and Trust review"],
+      "approval_required_from": ["Product", "Data", "Trust"],
+      "source": "docs/canonical/OPEN_DECISIONS.md#ID-1"
+    },
+    {
+      "id": "ID-2",
+      "title": "External CRM field and schema mapping",
+      "status": "OPEN",
+      "impact": "integration-boundary",
+      "current_guardrail": "CRM adapters cannot own canonical commercial semantics; no production mapping is assumed.",
+      "next_evidence": ["provider feasibility spike", "authority mapping", "mapping RFC"],
+      "approval_required_from": ["Engineering", "Product"],
+      "source": "docs/canonical/OPEN_DECISIONS.md#ID-2"
+    },
+    {
+      "id": "PM-1",
+      "title": "Detailed permissions and credential model",
+      "status": "OPEN",
+      "impact": "access/operations",
+      "current_guardrail": "Enforce only the frozen lead-scoped boundary; do not expand manager, support or mutation privileges.",
+      "next_evidence": ["capability matrix", "credential lifecycle", "security review", "external validation"],
+      "approval_required_from": ["Security", "Product"],
+      "source": "docs/canonical/OPEN_DECISIONS.md#PM-1"
+    },
+    {
+      "id": "LG-1",
+      "title": "North Star vision versus current LVP scope",
+      "status": "OPEN",
+      "impact": "method/sequencing",
+      "current_guardrail": "Keep the five-engine vision separate from the narrow manual/synthetic LVP until a phase gate broadens scope.",
+      "next_evidence": ["learning-gate evidence", "scope review", "Founder/Product phase decision"],
+      "approval_required_from": ["Founder", "Product"],
+      "source": "docs/canonical/OPEN_DECISIONS.md#LG-1"
+    }
+  ]
+}

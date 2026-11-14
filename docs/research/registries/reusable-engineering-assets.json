@@ -1,0 +1,334 @@
+{
+  "schema": "north-star.reusable-engineering-assets.v1",
+  "registry_status": "working_non_canonical",
+  "as_of": "2026-11-14",
+  "authority": "documented research and source-repository references; no adoption implied",
+  "decision_rule": "Candidate assets remain REFERENCE until license, security, compatibility, maintenance and bounded tests support ADAPT or ADOPT.",
+  "assets": [
+    {
+      "id": "asset.meta-node-business-sdk",
+      "name": "facebook-nodejs-business-sdk",
+      "kind": "official-sdk",
+      "provider": "Meta",
+      "url": "https://github.com/facebook/facebook-nodejs-business-sdk",
+      "classification": "official",
+      "version": "v26.0.3",
+      "commit_sha": "246c937eb5c1272ed743db41a944900bee449be9",
+      "license": "Meta Platform License (LICENSE sha 75d6dcd08ab3fcf865314c9b6831fa0a0065aa6b)",
+      "maintenance": "active; release v26.0.3, Node CI, CodeQL and Dependabot signals verified via GitHub API 2026-11-14",
+      "verdict": "REFERENCE",
+      "research_targets": [
+        "Marketing API",
+        "Messenger",
+        "Conversions",
+        "permission and app-review boundary"
+      ],
+      "constraints": [
+        "repository evidence is not live account access or contract verification",
+        "do not import provider semantics into canonical domain"
+      ],
+      "source_url": "https://github.com/meta/facebook-nodejs-business-sdk",
+      "source_type": "repository",
+      "verified_date": "2026-11-14"
+    },
+    {
+      "id": "asset.google-skills",
+      "name": "google/skills",
+      "kind": "official-skills-repository",
+      "provider": "Google Ads / Google Data Manager",
+      "url": "https://github.com/google/skills",
+      "classification": "official",
+      "version": "main@67c4dbc8ff6313ef117d938e53bb21315fc281ae",
+      "commit_sha": "67c4dbc8ff6313ef117d938e53bb21315fc281ae",
+      "license": "Apache-2.0",
+      "maintenance": "active; Google-maintained repository verified via GitHub API 2026-11-14 (contains skills/ads/data-manager-api-setup, event-ingestion, audience-ingestion)",
+      "verdict": "REFERENCE",
+      "research_targets": [
+        "Data Manager API setup guidance",
+        "Event ingestion & call conversions",
+        "Audience ingestion & diagnostics"
+      ],
+      "constraints": [
+        "documentation and agent-skill reference only; never executed or installed",
+        "not live-verified or contract-tested"
+      ],
+      "source_url": "https://github.com/google/skills",
+      "source_type": "repository",
+      "verified_date": "2026-11-14"
+    },
+    {
+      "id": "asset.hubspot-node-sdk",
+      "name": "hubspot-api-nodejs",
+      "kind": "official-sdk",
+      "provider": "HubSpot",
+      "url": "https://github.com/HubSpot/hubspot-api-nodejs",
+      "classification": "official",
+      "version": "14.1.3 (tag v1.0.0-beta on master)",
+      "commit_sha": "568703577905e19a0c2708e1beb06bdc016feb9e",
+      "license": "Apache-2.0 (LICENSE sha 261eeb9e9f8b2b4b0d119366dda99c6fd7d35c64)",
+      "maintenance": "active release and test/lint/docs workflow signals verified via GitHub API 2026-11-14",
+      "verdict": "REFERENCE",
+      "research_targets": [
+        "CRM object APIs",
+        "OAuth",
+        "rate/error handling",
+        "field authority mapping"
+      ],
+      "constraints": [
+        "ID-2 remains open",
+        "no bidirectional sync or inherited CRM semantics"
+      ],
+      "source_url": "https://github.com/HubSpot/hubspot-api-nodejs",
+      "source_type": "repository",
+      "verified_date": "2026-11-14"
+    },
+    {
+      "id": "asset.jsforce",
+      "name": "jsforce",
+      "kind": "library",
+      "provider": "Salesforce",
+      "url": "https://github.com/jsforce/jsforce",
+      "classification": "community-library",
+      "version": "3.13.1 (tag v2.0.0-beta.9 on main)",
+      "commit_sha": "d0837cb343ddd44bcf59d8b0cee02175e2ba8c63",
+      "license": "MIT (LICENSE sha 6d0ad1b9b13867e134e063ef2462fb85b2efb48b)",
+      "maintenance": "active release/test/dependabot signals verified via GitHub API 2026-11-14",
+      "verdict": "REFERENCE",
+      "research_targets": [
+        "OAuth",
+        "REST/query",
+        "retry and limits",
+        "field mapping"
+      ],
+      "constraints": [
+        "no Salesforce tenant evidence",
+        "ID-2 and field authority approval required"
+      ],
+      "source_url": "https://github.com/jsforce/jsforce",
+      "source_type": "repository",
+      "verified_date": "2026-11-14"
+    },
+    {
+      "id": "asset.sapo-mcp",
+      "name": "Sapo-MCP",
+      "kind": "repository",
+      "provider": "Sapo",
+      "url": "https://github.com/nguyennguyenit/Sapo-MCP",
+      "classification": "community-reference",
+      "version": "v0.7.1",
+      "commit_sha": "65a7af8c3b1d5fd2702d834d17fb848a9e239da5",
+      "license": "MIT",
+      "maintenance": "active CI (test/release/canary workflows) verified via GitHub API 2026-11-14; pre-1.0 single-shop Private App model",
+      "verdict": "REFERENCE",
+      "research_targets": [
+        "POS/order schemas",
+        "credential mode",
+        "write gating",
+        "tenant suitability"
+      ],
+      "constraints": [
+        "single-shop Private App assumptions are not SaaS OAuth architecture",
+        "tests were not executed here"
+      ],
+      "source_url": "https://github.com/nguyennguyenit/Sapo-MCP",
+      "source_type": "repository",
+      "verified_date": "2026-11-14"
+    },
+    {
+      "id": "asset.nango",
+      "name": "Nango",
+      "kind": "framework",
+      "provider": "community",
+      "url": "https://github.com/NangoHQ/nango",
+      "classification": "architecture-reference",
+      "version": "v0.72.4",
+      "commit_sha": "b6a9ee10e6aaa81f42506436f9d2287ead8f7561",
+      "license": "ELv2 (LICENSE sha 682d649ce7e27ba96a0d48f43a698b2ec1196e3e)",
+      "maintenance": "active release/deploy/CLI verification verified via GitHub API 2026-11-14",
+      "verdict": "REFERENCE",
+      "research_targets": [
+        "OAuth lifecycle",
+        "credential isolation",
+        "syncs",
+        "webhooks"
+      ],
+      "constraints": [
+        "ELv2 hosted-service restrictions and embedding fit require separate review",
+        "no live API behavior verified"
+      ],
+      "source_url": "https://github.com/NangoHQ/nango",
+      "source_type": "repository",
+      "verified_date": "2026-11-14"
+    },
+    {
+      "id": "asset.chatwoot",
+      "name": "Chatwoot",
+      "kind": "application",
+      "provider": "community",
+      "url": "https://github.com/chatwoot/chatwoot",
+      "classification": "workflow-reference",
+      "version": "v4.19.1",
+      "commit_sha": "1ef1d2b45ae0a17a35c5f1bd055e4ddf04dadabf",
+      "license": "MIT outside enterprise/ (LICENSE sha d0425a707ab6f0cf06c9aa3c08e8edf5c64adc61)",
+      "maintenance": "active tests/security/frontend workflow signals verified via GitHub API 2026-11-14",
+      "verdict": "REFERENCE",
+      "research_targets": [
+        "conversation/inbox",
+        "assignment",
+        "handoff",
+        "webhooks"
+      ],
+      "constraints": [
+        "do not adopt enterprise semantics or replace North Star canonical model"
+      ],
+      "source_url": "https://github.com/chatwoot/chatwoot",
+      "source_type": "repository",
+      "verified_date": "2026-11-14"
+    },
+    {
+      "id": "asset.pancake-pos-mcp",
+      "name": "pancake-pos-mcp",
+      "kind": "repository",
+      "provider": "Pancake POS",
+      "url": "https://github.com/nguyennguyenit/pancake-pos-mcp",
+      "classification": "community-reference",
+      "commit_sha": "c9a67faf0a58f48aaf24ef702455ddaac84054a5",
+      "verdict": "REFERENCE",
+      "research_targets": [
+        "API client architecture",
+        "MCP tools",
+        "order/customer/inventory schemas",
+        "credential handling",
+        "tests"
+      ],
+      "constraints": [
+        "audit against current official API",
+        "no production reuse without security review"
+      ],
+      "source_url": "https://github.com/nguyennguyenit/pancake-pos-mcp",
+      "source_type": "repository",
+      "verified_date": "2026-11-14",
+      "license": "MIT",
+      "maintenance": "TypeScript/Bun/Vitest source and tests verified via GitHub API 2026-11-14; no GitHub Actions workflows"
+    },
+    {
+      "id": "asset.pancake-mcp-server",
+      "name": "pancake-mcp-server",
+      "kind": "repository",
+      "provider": "Pancake",
+      "url": "https://github.com/lynguyenvu/pancake-mcp-server",
+      "classification": "community-reference",
+      "commit_sha": "1e6678bad5b8602339751b523875c9d161f2db38",
+      "verdict": "REFERENCE",
+      "research_targets": [
+        "conversation/message/media/order wrappers",
+        "tool boundaries",
+        "error handling"
+      ],
+      "constraints": [
+        "compare every endpoint with current OpenAPI",
+        "no root LICENSE file in repo or pyproject.toml; license remains UNKNOWN — do not copy code"
+      ],
+      "source_url": "https://github.com/lynguyenvu/pancake-mcp-server",
+      "source_type": "repository",
+      "verified_date": "2026-11-14",
+      "license": "UNKNOWN (no root LICENSE or pyproject.toml license metadata)",
+      "maintenance": "Python/FastMCP source and pytest tests verified via GitHub API 2026-11-14; pushed 2026-03-08; no GitHub Actions workflows"
+    },
+    {
+      "id": "asset.airbyte",
+      "name": "Airbyte",
+      "kind": "framework",
+      "provider": "community",
+      "url": "https://github.com/airbytehq/airbyte",
+      "classification": "architecture-reference",
+      "version": "v2.0.0",
+      "commit_sha": "54fa546e7cfeb5c4124c3a5958574ce093288c15",
+      "verdict": "REFERENCE",
+      "research_targets": [
+        "incremental sync",
+        "state/cursor",
+        "backfill",
+        "schema drift",
+        "connector testing"
+      ],
+      "constraints": [
+        "ELv2 restricts hosted multi-tenant service use",
+        "do not add a connector framework prematurely"
+      ],
+      "source_url": "https://github.com/airbytehq/airbyte",
+      "source_type": "repository",
+      "verified_date": "2026-11-14",
+      "license": "ELv2 (LICENSE sha 682d649ce7e27ba96a0d48f43a698b2ec1196e3e)",
+      "maintenance": "active development verified via GitHub API 2026-11-14"
+    },
+    {
+      "id": "asset.open-telemetry-js",
+      "name": "OpenTelemetry JS",
+      "kind": "library",
+      "provider": "community-standard",
+      "url": "https://github.com/open-telemetry/opentelemetry-js",
+      "classification": "observability-reference",
+      "version": "v3.1.1",
+      "commit_sha": "5a78e6aef1fcbbe8306d982c0b3f0f1ea57eb032",
+      "verdict": "REFERENCE",
+      "research_targets": [
+        "tracing and telemetry"
+      ],
+      "constraints": [
+        "keep application telemetry distinct from commercial evidence and business audit"
+      ],
+      "source_url": "https://github.com/open-telemetry/opentelemetry-js",
+      "source_type": "repository",
+      "verified_date": "2026-11-14",
+      "license": "Apache-2.0",
+      "maintenance": "active development verified via GitHub API 2026-11-14"
+    },
+    {
+      "id": "asset.pgbackrest",
+      "name": "pgBackRest",
+      "kind": "operations-tool",
+      "provider": "community",
+      "url": "https://github.com/pgbackrest/pgbackrest",
+      "classification": "backup-reference",
+      "version": "release/2.60.0",
+      "commit_sha": "ac13a75b8300a9516bd820160e9731f27abe767a",
+      "verdict": "REFERENCE",
+      "research_targets": [
+        "encrypted logical backups",
+        "WAL archiving",
+        "PITR"
+      ],
+      "constraints": [
+        "current baseline is a dry-run/disposable-database helper, not production backup readiness"
+      ],
+      "source_url": "https://github.com/pgbackrest/pgbackrest",
+      "source_type": "repository",
+      "verified_date": "2026-11-14",
+      "license": "MIT (LICENSE sha 4d59fcfd4306f29bdc5eb391907dd1036fd25265)",
+      "maintenance": "active development verified via GitHub API 2026-11-14"
+    },
+    {
+      "id": "asset.testcontainers-node",
+      "name": "Testcontainers Node",
+      "kind": "test-library",
+      "provider": "community",
+      "url": "https://github.com/testcontainers/testcontainers-node",
+      "classification": "testing-candidate",
+      "version": "v12.2.1",
+      "commit_sha": "c79a5a56bcc824e207ac243207bd83e5b0459dd3",
+      "verdict": "REFERENCE",
+      "research_targets": [
+        "isolated PostgreSQL integration tests"
+      ],
+      "constraints": [
+        "validate CI runtime and reproducibility before adoption"
+      ],
+      "source_url": "https://github.com/testcontainers/testcontainers-node",
+      "source_type": "repository",
+      "verified_date": "2026-11-14",
+      "license": "MIT",
+      "maintenance": "active development verified via GitHub API 2026-11-14"
+    }
+  ]
+}

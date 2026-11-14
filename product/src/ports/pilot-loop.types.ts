@@ -35,11 +35,113 @@ export interface WorkItem {
   readonly occurredAt: string;
   readonly dueAt?: string;
   readonly evidenceRef?: string;
+  /** Human declaration text required for declared completion; never inferred from a reason. */
+  readonly declaration?: string;
+  /** Explicit confirmation of the declaration, retained as provenance. */
+  readonly confirmed?: boolean;
   readonly recordedAt: string;
   /** Set when this item supersedes an earlier one (reschedule/cancel) — no stale reminders (I-05). */
   readonly supersedesWorkId?: string;
   readonly actor: string;
   readonly reason?: string;
+}
+
+export interface PilotQueueQuery {
+  readonly workspaceId: string;
+  readonly actorId: string;
+  readonly actorRole: 'admin' | 'manager' | 'sales' | 'viewer';
+  readonly status?: WorkStatus;
+  readonly dueBefore?: string;
+  readonly dueAfter?: string;
+  readonly ownerUserId?: string;
+  readonly recipientUserId?: string;
+  /** Opaque cursor returned by the previous page. */
+  readonly cursor?: string;
+  readonly limit?: number;
+}
+
+/** Redacted operator projection: no raw payloads, evidence contents, or evidence pointers. */
+export interface PilotQueueItem {
+  readonly id: string;
+  readonly leadId: LeadId;
+  readonly workspaceId: string;
+  readonly action: string;
+  readonly responsibleParty: ResponsibleParty;
+  readonly origin: WorkOrigin;
+  readonly status: WorkStatus;
+  readonly completionEvidence: CompletionEvidence;
+  readonly occurredAt: string;
+  readonly dueAt?: string;
+  readonly recordedAt: string;
+  readonly supersedesWorkId?: string;
+  readonly actor: string;
+  readonly lead: { readonly status: Lead['status']; readonly displayName: string };
+  readonly handoff?: { readonly recipientUserId: string };
+}
+
+export interface PilotQueuePage {
+  readonly items: readonly PilotQueueItem[];
+  readonly nextCursor?: string;
+}
+
+export interface PilotQueueCursor {
+  readonly version: 1;
+  readonly scope: string;
+  readonly dueAt: string | null;
+  readonly recordedAt: string;
+  readonly id: string;
+}
+
+export function queueCursorScope(query: PilotQueueQuery): string {
+  return JSON.stringify([
+    query.workspaceId,
+    query.actorId,
+    query.actorRole,
+    query.status ?? null,
+    query.dueBefore ?? null,
+    query.dueAfter ?? null,
+    query.ownerUserId ?? null,
+    query.recipientUserId ?? null,
+  ]);
+}
+
+export function encodePilotQueueCursor(query: PilotQueueQuery, item: PilotQueueItem): string {
+  return Buffer.from(JSON.stringify({
+    version: 1,
+    scope: queueCursorScope(query),
+    dueAt: item.dueAt ?? null,
+    recordedAt: item.recordedAt,
+    id: item.id,
+  } satisfies PilotQueueCursor), 'utf8').toString('base64url');
+}
+
+export function decodePilotQueueCursor(query: PilotQueueQuery, value?: string): PilotQueueCursor | undefined {
+  if (!value) return undefined;
+  try {
+    const decoded = JSON.parse(Buffer.from(value, 'base64url').toString('utf8')) as Partial<PilotQueueCursor>;
+    if (decoded.version !== 1 || decoded.scope !== queueCursorScope(query)
+      || (decoded.dueAt !== null && typeof decoded.dueAt !== 'string')
+      || typeof decoded.recordedAt !== 'string' || typeof decoded.id !== 'string' || !decoded.id) {
+      throw new Error('cursor scope mismatch');
+    }
+    return decoded as PilotQueueCursor;
+  } catch {
+    throw new PilotDomainError('INPUT_INVALID', 400, 'cursor is invalid or does not match the requested queue');
+  }
+}
+
+export function isAfterPilotQueueCursor(item: PilotQueueItem, cursor?: PilotQueueCursor): boolean {
+  if (!cursor) return true;
+  const dueOrder = compareQueueDue(item.dueAt ?? null, cursor.dueAt);
+  if (dueOrder !== 0) return dueOrder > 0;
+  return item.recordedAt > cursor.recordedAt || (item.recordedAt === cursor.recordedAt && item.id > cursor.id);
+}
+
+export function compareQueueDue(left: string | null, right: string | null): number {
+  if (left === right) return 0;
+  if (left === null) return 1;
+  if (right === null) return -1;
+  return left.localeCompare(right);
 }
 
 export interface PilotLoopState {

@@ -1,0 +1,232 @@
+{
+  "schema": "north-star.evidence-capability-register.v1",
+  "registry_status": "working_non_canonical",
+  "as_of": "2026-11-14",
+  "authority": "documented research only",
+  "state_vocabulary": [
+    "DISCOVERED",
+    "DOCUMENTED",
+    "CONTRACT_TESTED",
+    "LIVE_VERIFIED",
+    "RELEASE_APPROVED",
+    "UNKNOWN",
+    "PARTIAL",
+    "FLAG_OFF"
+  ],
+  "rule": "Family or documentation coverage is not an endpoint contract. Missing credentials, incomplete capture, or absent live evidence remains UNKNOWN/PARTIAL and never becomes release approval.",
+  "capabilities": [
+    {
+      "id": "google.data-manager.call-conversions",
+      "provider": "Google Ads / Google Data Manager",
+      "api_family": "Google Data Manager API v1.9 / call conversions",
+      "operations": [
+        "conversion upload",
+        "enhanced leads",
+        "row-level diagnostics"
+      ],
+      "documented_state": "DOCUMENTED",
+      "contract_tested": "UNKNOWN",
+      "live_state": "UNKNOWN",
+      "release_state": "UNKNOWN",
+      "evidence": "docs/reports/decision-demand-2026-11-13/research/ads-data-manager-report.md#google-ads-data-manager-taxonomy-and-supplied-evidence",
+      "known_observations": [
+        "Direct HTTP 200 verification on 2026-11-14 confirmed Google Data Manager API release v1.9 dated 2026-11-04 for Google Ads call conversions.",
+        "Official REST v1 schema (events/ingest.md.txt and requestStatus/retrieve.md.txt) defines Event.callInfo (CallInfo.startTimestamp), AdIdentifiers.leadId, and recordIndices on ErrorCount and WarningCount.",
+        "Official repository google/skills (Apache-2.0, HEAD commit 67c4dbc8ff6313ef117d938e53bb21315fc281ae) contains setup, event-ingestion and audience-ingestion skills."
+      ],
+      "unknowns": [
+        "credentials and live behavior",
+        "contract-tested request and response fixture against an active Google Ads destination"
+      ],
+      "production_rule": "Official documentation is DOCUMENTED only; keep contract_tested, live_state and release_state UNKNOWN until credential-bound verification passes.",
+      "last_documented": "2026-11-14",
+      "source_url": "https://developers.google.com/data-manager/api/reference",
+      "source_type": "official-documentation-verified-http-200",
+      "verified_date": "2026-11-14",
+      "retrieval_timestamp": "2026-11-14T05:49:51Z",
+      "access_status": "HTTP_200_VERIFIED",
+      "field_evidence": {
+        "api_version": "v1.9",
+        "source_date": "2026-11-04",
+        "fields": [
+          "Event.call_info",
+          "Event.callInfo",
+          "CallInfo.startTimestamp",
+          "AdIdentifiers.lead_id",
+          "AdIdentifiers.leadId",
+          "record_indices",
+          "recordIndices"
+        ],
+        "source_urls": [
+          "https://developers.google.com/data-manager/api/reference",
+          "https://developers.google.com/data-manager/api/reference/rest/v1/events/ingest.md.txt",
+          "https://developers.google.com/data-manager/api/reference/rest/v1/requestStatus/retrieve.md.txt",
+          "https://github.com/google/skills",
+          "https://github.com/google/skills/tree/main/skills/ads/data-manager-api-setup",
+          "https://github.com/google/skills/tree/main/skills/ads/data-manager-api-event-ingestion",
+          "https://github.com/google/skills/tree/main/skills/ads/data-manager-api-audience-ingestion"
+        ],
+        "google_skills_commit_sha": "67c4dbc8ff6313ef117d938e53bb21315fc281ae",
+        "status": "DOCUMENTED_OFFICIAL_SOURCE_HTTP_200"
+      }
+    },
+    {
+      "id": "pancake.chat.read",
+      "provider": "Pancake",
+      "api_family": "Pancake Chat / Conversations",
+      "operations": [
+        "read conversations",
+        "read messages",
+        "read customer fields"
+      ],
+      "documented_state": "DOCUMENTED",
+      "contract_tested": "UNKNOWN",
+      "live_state": "PARTIAL",
+      "release_state": "FLAG_OFF",
+      "evidence": "docs/implementation-plan/spike/pancake-verdict.md",
+      "known_observations": [
+        "authenticated internal dashboard reads returned 200 in a bounded sample",
+        "sample pagination did not establish termination or stable cursor semantics"
+      ],
+      "unknowns": [
+        "public API credential and permissions",
+        "complete schema and channel coverage",
+        "rate limits",
+        "replay/version/idempotency semantics"
+      ],
+      "production_rule": "Do not use private dashboard endpoints or cookies as a production adapter contract.",
+      "last_documented": "2026-11-11",
+      "source_url": "docs/implementation-plan/spike/pancake-verdict.md",
+      "source_type": "official-or-repository-documentation",
+      "verified_date": "2026-11-11"
+    },
+    {
+      "id": "pancake.pos.webhooks",
+      "provider": "Pancake POS",
+      "api_family": "POS webhook delivery",
+      "operations": [
+        "JSON delivery",
+        "retry",
+        "recovery by update time"
+      ],
+      "documented_state": "DOCUMENTED",
+      "contract_tested": "UNKNOWN",
+      "live_state": "UNKNOWN",
+      "release_state": "FLAG_OFF",
+      "evidence": "https://pos.pancake.biz/developers/api/en/webhooks",
+      "known_observations": [
+        "Public HTTPS receiver and JSON POST are documented",
+        "documented retries are approximately 10 and 30 minutes",
+        "configured custom headers can carry a secret",
+        "deduplication uses record ID and update timestamp"
+      ],
+      "unknowns": [
+        "complete Conversations webhook schema",
+        "formal signature scheme",
+        "current account eligibility",
+        "live receiver behavior"
+      ],
+      "production_rule": "Documentation is contract evidence only; keep PH4 OFF until credential-bound tests and Q-04 review.",
+      "last_documented": "2026-11-13",
+      "source_url": "https://pos.pancake.biz/developers/api/en/webhooks",
+      "source_type": "official-or-repository-documentation",
+      "verified_date": "2026-11-13"
+    },
+    {
+      "id": "pancake.webhooks",
+      "provider": "Pancake",
+      "api_family": "Webhook delivery",
+      "operations": [
+        "subscription",
+        "delivery",
+        "verification",
+        "retry",
+        "replay"
+      ],
+      "documented_state": "DISCOVERED",
+      "contract_tested": "UNKNOWN",
+      "live_state": "UNKNOWN",
+      "release_state": "FLAG_OFF",
+      "evidence": "docs/external-apis/pancake/api-knowledge-base-2026-09-10/REMAINING_GAPS.md",
+      "unknowns": [
+        "event names",
+        "raw payload schema",
+        "signature",
+        "retry/order/replay behavior",
+        "account enablement"
+      ],
+      "production_rule": "Realtime sync remains deferred until Q-04 has a separate evidence-backed verdict.",
+      "last_documented": "2026-09-10",
+      "source_url": "docs/external-apis/pancake/api-knowledge-base-2026-09-10/REMAINING_GAPS.md",
+      "source_type": "official-or-repository-documentation",
+      "verified_date": "2026-09-10"
+    },
+    {
+      "id": "meta.catalog",
+      "provider": "Meta",
+      "api_family": "Graph, Messenger, Marketing and Conversions surfaces",
+      "operations": [
+        "family inventory",
+        "selected endpoint research"
+      ],
+      "documented_state": "DOCUMENTED",
+      "contract_tested": "UNKNOWN",
+      "live_state": "UNKNOWN",
+      "release_state": "UNKNOWN",
+      "evidence": "docs/external-apis/pancake/api-knowledge-base-2026-09-10/SCOPE_AND_COMPLETENESS.md",
+      "known_observations": [
+        "catalog-level coverage is documented",
+        "endpoint-level completeness is explicitly not claimed"
+      ],
+      "unknowns": [
+        "app review",
+        "asset permissions",
+        "version-specific method/path/schema",
+        "live credentials"
+      ],
+      "production_rule": "Family_verified is not an API contract; verify exact method, path, permissions and schema before implementation.",
+      "last_documented": "2026-09-10",
+      "source_url": "docs/external-apis/pancake/api-knowledge-base-2026-09-10/SCOPE_AND_COMPLETENESS.md",
+      "source_type": "official-or-repository-documentation",
+      "verified_date": "2026-09-10"
+    },
+    {
+      "id": "tiktok.catalog",
+      "provider": "TikTok",
+      "api_family": "Business, Shop, Messaging, GO and related surfaces",
+      "operations": [
+        "family inventory",
+        "selected endpoint research"
+      ],
+      "documented_state": "DOCUMENTED",
+      "contract_tested": "UNKNOWN",
+      "live_state": "UNKNOWN",
+      "release_state": "UNKNOWN",
+      "evidence": "docs/external-apis/pancake/api-knowledge-base-2026-09-10/SCOPE_AND_COMPLETENESS.md",
+      "known_observations": [
+        "catalog-level coverage is documented",
+        "market/version/eligibility differences remain"
+      ],
+      "unknowns": [
+        "endpoint version",
+        "market and review eligibility",
+        "live credential behavior",
+        "rate and schema drift"
+      ],
+      "production_rule": "Check each endpoint immediately before build and retain verification evidence.",
+      "last_documented": "2026-09-10",
+      "source_url": "docs/external-apis/pancake/api-knowledge-base-2026-09-10/SCOPE_AND_COMPLETENESS.md",
+      "source_type": "official-or-repository-documentation",
+      "verified_date": "2026-09-10"
+    }
+  ],
+  "catalog_snapshot": {
+    "source": "docs/external-apis/pancake/api-knowledge-base-2026-09-10/machine_readable/integrity_report.json",
+    "catalog_entries": 497,
+    "endpoint_verified_rows": 83,
+    "family_verified_rows": 405,
+    "official_doc_discovered_rows": 4,
+    "legacy_deprecated_rows": 5,
+    "interpretation": "Inventory counts are source coverage facts, not proof of runtime availability or release readiness."
+  }
+}

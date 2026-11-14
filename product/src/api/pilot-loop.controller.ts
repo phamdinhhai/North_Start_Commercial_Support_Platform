@@ -5,6 +5,7 @@ import {
   Body,
   Headers,
   Param,
+  Query,
   HttpCode,
   HttpException,
   HttpStatus,
@@ -30,6 +31,7 @@ import {
   type BoundaryError,
 } from './pilot-validation';
 import type { LeadId } from '../domain/lead/lead';
+import type { PilotQueueQuery, WorkStatus } from '../ports/pilot-loop.types';
 
 /**
  * P0 pilot HTTP surface — education B2C loop (T3-03/T3-04 wiring).
@@ -72,8 +74,10 @@ function toHttpException(err: unknown): HttpException {
   if (err instanceof HttpException) {
     return err;
   }
-  // Unexpected → 500 (fail closed) nhưng phải là lỗi thật, không phải guardrail.
-  return new HttpException({ code: 'INTERNAL', message: err instanceof Error ? err.message : 'internal error' }, HttpStatus.INTERNAL_SERVER_ERROR);
+  // Unexpected failures are intentionally opaque at the HTTP boundary. Keep the stable
+  // machine-readable code/status, but never reflect exception text (it may contain SQL,
+  // paths, credentials, or other implementation details).
+  return new HttpException({ code: 'INTERNAL', message: 'internal server error' }, HttpStatus.INTERNAL_SERVER_ERROR);
 }
 
 /** Validate a request body at the boundary; returns the typed payload or throws 400. */
@@ -114,6 +118,35 @@ export class PilotLoopController {
     } catch (err) {
       throw toHttpException(err);
     }
+  }
+
+  @Get('queue')
+  async queue(
+    @Headers() headers: Record<string, string | undefined>,
+    @Query() query: { status?: string; dueBefore?: string; dueAfter?: string; ownerUserId?: string; recipientUserId?: string; cursor?: string; limit?: string },
+  ) {
+    try {
+      const ctx = this.authCtx(headers);
+      const limit = query.limit === undefined ? undefined : Number(query.limit);
+      if (limit !== undefined && (!Number.isInteger(limit) || limit < 1 || limit > 100)) {
+        throw new HttpException({ code: 'INPUT_INVALID', message: 'limit must be an integer from 1 to 100' }, 400);
+      }
+      const statuses: WorkStatus[] = ['proposed', 'accepted', 'open', 'completed', 'cancelled', 'rescheduled', 'awaiting-external'];
+      if (query.status !== undefined && !statuses.includes(query.status as WorkStatus)) {
+        throw new HttpException({ code: 'INPUT_INVALID', message: 'status is invalid' }, 400);
+      }
+      const page = await this.loop.queue({
+        workspaceId: ctx.workspaceId, actorId: ctx.userId, actorRole: ctx.role,
+        ...(query.status !== undefined && { status: query.status as WorkStatus }),
+        ...(query.dueBefore !== undefined && { dueBefore: query.dueBefore }),
+        ...(query.dueAfter !== undefined && { dueAfter: query.dueAfter }),
+        ...(query.ownerUserId !== undefined && { ownerUserId: query.ownerUserId }),
+        ...(query.recipientUserId !== undefined && { recipientUserId: query.recipientUserId }),
+        ...(query.cursor !== undefined && { cursor: query.cursor }),
+        ...(limit !== undefined && { limit }),
+      });
+      return page;
+    } catch (err) { throw toHttpException(err); }
   }
 
   @Get('leads/:leadId')
@@ -196,7 +229,7 @@ export class PilotLoopController {
   async complete(
     @Headers() headers: Record<string, string | undefined>,
     @Param('leadId') leadId: string,
-    @Body() body: { workId: string; evidence: 'observed' | 'declared' | 'inferred' | 'absent' | 'conflicted'; evidenceRef?: string; occurredAt?: string; reason?: string },
+    @Body() body: { workId: string; evidence: 'observed' | 'declared' | 'inferred' | 'absent' | 'conflicted'; evidenceRef?: string; occurredAt?: string; reason?: string; declaration?: string; confirmed?: boolean },
   ) {
     try {
       const ctx = this.authCtx(headers);
@@ -205,7 +238,7 @@ export class PilotLoopController {
       await this.authorizedView(ctx, leadId);
       const state = await this.loop.completeWork(leadId as LeadId, { ...body, actor: ctx.userId });
       const w = state.workItems.find((x) => x.id === body.workId);
-      return { workStatus: w?.status, evidence: w?.completionEvidence, occurredAt: w?.occurredAt, evidenceRef: w?.evidenceRef };
+      return { workStatus: w?.status, evidence: w?.completionEvidence, occurredAt: w?.occurredAt, evidenceRef: w?.evidenceRef, declaration: w?.declaration, confirmed: w?.confirmed };
     } catch (err) {
       throw toHttpException(err);
     }

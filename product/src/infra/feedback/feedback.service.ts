@@ -1,31 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import type { QueryResultRow } from 'pg';
 import { PostgresService } from '../postgres/postgres.service';
+import type { FeedbackServicePort, Feedback, SubmitFeedbackInput } from '../../ports/feedback';
+export type { Feedback, SubmitFeedbackInput } from '../../ports/feedback';
 
 /**
  * Structured feedback (R-23, C-08) — tách khỏi telemetry (R-21/R-22).
  * Feedback là product signal, không phải demand proof; gắn workspace + optional lead + actor.
  */
-export interface Feedback {
-  readonly id: string;
-  readonly workspaceId: string;
-  readonly leadId: string | null;
-  readonly actor: string;
-  readonly rating: number | null;
-  readonly body: string | null;
-  readonly context: Record<string, unknown>;
-  readonly createdAt: string;
-}
-
-export interface SubmitFeedbackInput {
-  workspaceId: string;
-  actor: string;
-  leadId?: string;
-  rating?: number;
-  body?: string;
-  context?: Record<string, unknown>;
-}
-
 interface FeedbackDbRow extends QueryResultRow {
   id: string;
   workspace_id: string;
@@ -40,7 +22,7 @@ interface FeedbackDbRow extends QueryResultRow {
 const COLUMNS = 'id, workspace_id, lead_id, actor, rating, body, context, created_at';
 
 @Injectable()
-export class FeedbackService {
+export class FeedbackService implements FeedbackServicePort {
   constructor(private readonly db: PostgresService) {}
 
   async submit(input: SubmitFeedbackInput): Promise<Feedback> {

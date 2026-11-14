@@ -12,6 +12,12 @@ import { PgPilotStore } from '../infra/postgres/pg-pilot.store';
 import { InMemoryPilotStore } from '../infra/pilot/in-memory-pilot.store';
 import { PILOT_STORE, type PilotLoopStore } from '../ports/pilot-loop.store';
 import { resolvePilotStoreMode } from '../infra/postgres/postgres.service';
+import { FeedbackTelemetryController } from '../api/feedback-telemetry.controller';
+import { FeedbackService } from '../infra/feedback/feedback.service';
+import { TelemetryService } from '../infra/telemetry/telemetry.service';
+import { FEEDBACK_SERVICE } from '../ports/feedback';
+import { TELEMETRY_SERVICE } from '../ports/telemetry';
+import { DURABILITY } from '../ports/durability';
 
 /**
  * P0 pilot loop module (PH3 T3-03/T3-04 wiring + education B2C candidate flow).
@@ -22,8 +28,16 @@ import { resolvePilotStoreMode } from '../infra/postgres/postgres.service';
  */
 @Module({
   imports: [PostgresModule],
-  controllers: [PilotLoopController],
+  controllers: [PilotLoopController, FeedbackTelemetryController],
   providers: [
+    FeedbackService,
+    TelemetryService,
+    { provide: FEEDBACK_SERVICE, useExisting: FeedbackService },
+    { provide: TELEMETRY_SERVICE, useExisting: TelemetryService },
+    {
+      provide: DURABILITY,
+      useFactory: () => ({ durable: resolvePilotStoreMode() === 'postgres' }),
+    },
     AuthService,
     RbacService,
     { provide: AUTH_CONTEXT_RESOLVER, useExisting: AuthService },

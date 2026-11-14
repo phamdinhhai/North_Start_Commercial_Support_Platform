@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { UnauthorizedException, NotFoundException, ForbiddenException } from '@nestjs/common';
+import { PilotDomainError } from '../ports/pilot-loop.types';
 import { PilotLoopController } from './pilot-loop.controller';
 import { AuthService } from '../infra/auth/auth.service';
 import { RbacService } from '../infra/rbac/rbac.service';
@@ -54,6 +55,68 @@ describe('PilotLoopController — auth & RBAC wiring (T3-03/T3-04 unit-level; LI
     await expect(ctrl.getLead(foreign, res.leadId)).rejects.toThrow(NotFoundException);
   });
 
+  it('scopes history and evidence pointers at the HTTP boundary across workspaces', async () => {
+    const own = await ctrl.intake(salesA, { displayName: 'own', utterance: 'u', speaker: 'customer', connection: 'c', externalRecordId: 'r-scope-own' });
+    const other = await ctrl.intake(foreign, { displayName: 'other', utterance: 'u', speaker: 'customer', connection: 'c', externalRecordId: 'r-scope-other' });
+
+    // A foreign caller cannot turn a known lead id into a history oracle.
+    await expect(ctrl.auditHistory(foreign, own.leadId)).rejects.toThrow(NotFoundException);
+
+    const loop = (ctrl as unknown as { loop: PilotLoopService }).loop;
+    const foreignEnvelopeId = (await loop.get(other.leadId))?.sourceEnvelopeId;
+    expect(foreignEnvelopeId).toBeDefined();
+
+    const handed = await ctrl.handoff(salesA, own.leadId, {
+      context: 'c',
+      proposedAction: 'gọi lại',
+      responsibleParty: 'internal',
+      origin: 'explicit-request',
+      recipientUserId: 'marketing-a',
+    });
+    await ctrl.accept(salesA, own.leadId, { workId: handed.workItemId, reason: 'nhận' });
+
+    await expect(ctrl.complete(salesA, own.leadId, {
+      workId: handed.workItemId,
+      evidence: 'observed',
+      evidenceRef: foreignEnvelopeId,
+    })).rejects.toMatchObject({ status: 403, response: { code: 'EVIDENCE_OUT_OF_SCOPE' } });
+
+    // A rejected cross-tenant pointer cannot leave a projection or audit artifact behind.
+    const view = await ctrl.getLead(salesA, own.leadId);
+    expect(view.workItems.find((item) => item.id === handed.workItemId)?.status).toBe('accepted');
+    expect((await ctrl.auditHistory(salesA, own.leadId)).history.map((entry) => entry.eventType)).not.toContain('work_completed');
+  });
+
+  it('maps one concurrent mutation winner and one stale CAS conflict to HTTP 409', async () => {
+    const res = await ctrl.intake(salesA, { displayName: 'cas', utterance: 'u', speaker: 'customer', connection: 'c', externalRecordId: 'r-http-cas' });
+    const handed = await ctrl.handoff(salesA, res.leadId, {
+      context: 'c',
+      proposedAction: 'gọi lại',
+      responsibleParty: 'internal',
+      origin: 'explicit-request',
+      recipientUserId: 'marketing-a',
+    });
+    await ctrl.accept(salesA, res.leadId, { workId: handed.workItemId, reason: 'nhận' });
+
+    const results = await Promise.allSettled([
+      ctrl.advance(salesA, res.leadId, { to: 'Contacting', reason: 'winner candidate' }),
+      ctrl.advance(salesA, res.leadId, { to: 'Contacting', reason: 'stale candidate' }),
+    ]);
+    expect(results.filter((result) => result.status === 'fulfilled')).toHaveLength(1);
+    expect(results.filter((result) => result.status === 'rejected')).toHaveLength(1);
+    expect(results.find((result) => result.status === 'rejected')).toMatchObject({
+      reason: { status: 409, response: { code: 'STALE_VERSION' } },
+    });
+
+    const view = await ctrl.getLead(salesA, res.leadId);
+    expect(view.lead.status).toBe('Contacting');
+    const transitions = (await ctrl.auditHistory(salesA, res.leadId)).history.filter(
+      (entry) => entry.eventType === 'lead_transition' && entry.newValue === 'Contacting',
+    );
+    expect(transitions).toHaveLength(1);
+    expect(transitions[0].reason).not.toBe('stale candidate');
+  });
+
   it('Marketing A → Sales B: B được XEM và ACCEPT gói bàn giao addressed to them (I-09, PM-1 pending)', async () => {
     const res = await ctrl.intake(salesA, { displayName: 'd', utterance: 'u', speaker: 'customer', connection: 'c', externalRecordId: 'r' });
     const handed = await ctrl.handoff(salesA, res.leadId, {
@@ -86,7 +149,7 @@ describe('PilotLoopController — auth & RBAC wiring (T3-03/T3-04 unit-level; LI
     const res = await ctrl.intake(salesA, { displayName: 'Phụ huynh B', utterance: 'Gửi chị học phí nhé', speaker: 'customer', connection: 'manual', externalRecordId: 'msg-2' });
     const handed = await ctrl.handoff(salesA, res.leadId, { context: 'c', proposedAction: 'Gửi bảng học phí', responsibleParty: 'internal', origin: 'explicit-commitment', recipientUserId: 'sales-b' });
     await ctrl.accept(salesB, res.leadId, { workId: handed.workItemId, reason: 'B nhận' });
-    const done = await ctrl.complete(salesB, res.leadId, { workId: handed.workItemId, evidence: 'declared', reason: 'đã gửi qua Zalo' });
+    const done = await ctrl.complete(salesB, res.leadId, { workId: handed.workItemId, evidence: 'declared', declaration: 'Operator confirmed completion', confirmed: true, reason: 'đã gửi qua Zalo' });
     expect(done.workStatus).toBe('completed');
     expect(done.evidence).toBe('declared');
     expect(done.occurredAt).toBe('unknown'); // Q4: không backfill occurredAt
@@ -105,6 +168,37 @@ describe('PilotLoopController — auth & RBAC wiring (T3-03/T3-04 unit-level; LI
     });
     expect(history.history.every((entry) => entry.metadata.trust === 'recorded')).toBe(true);
     expect(JSON.stringify(history)).not.toContain('rawPayload');
+  });
+
+  it('unexpected errors use an opaque 500 message and do not leak exception text', async () => {
+    const unexpected = 'secret SQL, /private/path, and token=should-not-escape';
+    const loop = {
+      ingestScenario: async () => { throw new Error(unexpected); },
+    } as unknown as PilotLoopService;
+    const isolated = new PilotLoopController(new AuthService(), new RbacService(), loop);
+
+    await expect(isolated.intake(salesA, {
+      displayName: 'd', utterance: 'u', speaker: 'customer', connection: 'c', externalRecordId: 'r-internal',
+    })).rejects.toMatchObject({
+      status: 500,
+      response: { code: 'INTERNAL', message: 'internal server error' },
+    });
+    await expect(isolated.intake(salesA, {
+      displayName: 'd', utterance: 'u', speaker: 'customer', connection: 'c', externalRecordId: 'r-internal-2',
+    })).rejects.not.toThrow(unexpected);
+  });
+
+  it('preserves domain error code/status/message while mapping typed failures', async () => {
+    const domain = new PilotDomainError('IDEMPOTENCY_CONFLICT', 409, 'same request has different evidence', { requestId: 'r-1' });
+    const loop = { ingestScenario: async () => { throw domain; } } as unknown as PilotLoopService;
+    const isolated = new PilotLoopController(new AuthService(), new RbacService(), loop);
+
+    await expect(isolated.intake(salesA, {
+      displayName: 'd', utterance: 'u', speaker: 'customer', connection: 'c', externalRecordId: 'r-domain',
+    })).rejects.toMatchObject({
+      status: 409,
+      response: { code: 'IDEMPOTENCY_CONFLICT', message: 'same request has different evidence', details: { requestId: 'r-1' } },
+    });
   });
 
   it('guardrail refusals map to 4xx business codes, not raw 500', async () => {
@@ -164,7 +258,7 @@ describe('P1-2 — controller separates view / accept / mutation rights', () => 
     expect((await ctrl.getLead(salesB, leadId)).lead.owner).toBe('marketing-a');
 
     // mutations by B while owner is A → 403 + code (không 200, không 500)
-    await expect(ctrl.complete(salesB, leadId, { workId: workItemId, evidence: 'declared' })).rejects.toMatchObject({
+    await expect(ctrl.complete(salesB, leadId, { workId: workItemId, evidence: 'declared', declaration: 'Operator confirmed completion', confirmed: true })).rejects.toMatchObject({
       status: 403,
       response: { code: 'NOT_OWNER' },
     });
@@ -189,7 +283,7 @@ describe('P1-2 — controller separates view / accept / mutation rights', () => 
     // accept remains B's right; after that mutations succeed
     const accepted = await ctrl.accept(salesB, leadId, { workId: workItemId, reason: 'B nhận' });
     expect(accepted.owner).toBe('sales-b');
-    const done = await ctrl.complete(salesB, leadId, { workId: workItemId, evidence: 'declared', reason: 'đã gọi' });
+    const done = await ctrl.complete(salesB, leadId, { workId: workItemId, evidence: 'declared', declaration: 'Operator confirmed completion', confirmed: true, reason: 'đã gọi' });
     expect(done.workStatus).toBe('completed');
   });
 
@@ -210,7 +304,7 @@ describe('P1-2 — controller separates view / accept / mutation rights', () => 
       status: 403,
       response: { code: 'NOT_ASSIGNED_RECIPIENT' },
     });
-    await expect(ctrl.complete(salesA, leadId, { workId: workB, evidence: 'declared' })).rejects.toMatchObject({
+    await expect(ctrl.complete(salesA, leadId, { workId: workB, evidence: 'declared', declaration: 'Operator confirmed completion', confirmed: true })).rejects.toMatchObject({
       status: 403,
       response: { code: 'NOT_ASSIGNED_RECIPIENT' },
     });
@@ -275,7 +369,7 @@ describe('P1-3 — reschedule returns the replacement; completing the old ID is 
 
     // completing the OLD id must fail loudly and name the successor
     let caught: unknown;
-    await ctrl.complete(salesB, res.leadId, { workId: handed.workItemId, evidence: 'declared' }).catch((e) => (caught = e));
+    await ctrl.complete(salesB, res.leadId, { workId: handed.workItemId, evidence: 'declared', declaration: 'Operator confirmed completion', confirmed: true }).catch((e) => (caught = e));
     expect(caught).toMatchObject({ status: 409, response: { code: 'WORK_SUPERSEDED', details: { replacementId } } });
 
     // and the old item is genuinely still rescheduled (bug was: it flipped to completed)
@@ -284,7 +378,7 @@ describe('P1-3 — reschedule returns the replacement; completing the old ID is 
     expect(view.workItems.find((w) => w.id === replacementId)?.status).toBe('open');
 
     // completing the replacement closes the chain with no active item left
-    const done = await ctrl.complete(salesB, res.leadId, { workId: replacementId, evidence: 'declared', reason: 'đã gọi' });
+    const done = await ctrl.complete(salesB, res.leadId, { workId: replacementId, evidence: 'declared', declaration: 'Operator confirmed completion', confirmed: true, reason: 'đã gọi' });
     expect(done.workStatus).toBe('completed');
     const after = await ctrl.getLead(salesB, res.leadId);
     const active = after.workItems.filter((w) => ['proposed', 'accepted', 'open', 'awaiting-external'].includes(w.status as string));
@@ -360,5 +454,38 @@ describe('P1-4 + demo isolation at the controller', () => {
   it('demo mode is opt-in: without DEMO_WORKSPACES the header grants nothing', async () => {
     delete process.env.DEMO_WORKSPACES;
     await expect(ctrl.intake({ 'x-demo-workspace': 'ws-any' }, { displayName: 'd', utterance: 'u', speaker: 'customer', connection: 'c', externalRecordId: 'r-off' })).rejects.toThrow(UnauthorizedException);
+  });
+});
+
+describe('GET /pilot/queue — bounded redacted operator projection', () => {
+  let ctrl: PilotLoopController;
+  beforeEach(() => {
+    process.env.AUTH_DEV_UNSIGNED_TOKENS = 'true';
+    ctrl = makeController();
+  });
+
+  it('filters by actor/status, paginates deterministically, and omits evidence contents', async () => {
+    const first = await ctrl.intake(salesA, { displayName: 'first', utterance: 'u', speaker: 'customer', connection: 'c', externalRecordId: 'queue-1' });
+    const firstWork = await ctrl.handoff(salesA, first.leadId, { context: 'private context', proposedAction: 'call', responsibleParty: 'internal', origin: 'explicit-request', recipientUserId: 'sales-b' });
+    const second = await ctrl.intake(salesA, { displayName: 'second', utterance: 'u', speaker: 'customer', connection: 'c', externalRecordId: 'queue-2' });
+    await ctrl.handoff(salesA, second.leadId, { context: 'other', proposedAction: 'email', responsibleParty: 'internal', origin: 'explicit-request', recipientUserId: 'sales-b' });
+
+    const page = await ctrl.queue(salesB, { status: 'proposed', limit: '1' });
+    expect(page.items).toHaveLength(1);
+    expect(['first', 'second']).toContain(page.items[0].lead.displayName);
+    expect(page.nextCursor).toBeDefined();
+    expect(JSON.stringify(page)).not.toContain('evidenceRef');
+    expect(JSON.stringify(page)).not.toContain('private context');
+
+    const next = await ctrl.queue(salesB, { status: 'proposed', limit: '1', cursor: page.nextCursor });
+    expect(next.items).toHaveLength(1);
+    expect(['first', 'second']).toContain(next.items[0].lead.displayName);
+  });
+
+  it('keeps cross-workspace and unrelated recipient items out of the queue', async () => {
+    const res = await ctrl.intake(salesA, { displayName: 'owned', utterance: 'u', speaker: 'customer', connection: 'c', externalRecordId: 'queue-3' });
+    await ctrl.handoff(salesA, res.leadId, { context: 'c', proposedAction: 'call', responsibleParty: 'internal', origin: 'explicit-request', recipientUserId: 'sales-c' });
+    await expect(ctrl.queue(salesB, {})).resolves.toEqual({ items: [] });
+    await expect(ctrl.queue(foreign, {})).resolves.toEqual({ items: [] });
   });
 });

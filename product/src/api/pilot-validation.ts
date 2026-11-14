@@ -16,7 +16,14 @@ import type { CompletionEvidence, PilotErrorCode, ResponsibleParty, WorkOrigin }
 
 export interface BoundaryError {
   readonly field: string;
-  readonly code: 'REQUIRED' | 'ENUM_INVALID' | 'DATE_INVALID' | 'OBJECT_REQUIRED' | 'EMPTY';
+  readonly code:
+    | 'REQUIRED'
+    | 'ENUM_INVALID'
+    | 'DATE_INVALID'
+    | 'OBJECT_REQUIRED'
+    | 'EMPTY'
+    | 'CONFIRMATION_REQUIRED'
+    | 'CONFIRMATION_INVALID';
   readonly message: string;
 }
 
@@ -150,10 +157,22 @@ export function validateCompleteBody(body: RawBody): BoundaryError[] {
     return out;
   }
   required(obj, 'workId', out);
-  oneOf(obj, 'evidence', EVIDENCE, out);
+  const evidence = oneOf(obj, 'evidence', EVIDENCE, out);
   isoDate(obj, 'occurredAt', out, true);
   if (obj.evidenceRef !== undefined) required(obj, 'evidenceRef', out);
   if (obj.reason !== undefined) required(obj, 'reason', out);
+  // Completion is a human-confirmed mutation. The declaration is persisted as provenance,
+  // therefore a blank declaration or a non-boolean confirmation must be rejected at the edge.
+  if (evidence === 'declared') {
+    required(obj, 'declaration', out);
+    if (obj.confirmed !== true) {
+      out.push({
+        field: 'confirmed',
+        code: obj.confirmed === undefined ? 'CONFIRMATION_REQUIRED' : 'CONFIRMATION_INVALID',
+        message: 'confirmed must be true when completing with a declared claim',
+      });
+    }
+  }
   return out;
 }
 
