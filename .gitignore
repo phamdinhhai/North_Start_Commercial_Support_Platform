@@ -8,6 +8,8 @@
 .env
 .env.local
 .env.*.local
+# Local provider sessions and credentials
+/docs/login_info/
 # Node.js
 node_modules/
 dist/

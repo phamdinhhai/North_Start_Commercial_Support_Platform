@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<title>North Star Research Companion</title>
+<style>
+  body { width: 330px; margin: 20px; font: 15px Georgia, serif; background: #f2eee3; color: #193d36; }
+  h1 { font-size: 23px; } label { display: block; margin-top: 12px; }
+  input { width: 95%; padding: 6px; } button { margin: 14px 5px 0 0; padding: 8px; }
+  #status { white-space: pre-wrap; overflow-wrap: anywhere; }
+</style>
+<h1>North Star / Research</h1>
+<p>Observe one Pancake tab and one page channel. Only event metadata stays on this device. No cookies or message text are exported.</p>
+<p>Capture is partial. Activate before a new socket opens; existing socket history is unavailable. Stop disconnects the observer.</p>
+<form id="scope">
+  <label>Research workspace <input name="workspaceId" required maxlength="256"></label>
+  <label>Connection reference <input name="connectionId" required maxlength="256"></label>
+  <label>Account reference <input name="accountId" required maxlength="256"></label>
+  <label>Allowed Pancake page ID <input name="pageId" required maxlength="256"></label>
+  <button type="submit">Start on this tab</button>
+  <button id="stop" type="button">Stop</button>
+  <button id="export" type="button">Export metadata</button>
+</form>
+<p id="status" role="status"></p>
+<script type="module" src="popup.mjs"></script>
+</html>

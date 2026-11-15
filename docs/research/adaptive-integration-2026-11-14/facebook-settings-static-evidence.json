@@ -1,0 +1,142 @@
+{
+  "schema": "north-star.pancake-static-contract-evidence.v1",
+  "as_of": "2026-11-15",
+  "status": "research-only",
+  "evidence_type": "historical-shipped-client-static-inspection",
+  "source": {
+    "file": "user-supplied download.devtools (private)",
+    "sha256": "bcb58184278c4407cc8e2a117461e74dc41dea6c2247fc296cdaf30c23932640",
+    "ordinalBase": 0
+  },
+  "artifacts": [
+    {
+      "harOrdinal": 42,
+      "sha256": "32e282685b4f6ea1e302827c23e12c9ebff25ebe3c865c48ff83c289a21c25af",
+      "bytes": 1328344,
+      "markers": [
+        {
+          "term": "Koh:function(){return httpPost}",
+          "utf8ByteOffset": 883952,
+          "utf16Offset": 883635
+        },
+        {
+          "term": "function httpPost(",
+          "utf8ByteOffset": 1025454,
+          "utf16Offset": 1024963
+        },
+        {
+          "term": "pages:update_settings",
+          "utf8ByteOffset": 91692,
+          "utf16Offset": 91673
+        },
+        {
+          "term": "pages:tag_conversation",
+          "utf8ByteOffset": 91537,
+          "utf16Offset": 91518
+        },
+        {
+          "term": "pages:tag_conversations",
+          "utf8ByteOffset": 91588,
+          "utf16Offset": 91569
+        },
+        {
+          "term": "pages:seen_conversation",
+          "utf8ByteOffset": 91640,
+          "utf16Offset": 91621
+        },
+        {
+          "term": "s=\"cookie_session\";",
+          "utf8ByteOffset": 1181783,
+          "utf16Offset": 1180975
+        },
+        {
+          "term": "function u(e,t){let n=c(e);if(n)return n.searchParams.has(\"access_token\")",
+          "utf8ByteOffset": 1182166,
+          "utf16Offset": 1181358
+        }
+      ]
+    },
+    {
+      "harOrdinal": 404,
+      "sha256": "2edba4b1b99fffc019e2f1fe253bd2927ee38e98d477bd291a6afbcaf2b00466",
+      "bytes": 31705,
+      "markers": [
+        {
+          "term": "this.onSubmitChanges=",
+          "utf8ByteOffset": 24736,
+          "utf16Offset": 24734
+        },
+        {
+          "term": "changes:JSON.stringify(e),current_settings_key:",
+          "utf8ByteOffset": 26021,
+          "utf16Offset": 26019
+        }
+      ]
+    },
+    {
+      "harOrdinal": 434,
+      "sha256": "9faf2978586bac4bb6e37519400c6bde30857bf37c5e2639f230079d9bcfe382",
+      "bytes": 68266,
+      "markers": [
+        {
+          "term": "onTagAdd(e)",
+          "utf8ByteOffset": 43798,
+          "utf16Offset": 43798
+        },
+        {
+          "term": "this.onSaveTag=",
+          "utf8ByteOffset": 48088,
+          "utf16Offset": 48088
+        },
+        {
+          "term": "this.deleteTags=",
+          "utf8ByteOffset": 44951,
+          "utf16Offset": 44951
+        },
+        {
+          "term": "tag_sync_group_id",
+          "utf8ByteOffset": 37891,
+          "utf16Offset": 37891
+        }
+      ]
+    }
+  ],
+  "findings": [
+    {
+      "id": "settings-write",
+      "observed": "Client submits POST /api/v1/pages/:page/settings with FormData, fields changes (JSON string) and current_settings_key; checks response.success.",
+      "unknown": "Current provider acceptance, server-side concurrency enforcement and conflict response."
+    },
+    {
+      "id": "tag-create",
+      "observed": "Client initializes new tag with id:null, text, is_lead_event:false, color, lighten_color; removes local index and ordinalNumber before saving tags list.",
+      "unknown": "Provider-assigned tag identity and live create/readback."
+    },
+    {
+      "id": "tag-delete",
+      "observed": "Client filters removed IDs from tags, toggle_tag_when_call_success and toggle_tag_when_call_fail.",
+      "unknown": "Provider side effects, restoration semantics and propagation timing."
+    },
+    {
+      "id": "tag-sync",
+      "observed": "UI checks activated page tag_sync_group_id and warns when present.",
+      "unknown": "Current group membership; historical null is insufficient to authorize an isolated Facebook write."
+    },
+    {
+      "id": "settings-event",
+      "observed": "Client registers pages:update_settings separately from tag/seen conversation handlers.",
+      "unknown": "No such event observed in supplied HAR; current payload schema, action correlation and reliability."
+    },
+    {
+      "id": "same-origin-session-auth",
+      "observed": "Helper strips access_token on same-origin /api/v1 and feature_flag/v1 API URLs; serialized auth replaces accessToken with cookie_session sentinel.",
+      "unknown": "Future builds and standalone external client authorization."
+    }
+  ],
+  "limitations": [
+    "Static source is not live delivery evidence.",
+    "No source code, PII, credentials or response payloads copied into this report.",
+    "No live mutation performed in this increment.",
+    "Offset positions identify literal markers, not complete call-graph proof."
+  ]
+}

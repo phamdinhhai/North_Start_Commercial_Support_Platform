@@ -220,6 +220,19 @@
       "verified_date": "2026-09-10"
     }
   ],
+  "experimental_extensions": [
+    {
+      "id": "adaptive-integration.pancake-research",
+      "registry": "docs/research/adaptive-integration-2026-11-14/protocol-capability-registry.json",
+      "report": "docs/research/adaptive-integration-2026-11-14/README.md",
+      "documented_state": "DOCUMENTED",
+      "contract_tested": "UNKNOWN",
+      "live_state": "PARTIAL",
+      "release_state": "FLAG_OFF",
+      "interpretation": "Synthetic observation/receipt tests and decoder regressions passed. Facebook settings and conversation tag mutations, batch tag events, bounded reads and 15-second/15-minute socket recovery were live-verified. No tag replay was observed in the bounded recovery windows; current state was recovered by GET. Message lifecycle coverage, complete replay, POS live delivery and production approval remain unverified.",
+      "latest_report": "docs/research/adaptive-integration-2026-11-14/pancake-evidence-and-completion-2026-11-15.vi.md"
+    }
+  ],
   "catalog_snapshot": {
     "source": "docs/external-apis/pancake/api-knowledge-base-2026-09-10/machine_readable/integrity_report.json",
     "catalog_entries": 497,

@@ -1,0 +1,394 @@
+{
+  "schema": "north-star.protocol-capability-evidence.v1",
+  "status": "working_non_canonical",
+  "as_of": "2026-11-15",
+  "maturity_rule": "Evidence, fixture tests, live behavior and production approval are independent. mock-tested is not a provider contract test.",
+  "capabilities": [
+    {
+      "id": "pancake.conversations.phoenix",
+      "provider_surface": "Pancake Conversations",
+      "observation_method": "public repository source + REA browser metadata + shipped-client handler inspection + bounded local transport fault",
+      "operation_fingerprint": "Phoenix v2 tuple; pages topic; source-derived message/update/delete plus live batch tag event",
+      "source_revision": "23e2409f6c80e910de6f652b4c9d0a878ba2291b",
+      "evidence_type": [
+        "source-inspected",
+        "live-observed-metadata-only",
+        "synthetic-tested",
+        "historical-user-har-reviewed",
+        "live-facebook-read-http-200"
+      ],
+      "authorization_scope": "User authorizes Facebook functional tests; TikTok read-only. Browser session persists locally. Standalone service protocol rights remain UNKNOWN.",
+      "delivery_semantics": "push candidate; reliability UNKNOWN",
+      "replay_support": "UNKNOWN",
+      "action_risk": "read-only observation",
+      "integration_disposition": "mock-tested",
+      "inbound": "Message/update/delete source-derived + synthetic-tested; pages:tag_conversations live-observed",
+      "outbound": "UNKNOWN",
+      "production_approved": false,
+      "evidence": [
+        "pancake-relay",
+        "live-summary.json",
+        "har-review.json",
+        "har-derivation.json",
+        "authorized-browser-summary.json",
+        "facebook-live-settings-experiment.json",
+        "conversation-protocol-static-evidence.json",
+        "continuity-experiment.json",
+        "pancake-conversation-recovery-experiment.json",
+        "pancake-read-contracts.json"
+      ],
+      "unknowns": [
+        "Named message/update/delete business-event correlation remains unverified; settings event and bounded page-channel rejoin were verified separately",
+        "Capture omissions",
+        "Standalone subscription rights",
+        "Provider event identity and replay"
+      ],
+      "known_observations": [
+        "HAR: 589 HTTP records, 5 WebSocket records, 104 Phoenix tuples; no three known business-event labels",
+        "pancake.vn carries users/pages/phoenix topics; pages.fm sockets in this HAR carry pke_chat_plugin/phoenix",
+        "Initial session checkpoint retained metadata only; later authorized captures keep bodies privately outside Git.",
+        "2026-11-15: one Facebook page settings create/delete experiment correlated HTTP success, pages:update_settings and GET readback; this does not verify the three conversation business-event labels.",
+        "Deletion handler uses message.conversation_id; decoder/Companion 0.1.1 tested for nested reference and contradictory page claims.",
+        "A 15-second local WebSocket fault produced socket closure, local retry rejection, successful Facebook rejoin and equal readback snapshots; replay remains UNKNOWN.",
+        "2026-11-15: exact UI tag toggle returned success, batch pages:tag_conversations and API readback; Companion 0.1.2 handles validated batch metadata without canonical mutation."
+      ]
+    },
+    {
+      "id": "pancake.facebook.page-settings-tag",
+      "provider_surface": "Pancake Conversations: authorized Facebook page settings only",
+      "observation_method": "Historical client bundle inspection + REA declared UI actions + independent local passive CDP frame classification + API readback",
+      "operation_fingerprint": "UI -> POST /api/v1/pages/:page/settings, FormData changes/current_settings_key -> pages:update_settings -> GET settings",
+      "source_revision": "User HAR SHA-256 bcb58184278c4407cc8e2a117461e74dc41dea6c2247fc296cdaf30c23932640; live experiment 2026-11-15",
+      "evidence_type": [
+        "historical-shipped-client-static-inspection",
+        "live-ui-mutation-http-success",
+        "live-client-observed-settings-event",
+        "live-api-readback",
+        "cleanup-reload-verified"
+      ],
+      "authorization_scope": "User-authorized Facebook functional testing; fresh membership facebook/ADMINISTER, no tag sync group; temporary unassigned research tag only. TikTok read-only.",
+      "delivery_semantics": "One event observed for create and one for delete; ordering/retry/full coverage UNKNOWN",
+      "replay_support": "UNKNOWN",
+      "action_risk": "Bounded reversible page-tag mutation; provider version/index counters advance",
+      "integration_disposition": "live-verified",
+      "inbound": "pages:update_settings observed for this experiment only",
+      "outbound": "Temporary tag create/delete through UI verified; no production runner",
+      "production_approved": false,
+      "evidence": [
+        "facebook-settings-static-evidence.json",
+        "facebook-live-settings-experiment.json",
+        "pancake-research-2026-11-15.vi.md"
+      ],
+      "unknowns": [
+        "Conversation message events remain unverified",
+        "Server concurrency/conflict enforcement",
+        "Independent 24/7 protocol operation and rights",
+        "Reconnect/backfill/replay",
+        "Production tenant authorization, persistence and approval"
+      ],
+      "known_observations": [
+        "Original six tags restored exactly; synthetic tag absent after reload",
+        "Settings version/tag index advanced; two previously absent call-tag fields became empty arrays",
+        "Successful final captures retained zero dropped events but REA still marked incomplete"
+      ]
+    },
+    {
+      "id": "pancake.facebook.page-channel-reconnect",
+      "provider_surface": "Authorized Pancake Facebook page channel",
+      "observation_method": "REA declared read-only scenario + local CDP lifecycle listener + bounded disposable-tab WebSocket fault bridge",
+      "operation_fingerprint": "Close transport -> 15 seconds local retry rejection -> new socket -> page phx_join/ref-matched phx_reply ok -> API snapshots",
+      "source_revision": "Experiment 2026-11-15; REA ev_529b9caca67e42c2f7fa8d9d9ea02089d31b87eac9d828aa8b29ff1982fe9868",
+      "evidence_type": [
+        "live-bounded-transport-rejoin",
+        "live-api-snapshot-readback",
+        "synthetic-local-fault-controller-tested"
+      ],
+      "authorization_scope": "User-authorized Facebook research; disposable tab shares local session. TikTok read-only; no authored business mutation.",
+      "delivery_semantics": "One page-channel rejoin verified; complete event delivery UNKNOWN",
+      "replay_support": "UNKNOWN",
+      "action_risk": "Local temporary transport interruption; no provider configuration mutation",
+      "integration_disposition": "live-verified",
+      "inbound": "Page join acknowledgement verified after reconnect; message stream not verified",
+      "outbound": "No provider action beyond read-only API requests and client protocol lifecycle",
+      "production_approved": false,
+      "evidence": [
+        "continuity-experiment.json",
+        "conversation-protocol-static-evidence.json",
+        "pancake-continuity-and-contracts-2026-11-15.vi.md",
+        "pancake-conversation-recovery-experiment.json"
+      ],
+      "known_observations": [
+        "One old socket closed; 11 retries refused locally, two connections forwarded upstream.",
+        "Restore-to-join-ACK 4450 ms; observed close-to-join-ACK gap 19432 ms in this experiment.",
+        "Two returned conversations deeply equal before/after; six page tags unchanged.",
+        "Original browser tab preserved and temporary tab closed.",
+        "Follow-up 15-second and 15-minute gaps had authorized tag changes on another tab. Actor observed batch events; observer observed no batch replay in recovery window; GET recovered latest tag state.",
+        "15-minute local bridge fault: 900004 ms, restore-to-join-ACK 2502 ms, 187 locally refused retries, only baseline/recovery forwarded upstream. Cleanup and original snapshot restoration verified."
+      ],
+      "unknowns": [
+        "Original first reconnect run had no business change; follow-ups test only tags, not message event recovery",
+        "Full history/replay/tombstones and provider continuity contract",
+        "Live auth expiry, durable backend checkpoint, long-term load and rights",
+        "Two failed same-target REA attempts during long run; no reload or early recovery observed in capture"
+      ]
+    },
+    {
+      "id": "pancake.pos.webhooks",
+      "provider_surface": "Pancake POS",
+      "observation_method": "official documentation + synthetic receiver",
+      "operation_fingerprint": "POST JSON + configured secret header; receipt append before ACK",
+      "source_revision": "source-ledger official-api-vi-webhooks and official-api-schemas",
+      "evidence_type": [
+        "documented",
+        "synthetic-tested"
+      ],
+      "authorization_scope": "Per-shop webhook configuration required; no live configuration changed",
+      "delivery_semantics": "documented retries +10 minutes then +30 minutes; duplicates possible; unverified live",
+      "replay_support": "documented API reconciliation; complete history UNKNOWN",
+      "action_risk": "read-only intake; configuration mutation deferred",
+      "integration_disposition": "mock-tested",
+      "inbound": "documented; synthetic raw intake tested",
+      "outbound": "UNKNOWN",
+      "production_approved": false,
+      "evidence": [
+        "official-api-vi-webhooks",
+        "official-api-webhook",
+        "official-api-schemas"
+      ],
+      "unknowns": [
+        "Order/customer webhook schema fields absent in retrieved markdown",
+        "Shop and version mapping",
+        "Live retry and recovery",
+        "Durable production receipt sink"
+      ]
+    },
+    {
+      "id": "pancake.pos.embedded-data-change",
+      "provider_surface": "Pancake POS Apps",
+      "observation_method": "official documentation",
+      "operation_fingerprint": "pos.on('data-change'): context, form draft and route changes",
+      "source_revision": "source-ledger official-apps-runtime-api and official-apps-data-access",
+      "evidence_type": [
+        "documented"
+      ],
+      "authorization_scope": "User permissions intersect app access, current shop, active runtime",
+      "delivery_semantics": "client context changes, not saved-provider-event guarantee",
+      "replay_support": "UNKNOWN",
+      "action_risk": "read-only research",
+      "integration_disposition": "research-only",
+      "inbound": "documented context changes",
+      "outbound": "documented API capability; not implemented or authorized here",
+      "production_approved": false,
+      "evidence": [
+        "official-apps-runtime-api",
+        "official-apps-data-access"
+      ],
+      "unknowns": [
+        "Live installed app behavior",
+        "Provider-approved app registration",
+        "Complete context schemas"
+      ]
+    },
+    {
+      "id": "north-star.browser-companion",
+      "provider_surface": "Pancake Conversations browser tab",
+      "observation_method": "native MV3 + debugger Network events",
+      "operation_fingerprint": "selected HTTPS origin/tab/page; received-frame metadata; local outbox",
+      "source_revision": "north-star-companion/0.1.1",
+      "evidence_type": [
+        "synthetic-tested-real-chromium"
+      ],
+      "authorization_scope": "Explicit local activation; research labels are not tenant authentication",
+      "delivery_semantics": "partial observation + durable local metadata; no remote delivery",
+      "replay_support": "none; UNKNOWN gaps preserved",
+      "action_risk": "read-only observation",
+      "integration_disposition": "mock-tested",
+      "inbound": "synthetic-tested",
+      "outbound": "unsupported in this prototype",
+      "production_approved": false,
+      "evidence": [
+        "product/scripts/ail/companion-browser-smoke.mjs",
+        "product/src/adapters/browser-companion/worker.spec.ts"
+      ],
+      "unknowns": [
+        "Provider business-event verification",
+        "End-to-end consent UI",
+        "Authenticated enrollment and intake",
+        "Background/worker target coverage"
+      ],
+      "known_observations": [
+        "Decoder revision 0.1.1 rejects conflicting page identity and deletion references; source-derived deletion mapping is synthetic-tested.",
+        "Chromium MV3 local fixture and browser-restart persistence smoke pass; provider message event observation remains unverified."
+      ]
+    },
+    {
+      "id": "meta.protocol-reference",
+      "provider_surface": "Meta Messenger/Instagram reference, not Facebook Groups",
+      "observation_method": "git remote HEAD discovery only; source HTTP retrieval unavailable",
+      "operation_fingerprint": "UNKNOWN",
+      "source_revision": "c032c9fbbf79c17e389f37c3e4ee0134025f00ec",
+      "evidence_type": [
+        "discovered"
+      ],
+      "authorization_scope": "No account used",
+      "delivery_semantics": "UNKNOWN",
+      "replay_support": "UNKNOWN",
+      "action_risk": "read-only research",
+      "integration_disposition": "research-only",
+      "inbound": "UNKNOWN",
+      "outbound": "UNKNOWN",
+      "production_approved": false,
+      "evidence": [
+        "https://github.com/mautrix/meta"
+      ],
+      "unknowns": [
+        "Source verification pending",
+        "No inference to Group Listener"
+      ]
+    },
+    {
+      "id": "tiktok.live-reference",
+      "provider_surface": "TikTok LIVE only",
+      "observation_method": "git remote HEAD discovery only; source HTTP retrieval unavailable",
+      "operation_fingerprint": "UNKNOWN",
+      "source_revision": "TikTokLive:4158e6a0a55ee1dabb9a8495ae86ec9e4116c42e; TikTok-Live-Connector:58c8d5a5806dc4fc6633458cf820be324fc527c6",
+      "evidence_type": [
+        "discovered"
+      ],
+      "authorization_scope": "No account used",
+      "delivery_semantics": "UNKNOWN",
+      "replay_support": "UNKNOWN",
+      "action_risk": "read-only research",
+      "integration_disposition": "research-only",
+      "inbound": "UNKNOWN",
+      "outbound": "UNKNOWN",
+      "production_approved": false,
+      "evidence": [
+        "https://github.com/isaackogan/TikTokLive",
+        "https://github.com/Zerodytrash/TikTok-Live-Connector"
+      ],
+      "unknowns": [
+        "Source verification pending",
+        "Do not generalize to Shop or Business"
+      ]
+    },
+    {
+      "id": "google.change-feed-backlog",
+      "provider_surface": "Google Ads ChangeEvent/ChangeStatus",
+      "observation_method": "user-proposed investigation; not reverified this increment",
+      "operation_fingerprint": "UNKNOWN",
+      "source_revision": "UNKNOWN",
+      "evidence_type": [
+        "proposed"
+      ],
+      "authorization_scope": "No credentials or calls",
+      "delivery_semantics": "UNKNOWN",
+      "replay_support": "UNKNOWN",
+      "action_risk": "read-only research",
+      "integration_disposition": "research-only",
+      "inbound": "UNKNOWN",
+      "outbound": "UNKNOWN",
+      "production_approved": false,
+      "evidence": [
+        "User AIL proposal"
+      ],
+      "unknowns": [
+        "Current official contracts and fixtures",
+        "Cursor windows, limits, delay and reconciliation"
+      ]
+    },
+    {
+      "evidence_type": [
+        "historical-shipped-client-static-inspection",
+        "live-authorized-session",
+        "synthetic-tested"
+      ],
+      "authorization_scope": "Facebook authorized functional research; TikTok read-only. Not a North Star tenant enrollment or production provider contract.",
+      "source_revision": "2026-11-15; historical HAR SHA-256 bcb58184278c4407cc8e2a117461e74dc41dea6c2247fc296cdaf30c23932640; Companion 0.1.2",
+      "production_approved": false,
+      "integration_disposition": "live-verified",
+      "evidence": [
+        "pancake-conversation-recovery-experiment.json",
+        "pancake-read-contracts.json",
+        "pancake-evidence-and-completion-2026-11-15.vi.md"
+      ],
+      "id": "pancake.facebook.conversation-tags",
+      "provider_surface": "Pancake Conversations: selected Facebook page and read conversation",
+      "observation_method": "REA guarded UI toggle + inbound frame shape + GET readback + history",
+      "operation_fingerprint": "POST toggle_tag FormData -> pages:tag_conversations batch -> GET conversations",
+      "delivery_semantics": "Event observed on actor; observer missed bounded offline event; snapshot can recover latest state in sample",
+      "replay_support": "No batch event observed on observer after 15-second gap; full provider replay UNKNOWN",
+      "action_risk": "Reversible synthetic tag on existing read conversation; provider audit remains",
+      "inbound": "Batch shape observed; map of conversation IDs plus optional conversations_updated",
+      "outbound": "Attach/detach synthetic tag through UI verified only",
+      "unknowns": [
+        "New message/update/delete lifecycle",
+        "External automation beyond inspected settings",
+        "Standalone protocol rights",
+        "Global event coverage and replay"
+      ]
+    },
+    {
+      "evidence_type": [
+        "historical-shipped-client-static-inspection",
+        "live-authorized-session",
+        "synthetic-tested"
+      ],
+      "authorization_scope": "Facebook authorized functional research; TikTok read-only. Not a North Star tenant enrollment or production provider contract.",
+      "source_revision": "2026-11-15; historical HAR SHA-256 bcb58184278c4407cc8e2a117461e74dc41dea6c2247fc296cdaf30c23932640; Companion 0.1.2",
+      "production_approved": false,
+      "integration_disposition": "live-verified",
+      "evidence": [
+        "pancake-conversation-recovery-experiment.json",
+        "pancake-read-contracts.json",
+        "pancake-evidence-and-completion-2026-11-15.vi.md"
+      ],
+      "id": "pancake.facebook.read-reconciliation",
+      "provider_surface": "Pancake Conversations: selected Facebook page",
+      "observation_method": "Source-derived bounded same-origin GET requests in authorized browser session",
+      "operation_fingerprint": "conversations current_count/take_conversation_ids; single conversation; messages current_count; tag history",
+      "delivery_semantics": "Current-state and bounded history reads; not an event delivery guarantee",
+      "replay_support": "Latest state readable; event continuity remains UNKNOWN",
+      "action_risk": "Read-only authored requests; existing inbox navigation can have normal client side effects",
+      "inbound": "Two conversations; one sampled history 25+16 unique messages, tail0; tag history entries",
+      "outbound": "None",
+      "unknowns": [
+        "Concurrent insert/delete pagination",
+        "Large accounts/rate limits",
+        "Tombstone and retention",
+        "Durable provider cursor"
+      ]
+    },
+    {
+      "evidence_type": [
+        "historical-shipped-client-static-inspection",
+        "live-authorized-session",
+        "synthetic-tested"
+      ],
+      "authorization_scope": "Facebook authorized functional research; TikTok read-only. Not a North Star tenant enrollment or production provider contract.",
+      "source_revision": "2026-11-15; historical HAR SHA-256 bcb58184278c4407cc8e2a117461e74dc41dea6c2247fc296cdaf30c23932640; Companion 0.1.2",
+      "production_approved": false,
+      "integration_disposition": "live-verified",
+      "evidence": [
+        "pancake-conversation-recovery-experiment.json",
+        "pancake-read-contracts.json",
+        "pancake-evidence-and-completion-2026-11-15.vi.md"
+      ],
+      "id": "pancake.pos.dashboard-read",
+      "provider_surface": "Linked Pancake POS shop via same-origin dashboard proxy",
+      "observation_method": "Source-derived GET shop and CRM automation using local browser session",
+      "operation_fingerprint": "GET /pos-api/api/v1/shops/:shop and /crm/automation",
+      "delivery_semantics": "Request/response only",
+      "replay_support": "Not applicable to these configuration reads",
+      "action_risk": "Read-only; no official key creation or webhook configuration",
+      "inbound": "HTTP200/success=true; CRM automation empty; webhook config not set",
+      "outbound": "None",
+      "unknowns": [
+        "Official API credential",
+        "App/shop/user permission contract",
+        "Real webhook payload, retry, delivery identity",
+        "Authorized HTTPS sandbox receiver"
+      ]
+    }
+  ]
+}
