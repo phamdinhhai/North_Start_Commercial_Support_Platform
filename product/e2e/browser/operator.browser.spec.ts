@@ -88,9 +88,23 @@ test.describe('operator browser workflow', () => {
     await page.locator('#complete').click();
     await expect(page.locator('#action-status')).toContainText('Action recorded');
 
+    // Observe each actual response, not a success message left by an earlier mutation.
+    for (const [button, stage] of [['contacting', 'Contacting'], ['follow-up', 'Follow-up']]) {
+      const responsePromise = page.waitForResponse((response) => response.url().endsWith('/advance') && response.request().method() === 'POST');
+      await page.locator('#' + button).click();
+      const response = await responsePromise;
+      expect(response.status()).toBe(200);
+      expect(await response.json()).toMatchObject({ leadStatus: stage });
+      await expect(page.locator('#queue-status')).toHaveText('Queue loaded.');
+    }
+    const outcomeResponse = page.waitForResponse((response) => response.url().endsWith('/outcome') && response.request().method() === 'POST');
     page.once('dialog', async (dialog) => await dialog.accept('Won'));
     await page.locator('#outcome').click();
+    expect((await outcomeResponse).status()).toBe(201);
     await expect(page.locator('#action-status')).toContainText('Action recorded');
+    const persisted = await (await api(request, operatorToken, 'GET', `/pilot/leads/${leadId}`)).json();
+    expect(persisted.lead.status).toBe('Won');
+    expect(persisted.outcomes).toEqual(expect.arrayContaining([expect.objectContaining({ value: 'Won', assertionStatus: 'claimed' })]));
 
     await page.locator('#audit').click();
     await expect(page.locator('#action-status')).toContainText('Audit records:');

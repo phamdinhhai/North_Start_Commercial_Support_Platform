@@ -22,7 +22,7 @@ export const OPERATOR_CLIENT_HTML = `<!doctype html>
 <script>
 (() => {
   const $ = (id) => document.getElementById(id);
-  let cursor = null, selected = null;
+  let cursor = null, selected = null, mutating = false;
   const token = () => ($('token').value || '').trim();
   const headers = () => ({authorization: token().startsWith('Bearer ') ? token() : 'Bearer ' + token(), 'content-type':'application/json'});
   const message = (id, text, error=false) => { const node=$(id); if(!node) return; node.textContent=text; node.className='notice' + (error?' error':''); };
@@ -35,7 +35,7 @@ export const OPERATOR_CLIENT_HTML = `<!doctype html>
   const renderContext = (lead,item) => {
     message('context-status','Recorded projection; business truth and runtime causality remain UNKNOWN.');
     $('context').innerHTML='<h3>'+escapeHtml(lead.lead.displayName)+'</h3><p>Status: <span class="badge">'+escapeHtml(lead.lead.status)+'</span></p><p><strong>Action:</strong> '+escapeHtml(item.action)+'</p><p><strong>Handoff context:</strong> '+escapeHtml(lead.handoff?.context || 'UNKNOWN')+'</p><p><strong>Evidence references:</strong> '+escapeHtml((lead.handoff?.evidenceRefs||[]).length)+' redacted reference(s); raw payload is not exposed.</p>'
-      + '<div class="actions"><button id="accept" type="button">Accept handoff</button><button id="reschedule" type="button">Reschedule</button><button id="outcome" type="button">Record outcome</button><button id="audit" class="secondary" type="button">View audit</button></div>'
+      + '<div class="actions"><button id="accept" type="button">Accept handoff</button><button id="reschedule" type="button">Reschedule</button><button id="contacting" type="button">Start contacting</button><button id="follow-up" type="button">Move to follow-up</button><button id="outcome" type="button">Record outcome</button><button id="audit" class="secondary" type="button">View audit</button></div>'
       + '<div class="subpanel" aria-labelledby="complete-title"><h4 id="complete-title">Complete work item</h4>'
       + '<label for="complete-mode">Completion evidence basis</label><select id="complete-mode"><option value="declared">Declared (human claim — requires declaration and confirmation)</option><option value="observed">Observed (system action proof pointer required)</option><option value="inferred">Inferred (AI/draft — cannot close without human confirmation)</option></select>'
       + '<div id="declared-fields"><label for="declaration-input">Human declaration (required)</label><textarea id="declaration-input" rows="2" placeholder="State what action you personally completed"></textarea><label for="declaration-confirm"><input id="declaration-confirm" type="checkbox">I confirm this completion is my human declaration, not observed system proof.</label></div>'
@@ -64,6 +64,8 @@ export const OPERATOR_CLIENT_HTML = `<!doctype html>
       mutate('/complete',{workId:item.id,evidence:mode});
     });
     $('reschedule').addEventListener('click',()=>{const due=window.prompt('New due time (ISO 8601)','')||''; const reason=window.prompt('Reschedule reason (required)','')||''; if(!due.trim()||!reason.trim()){message('action-status','Refused: new due time and reason are both required to reschedule.',true);return} mutate('/reschedule',{workId:item.id,newDueAt:due.trim(),reason:reason.trim()})});
+    $('contacting').addEventListener('click',()=>mutate('/advance',{to:'Contacting',reason:'operator_started_contacting'}));
+    $('follow-up').addEventListener('click',()=>mutate('/advance',{to:'Follow-up',reason:'operator_started_follow_up'}));
     $('outcome').addEventListener('click',()=>{const value=window.prompt('Outcome: Won, Lost or Unknown','Unknown'); if(!value) return; if(!['Won','Lost','Unknown'].includes(value)){message('action-status','Refused: outcome must be Won, Lost or Unknown.',true);return} mutate('/outcome',{value})});
     $('audit').addEventListener('click',async()=>{try{const audit=await request('/v1/pilot/leads/'+encodeURIComponent(item.leadId)+'/audit');message('action-status','Audit records: '+audit.history.length+'; provenance: '+audit.metadata.provenance)}catch(error){message('action-status',formatMutationError(error),true)}});
   };
@@ -74,7 +76,7 @@ export const OPERATOR_CLIENT_HTML = `<!doctype html>
     if(error?.status===403) return 'Permission denied ('+(code||'FORBIDDEN')+'): '+error.message;
     return (code?code+': ':'')+error.message;
   };
-  const mutate = async (path,payload) => { try{const result=await request('/v1/pilot/leads/'+encodeURIComponent(selected.leadId)+path,{method:'POST',body:JSON.stringify(payload)}); const note=result?.replacementId?'Action recorded. Replacement item: '+result.replacementId+'. Refreshing queue.':'Action recorded. Refreshing queue.'; message('action-status',note); await loadQueue()}catch(error){message('action-status',formatMutationError(error),true)}};
+  const mutate = async (path,payload) => { if(mutating) return; mutating=true; message('action-status','Recording action?'); try{const result=await request('/v1/pilot/leads/'+encodeURIComponent(selected.leadId)+path,{method:'POST',body:JSON.stringify(payload)}); const note=result?.replacementId?'Action recorded. Replacement item: '+result.replacementId+'. Refreshing queue.':'Action recorded. Refreshing queue.'; message('action-status',note); cursor=null; await loadQueue()}catch(error){message('action-status',formatMutationError(error),true)}finally{mutating=false}};
   const loadQueue = async () => { if(!token()){message('queue-status','A bearer token is required.',true);return} message('queue-status','Loading queue…'); try{const query=new URLSearchParams({limit:$('limit').value});if(cursor)query.set('cursor',cursor);const page=await request('/v1/pilot/queue?'+query);showQueue(page);message('queue-status',page.items.length?'Queue loaded.':'Queue is empty.')}catch(error){const text=error.status===401?'Authentication failed (401).':error.status===403?'Access denied for this workspace scope.':error.message; message('queue-status',text,true)}};
   $('load').addEventListener('click',()=>{cursor=null;loadQueue()});$('refresh').addEventListener('click',()=>{cursor=null;loadQueue()});$('next').addEventListener('click',loadQueue);
 })();
