@@ -118,6 +118,24 @@ suite('synthetic companion upload through real HTTP and PostgreSQL', () => {
     try { expect((await request('/v1/integration/enroll', {}, undefined, issuer)).status).toBe(404); }
     finally { process.env.AIL_RESEARCH_ENABLED = 'true'; }
   });
+  it('rolls back HTTP receipt and checkpoint when the final audit write fails', async () => {
+    const e = await enroll();
+    // Disposable test database only: force the last SQL statement to fail for this enrollment.
+    await db.query(`CREATE OR REPLACE FUNCTION qa_receipt_audit_failure() RETURNS trigger LANGUAGE plpgsql AS $$
+      BEGIN IF NEW.enrollment_id = '${e.enrollmentId}'::uuid AND NEW.operation = 'receipt'
+      THEN RAISE EXCEPTION 'synthetic audit failure'; END IF; RETURN NEW; END $$`);
+    await db.query('CREATE TRIGGER qa_receipt_audit_failure BEFORE INSERT ON integration_audit FOR EACH ROW EXECUTE FUNCTION qa_receipt_audit_failure()');
+    const body = { captureId: 'atomic-failure', sequence: 1, pageId: scope.pageId, observation: observation('atomic-failure') };
+    try {
+      expect((await request('/v1/integration/observations', body, e.token)).status).toBe(503);
+      expect((await db.query('SELECT checkpoint FROM integration_enrollment WHERE id=$1', [e.enrollmentId])).rows[0].checkpoint).toBe('0');
+      expect((await db.query('SELECT id FROM integration_receipt WHERE enrollment_id=$1', [e.enrollmentId])).rows).toHaveLength(0);
+    } finally {
+      await db.query('DROP TRIGGER qa_receipt_audit_failure ON integration_audit');
+      await db.query('DROP FUNCTION qa_receipt_audit_failure()');
+    }
+    expect((await request('/v1/integration/observations', body, e.token)).status).toBe(201);
+  });
   it('refuses sequence gaps and accepts a bound late duplicate ACK at a later checkpoint', async () => {
     const e = await enroll();
     let state = api.configureUpload({ outbox: [], session: null }, { origin: 'https://synthetic.invalid', enrollment: e });
