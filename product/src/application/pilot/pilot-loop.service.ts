@@ -16,10 +16,8 @@ import {
   requireOwner,
   requireWork,
 } from '../../application/pilot/work-mutation-policy';
-
 // Compatibility export: the controller and existing consumers retain their import path.
 export { activeWorkRecipients } from '../../application/pilot/work-mutation-policy';
-
 /**
  * P0 pilot loop — education B2C candidate flow over a durable store (C-03).
  *
@@ -51,17 +49,14 @@ export { activeWorkRecipients } from '../../application/pilot/work-mutation-poli
 export class PilotLoopService {
   private readonly context: PilotCommandContext;
   private readonly ingestCommand: IngestScenarioCommand;
-
   constructor(private readonly store: PilotLoopStore, private readonly adapter: ManualIngestPort) {
     this.context = new PilotCommandContext(store, adapter);
     this.ingestCommand = new IngestScenarioCommand(this.context);
   }
-
   /** CE-1 boundary violation is a business refusal (422), never a raw 500. */
   private ce1Transition(lead: Parameters<PilotCommandContext['transition']>[0], input: Parameters<PilotCommandContext['transition']>[1]) {
     return this.context.transition(lead, input);
   }
-
   /**
    * P1-4 — an evidence pointer is a REFERENCE to immutable raw evidence (I-12), never a way
    * to promote a claim. A pointer must (a) resolve in durable storage, (b) live in the SAME
@@ -76,12 +71,10 @@ export class PilotLoopService {
   private resolveEvidence(state: PilotLoopState, pointer: string, action: string, options: { readonly requireRelation: boolean } = { requireRelation: true }) {
     return this.context.evidence(state, pointer, action, options.requireRelation);
   }
-
   /** Bước 1 — nhập tình huống: raw envelope immutable (I-12) + Lead create (I-07). */
-  async ingestScenario(input: ScenarioInput): Promise<PilotLoopState> {
-    return this.ingestCommand.execute(input);
+  async ingestScenario(input: ScenarioInput, authorize?: (state: PilotLoopState) => void): Promise<PilotLoopState> {
+    return this.ingestCommand.execute(input, authorize);
   }
-
   /**
    * Bước 2 — bàn giao cho người nhận B: context + evidence refs + proposed next
    * action. Work item starts `proposed` (gửi bàn giao ≠ nhận trách nhiệm, V2 §6).
@@ -105,7 +98,6 @@ export class PilotLoopService {
     const state = await this.require(leadId);
     // Bàn giao là mutation trên lead → chỉ owner hiện tại được tạo (P1-2).
     requireOwner(state, input.actor, 'hand off this lead');
-
     // P1-4 + I-12: một evidence ref phải trỏ tới raw evidence THẬT trong cùng workspace.
     // Mã cũ ghi `rawPayloadHash: 'pending'` cho ref do caller cung cấp — tức là bịa placeholder
     // vào dấu vết bằng chứng; ref không resolve thì bị từ chối thay vì được lưu mờ.
@@ -117,7 +109,6 @@ export class PilotLoopService {
       : state.envelope
         ? [{ envelopeId: state.envelope.envelopeId, rawPayloadHash: state.envelope.rawPayloadHash, capturedAt: state.envelope.sourceCapturedAt }]
         : [];
-
     const handoff = createHandoff({
       leadId: state.lead.id,
       workspaceId: state.lead.workspaceId,
@@ -125,7 +116,6 @@ export class PilotLoopService {
       evidenceRefs,
       proposedNextAction: { kind: 'follow-up', summary: input.proposedAction, ...(input.dueAt !== undefined && { dueAt: input.dueAt }) },
     });
-
     const work: WorkItem = {
       id: randomUUID(),
       leadId: state.lead.id,
@@ -141,14 +131,12 @@ export class PilotLoopService {
       recordedAt: new Date().toISOString(),
       actor: input.recipientUserId, // receiver is accountable once accepted
     };
-
     const next: PilotLoopState = {
       ...state,
       handoff,
       workItems: [...state.workItems, work],
       handoffRecipient: input.recipientUserId,
     };
-
     const audits: AuditDraft[] = [
       {
         entityType: 'handoff',

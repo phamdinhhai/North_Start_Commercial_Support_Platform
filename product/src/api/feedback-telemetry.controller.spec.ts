@@ -1,3 +1,8 @@
+import { RbacService } from '../infra/rbac/rbac.service';
+import { PilotLoopService } from '../application/pilot/pilot-loop.service';
+import { InMemoryPilotStore } from '../infra/pilot/in-memory-pilot.store';
+import { ManualAdapter } from '../adapters/manual/manual-adapter';
+import { AuditStore } from '../infra/audit/audit-store';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { BadRequestException, ServiceUnavailableException, UnauthorizedException } from '@nestjs/common';
 import { FeedbackTelemetryController } from './feedback-telemetry.controller';
@@ -12,6 +17,8 @@ function controller(durable = true) {
     { submit: vi.fn(async (input) => ({ id: 'fb-1', workspaceId: input.workspaceId, leadId: null, actor: input.actor, rating: input.rating ?? null, body: input.body ?? null, context: input.context ?? {}, createdAt: '2026-01-01T00:00:00.000Z' })), listByWorkspace: vi.fn(async () => []) },
     { record: vi.fn(async (input) => ({ id: 'evt-1', workspaceId: input.workspaceId, eventType: input.eventType, payload: input.payload ?? {}, releaseVersion: input.releaseVersion ?? '1.0.0', flagExposure: input.flagExposure ?? {}, createdAt: '2026-01-01T00:00:00.000Z' })), listByWorkspace: vi.fn(async () => []) },
     { durable },
+    new PilotLoopService(new InMemoryPilotStore(new AuditStore()), new ManualAdapter()),
+    new RbacService(),
   );
 }
 

@@ -1,3 +1,4 @@
+import { canViewPilotLead, requirePilotLeadAccess } from '../application/pilot/lead-access';
 import {
   Controller,
   Get,
@@ -16,7 +17,7 @@ import {
 } from '@nestjs/common';
 import { AUTH_CONTEXT_RESOLVER, type AuthContext, type AuthContextResolver, type AuthRequestLike } from '../ports/auth';
 import { LEAD_ACCESS_POLICY, type LeadAccessPolicy } from '../ports/rbac';
-import { PilotLoopService, activeWorkRecipients } from '../application/pilot/pilot-loop.service';
+import { PilotLoopService } from '../application/pilot/pilot-loop.service';
 import { PilotDomainError, type ScenarioInput } from '../ports/pilot-loop.types';
 import {
   boundaryRejection,
@@ -113,7 +114,7 @@ export class PilotLoopController {
         ownerUserId: ctx.userId,
         isSynthetic: ctx.isDemo ? true : (body.isSynthetic ?? false),
       };
-      const state = await this.loop.ingestScenario(input);
+      const state = await this.loop.ingestScenario(input, (existing) => requirePilotLeadAccess(ctx, existing, this.rbac));
       return { leadId: state.lead.id, status: state.lead.status };
     } catch (err) {
       throw toHttpException(err);
@@ -358,13 +359,7 @@ export class PilotLoopController {
   private async authorizedView(ctx: AuthContext, leadId: string) {
     const state = await this.loop.get(leadId as LeadId);
     if (!state || state.lead.workspaceId !== ctx.workspaceId) throw new NotFoundException('lead not found');
-    const resource = {
-      id: leadId,
-      workspaceId: state.lead.workspaceId,
-      assignedTo: state.ownerUserId,
-      recipients: activeWorkRecipients(state),
-    };
-    if (!this.rbac.canAccessLead(ctx, resource)) throw new ForbiddenException('forbidden');
+    if (!canViewPilotLead(ctx, state, this.rbac)) throw new ForbiddenException('forbidden');
     return {
       lead: { id: state.lead.id, status: state.lead.status, workspaceId: state.lead.workspaceId, displayName: state.lead.displayName, owner: state.ownerUserId, handoffRecipient: state.handoffRecipient },
       handoff: state.handoff ? { id: state.handoff.id, context: state.handoff.context, evidenceRefs: state.handoff.evidenceRefs } : undefined,

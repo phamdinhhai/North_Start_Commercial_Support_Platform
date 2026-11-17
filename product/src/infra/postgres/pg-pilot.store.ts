@@ -95,7 +95,12 @@ export class PgPilotStore implements PilotLoopStore {
     const where = ['w.workspace_id = $1'];
     if (query.actorRole !== 'admin' && query.actorRole !== 'manager') {
       params.push(query.actorId);
-      where.push(`(l.owner_user_id = $${params.length} OR w.actor = $${params.length})`);
+      // Same lead-wide active assignment rule as the memory store and read policy (I-09).
+      where.push(`(l.owner_user_id = $${params.length} OR EXISTS (
+        SELECT 1 FROM pilot_work_item accessible
+        WHERE accessible.lead_id = l.id AND accessible.workspace_id = $1
+          AND accessible.actor = $${params.length}
+          AND accessible.status IN ('proposed','accepted','open','awaiting-external')))`);
     }
     if (query.status) { params.push(query.status); where.push(`w.status = $${params.length}`); }
     if (query.ownerUserId) { params.push(query.ownerUserId); where.push(`l.owner_user_id = $${params.length}`); }
