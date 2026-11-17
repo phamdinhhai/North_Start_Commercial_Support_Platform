@@ -59,7 +59,7 @@ export class PgPilotStore implements PilotLoopStore {
       ),
       this.db.query<WorkDbRow>(
         `SELECT id, lead_id, workspace_id, action, responsible_party, origin, status, completion_evidence,
-                occurred_at, due_at, evidence_ref, recorded_at, supersedes_work_id, actor, reason
+                occurred_at, due_at, evidence_ref, recorded_at, supersedes_work_id, actor, reason, declaration, confirmed
            FROM pilot_work_item WHERE lead_id = $1 ORDER BY recorded_at`,
         [leadId],
       ),
@@ -287,8 +287,8 @@ export class PgPilotStore implements PilotLoopStore {
         await tx.query(
           `INSERT INTO pilot_work_item (id, lead_id, workspace_id, action, responsible_party, origin, status,
                                          completion_evidence, occurred_at, due_at, evidence_ref, recorded_at,
-                                         supersedes_work_id, actor, reason)
-           VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15)
+                                         supersedes_work_id, actor, reason, declaration, confirmed)
+           VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17)
            ON CONFLICT (id) DO UPDATE
               SET status = EXCLUDED.status,
                   completion_evidence = EXCLUDED.completion_evidence,
@@ -296,7 +296,9 @@ export class PgPilotStore implements PilotLoopStore {
                   due_at = EXCLUDED.due_at,
                   evidence_ref = EXCLUDED.evidence_ref,
                   actor = EXCLUDED.actor,
-                  reason = EXCLUDED.reason`,
+                  reason = EXCLUDED.reason,
+                  declaration = EXCLUDED.declaration,
+                  confirmed = EXCLUDED.confirmed`,
           [
             w.id,
             w.leadId,
@@ -313,6 +315,8 @@ export class PgPilotStore implements PilotLoopStore {
             w.supersedesWorkId ?? null,
             w.actor,
             w.reason ?? null,
+            w.declaration ?? null,
+            w.confirmed ?? null,
           ],
         );
       }
