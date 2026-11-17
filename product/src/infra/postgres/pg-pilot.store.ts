@@ -378,10 +378,15 @@ function toQueueItem(row: WorkDbRow & { lead_status: string; display_name: strin
 }
 
 async function insertEnvelope(tx: SqlExecutor, env: CommercialEnvelope, options: { readonly checkSourceCapturedAt?: boolean }): Promise<string> {
+  // Shared adapters reuse the same envelope UUID. Serialize the scoped source key
+  // before INSERT so competing unique indexes cannot race on that UUID. Hash
+  // collisions only serialize unrelated requests; equality still uses full keys.
+  await tx.query('SELECT pg_advisory_xact_lock(hashtextextended($1, 0))', [
+    JSON.stringify([env.workspaceId, env.connection, env.externalRecordId]),
+  ]);
   // P1-1: idempotency scope = (workspace_id, connection, external_record_id) — R-06
-  // within I-09. DO UPDATE (no-op) makes PG RETURN the id of the winning row whether
-  // it was just inserted or already existed from a previous process — the lead FK must
-  // reference THAT id. Different workspaces NEVER share a row.
+  // within I-09. Read back and verify the winning immutable row when it already
+  // exists. The lead FK must reference THAT id; workspaces never share a row.
   const res = await tx.query<{ id: string }>(
     `INSERT INTO commercial_envelope (id, schema_version, workspace_id, connection, external_record_id, external_event_type,
                                       source_captured_at, ingested_at, raw_payload, raw_payload_hash,

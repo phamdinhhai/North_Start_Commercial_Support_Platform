@@ -29,6 +29,13 @@ describe('durable enrolled upload protocol', () => {
     expect(api.applyUploadResponse(state, 409, null).upload.status).toBe('blocked');
     expect(() => api.reserveUpload(api.applyUploadResponse(state, 409, null))).toThrow('enrollment_required');
   });
+  it('accepts an exact duplicate ACK after the server checkpoint advances', async () => {
+    const { api, state } = await fixture();
+    const delivered = api.applyUploadResponse(state, 200, { ...ack, disposition: 'duplicate', checkpoint: 2 });
+    expect(delivered.outbox).toEqual([]);
+    expect(delivered.upload.nextSequence).toBe(3);
+    expect(delivered.upload.checkpoint).toBe(2);
+  });
   it('removes local authority on 401/403 while preserving evidence and redacts exports', async () => {
     const { api, state } = await fixture();
     for (const status of [401, 403]) {

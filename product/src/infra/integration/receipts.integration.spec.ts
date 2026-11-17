@@ -33,6 +33,16 @@ suite('durable integration receipt transaction', () => {
         await store.enroll(expired);
         await expect(store.append(expired, upload, 'hash')).rejects.toMatchObject({ status: 401 });
     });
+    it('preserves missing delivery on out-of-order arrivals and binds late duplicate ACKs', async () => {
+        const e = enrollment();
+        await store.enroll(e);
+        const second = { ...upload, captureId: 'second', sequence: 2 };
+        await expect(store.append(e, second, 'second')).rejects.toMatchObject({ code: 'SEQUENCE_GAP', status: 409 });
+        expect((await db.query('SELECT checkpoint FROM integration_enrollment WHERE id=$1', [e.id])).rows[0].checkpoint).toBe('0');
+        expect(await store.append(e, upload, 'first')).toMatchObject({ checkpoint: 1 });
+        expect(await store.append(e, second, 'second')).toMatchObject({ checkpoint: 2 });
+        expect(await store.append(e, upload, 'first')).toMatchObject({ disposition: 'duplicate', sequence: 1, checkpoint: 2 });
+    });
     it('serializes concurrent sequence identity and revocation', async () => {
         const e = enrollment();
         await store.enroll(e);

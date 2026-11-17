@@ -40,6 +40,10 @@ export class PgIntegrationStore implements IntegrationStore {
             }
             if (u.sequence <= Number(row.checkpoint))
                 throw new IntegrationError('CHECKPOINT_REGRESSION', 409);
+            // Do not acknowledge past a missing local delivery. The sender retains
+            // this request and can deliver the earlier sequence before retrying.
+            if (u.sequence !== Number(row.checkpoint) + 1)
+                throw new IntegrationError('SEQUENCE_GAP', 409);
             const receiptId = randomUUID();
             await tx.query('INSERT INTO integration_receipt(id,enrollment_id,capture_id,sequence,fingerprint,metadata) VALUES($1,$2,$3,$4,$5,$6::jsonb)', [receiptId, e.id, u.captureId, u.sequence, fingerprint, JSON.stringify(u)]);
             await tx.query('UPDATE integration_enrollment SET checkpoint=$2 WHERE id=$1', [e.id, u.sequence]);

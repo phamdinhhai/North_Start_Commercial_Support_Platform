@@ -43,7 +43,7 @@ export function reserveUpload(state, at = Date.now()) {
   if (upload.pending && upload.pending.captureId !== observation.captureId) throw new Error('outbox_changed');
   if (!Number.isSafeInteger(upload.nextSequence) || upload.nextSequence < 1) throw new Error('sequence_exhausted');
   const pending = upload.pending ?? { captureId: observation.captureId, sequence: upload.nextSequence, pageId: upload.scope.pageId, observation };
-  if (new TextEncoder().encode(JSON.stringify(pending)).length > 16384) throw new Error('upload_size_limit');
+  if (new TextEncoder().encode(JSON.stringify(pending)).length > 8192) throw new Error('upload_size_limit');
   return { ...state, upload: { ...upload, pending, status: 'pending' } };
 }
 
@@ -55,7 +55,8 @@ export function applyUploadResponse(state, status, ack) {
   if (status === 409) return { ...state, upload: { ...upload, status: 'blocked' } };
   if (status < 200 || status >= 300 || !ack || !id(ack.receiptId) || !['stored', 'duplicate'].includes(ack.disposition) ||
       ack.captureId !== upload.pending.captureId || ack.sequence !== upload.pending.sequence || ack.enrollmentId !== upload.enrollmentId ||
-      !Number.isSafeInteger(ack.checkpoint) || ack.checkpoint !== upload.pending.sequence || ack.continuity !== 'UNKNOWN') {
+      !Number.isSafeInteger(ack.checkpoint) || ack.checkpoint < upload.pending.sequence ||
+      (ack.disposition === 'stored' && ack.checkpoint !== upload.pending.sequence) || ack.continuity !== 'UNKNOWN') {
     return { ...state, upload: { ...upload, status: 'retry-required' } };
   }
   if (state.outbox[0]?.captureId !== upload.pending.captureId) throw new Error('outbox_changed');
