@@ -7,6 +7,20 @@ const scope = { workspaceId: 'w', connectionId: 'c', accountId: 'a', providerSur
 const upload = () => ({ captureId: 'capture1', sequence: 1, pageId: 'p', observation: { scope: { workspaceId: 'w', connectionId: 'c', accountId: 'a', providerSurface: 'pancake-conversations' }, captureId: 'capture1', sourceRevision: 'v1', externalEventId: null, externalObjectId: null, eventType: 'pages:update_messages', method: 'browser-websocket', evidenceType: 'client-observed', authenticity: 'UNKNOWN', completeness: 'UNKNOWN', occurredAt: null, observedAt: '2026-11-16T00:00:00Z', payloadHash: 'a'.repeat(64) } });
 const setup = (config: NodeJS.ProcessEnv = env) => { const store = { enroll: vi.fn().mockResolvedValue(undefined), revoke: vi.fn().mockResolvedValue(undefined), append: vi.fn().mockResolvedValue({ continuity: 'UNKNOWN' }) } satisfies IntegrationStore; return { store, svc: new IntegrationIntake(store, config) }; };
 describe('research enrollment boundary', () => {
+    it('rejects missing authorization, malformed signed JSON and invalid revocation input', async () => {
+        const { svc, store } = setup();
+        for (const auth of [undefined, '', 'Basic ignored', 'Bearer ' + 'x'.repeat(4096)]) {
+            await expect(svc.append(auth, upload())).rejects.toMatchObject({ status: 401 });
+        }
+        const payload = Buffer.from('{invalid-json').toString('base64url');
+        const signature = createHmac('sha256', env.AIL_SIGNING_SECRET).update(payload).digest('base64url');
+        await expect(svc.append(`Bearer ${payload}.${signature}`, upload())).rejects.toMatchObject({ status: 401 });
+        for (const body of [null, {}, { enrollmentId: 'bad' }, { enrollmentId: 'x', workspaceId: 'other' }]) {
+            await expect(svc.revoke(env.AIL_ISSUER_SECRET, body)).rejects.toMatchObject({ status: 400 });
+        }
+        expect(store.append).not.toHaveBeenCalled();
+        expect(store.revoke).not.toHaveBeenCalled();
+    });
     it('refuses disabled and production even with valid issuer', async () => {
         await expect(setup({ ...env, AIL_RESEARCH_ENABLED: 'false' }).svc.enroll(env.AIL_ISSUER_SECRET, {})).rejects.toMatchObject({ status: 404 });
         await expect(setup({ ...env, DEPLOYMENT_MODE: 'production' }).svc.enroll(env.AIL_ISSUER_SECRET, {})).rejects.toMatchObject({ status: 503 });

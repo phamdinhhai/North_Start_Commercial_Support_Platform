@@ -24,6 +24,7 @@ suite('durable integration receipt transaction', () => {
         await expect(store.append(e, { ...upload, captureId: 'other' }, 'new')).rejects.toMatchObject({ code: 'CHECKPOINT_REGRESSION' });
     });
     it('rejects revoked, expired and forged tenant scope', async () => {
+        await expect(store.revoke(randomUUID())).rejects.toMatchObject({ code: 'ENROLLMENT_NOT_FOUND', status: 404 });
         const e = enrollment();
         await store.enroll(e);
         await expect(store.append({ ...e, scope: { ...e.scope, workspaceId: 'other' } }, upload, 'hash')).rejects.toMatchObject({ status: 401 });
