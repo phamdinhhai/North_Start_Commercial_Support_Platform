@@ -11,6 +11,7 @@ const requiredSuites = [
   'src/infra/postgres/postgres.integration.spec.ts',
   'src/infra/postgres/migration-004.integration.spec.ts',
   'src/infra/postgres/migration-005.integration.spec.ts',
+  'src/infra/postgres/migration-lifecycle.integration.spec.ts',
   'src/infra/postgres/pilot-loop.integration.spec.ts',
 ];
 

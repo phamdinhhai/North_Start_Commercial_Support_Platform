@@ -11,7 +11,7 @@ import { chromium } from '@playwright/test';
 const root = resolve('src/adapters/browser-companion');
 await mkdir('.tmp', { recursive: true });
 const temp = await mkdtemp(resolve('.tmp/companion-smoke-'));
-const openssl = process.env.AIL_OPENSSL ?? 'C:/Program Files/Git/usr/bin/openssl.exe';
+const openssl = process.env.AIL_OPENSSL ?? (process.platform === 'win32' ? 'C:/Program Files/Git/usr/bin/openssl.exe' : 'openssl');
 await promisify(execFile)(openssl, ['req', '-x509', '-newkey', 'rsa:2048', '-nodes', '-keyout', resolve(temp, 'key.pem'), '-out', resolve(temp, 'cert.pem'), '-days', '1', '-subj', '/CN=pancake.vn'], { windowsHide: true });
 const server = createServer({ key: await readFile(resolve(temp, 'key.pem')), cert: await readFile(resolve(temp, 'cert.pem')) }, (_request, response) => {
   response.writeHead(200, { 'Content-Type': 'text/html' });
