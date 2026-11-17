@@ -20,7 +20,7 @@ export default defineConfig({
     coverage: {
       provider: 'v8',
       reporter: ['text', 'lcov', 'html'],
-      include: ['src/**/*.ts'],
+      include: ['src/**/*.ts', 'src/**/*.mjs'],
       exclude: ['src/**/*.spec.ts', 'src/main.ts'],
       thresholds: {
         lines: 80,

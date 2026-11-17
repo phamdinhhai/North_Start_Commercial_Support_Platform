@@ -82,3 +82,23 @@ test('flags legacy production locations but excludes co-located tests', async ()
   assert.equal(findings.length, 1);
   assert.equal(findings[0].code, 'ARCH-LOC-002');
 });
+
+test('checks extension workers and JavaScript imports across module boundaries', async () => {
+  const findings = await fixture({
+    'adapters/browser/worker.mjs': "import { Store } from '../../infra/store.mjs';",
+    'domain/escape.cjs': "const db = require('pg');",
+    'api/escape.js': "export { value } from '../app.module.mjs';",
+    'app.module.mjs': '',
+    'adapters/browser/worker.spec.mjs': "import { Pool } from 'pg';",
+  });
+  // An alternate JS composition root is not approved implicitly.
+  assert.deepEqual(findings.map((finding) => finding.code).sort(),
+    ['ARCH-DEP-001', 'ARCH-DEP-001', 'ARCH-DEP-002', 'ARCH-LOC-001']);
+});
+
+test('allows native MV3 relative imports within the adapter boundary', async () => {
+  assert.deepEqual(await fixture({
+    'adapters/browser/worker.mjs': "import { decode } from './protocol.mjs';",
+    'adapters/browser/protocol.mjs': 'export const decode = () => null;',
+  }), []);
+});
