@@ -1,3 +1,4 @@
+import { configureUpload, reserveUpload, applyUploadResponse, captureMatchesEnrollment, exportMetadata } from './upload.mjs';
 import { allowedOrigin, summarizeFrame, validScope } from './protocol.mjs';
 
 const KEY = 'northStarResearchV1';
@@ -42,6 +43,7 @@ async function start(scope) {
   if (!tab?.id || !await tabOriginAllowed(tab.id)) throw new Error('unsupported_tab');
   await stop('new-session');
   const state = await load();
+  if (!captureMatchesEnrollment(scope, state.upload)) throw new Error('capture_scope_mismatch');
   if (state.outbox.length >= MAX_RECORDS) throw new Error('outbox_full');
   const target = { tabId: tab.id };
   await chrome.debugger.attach(target, '1.3');
@@ -56,16 +58,69 @@ async function start(scope) {
   }
 }
 
+// Explicit retry performs one bounded request. No alarm silently uploads after consent changes.
+async function uploadOne() {
+  let state = reserveUpload(await load());
+  await save(state); // Crash before/after network keeps the identical durable pending request.
+  if (state.upload?.status === 'expired') { await stop('upload-expired'); return; }
+  if (!state.upload?.pending || !state.upload.token) return;
+  const grant = state.upload;
+  if (!await chrome.permissions.contains({ origins: [grant.origin + '/*'] })) throw new Error('backend_permission_required');
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 10000);
+  try {
+    const response = await fetch(grant.origin + '/v1/integration/observations', {
+      method: 'POST', credentials: 'omit', redirect: 'error', cache: 'no-store', signal: controller.signal,
+      headers: { authorization: 'Bearer ' + grant.token, 'content-type': 'application/json' },
+      body: JSON.stringify(grant.pending),
+    });
+    let ack = null;
+    if (response.ok) {
+      const reader = response.body?.getReader();
+      let text = '', size = 0;
+      const decoder = new TextDecoder();
+      if (reader) {
+        try {
+          for (;;) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            size += value.length;
+            if (size > 16384) { await reader.cancel(); throw new Error('ack_size_limit'); }
+            text += decoder.decode(value, { stream: true });
+          }
+          text += decoder.decode();
+          ack = JSON.parse(text);
+        } finally { reader.releaseLock(); }
+      }
+    }
+    state = applyUploadResponse(state, response.status, ack);
+  } catch {
+    state = { ...state, upload: { ...state.upload, status: 'retry-required' } };
+  } finally { clearTimeout(timer); }
+  await save(state);
+  if (['unauthorized', 'expired', 'blocked'].includes(state.upload.status)) await stop('upload-' + state.upload.status);
+}
+
 chrome.runtime.onMessage.addListener((message, sender, respond) => {
   if (sender.id !== chrome.runtime.id || sender.url !== chrome.runtime.getURL('popup.html')) return false;
   enqueue(async () => {
     if (message?.kind === 'start') await start(message.scope);
+    else if (message?.kind === 'configure-upload') {
+      const state = configureUpload(await load(), message);
+      if (!await chrome.permissions.contains({ origins: [state.upload.origin + '/*'] })) throw new Error('backend_permission_required');
+      await save(state);
+    } else if (message?.kind === 'upload') await uploadOne();
+    else if (message?.kind === 'disconnect-upload') {
+      const state = await load();
+      if (state.upload) await save({ ...state, upload: { ...state.upload, token: null, status: 'disconnected' } });
+      await stop('upload-disconnected');
+    }
     else if (message?.kind === 'stop') await stop('user-stopped');
     else if (message?.kind !== 'status' && message?.kind !== 'export') throw new Error('unsupported_command');
     const state = await load();
-    return message.kind === 'export' ? state : {
+    return message.kind === 'export' ? exportMetadata(state) : {
       active: Boolean(state.session), pending: state.outbox.length, dropped: state.dropped,
-      continuity: state.continuity, gapSince: state.gapSince,
+      continuity: state.continuity, gapSince: state.gapSince, upload: state.upload?.status ?? 'disabled',
     };
   }).then((result) => respond({ ok: true, result }), () => respond({ ok: false, error: 'Capture unavailable; check scope, tab, debugger permission and storage.' }));
   return true;

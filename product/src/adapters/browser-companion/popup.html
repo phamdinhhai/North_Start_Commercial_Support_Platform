@@ -9,7 +9,7 @@
   #status { white-space: pre-wrap; overflow-wrap: anywhere; }
 </style>
 <h1>North Star / Research</h1>
-<p>Observe one Pancake tab and one page channel. Only event metadata stays on this device. No cookies or message text are exported.</p>
+<p>Observe one Pancake tab and one page channel. Event metadata stays on this device unless you explicitly enable upload. No cookies or message text are exported.</p>
 <p>Capture is partial. Activate before a new socket opens; existing socket history is unavailable. Stop disconnects the observer.</p>
 <form id="scope">
   <label>Research workspace <input name="workspaceId" required maxlength="256"></label>
@@ -20,6 +20,18 @@
   <button id="stop" type="button">Stop</button>
   <button id="export" type="button">Export metadata</button>
 </form>
+<hr>
+<form id="upload-settings">
+  <h2>Optional backend upload</h2>
+  <p>Only use an enrollment issued by your trusted North Star server. Local scope labels do not grant access. Upload sends event identifiers and hashes, never cookies or message bodies.</p>
+  <label>Trusted backend origin <input id="backend" type="url" placeholder="https://research.example.org" required></label>
+  <label>Enrollment JSON <textarea id="enrollment" rows="4" required autocomplete="off" spellcheck="false"></textarea></label>
+  <label><input id="consent" type="checkbox" required> I approve sending scoped metadata to this origin.</label>
+  <button type="submit">Enable upload</button>
+</form>
+<button id="upload" type="button">Upload / retry one record</button>
+<button id="disconnect" type="button">Disconnect upload</button>
+<p>Disconnect removes this device's token and stops capture. Server revocation must be performed by the enrollment issuer. Pending metadata is retained; export never includes the token. Restart preserves retry identity. Delivery ACK does not prove provider completeness.</p>
 <p id="status" role="status"></p>
 <script type="module" src="popup.mjs"></script>
 </html>

@@ -11,8 +11,9 @@ const scope = { workspaceId: 'workspace-test', connectionId: 'connection-test', 
 const key = 'northStarResearchV1';
 const url = 'https://pancake.vn/';
 
-async function harness(initial: Record<string, any> = {}) {
+async function harness(initial: Record<string, any> = {}, fetcher: any = async () => { throw new Error("offline"); }) {
   const protocol = await import(pathToFileURL(resolve(directory, 'protocol.mjs')).href);
+  const upload = await import(pathToFileURL(resolve(directory, 'upload.mjs')).href);
   const handlers: Record<string, (...args: any[]) => any> = {};
   const storage = structuredClone(initial);
   const calls: string[] = [];
@@ -20,6 +21,7 @@ async function harness(initial: Record<string, any> = {}) {
   let failWrites = false;
   const listener = (name: string) => ({ addListener: (callback: (...args: any[]) => any) => { handlers[name] = callback; } });
   const chrome = {
+    permissions: { contains: async () => true },
     runtime: { id: 'test-extension', getURL: (path: string) => `chrome-extension://test-extension/${path}`, onMessage: listener('message'), onStartup: listener('startup') },
     storage: { local: {
       get: async () => structuredClone(storage),
@@ -34,8 +36,8 @@ async function harness(initial: Record<string, any> = {}) {
       onEvent: listener('event'), onDetach: listener('detach'),
     },
   };
-  const source = (await readFile(resolve(directory, 'worker.mjs'), 'utf8')).replace(/^import .*;\r?\n/, '');
-  runInNewContext(source, { chrome, ...protocol, crypto: webcrypto, URL, Date });
+  const source = (await readFile(resolve(directory, 'worker.mjs'), 'utf8')).replace(/^import .*;\r?\n/gm, '');
+  runInNewContext(source, { chrome, ...protocol, ...upload, crypto: webcrypto, URL, Date, fetch: fetcher, setTimeout, clearTimeout, AbortController, TextEncoder, TextDecoder });
   const message = (kind: string, extra = {}) => new Promise<any>((done) => handlers.message({ kind, ...extra }, { id: 'test-extension', url: chrome.runtime.getURL('popup.html') }, done));
   const socket = (requestId = 'socket-1') => handlers.event({ tabId: 1 }, 'Network.webSocketCreated', { requestId, url: 'wss://pancake.vn/socket/websocket?credential=synthetic-secret' });
   const frame = (topic = 'pages:page-test', requestId = 'socket-1') => handlers.event({ tabId: 1 }, 'Network.webSocketFrameReceived', { requestId, response: { opcode: 1, payloadData: JSON.stringify([null, null, topic, 'pages:update_messages', { conversation_id: 'object-test', message: 'private-fixture-text' }]) } });
@@ -43,6 +45,25 @@ async function harness(initial: Record<string, any> = {}) {
 }
 
 describe('MV3 companion privacy and persistence', () => {
+  it('persists pending before fetch and retries identical envelopes after offline worker restart', async () => {
+    const grant = { enrollmentId: 'grant', token: 'x'.repeat(64), expiresAt: '2099-01-01T00:00:00Z', scope: { ...scope, providerSurface: 'pancake-conversations' } };
+    const h = await harness();
+    expect((await h.message('configure-upload', { origin: 'https://backend.example', enrollment: grant })).ok).toBe(true);
+    await h.message('start', { scope }); h.socket(); h.frame(); await h.message('status');
+    await h.message('upload');
+    const pending = structuredClone(h.storage[key].upload.pending);
+    expect(h.storage[key].outbox).toHaveLength(1);
+    let request: any;
+    const resumed = await harness(h.storage, async (_url: string, options: any) => {
+      request = JSON.parse(options.body);
+      return new Response(JSON.stringify({ receiptId: 'receipt', disposition: 'duplicate', checkpoint: 1, continuity: 'UNKNOWN', enrollmentId: 'grant', captureId: request.captureId, sequence: 1 }), { status: 200 });
+    });
+    await resumed.message('upload');
+    expect(request).toEqual(pending);
+    expect(resumed.storage[key].outbox).toHaveLength(0);
+    expect(resumed.storage[key].upload.nextSequence).toBe(2);
+    expect(JSON.stringify(request)).not.toMatch(/private-fixture-text|synthetic-secret/);
+  });
   it('processes the evidence-labeled contract corpus equally without promoting batch events to a single object', async () => {
     const { summarizeFrame } = await import(pathToFileURL(resolve(directory, 'protocol.mjs')).href);
     const { observePhoenixFrame } = await import('../adaptive-connectivity/phoenix-observer');

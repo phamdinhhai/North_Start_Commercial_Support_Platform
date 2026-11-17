@@ -1,3 +1,4 @@
+import { backendOrigin } from './upload.mjs';
 const status = document.querySelector('#status');
 async function send(message) {
   const response = await chrome.runtime.sendMessage(message);
@@ -19,4 +20,18 @@ document.querySelector('#export').addEventListener('click', async () => {
   link.click();
   setTimeout(() => URL.revokeObjectURL(url), 10000);
 });
+document.querySelector('#upload-settings').addEventListener('submit', async (event) => {
+  event.preventDefault();
+  try {
+    const origin = backendOrigin(document.querySelector('#backend').value);
+    const enrollment = JSON.parse(document.querySelector('#enrollment').value);
+    if (!document.querySelector('#consent').checked) return;
+    // Permission request originates from an explicit user gesture and grants only this origin.
+    if (!await chrome.permissions.request({ origins: [origin + '/*'] })) throw new Error();
+    await send({ kind: 'configure-upload', origin, enrollment });
+    document.querySelector('#enrollment').value = '';
+  } catch { status.textContent = 'Enrollment unavailable: check origin, grant and permission. Existing records are retained.'; }
+});
+document.querySelector('#upload').addEventListener('click', () => send({ kind: 'upload' }));
+document.querySelector('#disconnect').addEventListener('click', () => send({ kind: 'disconnect-upload' }));
 await send({ kind: 'status' });
