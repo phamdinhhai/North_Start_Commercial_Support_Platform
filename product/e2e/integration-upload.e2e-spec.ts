@@ -3,6 +3,7 @@ import { Test } from '@nestjs/testing';
 import { FastifyAdapter, type NestFastifyApplication } from '@nestjs/platform-fastify';
 import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
+import { request as httpRequest } from 'node:http';
 import { AppModule } from '../src/app.module';
 import { PostgresService } from '../src/infra/postgres/postgres.service';
 import { Migrator, loadMigrations } from '../src/infra/postgres/migrator';
@@ -93,6 +94,16 @@ suite('synthetic companion upload through real HTTP and PostgreSQL', () => {
     expect((await request('/v1/integration/observations', { ...body, observation: { ...body.observation, scope: { ...body.observation.scope, workspaceId: 'foreign' } } }, e.token)).status).toBe(403);
     expect((await request('/v1/integration/observations', { ...body, observation: { ...body.observation, rawPayload: 'private-text' } }, e.token)).status).toBe(400);
     expect((await request('/v1/integration/observations', { ...body, padding: 'x'.repeat(20000) }, e.token)).status).toBe(413);
+    const chunkedStatus = await new Promise<number>((accept, reject) => {
+      const req = httpRequest(`${origin}/v1/integration/observations`, { method: 'POST', headers: {
+        'content-type': 'application/json', authorization: `Bearer ${e.token}`, 'transfer-encoding': 'chunked',
+      } }, res => { res.resume(); res.on('end', () => accept(res.statusCode!)); });
+      req.on('error', reject);
+      req.write('{"padding":"');
+      req.write('x'.repeat(10000));
+      req.end('"}');
+    });
+    expect(chunkedStatus).toBe(413);
     expect((await request('/integration/enroll', {}, undefined, issuer)).status).toBe(404);
     expect((await db.query('SELECT id FROM integration_receipt WHERE enrollment_id=$1', [e.enrollmentId])).rows).toHaveLength(0);
   });

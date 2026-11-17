@@ -22,3 +22,12 @@ The tests also assert cross-enrollment/capture/sequence/continuity/receipt ACK b
 
 Limits: committed ACK loss is injected by deliberately discarding the response and restarting the application, not by killing a process mid-commit. This suite does not run Chromium, real provider capture, the operator state progression; those require separate evidence. Without `TEST_DATABASE_URL` the entire database suite explicitly skips, so a default e2e invocation alone is not durability evidence.
 
+
+Final independent verification after coordinator fixes `beaba22` and `78ef2f8`:
+
+- The first fix exposed an additional lifecycle defect: `HttpAdapterHost.httpAdapter` is undefined in an AppModule constructor while a Nest testing module compiles. The suite failed beforeAll and six tests skipped; this was immediately reported, not treated as passing evidence. The follow-up moves hook registration into NestModule.configure before route discovery.
+- Re-executed the same explicit database HTTP command: **6 passed, 0 failed, 0 skipped**. Re-executed again after adding a native Node HTTP chunked-transfer request: **6 passed, 0 failed, 0 skipped**. Both the 20 KB known-length body and 10 KB chunked body return 413 at the transport boundary.
+- `npm run typecheck`: passed after each final execution.
+- Gap-before-first receipt now returns 409 `SEQUENCE_GAP` with checkpoint zero; ordered uploads 1/2 succeed; late duplicate sequence 1/checkpoint 2 is accepted by the real companion module. All auth, scope, ACK binding, conflict, export privacy, restart durability, transactional rollback and revocation assertions executed.
+- Companion currently blocks on all 409 responses and preserves the outbox; sequence-gap recovery requires explicit reconfiguration. This report makes no automatic gap retry claim.
+- Read-only operator UI review: the new contacting/follow-up buttons call the existing advance endpoint with existing `Contacting`/`Follow-up` enum values and reasons. No domain transition policy changed; this review does not substitute for browser execution.
