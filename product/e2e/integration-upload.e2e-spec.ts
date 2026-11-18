@@ -4,9 +4,12 @@ import { FastifyAdapter, type NestFastifyApplication } from '@nestjs/platform-fa
 import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { request as httpRequest } from 'node:http';
+import { randomBytes } from 'node:crypto';
 import { AppModule } from '../src/app.module';
 import { PostgresService } from '../src/infra/postgres/postgres.service';
 import { Migrator, loadMigrations } from '../src/infra/postgres/migrator';
+import { AuthService } from '../src/infra/auth/auth.service';
+import { AUTH_CONTEXT_RESOLVER, type AuthContext, type AuthRequestLike } from '../src/ports/auth';
 
 // Explicit database opt-in: this suite never falls back to an ambient database.
 const suite = process.env.TEST_DATABASE_URL ? describe : describe.skip;
@@ -18,6 +21,18 @@ suite('synthetic companion upload through real HTTP and PostgreSQL', () => {
   const prior = { ...process.env };
   const issuer = 'synthetic-qa-issuer-'.repeat(3);
   const scope = { workspaceId: 'qa-synthetic', connectionId: 'qa-connection', accountId: 'qa-account', providerSurface: 'pancake-conversations', pageId: 'qa-page' };
+  // Stand-in for a signed-credential resolver (OIDC is owned elsewhere): opaque random bearer
+  // credentials map to privileged principals; anything else uses the real AuthService, whose
+  // unsigned dev tokens can only yield sales/viewer.
+  const principals = new Map<string, AuthContext>();
+  const principal = (workspaceId: string, role: AuthContext['role']) => {
+    const credential = randomBytes(24).toString('hex');
+    principals.set(credential, { workspaceId, userId: `${role}@${workspaceId}`, role, isDemo: false });
+    return credential;
+  };
+  const realAuth = new AuthService();
+  const resolver = { resolve: (req: AuthRequestLike) => principals.get(String(req.headers.authorization ?? '').slice(7)) ?? realAuth.resolve(req) };
+  const devToken = (workspaceId: string, role: string) => Buffer.from(JSON.stringify({ workspaceId, userId: `${role}-dev`, role })).toString('base64');
   const request = async (route: string, body: unknown, token?: string, issuerHeader?: string) => {
     const response = await fetch(`${origin}${route}`, { method: 'POST', headers: {
       'content-type': 'application/json', ...(token ? { authorization: `Bearer ${token}` } : {}),
@@ -38,7 +53,7 @@ suite('synthetic companion upload through real HTTP and PostgreSQL', () => {
     observedAt: '2026-11-16T00:00:00.000Z', payloadHash: 'a'.repeat(64),
   });
   const start = async () => {
-    const module = await Test.createTestingModule({ imports: [AppModule] }).compile();
+    const module = await Test.createTestingModule({ imports: [AppModule] }).overrideProvider(AUTH_CONTEXT_RESOLVER).useValue(resolver).compile();
     app = module.createNestApplication<NestFastifyApplication>(new FastifyAdapter(), { logger: false });
     app.setGlobalPrefix('v1', { exclude: ['health', 'health/readiness', 'v1/health', 'v1/health/readiness'] });
     await app.listen(0, '127.0.0.1');
@@ -162,5 +177,93 @@ suite('synthetic companion upload through real HTTP and PostgreSQL', () => {
     const duplicate = await request('/v1/integration/observations', state.upload.pending, e.token);
     expect(duplicate.body).toMatchObject({ disposition: 'duplicate', sequence: 1, checkpoint: 2 });
     expect(api.applyUploadResponse(state, duplicate.status, duplicate.body).outbox).toEqual([]);
+  });
+
+  // --- R2: principal-authenticated issuance and signing-key rotation -----------------------
+  const other = { workspaceId: 'qa-other', connectionId: 'qa-other-connection', accountId: 'qa-other-account', pageId: 'qa-other-page' };
+  const allowlist = [{ workspaceId: scope.workspaceId, connectionId: scope.connectionId, accountId: scope.accountId, pageId: scope.pageId }, other];
+  const [k1, k2] = [randomBytes(32).toString('base64url'), randomBytes(32).toString('base64url')];
+  const keyring = (...keys: unknown[]) => JSON.stringify(keys);
+  const withEnv = async (patch: Record<string, string | undefined>, fn: () => Promise<void>) => {
+    const saved = Object.fromEntries(Object.keys(patch).map((k) => [k, process.env[k]]));
+    const apply = (values: Record<string, string | undefined>) => { for (const [k, v] of Object.entries(values)) if (v === undefined) delete process.env[k]; else process.env[k] = v; };
+    apply(patch);
+    try { await fn(); } finally { apply(saved); }
+  };
+  const r2 = { AIL_WORKSPACE_ID: undefined, AIL_CONNECTION_ID: undefined, AIL_ACCOUNT_ID: undefined, AIL_PAGE_ID: undefined, AIL_SIGNING_SECRET: undefined,
+    AIL_SCOPE_ALLOWLIST: JSON.stringify(allowlist), AIL_SIGNING_KEYS: keyring({ kid: 'k1', secret: k1, state: 'active' }) };
+  const kidOf = (token: string) => JSON.parse(Buffer.from(token.split('.')[0], 'base64url').toString()).kid;
+  const upload = (captureId: string, sequence = 1) => ({ captureId, sequence, pageId: scope.pageId, observation: observation(captureId) });
+
+  it('issues enrollment only to manager/admin of the resolved workspace within the server allowlist and audits the actor', async () => {
+    await withEnv(r2, async () => {
+      const manager = principal(scope.workspaceId, 'manager');
+      expect((await request('/v1/integration/enrollments', {})).status).toBe(401);
+      expect((await request('/v1/integration/enrollments', {}, devToken(scope.workspaceId, 'sales'))).status).toBe(403);
+      expect((await request('/v1/integration/enrollments', {}, devToken(scope.workspaceId, 'viewer'))).status).toBe(403);
+      expect((await request('/v1/integration/enrollments', { pageId: scope.pageId }, principal(other.workspaceId, 'manager'))).status).toBe(403);
+      expect((await request('/v1/integration/enrollments', { pageId: 'qa-unlisted-page' }, manager)).status).toBe(403);
+      const smuggled = await request('/v1/integration/enrollments', { workspaceId: other.workspaceId }, manager);
+      expect(smuggled).toMatchObject({ status: 400, body: { code: 'WORKSPACE_FROM_CONTEXT' } });
+      expect((await request('/v1/integration/enrollments', { padding: 'x'.repeat(20000) }, manager)).status).toBe(413);
+      const issued = await request('/v1/integration/enrollments', { pageId: scope.pageId }, manager);
+      expect(issued.status).toBe(201);
+      expect(issued.body.scope).toEqual(scope);
+      expect(kidOf(issued.body.token)).toBe('k1');
+      const e = issued.body;
+      expect((await request('/v1/integration/observations', upload('principal-1'), e.token)).status).toBe(201);
+      const audit = await db.query("SELECT actor, workspace_id, event_type, new_value FROM audit_record WHERE entity_type='integration-enrollment' AND entity_id=$1 ORDER BY timestamp", [e.enrollmentId]);
+      expect(audit.rows).toEqual([{ actor: `manager@${scope.workspaceId}`, workspace_id: scope.workspaceId, event_type: 'integration.enrollment.issued',
+        new_value: { issuance: 'principal', role: 'manager', scope, kid: 'k1', capability: 'observation:append', expiresAt: e.expiresAt } }]);
+      // Revocation by an admin of another workspace looks like a missing enrollment.
+      expect((await request('/v1/integration/enrollments/revoke', { enrollmentId: e.enrollmentId }, principal(other.workspaceId, 'admin'))).status).toBe(404);
+      expect((await request('/v1/integration/enrollments/revoke', { enrollmentId: e.enrollmentId }, devToken(scope.workspaceId, 'sales'))).status).toBe(403);
+      expect((await request('/v1/integration/enrollments/revoke', { enrollmentId: e.enrollmentId }, principal(scope.workspaceId, 'admin'))).status).toBe(201);
+      expect((await request('/v1/integration/observations', upload('principal-2', 2), e.token)).status).toBe(401);
+      const rows = await db.query('SELECT a.*, i.operation FROM audit_record a JOIN integration_audit i ON i.enrollment_id::text = a.entity_id WHERE a.entity_id=$1', [e.enrollmentId]);
+      const dump = JSON.stringify(rows.rows);
+      expect(rows.rows.length).toBeGreaterThan(0);
+      for (const part of e.token.split('.')) expect(dump).not.toContain(part);
+      expect(dump).not.toContain(k1);
+      const otherIssued = await request('/v1/integration/enrollments', {}, principal(other.workspaceId, 'admin'));
+      expect(otherIssued.body.scope).toEqual({ ...other, providerSurface: 'pancake-conversations' });
+    });
+  });
+
+  it('rotates signing keys without invalidating unexpired tokens and rejects retired, unknown and tampered kids', async () => {
+    await withEnv(r2, async () => {
+      const manager = principal(scope.workspaceId, 'manager');
+      const old = (await request('/v1/integration/enrollments', {}, manager)).body;
+      expect(kidOf(old.token)).toBe('k1');
+      process.env.AIL_SIGNING_KEYS = keyring({ kid: 'k2', secret: k2, state: 'active' }, { kid: 'k1', secret: k1, state: 'verify' });
+      expect((await request('/v1/integration/observations', upload('rotation-1'), old.token)).status).toBe(201);
+      const fresh = (await request('/v1/integration/enrollments', {}, manager)).body;
+      expect(kidOf(fresh.token)).toBe('k2');
+      expect((await request('/v1/integration/observations', upload('rotation-fresh'), fresh.token)).status).toBe(201);
+      const [h, p, sig] = old.token.split('.');
+      const header = (kid: string) => Buffer.from(JSON.stringify({ alg: 'HS256', typ: 'AIL-ENROLLMENT', kid })).toString('base64url');
+      expect(h).toBe(header('k1'));
+      expect((await request('/v1/integration/observations', upload('rotation-2', 2), `${header('k2')}.${p}.${sig}`)).status).toBe(401);
+      expect((await request('/v1/integration/observations', upload('rotation-2', 2), `${header('unknown')}.${p}.${sig}`)).status).toBe(401);
+      process.env.AIL_SIGNING_KEYS = keyring({ kid: 'k2', secret: k2, state: 'active' }, { kid: 'k1', state: 'retired' });
+      expect((await request('/v1/integration/observations', upload('rotation-2', 2), old.token)).status).toBe(401);
+      expect((await request('/v1/integration/observations', upload('rotation-fresh-2', 2), fresh.token)).status).toBe(201);
+      process.env.AIL_SIGNING_KEYS = keyring({ kid: 'k2', secret: k2, state: 'active' });
+      expect((await request('/v1/integration/observations', upload('rotation-2', 2), old.token)).status).toBe(401);
+      expect((await db.query('SELECT checkpoint FROM integration_enrollment WHERE id=$1', [old.enrollmentId])).rows[0].checkpoint).toBe('1');
+      const kids = await db.query("SELECT new_value->>'kid' AS kid FROM audit_record WHERE entity_type='integration-enrollment' AND entity_id = ANY($1::text[]) ORDER BY timestamp", [[old.enrollmentId, fresh.enrollmentId]]);
+      expect(kids.rows.map((r) => r.kid)).toEqual(['k1', 'k2']);
+    });
+  });
+
+  it('disables the deprecated issuer-secret path by configuration while principal issuance continues', async () => {
+    await withEnv({ ...r2, AIL_ISSUER_SECRET_ENABLED: 'false' }, async () => {
+      expect((await request('/v1/integration/enroll', {}, undefined, issuer)).status).toBe(404);
+      expect((await request('/v1/integration/revoke', { enrollmentId: '00000000-0000-4000-8000-000000000000' }, undefined, issuer)).status).toBe(404);
+      expect((await request('/v1/integration/enrollments', {}, principal(scope.workspaceId, 'admin'))).status).toBe(201);
+    });
+    await withEnv({ ...r2, AIL_ISSUER_SECRET: undefined }, async () => {
+      expect((await request('/v1/integration/enroll', {}, undefined, issuer)).status).toBe(404);
+    });
   });
 });

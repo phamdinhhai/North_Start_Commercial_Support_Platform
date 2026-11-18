@@ -1,21 +1,37 @@
 import { randomUUID } from 'node:crypto';
 import { PostgresService } from '../postgres/postgres.service';
-import { IntegrationError, type Enrollment, type Upload, type ReceiptAck, type IntegrationStore } from '../../ports/integration';
+import { IntegrationError, type Enrollment, type Upload, type ReceiptAck, type IntegrationStore, type IssuanceAudit, type RevocationRequest } from '../../ports/integration';
+
+/**
+ * Actor-attributed audit uses the existing append-only `audit_record` table (migration 001)
+ * under a dedicated entity type, so no new migration is required. Enrollment UUIDs never
+ * match lead/handoff/outcome/work ids, so lead history projections do not include them.
+ * Only actor id, role, workspace, scope, kid and expiry are recorded — never token material.
+ */
+const ENTITY = 'integration-enrollment';
+const AUDIT_SQL = `INSERT INTO audit_record(entity_type,entity_id,workspace_id,actor,new_value,event_type,reason)
+ VALUES($1,$2,$3,$4,$5::jsonb,$6,$7)`;
+
 export class PgIntegrationStore implements IntegrationStore {
     constructor(private readonly db: PostgresService) { }
-    async enroll(e: Enrollment): Promise<void> {
+    async enroll(e: Enrollment, audit: IssuanceAudit): Promise<void> {
         await this.db.withTransaction(async (tx) => {
             await tx.query('INSERT INTO integration_enrollment(id,scope,expires_at) VALUES($1,$2::jsonb,$3)', [e.id, JSON.stringify(e.scope), e.expiresAt]);
             await tx.query("INSERT INTO integration_audit(enrollment_id,operation) VALUES($1,'enroll')", [e.id]);
+            const detail = { issuance: audit.issuance, role: audit.role, scope: e.scope, kid: audit.kid, capability: 'observation:append', expiresAt: e.expiresAt };
+            await tx.query(AUDIT_SQL, [ENTITY, e.id, e.scope.workspaceId, audit.actorId, JSON.stringify(detail), 'integration.enrollment.issued', audit.issuance === 'issuer-secret' ? 'deprecated issuer-secret path' : null]);
         });
     }
-    async revoke(id: string): Promise<void> {
+    async revoke(id: string, request: RevocationRequest): Promise<void> {
         await this.db.withTransaction(async (tx) => {
-            const row = await tx.query('SELECT id FROM integration_enrollment WHERE id=$1 FOR UPDATE', [id]);
-            if (!row.rows.length)
+            const row = await tx.query<{ workspace_id: string }>("SELECT scope->>'workspaceId' AS workspace_id FROM integration_enrollment WHERE id=$1 FOR UPDATE", [id]);
+            // A principal of another workspace receives the same answer as a missing id.
+            if (!row.rows.length || (request.workspaceId !== null && row.rows[0].workspace_id !== request.workspaceId))
                 throw new IntegrationError('ENROLLMENT_NOT_FOUND', 404);
             await tx.query('UPDATE integration_enrollment SET revoked_at=COALESCE(revoked_at,clock_timestamp()) WHERE id=$1', [id]);
             await tx.query("INSERT INTO integration_audit(enrollment_id,operation) VALUES($1,'revoke')", [id]);
+            const detail = { issuance: request.issuance, role: request.role };
+            await tx.query(AUDIT_SQL, [ENTITY, id, row.rows[0].workspace_id, request.actorId, JSON.stringify(detail), 'integration.enrollment.revoked', null]);
         });
     }
     async append(e: Enrollment, u: Upload, fingerprint: string): Promise<ReceiptAck> {
