@@ -3,6 +3,11 @@ import { pathToFileURL } from 'node:url';
 import { describe, expect, it } from 'vitest';
 import contracts from '../adaptive-connectivity/pancake-contract-fixtures.json';
 import { directory, harness, key, scope, url } from './companion-test-harness';
+import { testDigester } from '../adaptive-connectivity/digest-test-support';
+import { observationMetadata } from '../adaptive-connectivity/observation';
+
+// ADR-009: the backend decoder adds a keyed digest that never exists in the browser; parity compares shared metadata only.
+const digester = testDigester();
 
 describe('MV3 companion privacy and persistence', () => {
   it('persists pending before fetch and retries identical envelopes after offline worker restart', async () => {
@@ -33,10 +38,12 @@ describe('MV3 companion privacy and persistence', () => {
       const browserRecord = await summarizeFrame(raw, scope, at, 'capture-test');
       const backend = observePhoenixFrame(raw, { scope: { workspaceId: scope.workspaceId, connectionId: scope.connectionId,
         accountId: scope.accountId, providerSurface: 'pancake-conversations' }, allowedPageIds: [scope.pageId],
-        observedAt: at, captureId: 'capture-test', sourceRevision: 'north-star-companion/0.1.2', direction: 'received' });
+        observedAt: at, captureId: 'capture-test', sourceRevision: 'north-star-companion/0.3.0', direction: 'received', digester });
       expect(backend.kind, fixture.name).toBe('observation');
       if (backend.kind === 'observation') {
-        expect(browserRecord).toEqual(backend.observation);
+        expect(browserRecord).toEqual(observationMetadata(backend.observation));
+        expect(browserRecord).not.toHaveProperty('payloadHash');
+        expect(backend.observation.payloadDigest.alg).toBe('HMAC-SHA256');
         expect(browserRecord.externalObjectId).toBe(fixture.objectId);
         expect(browserRecord.occurredAt).toBeNull();
         expect(JSON.stringify(browserRecord)).not.toContain('synthetic-private-content');
@@ -61,7 +68,7 @@ describe('MV3 companion privacy and persistence', () => {
       expect(await summarizeFrame(make(payload), scope, at, 'capture-test')).toBeNull();
       expect(observePhoenixFrame(make(payload), { scope: { workspaceId: scope.workspaceId, connectionId: scope.connectionId,
         accountId: scope.accountId, providerSurface: 'pancake-conversations' }, allowedPageIds: [scope.pageId],
-        observedAt: at, captureId: 'capture-test', sourceRevision: 'fixture', direction: 'received' }).kind).toBe('rejected');
+        observedAt: at, captureId: 'capture-test', sourceRevision: 'fixture', direction: 'received', digester }).kind).toBe('rejected');
     }
   });
   it('preserves source-derived deletion references and rejects inconsistent page or object claims', async () => {
@@ -87,9 +94,9 @@ describe('MV3 companion privacy and persistence', () => {
       const raw = JSON.stringify([null, null, 'pages:page-test', eventType, { conversation_id: 'object-test', conversation: { id: 'object-test' } }]);
       const browserRecord = await summarizeFrame(raw, scope, at, 'capture-test');
       const backend = observePhoenixFrame(raw, { scope: { workspaceId: scope.workspaceId, connectionId: scope.connectionId, accountId: scope.accountId, providerSurface: 'pancake-conversations' },
-        allowedPageIds: [scope.pageId], observedAt: at, captureId: 'capture-test', sourceRevision: 'north-star-companion/0.1.2', direction: 'received' });
+        allowedPageIds: [scope.pageId], observedAt: at, captureId: 'capture-test', sourceRevision: 'north-star-companion/0.3.0', direction: 'received', digester });
       expect(backend.kind).toBe('observation');
-      if (backend.kind === 'observation') expect(browserRecord).toEqual(backend.observation);
+      if (backend.kind === 'observation') expect(browserRecord).toEqual(observationMetadata(backend.observation));
     }
   });
 

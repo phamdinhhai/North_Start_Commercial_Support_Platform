@@ -1,30 +1,33 @@
+import { digestToken, validContentDigest, type ContentDigest } from './content-digester';
 import { validId, validTime } from './observation';
 import type { LifecycleLabel, MessageMetadata } from './message-lifecycle';
 
 /**
  * Observer-relative message sightings keyed by (pageId, conversationId, providerMessageId).
  * "first-observed" is NOT "created" and "re-observed-changed" is NOT a verified edit: both only
- * describe what this observer saw. Capture ID, provider message ID and payload hash stay separate.
+ * describe what this observer saw. Capture ID, provider message ID and the keyed content digest stay separate.
+ * ADR-009: digests compare only under the same kid; a sighting under a new kid is 're-observed-incomparable'.
  */
 export interface MessageSighting {
   readonly key: string;
   readonly pageId: string;
   readonly conversationId: string;
   readonly providerMessageId: string;
-  /** Latest sighting by (observedAt, captureId, contentHash, label); deterministic regardless of arrival order. */
+  /** Latest sighting by (observedAt, captureId, kid:digest, label); deterministic regardless of arrival order. */
   readonly latest: SightingVariant & { readonly captureId: string };
   /** Earliest local observation time; used to decide whether a later readback could have missed it. */
   readonly earliestObservedAt: string;
   readonly captureIds: readonly string[];
   /** Capture IDs replayed with different content/time/label (R2-I-04): surfaced, never silently deduplicated. */
   readonly conflictedCaptureIds: readonly string[];
-  readonly distinctContentHashes: number;
+  /** Distinct (kid, digest) pairs; after key rotation the same content can count once per kid. */
+  readonly distinctContentDigests: number;
   readonly deletionLabelled: boolean;
 }
 
-interface SightingVariant { readonly observedAt: string; readonly label: LifecycleLabel; readonly contentHash: string }
+interface SightingVariant { readonly observedAt: string; readonly label: LifecycleLabel; readonly contentDigest: ContentDigest }
 
-export type SightingDisposition = 'first-observed' | 're-observed-same' | 're-observed-changed' | 'deletion-labelled' |
+export type SightingDisposition = 'first-observed' | 're-observed-same' | 're-observed-changed' | 're-observed-incomparable' | 'deletion-labelled' |
   'duplicate-capture' | 'capture-conflict' | 'stale';
 
 interface SightingRecord {
@@ -37,7 +40,7 @@ interface SightingRecord {
 }
 
 export interface LedgerState {
-  readonly version: 2;
+  readonly version: 3;
   readonly sightings: Readonly<Record<string, SightingRecord>>;
 }
 
@@ -48,7 +51,7 @@ export interface SightingInput {
   readonly message: MessageMetadata;
 }
 
-export const emptyLedger = (): LedgerState => ({ version: 2, sightings: {} });
+export const emptyLedger = (): LedgerState => ({ version: 3, sightings: {} });
 
 export function messageKey(pageId: string, conversationId: string, providerMessageId: string): string {
   if (![pageId, conversationId, providerMessageId].every(validId)) throw new Error('invalid_message_key');
@@ -58,8 +61,9 @@ export function messageKey(pageId: string, conversationId: string, providerMessa
 type Flat = SightingVariant & { readonly captureId: string };
 const compare = (a: Flat, b: Flat): number => (Date.parse(a.observedAt) - Date.parse(b.observedAt)) ||
   (a.captureId < b.captureId ? -1 : a.captureId > b.captureId ? 1 : 0) ||
-  (a.contentHash < b.contentHash ? -1 : a.contentHash > b.contentHash ? 1 : 0) || (a.label < b.label ? -1 : a.label > b.label ? 1 : 0);
-const variantKey = (variant: SightingVariant): string => JSON.stringify([variant.observedAt, variant.label, variant.contentHash]);
+  (digestToken(a.contentDigest) < digestToken(b.contentDigest) ? -1 : digestToken(a.contentDigest) > digestToken(b.contentDigest) ? 1 : 0) ||
+  (a.label < b.label ? -1 : a.label > b.label ? 1 : 0);
+const variantKey = (variant: SightingVariant): string => JSON.stringify([variant.observedAt, variant.label, digestToken(variant.contentDigest)]);
 
 function derive(record: SightingRecord): MessageSighting {
   const captureIds = Object.keys(record.variants).sort();
@@ -67,10 +71,10 @@ function derive(record: SightingRecord): MessageSighting {
   const latest = all[all.length - 1];
   return {
     key: record.key, pageId: record.pageId, conversationId: record.conversationId, providerMessageId: record.providerMessageId,
-    latest: { captureId: latest.captureId, observedAt: latest.observedAt, label: latest.label, contentHash: latest.contentHash },
+    latest: { captureId: latest.captureId, observedAt: latest.observedAt, label: latest.label, contentDigest: { ...latest.contentDigest } },
     earliestObservedAt: all.reduce((min, item) => (Date.parse(item.observedAt) < Date.parse(min) ? item.observedAt : min), latest.observedAt),
     captureIds, conflictedCaptureIds: captureIds.filter((captureId) => record.variants[captureId].length > 1),
-    distinctContentHashes: new Set(all.map((item) => item.contentHash)).size,
+    distinctContentDigests: new Set(all.map((item) => digestToken(item.contentDigest))).size,
     deletionLabelled: all.some((item) => item.label === 'deletion-labelled'),
   };
 }
@@ -80,15 +84,15 @@ function derive(record: SightingRecord): MessageSighting {
  * the same snapshot. Only the returned disposition describes the order in which this input arrived.
  */
 export function recordSighting(state: LedgerState, input: SightingInput): { readonly state: LedgerState; readonly disposition: SightingDisposition } {
-  if (!state || state.version !== 2 || !state.sightings || typeof state.sightings !== 'object') throw new Error('invalid_ledger');
-  if (!input || !validId(input.captureId) || !validTime(input.observedAt) || !input.message || !/^[a-f0-9]{64}$/.test(input.message.contentHash) ||
+  if (!state || state.version !== 3 || !state.sightings || typeof state.sightings !== 'object') throw new Error('invalid_ledger');
+  if (!input || !validId(input.captureId) || !validTime(input.observedAt) || !input.message || !validContentDigest(input.message.contentDigest) ||
       !['upsert-observed', 'deletion-labelled'].includes(input.label)) throw new Error('invalid_sighting');
-  const { pageId, conversationId, providerMessageId, contentHash } = input.message;
+  const { pageId, conversationId, providerMessageId, contentDigest } = input.message;
   const key = messageKey(pageId, conversationId, providerMessageId);
-  const variant: SightingVariant = { observedAt: input.observedAt, label: input.label, contentHash };
+  const variant: SightingVariant = { observedAt: input.observedAt, label: input.label, contentDigest: { ...contentDigest } };
   const current = state.sightings[key];
   const store = (record: SightingRecord, disposition: SightingDisposition) =>
-    ({ state: { version: 2 as const, sightings: { ...state.sightings, [key]: record } }, disposition });
+    ({ state: { version: 3 as const, sightings: { ...state.sightings, [key]: record } }, disposition });
   if (!current) {
     return store({ key, pageId, conversationId, providerMessageId, variants: { [input.captureId]: [variant] } },
       input.label === 'deletion-labelled' ? 'deletion-labelled' : 'first-observed');
@@ -101,9 +105,12 @@ export function recordSighting(state: LedgerState, input: SightingInput): { read
   }
   const before = derive(current);
   const isLater = compare({ ...variant, captureId: input.captureId }, before.latest) > 0;
-  const hadHash = Object.values(current.variants).some((items) => items.some((item) => item.contentHash === contentHash));
+  const prior = Object.values(current.variants).flat();
+  const sameKid = prior.filter((item) => item.contentDigest.kid === contentDigest.kid);
+  const hadDigest = sameKid.some((item) => item.contentDigest.value === contentDigest.value);
   const disposition: SightingDisposition = !isLater ? 'stale'
-    : input.label === 'deletion-labelled' ? 'deletion-labelled' : hadHash ? 're-observed-same' : 're-observed-changed';
+    : input.label === 'deletion-labelled' ? 'deletion-labelled' : hadDigest ? 're-observed-same'
+      : sameKid.length ? 're-observed-changed' : 're-observed-incomparable';
   return store({ ...current, variants: { ...current.variants, [input.captureId]: [variant] } }, disposition);
 }
 

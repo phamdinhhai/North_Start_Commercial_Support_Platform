@@ -146,7 +146,8 @@ export function permissionSummary(manifest) {
 
 export const PRIVACY_SUMMARY = Object.freeze([
   'Model A: observes the user\'s own browser session in one explicitly attached Pancake tab (https://pancake.vn, https://app.pancake.vn).',
-  'Never reads or exports cookies, websocket credentials, message bodies or unknown payload fields; observations are allowlisted metadata plus SHA-256 payload hashes.',
+  'Never reads or exports cookies, websocket credentials, message bodies or unknown payload fields; observations are allowlisted metadata only.',
+  'ADR-009: no digest derived from message or frame content is computed or sent; content digests are keyed per workspace on the server only.',
   'Local scope labels authorize nothing; upload requires a server-issued enrollment and an explicit per-origin permission grant.',
   'Upload happens only on explicit user click; there is no alarm, background sync or automatic conflict retry.',
   'Schema drift is recorded as structural fingerprints only (hash of key/type skeleton), never values.',

@@ -104,6 +104,8 @@ try {
   assert.equal(state.outbox.length, 1, `real CDP frame must reach persistent outbox: ${JSON.stringify(state)}`);
   assert.equal(state.outbox[0].evidenceType, 'client-observed');
   assert.ok(!JSON.stringify(state).includes('private-synthetic-text'));
+  // ADR-009: the real MV3 worker persists (and would upload) no body-derived digest.
+  assert.ok(!('payloadHash' in state.outbox[0]) && !JSON.stringify(state.outbox).match(/[a-f0-9]{64}/), 'no body digest leaves the decoder');
   let read = async () => (await (await extensionWorker()).evaluate(async () => (await chrome.storage.local.get('northStarResearchV1')).northStarResearchV1));
   for (let attempt = 0; attempt < 50 && !(await read()).drift; attempt += 1) await new Promise((done) => setTimeout(done, 100));
   state = await read();
@@ -210,7 +212,7 @@ try {
   const restored = await worker.evaluate(async () => (await chrome.storage.local.get('northStarResearchV1')).northStarResearchV1);
   assert.equal(restored.outbox.length, 2, 'outbox survives browser restart');
   assert.equal(restored.continuity, 'UNKNOWN');
-  console.log(JSON.stringify({ result: 'PASS', realChromiumMV3: true, syntheticWebsocketCaptured: true, rawMessageExcluded: true, browserRestartPersistence: true, providerContacted: false,
+  console.log(JSON.stringify({ result: 'PASS', realChromiumMV3: true, syntheticWebsocketCaptured: true, rawMessageExcluded: true, noBodyDigest: true, browserRestartPersistence: true, providerContacted: false,
     packagedArtifact: packaged.zip.sha256, workerRestarted, workerLostDebuggerDetected: true, captureAfterExplicitRestart: true, sequenceReservationSurvivedTermination: true, driftFingerprintOnly: true, popupA11y: true, tabCloseStop }));
 } finally {
   await context?.close();

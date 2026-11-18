@@ -1,10 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import { advanceContinuity, initialContinuity, restoreContinuity } from './continuity';
 import { observePhoenixFrame, type CaptureContext } from './phoenix-observer';
+import { testDigester } from './digest-test-support';
 
 const scope = { workspaceId: 'synthetic-workspace', connectionId: 'synthetic-session', accountId: 'synthetic-account', providerSurface: 'pancake-conversations' as const };
 const at = '2026-11-17T00:00:00.000Z';
-const context: CaptureContext = { scope, allowedPageIds: ['synthetic-page'], captureId: 'capture-before', sourceRevision: 'synthetic-lifecycle-v1', observedAt: at, direction: 'received' };
+const context: CaptureContext = { scope, allowedPageIds: ['synthetic-page'], captureId: 'capture-before', sourceRevision: 'synthetic-lifecycle-v1', observedAt: at, direction: 'received', digester: testDigester() };
 const raw = (tags: number[]) => JSON.stringify([null, null, 'pages:synthetic-page', 'pages:tag_conversations', { conversations: { 'synthetic-conversation': tags } }]);
 const read = (captureId: string, tags: number[], observedAt = at) => {
   const result = observePhoenixFrame(raw(tags), { ...context, captureId, observedAt });
@@ -24,7 +25,7 @@ describe('synthetic continuity failure and recovery contracts', () => {
     state = advanceContinuity(state, { kind: 'connected', at: recoveredAt }).state;
     const before = read('capture-before', []);
     const after = read('capture-after', offlineStates[1], recoveredAt);
-    expect(after.payloadHash).toBe(before.payloadHash);
+    expect(after.payloadDigest).toEqual(before.payloadDigest);
     const recovered = advanceContinuity(state, { kind: 'observation', observation: after });
     expect(recovered.disposition).toBe('accepted');
     expect(recovered.state).toMatchObject({ continuity: 'UNKNOWN', gapSince: at, status: 'connected' });

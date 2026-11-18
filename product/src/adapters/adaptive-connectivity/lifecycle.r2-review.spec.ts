@@ -5,6 +5,7 @@ import { emptyLedger, ledgerSnapshot, recordSighting, type SightingInput } from 
 import { classifyLifecycleFrame, transportSignalToInput } from './message-lifecycle';
 import type { CaptureContext } from './phoenix-observer';
 import { emptyJoinTracker, recordOutboundJoin, resolveTransportSignal, type JoinTracker } from './join-tracker';
+import { testDigester } from './digest-test-support';
 
 /**
  * Independent QA (R2, Subagent I) — Pancake lifecycle probes. Originally `it.fails` reproductions;
@@ -13,7 +14,7 @@ import { emptyJoinTracker, recordOutboundJoin, resolveTransportSignal, type Join
  */
 const scope = { workspaceId: 'synthetic-workspace', connectionId: 'synthetic-connection', accountId: 'synthetic-account', providerSurface: 'pancake-conversations' as const };
 const at = (second: number) => new Date(Date.parse('2026-11-18T03:00:00.000Z') + second * 1000).toISOString();
-const context: CaptureContext = { scope, allowedPageIds: ['p-1'], captureId: 'c', sourceRevision: 'synthetic-v1', observedAt: at(0), direction: 'received' };
+const context: CaptureContext = { scope, allowedPageIds: ['p-1'], captureId: 'c', sourceRevision: 'synthetic-v1', observedAt: at(0), direction: 'received', digester: testDigester() };
 const step = (state: ContinuityState, input: ContinuityInput | null) => (input ? advanceContinuity(state, input).state : state);
 let tracker: JoinTracker = emptyJoinTracker();
 const signal = (raw: unknown[], second: number): ContinuityInput | null => {
@@ -78,7 +79,7 @@ function sighting(captureId: string, second: number, body: string): SightingInpu
 
 describe('R2 independent QA — ledger ordering determinism', () => {
   // DEFECT R2-I-04: message-ledger.ts returns 'duplicate-capture' on a captureId match without comparing
-  // contentHash/observedAt, so two conflicting replays of the same captureId yield order-dependent state.
+  // contentDigest/observedAt, so two conflicting replays of the same captureId yield order-dependent state.
   it('same captureId with different content yields the same ledger regardless of arrival order', () => {
     const a = sighting('cap', 1, 'a');
     const b = sighting('cap', 2, 'b');

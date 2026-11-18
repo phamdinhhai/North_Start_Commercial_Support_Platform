@@ -6,11 +6,12 @@ import { emptyLedger, ledgerSnapshot, recordSighting, type SightingInput } from 
 import { classifyLifecycleFrame, transportSignalToInput } from './message-lifecycle';
 import { analysisDigest } from './readback-correlation';
 import type { CaptureContext } from './phoenix-observer';
+import { testDigester } from './digest-test-support';
 
 /** Failing-first specs for R2 review findings R2-I-03/04/06/07/08 and A-m8. Synthetic only. */
 const scope = { workspaceId: 'synthetic-workspace', connectionId: 'synthetic-connection', accountId: 'synthetic-account', providerSurface: 'pancake-conversations' as const };
 const at = (second: number) => new Date(Date.parse('2026-11-18T05:00:00.000Z') + second * 1000).toISOString();
-const context: CaptureContext = { scope, allowedPageIds: ['p-1', 'p-2'], captureId: 'c', sourceRevision: 'synthetic-v1', observedAt: at(0), direction: 'received' };
+const context: CaptureContext = { scope, allowedPageIds: ['p-1', 'p-2'], captureId: 'c', sourceRevision: 'synthetic-v1', observedAt: at(0), direction: 'received', digester: testDigester() };
 const frame = (parts: unknown[]) => JSON.stringify(parts);
 
 function joinPage(state: ContinuityState, tracker: JoinTracker, pageId: string, second: number, ref = `${pageId}-${second}`) {
@@ -96,7 +97,7 @@ describe('R2-I-04 conflicting replays of one capture are surfaced deterministica
     expect(ab.disposition).toBe('capture-conflict');
     expect(ba.disposition).toBe('capture-conflict');
     expect(ledgerSnapshot(ab.state)).toEqual(ledgerSnapshot(ba.state));
-    expect(ledgerSnapshot(ab.state)[0]).toMatchObject({ conflictedCaptureIds: ['cap'], distinctContentHashes: 2 });
+    expect(ledgerSnapshot(ab.state)[0]).toMatchObject({ conflictedCaptureIds: ['cap'], distinctContentDigests: 2 });
   });
 
   it('still treats an identical replay as duplicate-capture', () => {

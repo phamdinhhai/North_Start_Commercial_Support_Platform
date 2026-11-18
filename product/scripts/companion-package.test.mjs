@@ -127,3 +127,12 @@ test('R2-I-12: follows side-effect and literal dynamic imports, refuses non-lite
   });
   await assert.rejects(packageCompanion({ sourceDir: dynamic, outDir: resolve(temp, 'refused-dynamic') }), /non-literal dynamic import in drift.mjs/);
 });
+
+test('ADR-009: the shipped decoder computes and sends no body-derived digest', async () => {
+  const result = await packageCompanion({ outDir: resolve(temp, 'out-adr009') });
+  const entries = readZip(await readFile(resolve(temp, 'out-adr009', result.zip.file)));
+  for (const name of ['protocol.mjs', 'upload.mjs', 'worker.mjs']) assert.doesNotMatch(entries.get(name).toString('utf8'), /payloadHash/, name);
+  assert.doesNotMatch(entries.get('protocol.mjs').toString('utf8'), /crypto\.subtle/);
+  assert.ok(result.privacy.some((line) => /ADR-009/.test(line) && /keyed per workspace on the server/.test(line)));
+  assert.ok(!result.privacy.some((line) => /SHA-256 payload hash/i.test(line)));
+});

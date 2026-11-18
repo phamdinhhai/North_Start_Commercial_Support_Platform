@@ -4,12 +4,13 @@ import { analyzeReadback, type ReadbackCollection } from './history-readback';
 import { classifyLifecycleFrame, transportSignalToInput } from './message-lifecycle';
 import type { CaptureContext } from './phoenix-observer';
 import { emptyJoinTracker, recordOutboundJoin, resolveTransportSignal } from './join-tracker';
+import { testDigester } from './digest-test-support';
 
 const provenance = { producer: 'synthetic-readback-runner/1', readerIds: ['r-1'] };
 
 const scope = { workspaceId: 'synthetic-workspace', connectionId: 'synthetic-connection', accountId: 'synthetic-account', providerSurface: 'pancake-conversations' as const };
 const at = (second: number) => new Date(Date.parse('2026-11-18T03:00:00.000Z') + second * 1000).toISOString();
-const context: CaptureContext = { scope, allowedPageIds: ['p-1'], captureId: 'c', sourceRevision: 'synthetic-v1', observedAt: at(0), direction: 'received' };
+const context: CaptureContext = { scope, allowedPageIds: ['p-1'], captureId: 'c', sourceRevision: 'synthetic-v1', observedAt: at(0), direction: 'received', digester: testDigester() };
 const step = (state: ContinuityState, input: ContinuityInput) => advanceContinuity(state, input).state;
 const observe = (captureId: string, second: number) => {
   const result = classifyLifecycleFrame(JSON.stringify([null, null, 'pages:p-1', 'pages:update_messages', { conversation_id: 'conv-1', messages: [{ id: captureId }] }]),

@@ -4,7 +4,7 @@ import { describe, expect, it } from 'vitest';
 const moduleUrl = pathToFileURL(resolve('src/adapters/browser-companion/upload.mjs')).href;
 const scope = { workspaceId: 'w', connectionId: 'c', accountId: 'a', pageId: 'p', providerSurface: 'pancake-conversations' };
 const enrollment = { enrollmentId: 'enrollment', token: 'x'.repeat(64), expiresAt: '2099-01-01T00:00:00Z', scope };
-const record = { captureId: 'capture', scope: { workspaceId: 'w', connectionId: 'c', accountId: 'a', providerSurface: 'pancake-conversations' }, payloadHash: 'a'.repeat(64) };
+const record = { captureId: 'capture', scope: { workspaceId: 'w', connectionId: 'c', accountId: 'a', providerSurface: 'pancake-conversations' } };
 async function fixture() {
   const api = await import(moduleUrl);
   const state = api.configureUpload({ outbox: [], session: null }, { origin: 'https://backend.example', enrollment });

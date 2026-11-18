@@ -3,9 +3,10 @@ import { emptyLedger, ledgerSnapshot, liveMessages, messageKey, recordSighting, 
 import { classifyLifecycleFrame } from './message-lifecycle';
 import { advanceContinuity, initialContinuity } from './continuity';
 import type { CaptureContext } from './phoenix-observer';
+import { testDigester } from './digest-test-support';
 
 const scope = { workspaceId: 'synthetic-workspace', connectionId: 'synthetic-connection', accountId: 'synthetic-account', providerSurface: 'pancake-conversations' as const };
-const base: CaptureContext = { scope, allowedPageIds: ['p-1'], captureId: 'c', sourceRevision: 'synthetic-v1', observedAt: '2026-11-18T00:00:00.000Z', direction: 'received' };
+const base: CaptureContext = { scope, allowedPageIds: ['p-1'], captureId: 'c', sourceRevision: 'synthetic-v1', observedAt: '2026-11-18T00:00:00.000Z', direction: 'received', digester: testDigester() };
 const t = (second: number) => new Date(Date.parse(base.observedAt) + second * 1000).toISOString();
 
 function sighting(captureId: string, second: number, event: 'pages:update_messages' | 'messages:mark_as_deleted', body = 'a', id = 'm-1'): SightingInput {
@@ -40,14 +41,14 @@ describe('observer-relative message sightings', () => {
     const changed = recordSighting(same.state, sighting('cap-3', 2, 'pages:update_messages', 'b'));
     expect(changed.disposition).toBe('re-observed-changed');
     state = recordSighting(changed.state, sighting('cap-4', 3, 'messages:mark_as_deleted', 'b')).state;
-    expect(ledgerSnapshot(state)[0]).toMatchObject({ deletionLabelled: true, distinctContentHashes: 3, captureIds: ['cap-1', 'cap-2', 'cap-3', 'cap-4'], latest: { captureId: 'cap-4', label: 'deletion-labelled' } });
+    expect(ledgerSnapshot(state)[0]).toMatchObject({ deletionLabelled: true, distinctContentDigests: 3, captureIds: ['cap-1', 'cap-2', 'cap-3', 'cap-4'], latest: { captureId: 'cap-4', label: 'deletion-labelled' } });
   });
 
   it('marks out-of-order sightings stale without moving the latest view backwards', () => {
     const state = apply([sighting('cap-2', 10, 'pages:update_messages', 'b')]);
     const late = recordSighting(state, sighting('cap-1', 5, 'pages:update_messages', 'a'));
     expect(late.disposition).toBe('stale');
-    expect(ledgerSnapshot(late.state)[0]).toMatchObject({ latest: { captureId: 'cap-2' }, earliestObservedAt: t(5), distinctContentHashes: 2 });
+    expect(ledgerSnapshot(late.state)[0]).toMatchObject({ latest: { captureId: 'cap-2' }, earliestObservedAt: t(5), distinctContentDigests: 2 });
   });
 
   it('keeps a deletion label even when an older upsert arrives after it', () => {
@@ -88,7 +89,7 @@ describe('observer-relative message sightings', () => {
     const valid = sighting('cap-1', 0, 'pages:update_messages');
     expect(() => recordSighting(emptyLedger(), { ...valid, captureId: '' })).toThrow('invalid_sighting');
     expect(() => recordSighting(emptyLedger(), { ...valid, observedAt: 'yesterday' })).toThrow('invalid_sighting');
-    expect(() => recordSighting(emptyLedger(), { ...valid, message: { ...valid.message, contentHash: 'abc' } })).toThrow('invalid_sighting');
+    expect(() => recordSighting(emptyLedger(), { ...valid, message: { ...valid.message, contentDigest: { alg: 'HMAC-SHA256' as const, kid: 'k', value: 'abc' } } })).toThrow('invalid_sighting');
     expect(() => recordSighting(emptyLedger(), { ...valid, label: 'created' as never })).toThrow('invalid_sighting');
     expect(() => recordSighting(emptyLedger(), { ...valid, message: { ...valid.message, providerMessageId: '' } })).toThrow('invalid_message_key');
   });

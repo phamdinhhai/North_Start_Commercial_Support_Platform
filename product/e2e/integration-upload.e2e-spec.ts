@@ -55,7 +55,7 @@ suite('synthetic companion upload through real HTTP and PostgreSQL', () => {
     sourceRevision: 'synthetic-v1', externalEventId: null, externalObjectId: null,
     eventType: 'synthetic-update', method: 'browser-websocket', evidenceType: 'client-observed',
     authenticity: 'UNKNOWN', completeness: 'UNKNOWN', occurredAt: null,
-    observedAt: '2026-11-16T00:00:00.000Z', payloadHash: 'a'.repeat(64),
+    observedAt: '2026-11-16T00:00:00.000Z',
   });
   const start = async () => {
     const module = await Test.createTestingModule({ imports: [AppModule] }).overrideProvider(AUTH_CONTEXT_RESOLVER).useValue(resolver).compile();
@@ -100,7 +100,7 @@ suite('synthetic companion upload through real HTTP and PostgreSQL', () => {
       expect(api.applyUploadResponse(restored, retry.status, { ...retry.body, ...patch }).outbox).toEqual(restored.outbox);
     }
     expect(api.applyUploadResponse(restored, retry.status, retry.body).outbox).toEqual([]);
-    const conflicting = { ...restored.upload.pending, observation: { ...restored.upload.pending.observation, payloadHash: 'b'.repeat(64) } };
+    const conflicting = { ...restored.upload.pending, observation: { ...restored.upload.pending.observation, sourceRevision: 'synthetic-v2' } };
     expect((await request('/v1/integration/observations', conflicting, e.token)).status).toBe(409);
     expect((await db.query('SELECT id FROM integration_receipt WHERE enrollment_id=$1', [e.enrollmentId])).rows).toHaveLength(1);
     expect((await db.query("SELECT operation FROM integration_audit WHERE enrollment_id=$1 ORDER BY operation", [e.enrollmentId])).rows.map(r => r.operation)).toEqual(['enroll', 'receipt']);
@@ -113,6 +113,8 @@ suite('synthetic companion upload through real HTTP and PostgreSQL', () => {
     expect((await request('/v1/integration/observations', body, `${e.token}x`)).status).toBe(401);
     expect((await request('/v1/integration/observations', { ...body, observation: { ...body.observation, scope: { ...body.observation.scope, workspaceId: 'foreign' } } }, e.token)).status).toBe(403);
     expect((await request('/v1/integration/observations', { ...body, observation: { ...body.observation, rawPayload: 'private-text' } }, e.token)).status).toBe(400);
+    // ADR-009: a body-derived digest from the browser is refused by the strict contract.
+    expect((await request('/v1/integration/observations', { ...body, observation: { ...body.observation, payloadHash: 'a'.repeat(64) } }, e.token)).status).toBe(400);
     expect((await request('/v1/integration/observations', { ...body, padding: 'x'.repeat(20000) }, e.token)).status).toBe(413);
     const chunkedStatus = await new Promise<number>((accept, reject) => {
       const req = httpRequest(`${origin}/v1/integration/observations`, { method: 'POST', headers: {
@@ -315,7 +317,7 @@ suite('AUTH_MODE=oidc principal enrollment through real HTTP and PostgreSQL memb
   const upload = (captureId: string, sequence = 1) => ({ captureId, sequence, pageId: scope.pageId, observation: {
     captureId, scope: { workspaceId, connectionId: scope.connectionId, accountId: scope.accountId, providerSurface: 'pancake-conversations' },
     sourceRevision: 'synthetic-v1', externalEventId: null, externalObjectId: null, eventType: 'synthetic-update', method: 'browser-websocket',
-    evidenceType: 'client-observed', authenticity: 'UNKNOWN', completeness: 'UNKNOWN', occurredAt: null, observedAt: '2026-11-18T00:00:00.000Z', payloadHash: 'c'.repeat(64) } });
+    evidenceType: 'client-observed', authenticity: 'UNKNOWN', completeness: 'UNKNOWN', occurredAt: null, observedAt: '2026-11-18T00:00:00.000Z' } });
 
   beforeAll(async () => {
     for (const k of ['AIL_WORKSPACE_ID', 'AIL_CONNECTION_ID', 'AIL_ACCOUNT_ID', 'AIL_PAGE_ID', 'AIL_SIGNING_SECRET', 'AIL_ISSUER_SECRET', 'AIL_ISSUER_SECRET_ENABLED',

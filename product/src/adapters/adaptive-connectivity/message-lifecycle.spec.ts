@@ -2,9 +2,10 @@ import { describe, expect, it } from 'vitest';
 import fixtures from './lifecycle-synthetic-fixtures.json';
 import { classifyLifecycleFrame, transportSignalToInput, READ_STATE_EVENT } from './message-lifecycle';
 import type { CaptureContext } from './phoenix-observer';
+import { testDigester } from './digest-test-support';
 
 const scope = { workspaceId: 'synthetic-workspace', connectionId: 'synthetic-connection', accountId: 'synthetic-account', providerSurface: 'pancake-conversations' as const };
-const context: CaptureContext = { scope, allowedPageIds: ['synthetic-page'], captureId: 'synthetic-capture', sourceRevision: 'synthetic-lifecycle-v1', observedAt: '2026-11-18T00:00:00.000Z', direction: 'received' };
+const context: CaptureContext = { scope, allowedPageIds: ['synthetic-page'], captureId: 'synthetic-capture', sourceRevision: 'synthetic-lifecycle-v1', observedAt: '2026-11-18T00:00:00.000Z', direction: 'received', digester: testDigester() };
 const frame = (event: string, payload: unknown, topic = 'pages:synthetic-page') => JSON.stringify([null, null, topic, event, payload]);
 const classify = (raw: string) => classifyLifecycleFrame(raw, context);
 const PRIVATE = /synthetic-private|https?:|\.jpg|token_expired|accessToken/;
@@ -40,7 +41,7 @@ describe('message created / updated / deleted frames', () => {
     expect(result.observation.captureId).toBe('synthetic-capture');
     expect(result.observation.externalEventId).toBeNull();
     expect(result.messages[0].providerMessageId).toBe('m-1');
-    expect(result.messages[0].contentHash).not.toBe(result.observation.payloadHash);
+    expect(result.messages[0].contentDigest.value).not.toBe(result.observation.payloadDigest.value);
     expect(result).not.toHaveProperty('commercialEvent');
     expect(result).not.toHaveProperty('leadState');
   });
@@ -63,7 +64,7 @@ describe('message created / updated / deleted frames', () => {
     const two = classify(frame('pages:update_messages', { conversation_id: 'c-1', messages: [{ id: 'm-1', message: 'b' }] }));
     if (one.kind !== 'message-metadata' || two.kind !== 'message-metadata') throw new Error('expected metadata');
     expect(one.label).toBe(two.label);
-    expect(one.messages[0].contentHash).not.toBe(two.messages[0].contentHash);
+    expect(one.messages[0].contentDigest).not.toEqual(two.messages[0].contentDigest);
   });
 
   it.each([

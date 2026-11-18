@@ -1,5 +1,5 @@
-import { createHash } from 'node:crypto';
-import { hashBytes, validId, type Observation } from './observation';
+import type { ContentDigest } from './content-digester';
+import { validId, type Observation } from './observation';
 import { observePhoenixFrame, type CaptureContext, type FrameResult } from './phoenix-observer';
 
 /**
@@ -30,8 +30,11 @@ export interface MessageMetadata {
   readonly pageId: string;
   readonly hasText: boolean;
   readonly attachments: AttachmentSummary;
-  /** sha256 of the provider message object; used only to compare re-observations, never stored as identity. */
-  readonly contentHash: string;
+  /**
+   * ADR-009 keyed HMAC (workspace key, `kid` recorded) of the provider message object. Used only to compare
+   * re-observations under the same kid; never identity, never an unkeyed hash of message text.
+   */
+  readonly contentDigest: ContentDigest;
 }
 
 export type LifecycleLabel = 'upsert-observed' | 'deletion-labelled';
@@ -44,7 +47,8 @@ export interface SchemaDriftRecord {
   /** Bounded, pattern-filtered top-level key names; never values. */
   readonly payloadKeys: readonly string[];
   readonly payloadKeyCount: number;
-  readonly payloadHash: string;
+  /** Keyed digest only; the quarantined raw frame itself is never retained (ADR-009 §3). */
+  readonly payloadDigest: ContentDigest;
   readonly captureId: string;
   readonly observedAt: string;
   readonly semantics: 'UNKNOWN';
@@ -87,12 +91,12 @@ export function classifyLifecycleFrame(raw: string, context: CaptureContext): Li
   const observation = base.observation;
   const pageId = topic.slice(6);
   if (event === 'pages:update_messages') {
-    const messages = extractMessages(payload.messages, observation.externalObjectId, pageId);
+    const messages = extractMessages(payload.messages, observation.externalObjectId, pageId, digestMessage(context));
     return messages ? { kind: 'message-metadata', label: 'upsert-observed', observation, messages } : drift('unknown_shape', observation);
   }
   if (event === 'messages:mark_as_deleted') {
     // Deletion without a message identity cannot be attributed to a message; quarantine instead of guessing.
-    const messages = isRecord(payload.message) ? extractMessages([payload.message], observation.externalObjectId, pageId) : null;
+    const messages = isRecord(payload.message) ? extractMessages([payload.message], observation.externalObjectId, pageId, digestMessage(context)) : null;
     return messages ? { kind: 'message-metadata', label: 'deletion-labelled', observation, messages } : drift('unknown_shape', observation);
   }
   return { kind: 'conversation-metadata', observation };
@@ -122,7 +126,11 @@ function transportSignal(event: string, payload: Json): TransportSignal {
   return typeof reason === 'string' && AUTH_EXPIRED_REASONS.has(reason.toLowerCase()) ? 'auth-expired' : 'join-rejected';
 }
 
-function extractMessages(value: unknown, conversationId: string | null, pageId: string): MessageMetadata[] | null {
+const digestMessage = (context: CaptureContext) => (message: Json): ContentDigest =>
+  context.digester.digest(context.scope.workspaceId, 'message', JSON.stringify(message));
+
+function extractMessages(value: unknown, conversationId: string | null, pageId: string,
+  digest: (message: Json) => ContentDigest): MessageMetadata[] | null {
   if (!conversationId || !Array.isArray(value) || !value.length || value.length > MAX_MESSAGES_PER_FRAME) return null;
   const result: MessageMetadata[] = [];
   for (const message of value) {
@@ -134,7 +142,7 @@ function extractMessages(value: unknown, conversationId: string | null, pageId: 
     result.push({
       providerMessageId: message.id, conversationId, pageId, attachments,
       hasText: typeof message.message === 'string' && message.message.length > 0,
-      contentHash: createHash('sha256').update(JSON.stringify(message), 'utf8').digest('hex'),
+      contentDigest: digest(message),
     });
   }
   return new Set(result.map((item) => item.providerMessageId)).size === result.length ? result : null;
@@ -160,7 +168,7 @@ function readState(raw: string, payload: Json, context: CaptureContext): Lifecyc
     scope: { ...context.scope }, captureId: context.captureId, sourceRevision: context.sourceRevision,
     externalEventId: null, externalObjectId: conversationId, eventType: READ_STATE_EVENT,
     method: 'browser-websocket', evidenceType: 'client-observed', authenticity: 'UNKNOWN', completeness: 'UNKNOWN',
-    occurredAt: null, observedAt: context.observedAt, payloadHash: hashBytes(raw),
+    occurredAt: null, observedAt: context.observedAt, payloadDigest: context.digester.digest(context.scope.workspaceId, 'frame', raw),
   };
   // Provider seen/unread is a UI flag. It never maps to Lead state, obligation state or a response SLA.
   return { kind: 'read-state', observation, conversationId, seen: typeof payload.seen === 'boolean' ? payload.seen : 'UNKNOWN' };
@@ -171,6 +179,6 @@ function driftRecord(reason: SchemaDriftRecord['reason'], raw: string, topic: st
   return {
     quarantined: true, reason, eventType: event, topic,
     payloadKeys: keys.filter((key) => KEY_PATTERN.test(key)).sort().slice(0, 32), payloadKeyCount: keys.length,
-    payloadHash: hashBytes(raw), captureId: context.captureId, observedAt: context.observedAt, semantics: 'UNKNOWN',
+    payloadDigest: context.digester.digest(context.scope.workspaceId, 'frame', raw), captureId: context.captureId, observedAt: context.observedAt, semantics: 'UNKNOWN',
   };
 }

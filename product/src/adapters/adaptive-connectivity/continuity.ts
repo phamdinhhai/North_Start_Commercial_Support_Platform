@@ -89,7 +89,8 @@ export function advanceContinuity(state: ContinuityState, input: ContinuityInput
   if (scopeKey(state.scope) !== scopeKey(observation.scope)) throw new Error('scope_mismatch');
   if (state.status !== 'connected') return result('blocked');
   const fingerprint = JSON.stringify([
-    observation.payloadHash, observation.eventType, observation.externalEventId, observation.externalObjectId,
+    // ADR-009: kid is part of the fingerprint; digests under different keys are never treated as equal.
+    observation.payloadDigest.kid, observation.payloadDigest.value, observation.eventType, observation.externalEventId, observation.externalObjectId,
     observation.method, observation.evidenceType, observation.sourceRevision, observation.observedAt,
   ]);
   const existing = state.seen.find((item) => item.captureId === observation.captureId);
