@@ -86,6 +86,8 @@ jobs:
         run: npm run lint
       - name: Architecture checker tests
         run: npm run test:architecture
+      - name: Companion packaging tests
+        run: node --test scripts/companion-package.test.mjs
       - name: Strict architecture check
         run: npm run architecture:check:strict
       - name: Unit and domain tests
