@@ -1,0 +1,91 @@
+-- 011_governed_actions — Governed Commercial Action runtime (Propose → Preview → Authorize
+-- → Execute → Verify → Audit). Synthetic/disabled executors only; no live provider writes.
+-- I-03 AI draft-only · I-05 append-only audit · I-08 UNKNOWN outcome visible · I-09 workspace scope.
+-- OPEN: PM-1 (approval authority) · OPEN: CE-1/CE-2 (actions do not move Commercial State).
+
+CREATE TABLE governed_action_proposal (
+  id UUID PRIMARY KEY,
+  workspace_id TEXT NOT NULL REFERENCES workspace(id),
+  request_key TEXT NOT NULL CHECK (length(request_key) BETWEEN 1 AND 128),
+  capability_id TEXT NOT NULL CHECK (length(capability_id) BETWEEN 1 AND 128),
+  risk_class TEXT NOT NULL CHECK (risk_class IN ('LOW','MEDIUM','HIGH','CRITICAL')),
+  target JSONB NOT NULL CHECK (jsonb_typeof(target) = 'object'),
+  -- Authoritative canonical text (JSONB would re-order keys / normalize numbers).
+  arguments_canonical TEXT NOT NULL,
+  argument_digest TEXT NOT NULL CHECK (argument_digest ~ '^[0-9a-f]{64}$'),
+  proposer_kind TEXT NOT NULL CHECK (proposer_kind IN ('human','ai','service')),
+  proposer_id TEXT NOT NULL,
+  rationale TEXT NOT NULL,
+  constraints JSONB NOT NULL CHECK (jsonb_typeof(constraints) = 'object'),
+  lead_id TEXT,
+  idempotency_key TEXT NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL,
+  expires_at TIMESTAMPTZ NOT NULL CHECK (expires_at > created_at),
+  state TEXT NOT NULL CHECK (state IN ('PROPOSED','PREVIEWED','AUTHORIZED','EXECUTING','SUCCEEDED_VERIFIED',
+    'FAILED_VERIFIED','UNKNOWN','REJECTED','EXPIRED','CANCELLED')),
+  version INTEGER NOT NULL CHECK (version >= 1),
+  attempts INTEGER NOT NULL DEFAULT 0 CHECK (attempts >= 0),
+  -- Mutable lifecycle projection (preview / approval / execution / outcome). History lives in events.
+  projection JSONB NOT NULL DEFAULT '{}'::jsonb CHECK (jsonb_typeof(projection) = 'object'),
+  updated_at TIMESTAMPTZ NOT NULL,
+  UNIQUE (workspace_id, id),
+  UNIQUE (workspace_id, request_key),
+  UNIQUE (workspace_id, idempotency_key)
+);
+CREATE INDEX idx_governed_action_proposal_state ON governed_action_proposal (workspace_id, state);
+
+-- Frozen fields never change; version advances by exactly one per transition (CAS); no deletes.
+CREATE FUNCTION governed_action_proposal_guard() RETURNS trigger LANGUAGE plpgsql AS $$
+BEGIN
+  IF TG_OP = 'DELETE' THEN
+    RAISE EXCEPTION 'governed_action_proposal is not deletable (I-05)' USING ERRCODE = 'restrict_violation';
+  END IF;
+  IF NEW.id <> OLD.id OR NEW.workspace_id <> OLD.workspace_id OR NEW.request_key <> OLD.request_key
+     OR NEW.capability_id <> OLD.capability_id OR NEW.risk_class <> OLD.risk_class OR NEW.target <> OLD.target
+     OR NEW.arguments_canonical <> OLD.arguments_canonical OR NEW.argument_digest <> OLD.argument_digest
+     OR NEW.proposer_kind <> OLD.proposer_kind OR NEW.proposer_id <> OLD.proposer_id
+     OR NEW.rationale <> OLD.rationale OR NEW.constraints <> OLD.constraints
+     OR NEW.lead_id IS DISTINCT FROM OLD.lead_id OR NEW.idempotency_key <> OLD.idempotency_key
+     OR NEW.created_at <> OLD.created_at OR NEW.expires_at <> OLD.expires_at THEN
+    RAISE EXCEPTION 'governed_action_proposal frozen fields are immutable' USING ERRCODE = 'restrict_violation';
+  END IF;
+  IF NEW.version <> OLD.version + 1 THEN
+    RAISE EXCEPTION 'governed_action_proposal version must advance by exactly one' USING ERRCODE = 'restrict_violation';
+  END IF;
+  RETURN NEW;
+END $$;
+CREATE TRIGGER governed_action_proposal_guard
+  BEFORE UPDATE OR DELETE ON governed_action_proposal
+  FOR EACH ROW EXECUTE FUNCTION governed_action_proposal_guard();
+
+CREATE TABLE governed_action_event (
+  workspace_id TEXT NOT NULL,
+  proposal_id UUID NOT NULL,
+  sequence INTEGER NOT NULL CHECK (sequence >= 1),
+  event_type TEXT NOT NULL CHECK (event_type IN ('PROPOSED','PREVIEWED','AUTHORIZED','REJECTED','CANCELLED',
+    'EXPIRED','EXECUTION_STARTED','OUTCOME_RECORDED','VERIFICATION_RECORDED','COMMAND_REFUSED')),
+  from_state TEXT,
+  to_state TEXT NOT NULL,
+  actor_kind TEXT NOT NULL CHECK (actor_kind IN ('human','ai','service','system')),
+  actor_id TEXT NOT NULL,
+  reason TEXT NOT NULL,
+  data JSONB NOT NULL DEFAULT '{}'::jsonb,
+  recorded_at TIMESTAMPTZ NOT NULL,
+  PRIMARY KEY (proposal_id, sequence),
+  FOREIGN KEY (workspace_id, proposal_id) REFERENCES governed_action_proposal (workspace_id, id)
+);
+
+-- Append-only: UPDATE, DELETE and TRUNCATE are refused at the database (I-05).
+CREATE FUNCTION governed_action_event_append_only() RETURNS trigger LANGUAGE plpgsql AS $$
+BEGIN
+  RAISE EXCEPTION 'governed_action_event is append-only (I-05)' USING ERRCODE = 'restrict_violation';
+END $$;
+CREATE TRIGGER governed_action_event_no_mutation
+  BEFORE UPDATE OR DELETE ON governed_action_event
+  FOR EACH ROW EXECUTE FUNCTION governed_action_event_append_only();
+CREATE TRIGGER governed_action_event_no_truncate
+  BEFORE TRUNCATE ON governed_action_event
+  FOR EACH STATEMENT EXECUTE FUNCTION governed_action_event_append_only();
+CREATE TRIGGER governed_action_proposal_no_truncate
+  BEFORE TRUNCATE ON governed_action_proposal
+  FOR EACH STATEMENT EXECUTE FUNCTION governed_action_event_append_only();
