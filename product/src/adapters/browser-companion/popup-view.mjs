@@ -22,6 +22,7 @@ const ERRORS = {
   discard_confirmation_required: 'Confirm the exact number of records to discard.',
   invalid_enrollment: 'Enrollment JSON is invalid or expired.',
   invalid_backend_origin: 'Backend origin must be a bare HTTPS origin.',
+  fresh_enrollment_required: 'This enrollment was reset or replaced. Ask your issuer for a fresh enrollment; the old one cannot be reused.',
 };
 
 export const errorMessage = (code) => ERRORS[code] ?? 'Capture unavailable; check scope, tab, debugger permission and storage.';
@@ -35,6 +36,8 @@ export function popupView(status) {
     `Upload: ${status.upload}.`, `Continuity: ${status.continuity}.`,
   ];
   if (status.dropped) parts.push(`${status.dropped} refused at capacity.`);
+  if (status.freshEnrollmentRequired) parts.push('Fresh enrollment required before upload.');
+  if (status.gaps?.at(-1)?.until === null) parts.push(`Not observing since ${status.gaps.at(-1).from} (${status.gaps.at(-1).reason}).`);
   if (status.drift) parts.push(`${status.drift.count} unrecognized frame shapes.`);
   return {
     summary: parts.join(' '),

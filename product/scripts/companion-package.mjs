@@ -53,6 +53,23 @@ export function scanSecrets(path, text) {
   return SECRET_PATTERNS.filter(([pattern]) => pattern.test(text)).map(([, name]) => `${path}: ${name}`);
 }
 
+/**
+ * Module references of one script: `import x from`, `export … from`, side-effect `import './x'` and literal
+ * `import('./x')`. Non-literal dynamic imports and non-relative specifiers are refused (the closure must be static).
+ */
+export function moduleReferences(path, text) {
+  const refs = [];
+  const staticForm = /(?:^|[\n;])\s*(?:import|export)\s*(?:[\w*{}\s,$]+?\s*from\s*)?(['"])([^'"\n]+)\1/g;
+  for (const match of text.matchAll(staticForm)) refs.push(match[2]);
+  for (const match of text.matchAll(/\bimport\s*\(/g)) {
+    const literal = /^import\s*\(\s*(['"])([^'"\n]+)\1\s*\)/.exec(text.slice(match.index));
+    if (!literal) throw new Error(`non-literal dynamic import in ${path}`);
+    refs.push(literal[2]);
+  }
+  for (const ref of refs) if (!/^\.\.?\//.test(ref)) throw new Error(`non-relative import ${ref} in ${path}`);
+  return refs;
+}
+
 /** Packaged set = closure of manifest entry points and their relative module/script references. Tests/specs never ship. */
 async function collect(sourceDir, manifest) {
   const pending = ['manifest.json', manifest.background?.service_worker, manifest.action?.default_popup,
@@ -68,10 +85,9 @@ async function collect(sourceDir, manifest) {
     const text = /\.(?:png)$/.test(path) ? null : bytes.toString('utf8').replace(/\r\n/g, '\n');
     files.set(path, text === null ? bytes : Buffer.from(text, 'utf8'));
     if (text === null) continue;
-    const refs = path.endsWith('.mjs') || path.endsWith('.js')
-      ? [...text.matchAll(/(?:^|\n)\s*(?:import|export)\b[^'"]*?from\s*['"](\.[^'"]+)['"]/g), ...text.matchAll(/import\(\s*['"](\.[^'"]+)['"]\s*\)/g)]
-      : path.endsWith('.html') ? [...text.matchAll(/<(?:script|link)\b[^>]*(?:src|href)="(?!https?:|\/\/)([^"]+)"/g)] : [];
-    for (const match of refs) pending.push(posix.join(posix.dirname(path), match[1]));
+    const refs = path.endsWith('.mjs') || path.endsWith('.js') ? moduleReferences(path, text)
+      : path.endsWith('.html') ? [...text.matchAll(/<(?:script|link)\b[^>]*(?:src|href)="(?!https?:|\/\/)([^"]+)"/g)].map((match) => match[1]) : [];
+    for (const ref of refs) pending.push(posix.join(posix.dirname(path), ref));
     if (path.endsWith('.html') && /<script\b[^>]*src="(?:https?:)?\/\//.test(text)) throw new Error(`remote script in ${path}`);
   }
   return [...files].sort(([left], [right]) => (left < right ? -1 : left > right ? 1 : 0));

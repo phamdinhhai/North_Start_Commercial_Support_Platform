@@ -37,3 +37,47 @@ This event is left as **schema drift**; it is deliberately not allowlisted. Its 
 - In-app navigation without a tab `loading` event is caught by the per-frame origin check, not by `onUpdated`.
 - `rejected-shape` drift also counts scope-violating frames (for example a foreign `page_id` claim). These are refused for security and are not necessarily a provider change.
 - Unpacked research build, not store-signed. Authenticity, completeness and continuity remain UNKNOWN. Open decisions and human gates are unchanged.
+
+## Review fixes (independent QA R2-I-09..12)
+
+Branch `work/r2-fix-companion`, based on integration `4ec9bd1`. The server contract is unchanged.
+
+- **R2-I-09, retired enrollments.** An enrollment id is retired when it is reset (`lifecycle.mjs:95-98`) or replaced by a different id (`upload.mjs:30-32`). Re-pasting a retired id is refused locally with `fresh_enrollment_required` (`upload.mjs:21`). Status exposes `freshEnrollmentRequired` and the popup tells the user to obtain a fresh grant. Tests: `review-fixes.spec.ts` (reset → same grant refused → fresh id accepted; A→B→A refused).
+- **R2-I-10, gap markers and drop counting.** `gapSince` was never advanced; it is replaced by gap intervals (`lifecycle.mjs` `openGap`/`closeGap`/`possibleGap`, bounded to 50 with an overflow count). `gapSince` is now the start of the latest gap.
+  - **Gaps opened:** every stop opens a gap (`worker.mjs:46`). This covers OUTBOX_FULL, tab-closed, navigated-away, debugger-detached, enrollment-reset, socket-closed (`worker.mjs:219`), and not-started at install.
+  - **Gaps closed:** Start and a new socket close the gap.
+  - **Worker loss:** a new worker instance during an active session records a closed `possible` gap from `lastObservedAt` (`worker.mjs:255-262`).
+  - **Dropped after OUTBOX_FULL:** frames queued for the stopped session are counted in `dropped` (`worker.mjs:199-203`). Heartbeat and control frames are not counted.
+  - **Dropped by guards:** frames refused by the size or backlog guards are counted (`worker.mjs:38-46,180,189`).
+  - Tests: `review-fixes.spec.ts` and `lifecycle.spec.ts`.
+- **R2-I-11, `captureSeq` removed.** It was never written to records, uploads or the digest. Non-reuse is carried by the persisted pending request plus `nextSequence`.
+  - The smoke now asserts this across a **real** worker termination: upload reserves sequence 1 through the real popup message path, with no origin grant so no request leaves. After termination the retry has an identical `pending` and `nextSequence` is still 1.
+  - Unit test: `review-fixes.spec.ts`. Smoke: `companion-browser-smoke.mjs`.
+- **R2-I-12, packager imports.** `moduleReferences` (`scripts/companion-package.mjs:60`) follows `import … from`, `export … from`, side-effect `import './x'` and literal `import('./x')`. It refuses non-literal dynamic imports and non-relative specifiers. Test: `companion-package.test.mjs` (R2-I-12 case).
+
+### New defect found while fixing R2-I-11 (fixed)
+
+Real Chromium was observed with Playwright and CDP:
+- Terminating the extension service worker (CDP `Target.closeTarget`) **drops the extension's `chrome.debugger` session**. `sendCommand` then fails with "Debugger is not attached", and **no `onDetach` is delivered**.
+- The stored session therefore stayed "active" while nothing could be captured.
+
+Earlier round claim withdrawn: the round-1 smoke result "capture continues after worker termination" is retracted. That run read state through a stale Playwright worker handle and did not verify the termination with CDP.
+
+Fix: the fresh worker instance probes its debugger session (`worker.mjs:255-262`). If the session is gone, it stops with `worker-lost-debugger` and opens a gap. It never re-attaches automatically; the user must Start again, because re-attaching shows the debugging infobar and requires consent. Unit test: `review-fixes.spec.ts` (lost debugger). The smoke now proves the following on real Chromium:
+- the terminated target is gone
+- no capture happens while the session is lost
+- the fresh worker reports `active: false` with `lastStop: worker-lost-debugger`
+- a possible worker-restarted gap is declared and an open gap remains until restart
+- capture resumes after an explicit re-Start
+
+Residual: if the worker is terminated and never woken (no popup open, no browser restart), the stored state still says active until the next wake. There is no alarm, by policy.
+
+### Evidence
+
+All commands were run in `product/`:
+- `npm run typecheck`, `npm run lint` and `npm run architecture:check:strict` pass (0 findings).
+- Full unit suite (`npm test -- --exclude '**/*.integration.spec.ts'`): 65 files, 722 passed, plus 8 expected-fail QA reproductions. Those are in non-companion `*.r2-review.spec.ts` files.
+- Companion subset: 5 files, 49 tests.
+- `node --test scripts/companion-package.test.mjs`: 6/6.
+- `npm run test:companion`: PASS, four consecutive runs on real headless Chromium, with the extension loaded from the package.
+- Package: `north-star-companion-0.2.0.zip`, 9 files, 48372 bytes, sha256 `39d555ef4a3fbdb2a8e776d426ea146b52aed425d3114ac48d9faee502f5ba92`.

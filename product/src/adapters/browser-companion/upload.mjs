@@ -17,6 +17,8 @@ export function configureUpload(state, input, at = Date.now()) {
   if (!enrollment || !validScope(enrollment.scope) || enrollment.scope.providerSurface !== 'pancake-conversations' ||
       !id(enrollment.enrollmentId) || typeof enrollment.token !== 'string' || enrollment.token.length < 32 || enrollment.token.length > 8192 ||
       /\s/.test(enrollment.token) || !Number.isFinite(Date.parse(enrollment.expiresAt)) || Date.parse(enrollment.expiresAt) <= at) throw new Error('invalid_enrollment');
+  // A reset or replaced enrollment id is retired: the server checkpoint is ahead, so reuse would loop into 409.
+  if (state.retiredEnrollments?.includes(enrollment.enrollmentId)) throw new Error('fresh_enrollment_required');
   const previous = state.upload;
   const same = previous?.enrollmentId === enrollment.enrollmentId && previous.origin === origin && sameScope(previous.scope, enrollment.scope);
   // Historical local-only observations lack a server-bound page grant. Never relabel them.
@@ -24,7 +26,10 @@ export function configureUpload(state, input, at = Date.now()) {
   // A blocked enrollment is resolved only through the explicit reset flow, never by re-pasting the same grant.
   if (same && previous.status === 'blocked') throw new Error('blocked_requires_reset');
   if (state.session && !sameScope({ ...state.session.scope, providerSurface: 'pancake-conversations' }, enrollment.scope)) throw new Error('capture_scope_mismatch');
-  return { ...state, upload: {
+  // Replacing an enrollment retires the previous id so switching back cannot restart its sequence at 1.
+  const retiredEnrollments = previous && !same && previous.enrollmentId !== enrollment.enrollmentId
+    ? [...(state.retiredEnrollments ?? []), previous.enrollmentId].slice(-50) : state.retiredEnrollments;
+  return { ...state, ...(retiredEnrollments ? { retiredEnrollments } : {}), upload: {
     origin, enrollmentId: enrollment.enrollmentId, token: enrollment.token, expiresAt: enrollment.expiresAt,
     scope: { ...enrollment.scope }, nextSequence: same ? previous.nextSequence : 1,
     pending: same ? previous.pending : null, checkpoint: same ? previous.checkpoint : 0, status: 'ready',

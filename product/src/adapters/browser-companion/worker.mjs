@@ -1,18 +1,18 @@
 import { configureUpload, reserveUpload, applyUploadResponse, captureMatchesEnrollment, exportMetadata } from './upload.mjs';
 import { allowedOrigin, summarizeFrame, validScope } from './protocol.mjs';
-import { appendRecord, outboxFull, outboxDigest, resetEnrollment, statusView, OUTBOX_FULL } from './lifecycle.mjs';
+import { appendRecord, closeGap, openGap, outboxFull, outboxDigest, possibleGap, resetEnrollment, statusView, OUTBOX_FULL } from './lifecycle.mjs';
 import { classifyRejectedFrame, shapeFingerprint, recordDrift } from './drift.mjs';
 
 const KEY = 'northStarResearchV1';
 const now = () => new Date().toISOString();
-const empty = () => ({ version: 1, session: null, outbox: [], gapSince: now(), dropped: 0, continuity: 'UNKNOWN', captureSeq: 0 });
+const empty = () => openGap({ version: 1, session: null, outbox: [], dropped: 0, continuity: 'UNKNOWN' }, 'not-started', now());
 const load = async () => (await chrome.storage.local.get(KEY))[KEY] ?? empty();
 const save = (state) => chrome.storage.local.set({ [KEY]: state });
 const badge = (text) => chrome.action.setBadgeText({ text });
 // Error codes the popup may display. Everything else collapses to a generic message; no internals are echoed.
 const USER_ERRORS = new Set(['outbox_full', 'unsupported_tab', 'invalid_scope', 'capture_scope_mismatch', 'backend_permission_required',
   'pending_outbox_binding', 'blocked_requires_reset', 'enrollment_required', 'reset_not_required', 'export_required',
-  'export_or_discard_required', 'discard_confirmation_required', 'invalid_enrollment', 'invalid_backend_origin']);
+  'export_or_discard_required', 'discard_confirmation_required', 'invalid_enrollment', 'invalid_backend_origin', 'fresh_enrollment_required']);
 async function tabOriginAllowed(tabId) {
   const targets = await chrome.debugger.getTargets();
   return targets.some((target) => target.tabId === tabId && allowedOrigin(target.url));
@@ -34,10 +34,16 @@ function enqueue(task) {
   return pending;
 }
 
+// Frames never examined because of the size/backlog guards; flushed into the durable `dropped` count on the next stop.
+let skipped = 0;
 async function stop(reason, patch = {}) {
   const state = await load();
   const tabId = state.session?.tabId;
-  await save({ ...state, ...patch, session: null, gapSince: state.gapSince ?? now(), lastStop: reason });
+  const unexamined = skipped;
+  skipped = 0;
+  // After OUTBOX_FULL, remember the stopped session so already-queued frames are counted as dropped, not ignored.
+  const fullStop = patch.capture === OUTBOX_FULL && state.session ? { tabId, sockets: state.session.sockets, scope: state.session.scope } : state.fullStop;
+  await save(openGap({ ...state, ...patch, ...(fullStop ? { fullStop } : {}), dropped: (state.dropped ?? 0) + unexamined, session: null, lastStop: reason }, reason, now()));
   if (tabId) await chrome.debugger.detach({ tabId }).catch(() => {});
   await badge(patch.capture === OUTBOX_FULL ? 'FULL' : 'OFF');
 }
@@ -58,7 +64,8 @@ async function start(scope) {
   await chrome.debugger.attach(target, '1.3');
   try {
     const { workspaceId, connectionId, accountId, pageId } = scope;
-    await save({ ...state, capture: null, session: { tabId: tab.id, scope: { workspaceId, connectionId, accountId, pageId }, sockets: [], startedAt: now() } });
+    const { fullStop: _fullStop, ...rest } = state;
+    await save(closeGap({ ...rest, capture: null, session: { tabId: tab.id, scope: { workspaceId, connectionId, accountId, pageId }, sockets: [], startedAt: now() } }, now()));
     await chrome.debugger.sendCommand(target, 'Network.enable');
     await badge('ON');
   } catch (error) {
@@ -162,7 +169,7 @@ async function observeFrame(state, payloadData) {
     if (drift) await save(recordDrift(state, await shapeFingerprint(drift), drift.kind, now()));
     return;
   }
-  const appended = appendRecord(state, record);
+  const appended = appendRecord(state, record, now());
   await save(appended.state); // Record, capture sequence and full-state decision land in one durable write.
   if (appended.stop) await stop('outbox-full', { capture: OUTBOX_FULL });
 }
@@ -170,6 +177,7 @@ async function observeFrame(state, payloadData) {
 chrome.debugger.onEvent.addListener((source, method, params) => {
   if (!source.tabId || !['Network.webSocketCreated', 'Network.webSocketFrameReceived', 'Network.webSocketClosed', 'Network.responseReceived'].includes(method)) return;
   if (method === 'Network.webSocketFrameReceived' && typeof params.response?.payloadData === 'string' && params.response.payloadData.length > 262144) {
+    skipped += 1;
     if (!overloaded) {
       overloaded = true;
       enqueue(() => stop('frame-size-limit')).catch(() => {}).finally(() => { overloaded = false; });
@@ -178,6 +186,7 @@ chrome.debugger.onEvent.addListener((source, method, params) => {
   }
   // Bound pending work: high-volume capture must stop instead of retaining unbounded raw frames.
   if (pendingFrames >= 100) {
+    if (method === 'Network.webSocketFrameReceived') skipped += 1;
     if (!overloaded) {
       overloaded = true;
       enqueue(() => stop('event-backlog')).catch(() => {}).finally(() => { overloaded = false; });
@@ -187,6 +196,12 @@ chrome.debugger.onEvent.addListener((source, method, params) => {
   pendingFrames += 1;
   enqueue(async () => {
     const state = await load();
+    if (!state.session && state.fullStop?.tabId === source.tabId && method === 'Network.webSocketFrameReceived' &&
+        params.response?.opcode === 1 && state.fullStop.sockets.includes(params.requestId)) {
+      // Queued before the OUTBOX_FULL stop took effect: count frames that would have become records.
+      if (await summarizeFrame(params.response.payloadData, state.fullStop.scope, now(), 'dropped')) await save({ ...state, dropped: (state.dropped ?? 0) + 1 });
+      return;
+    }
     if (state.session?.tabId !== source.tabId) return;
     if (!await tabOriginAllowed(source.tabId)) return stop('origin-changed');
     if (method === 'Network.webSocketCreated') {
@@ -194,12 +209,14 @@ chrome.debugger.onEvent.addListener((source, method, params) => {
       try { socket = new URL(params.url); } catch { return; }
       if (socket.protocol !== 'wss:' || !allowedOrigin(`https://${socket.host}`) || socket.pathname !== '/socket/websocket') return;
       if (state.session.sockets.length >= 50) return stop('socket-capacity');
-      await save({ ...state, session: { ...state.session, sockets: [...state.session.sockets, params.requestId] } });
+      await save(closeGap({ ...state, session: { ...state.session, sockets: [...state.session.sockets, params.requestId] } }, now()));
     } else if (method === 'Network.responseReceived') {
       if ([401, 403].includes(params.response?.status) && allowedOrigin(params.response.url)) await stop('authorization-failed');
     } else if (state.session.sockets.includes(params.requestId)) {
       if (method === 'Network.webSocketClosed') {
-        await save({ ...state, gapSince: state.gapSince ?? now(), session: { ...state.session, sockets: state.session.sockets.filter((id) => id !== params.requestId) } });
+        const sockets = state.session.sockets.filter((id) => id !== params.requestId);
+        const next = { ...state, session: { ...state.session, sockets } };
+        await save(sockets.length ? next : openGap(next, 'socket-closed', now()));
         return;
       }
       if (params.response?.opcode !== 1) return;
@@ -214,7 +231,7 @@ chrome.debugger.onDetach.addListener((source) => {
   enqueue(async () => {
     const state = await load();
     if (state.session?.tabId === source.tabId) {
-      await save({ ...state, session: null, gapSince: state.gapSince ?? now(), lastStop: 'debugger-detached' });
+      await save(openGap({ ...state, session: null, lastStop: 'debugger-detached' }, 'debugger-detached', now()));
       await badge('OFF');
     }
   }).catch(() => {});
@@ -232,5 +249,17 @@ chrome.tabs.onUpdated.addListener((tabId, change) => {
     if (!await tabOriginAllowed(tabId)) await stop('navigated-away');
   }).catch(() => {});
 });
+
+// Worker loss window: a new worker instance while a session is active may follow a termination that discarded
+// queued CDP events. Recorded as a closed, possible gap from the last persisted observation to this start.
+// Real Chromium drops the extension's debugger session when the worker is terminated, without delivering onDetach
+// (verified by the Chromium smoke). Probe it: if gone, stop honestly; never re-attach without an explicit user Start.
+enqueue(async () => {
+  const state = await load();
+  if (!state.session) return;
+  await save(possibleGap(state, 'worker-restarted', state.lastObservedAt ?? state.session.startedAt, now()));
+  try { await chrome.debugger.sendCommand({ tabId: state.session.tabId }, 'Network.enable'); }
+  catch { await stop('worker-lost-debugger'); }
+}).catch(() => {});
 
 chrome.runtime.onStartup.addListener(() => { enqueue(() => stop('browser-restarted')).catch(() => {}); });

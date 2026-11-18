@@ -13,20 +13,46 @@ const encoder = new TextEncoder();
 export const recordBytes = (record) => encoder.encode(JSON.stringify(record)).length;
 export const outboxBytes = (outbox) => outbox.reduce((total, record) => total + recordBytes(record), 0);
 
+export const MAX_GAPS = 50;
+export const MAX_RETIRED_ENROLLMENTS = 50;
+
 /**
- * Append one record or refuse. The decision and the record are written in the same durable save by the caller,
- * so a worker termination cannot allocate a capture sequence without the record (or the record without a sequence).
+ * Gap markers: each interval in which observation was not running (or may have lost queued events).
+ * An open gap (until: null) starts when capture stops and closes when capture restarts. gapSince = latest gap start.
  */
-export function appendRecord(state, record) {
+export function openGap(state, reason, at = new Date().toISOString()) {
+  const gaps = state.gaps ?? [];
+  if (gaps.at(-1) && gaps.at(-1).until === null) return { ...state, gaps, gapSince: gaps.at(-1).from };
+  return boundGaps({ ...state, gaps: [...gaps, { from: at, until: null, reason }], gapSince: at });
+}
+export function closeGap(state, at = new Date().toISOString()) {
+  const gaps = state.gaps ?? [];
+  if (!gaps.at(-1) || gaps.at(-1).until !== null) return state;
+  return { ...state, gaps: [...gaps.slice(0, -1), { ...gaps.at(-1), until: at }] };
+}
+/** A closed interval that MAY have lost events (e.g. queued CDP events when a worker instance was terminated). */
+export function possibleGap(state, reason, from, until) {
+  if (state.gaps?.at(-1)?.until === null) return state; // already inside a declared gap
+  return boundGaps({ ...state, gaps: [...(state.gaps ?? []), { from, until, reason, possible: true }], gapSince: from });
+}
+function boundGaps(state) {
+  const extra = state.gaps.length - MAX_GAPS;
+  return extra > 0 ? { ...state, gaps: state.gaps.slice(extra), gapsOverflow: (state.gapsOverflow ?? 0) + extra } : state;
+}
+
+/**
+ * Append one record or refuse. Record and full-state decision are written in one durable save by the caller.
+ * Upload sequence numbers are NOT allocated here; they are allocated only by reserveUpload (persisted pending + nextSequence).
+ */
+export function appendRecord(state, record, at = new Date().toISOString()) {
   const records = state.outbox.length;
   const bytes = outboxBytes(state.outbox);
-  const captureSeq = (Number.isSafeInteger(state.captureSeq) ? state.captureSeq : 0);
   if (records >= MAX_RECORDS || bytes + recordBytes(record) > MAX_OUTBOX_BYTES) {
     // Refused record is counted visibly; nothing already stored is touched.
-    return { state: { ...state, dropped: (state.dropped ?? 0) + 1, gapSince: state.gapSince ?? new Date().toISOString(), capture: OUTBOX_FULL }, stop: OUTBOX_FULL };
+    return { state: openGap({ ...state, dropped: (state.dropped ?? 0) + 1, capture: OUTBOX_FULL }, 'outbox-full', at), stop: OUTBOX_FULL };
   }
   const outbox = [...state.outbox, record];
-  const next = { ...state, outbox, captureSeq: captureSeq + 1 };
+  const next = { ...state, outbox, lastObservedAt: at };
   // Stop as soon as the bound is reached so later frames are a declared gap, not silent drops.
   const full = outbox.length >= MAX_RECORDS || bytes + recordBytes(record) >= MAX_OUTBOX_BYTES;
   return full ? { state: { ...next, capture: OUTBOX_FULL }, stop: OUTBOX_FULL } : { state: next, stop: null };
@@ -65,8 +91,11 @@ export function resetEnrollment(state, input, digest, at = new Date().toISOStrin
     records: count, disposition, checkpoint: upload?.checkpoint ?? 0 };
   const history = [...(state.resetHistory ?? []), entry].slice(-20);
   // Removing the upload grant forces a fresh issuer enrollment; the sequence restarts only under that new enrollment.
-  const { upload: _removed, lastExport: _export, ...rest } = state;
-  return { ...rest, outbox: [], session: null, capture: null, gapSince: state.gapSince ?? at, lastStop: 'enrollment-reset', resetHistory: history };
+  // The retired enrollment id can never be reconfigured locally: its server checkpoint is ahead of a restarted sequence.
+  const retiredEnrollments = upload ? [...(state.retiredEnrollments ?? []), upload.enrollmentId].slice(-MAX_RETIRED_ENROLLMENTS) : state.retiredEnrollments;
+  const { upload: _removed, lastExport: _export, fullStop: _fullStop, ...rest } = state;
+  return openGap({ ...rest, outbox: [], session: null, capture: null, lastStop: 'enrollment-reset', resetHistory: history,
+    ...(retiredEnrollments ? { retiredEnrollments } : {}) }, 'enrollment-reset', at);
 }
 
 export function statusView(state) {
@@ -77,7 +106,8 @@ export function statusView(state) {
     dropped: state.dropped ?? 0, continuity: state.continuity, gapSince: state.gapSince, lastStop: state.lastStop ?? null,
     upload: upload?.status ?? 'disabled', blockedReason: upload?.status === 'blocked' ? upload.blockedReason ?? 'CONFLICT_UNKNOWN' : null,
     checkpoint: upload?.checkpoint ?? null, exported: Boolean(state.lastExport && state.lastExport.records === state.outbox.length),
-    drift: driftNotice(state.drift),
+    drift: driftNotice(state.drift), gaps: (state.gaps ?? []).slice(-5), gapsOverflow: state.gapsOverflow ?? 0,
+    freshEnrollmentRequired: !upload && Boolean(state.retiredEnrollments?.length),
   };
 }
 

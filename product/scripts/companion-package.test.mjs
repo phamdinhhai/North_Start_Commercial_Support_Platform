@@ -106,3 +106,24 @@ test('accepts the shipped manifest and an exact-origin optional permission', () 
     content_security_policy: { extension_pages: "script-src 'self'; object-src 'none'" } }), []);
   assert.equal(buildZip([]).length, 22);
 });
+
+test('R2-I-12: follows side-effect and literal dynamic imports, refuses non-literal or bare specifiers', async () => {
+  const { moduleReferences } = await import('./companion-package.mjs');
+  assert.deepEqual(moduleReferences('a.mjs', "import './side.mjs';\nimport x from './x.mjs';\nexport * from './re.mjs';\nconst m = await import('./lazy.mjs');\nconst s = 'import y';"),
+    ['./side.mjs', './x.mjs', './re.mjs', './lazy.mjs']);
+  assert.throws(() => moduleReferences('a.mjs', 'const m = await import(name);'), /non-literal dynamic import/);
+  assert.throws(() => moduleReferences('a.mjs', "import 'lodash';"), /non-relative import lodash/);
+  const sideEffect = await fixture('side-effect', async (_m, dir) => {
+    await writeFile(resolve(dir, 'drift.mjs'), (await readFile(resolve(dir, 'drift.mjs'), 'utf8')) + "\nimport './extra.mjs';\n");
+    await writeFile(resolve(dir, 'extra.mjs'), 'export const extra = 1;\n');
+  });
+  assert.ok((await packageCompanion({ sourceDir: sideEffect, outDir: resolve(temp, 'out-side') })).files.some((file) => file.path === 'extra.mjs'));
+  const missingSide = await fixture('missing-side', async (_m, dir) => {
+    await writeFile(resolve(dir, 'drift.mjs'), (await readFile(resolve(dir, 'drift.mjs'), 'utf8')) + "\nimport './absent.mjs';\n");
+  });
+  await assert.rejects(packageCompanion({ sourceDir: missingSide, outDir: resolve(temp, 'refused-side') }), /missing file absent.mjs/);
+  const dynamic = await fixture('dynamic', async (_m, dir) => {
+    await writeFile(resolve(dir, 'drift.mjs'), (await readFile(resolve(dir, 'drift.mjs'), 'utf8')) + '\nexport const load = (name) => import(name);\n');
+  });
+  await assert.rejects(packageCompanion({ sourceDir: dynamic, outDir: resolve(temp, 'refused-dynamic') }), /non-literal dynamic import in drift.mjs/);
+});

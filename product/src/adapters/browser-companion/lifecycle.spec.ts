@@ -19,7 +19,7 @@ describe('service-worker termination mid-upload', () => {
     await until(() => Boolean(first.storage[key].upload?.pending));
     const killed = structuredClone(first.storage);
     expect(killed[key].upload).toMatchObject({ enrollmentId: 'grant', token: grant.token, status: 'pending', nextSequence: 1 });
-    expect(killed[key].captureSeq).toBe(3);
+    expect(killed[key].outbox).toHaveLength(3);
     const pending = killed[key].upload.pending;
 
     const server: any[] = [];
@@ -34,7 +34,9 @@ describe('service-worker termination mid-upload', () => {
     const second = await harness(killed, fetcher);
     second.frame(); await second.message('status'); // session and enrollment survived; capture continues
     expect(server).toHaveLength(0); // no alarm or background upload after restart
-    expect(second.storage[key].captureSeq).toBe(4);
+    expect(second.storage[key].outbox).toHaveLength(4);
+    // The new worker instance declares a possible loss window from the last persisted observation.
+    expect(second.storage[key].gaps.at(-1)).toMatchObject({ reason: 'worker-restarted', possible: true, from: killed[key].lastObservedAt });
     await second.message('upload'); // server committed, ACK lost
     expect(second.storage[key].upload).toMatchObject({ status: 'retry-required', pending });
 
@@ -70,13 +72,15 @@ describe('outbox bounds', () => {
   it('stops at the record bound with OUTBOX_FULL and never evicts or overwrites', async () => {
     const api = await load('lifecycle.mjs');
     const outbox = Array.from({ length: api.MAX_RECORDS - 1 }, (_, index) => ({ captureId: 'c' + index }));
-    const filled = api.appendRecord({ outbox, dropped: 0, captureSeq: 999 }, { captureId: 'last' });
+    const filled = api.appendRecord({ outbox, dropped: 0 }, { captureId: 'last' });
     expect(filled.stop).toBe('OUTBOX_FULL');
-    expect(filled.state).toMatchObject({ capture: 'OUTBOX_FULL', captureSeq: 1000, dropped: 0 });
+    expect(filled.state).toMatchObject({ capture: 'OUTBOX_FULL', dropped: 0 });
+    expect(filled.state.captureSeq).toBeUndefined();
     expect(filled.state.outbox.at(-1).captureId).toBe('last');
     const refused = api.appendRecord(filled.state, { captureId: 'overflow' });
     expect(refused.state.outbox).toEqual(filled.state.outbox);
-    expect(refused.state).toMatchObject({ dropped: 1, captureSeq: 1000 });
+    expect(refused.state).toMatchObject({ dropped: 1 });
+    expect(refused.state.gaps.at(-1)).toMatchObject({ reason: 'outbox-full', until: null });
   });
 
   it('enforces the byte bound without dropping existing records', async () => {
@@ -95,9 +99,12 @@ describe('outbox bounds', () => {
     const h = await harness(); await h.message('start', { scope }); h.socket(); await h.message('status');
     h.storage[key].outbox = Array.from({ length: 999 }, (_, index) => ({ captureId: 'seed' + index }));
     h.frame(); await h.message('status');
-    h.frame(); // arrives after stop: declared gap, not a silent drop
+    h.frame(); // queued for the stopped session: counted in dropped, not silently ignored
+    h.raw(JSON.stringify([null, null, 'phoenix', 'heartbeat', {}])); // non-evidence frame is not counted
     const status = (await h.message('status')).result;
-    expect(status).toMatchObject({ capture: 'OUTBOX_FULL', active: false, pending: 1000, dropped: 0 });
+    expect(status).toMatchObject({ capture: 'OUTBOX_FULL', active: false, pending: 1000, dropped: 1 });
+    expect(status.gaps.at(-1)).toMatchObject({ reason: 'outbox-full', until: null });
+    expect(status.gapSince).toBe(status.gaps.at(-1).from);
     expect(h.calls).toContain('FULL');
     expect(h.storage[key].outbox[0].captureId).toBe('seed0');
     expect(await h.message('start', { scope })).toMatchObject({ ok: false, code: 'outbox_full' });

@@ -56,11 +56,23 @@ const options = {
     `--host-resolver-rules=MAP pancake.vn 127.0.0.1:${port}`, '--no-proxy-server', '--ignore-certificate-errors'],
 };
 let context;
+// Track the live worker instance: after termination Playwright can briefly list the dead one.
+let liveWorker = null;
+function trackWorkers() {
+  const watch = (candidate) => {
+    liveWorker = candidate;
+    candidate.on('close', () => { if (liveWorker === candidate) liveWorker = null; });
+  };
+  liveWorker = null;
+  context.on('serviceworker', watch);
+  context.serviceWorkers().forEach(watch);
+}
 async function extensionWorker() {
-  return context.serviceWorkers()[0] ?? await context.waitForEvent('serviceworker', { timeout: 15000 });
+  return liveWorker ?? await context.waitForEvent('serviceworker', { timeout: 15000 });
 }
 try {
   context = await chromium.launchPersistentContext(profile, options);
+  trackWorkers();
   // Only the local fixture and this extension's own pages may load; everything else is aborted.
   await context.route('**/*', (route) => { const target = new URL(route.request().url()); return target.hostname === 'pancake.vn' || target.protocol === 'chrome-extension:' ? route.continue() : route.abort(); });
   let worker = await extensionWorker();
@@ -75,6 +87,10 @@ try {
       version: 1, session: { tabId: target.id, sockets: [], startedAt: new Date().toISOString(),
         scope: { workspaceId: 'fixture-workspace', connectionId: 'fixture-connection', accountId: 'fixture-account', pageId: 'fixture-page' } },
       outbox: [], gapSince: new Date().toISOString(), dropped: 0, continuity: 'UNKNOWN',
+      // Synthetic enrollment for an origin the extension holds no permission for: reservation is persisted, no request leaves.
+      upload: { origin: 'https://backend.invalid', enrollmentId: 'fixture-enrollment', token: 't'.repeat(64), expiresAt: '2099-01-01T00:00:00Z',
+        scope: { workspaceId: 'fixture-workspace', connectionId: 'fixture-connection', accountId: 'fixture-account', pageId: 'fixture-page', providerSurface: 'pancake-conversations' },
+        nextSequence: 1, pending: null, checkpoint: 0, status: 'ready' },
     } });
     await chrome.debugger.sendCommand({ tabId: target.id }, 'Network.enable');
   });
@@ -88,35 +104,83 @@ try {
   assert.equal(state.outbox.length, 1, `real CDP frame must reach persistent outbox: ${JSON.stringify(state)}`);
   assert.equal(state.outbox[0].evidenceType, 'client-observed');
   assert.ok(!JSON.stringify(state).includes('private-synthetic-text'));
-  const read = async () => (await (await extensionWorker()).evaluate(async () => (await chrome.storage.local.get('northStarResearchV1')).northStarResearchV1));
+  let read = async () => (await (await extensionWorker()).evaluate(async () => (await chrome.storage.local.get('northStarResearchV1')).northStarResearchV1));
   for (let attempt = 0; attempt < 50 && !(await read()).drift; attempt += 1) await new Promise((done) => setTimeout(done, 100));
   state = await read();
   assert.equal(state.drift?.count, 1, 'unknown frame shape counted as drift');
   assert.ok(!JSON.stringify(state).match(/private-drift-text|synthetic_new_event/), 'drift keeps only a fingerprint');
 
-  // Service-worker termination: close the extension worker target (as Chrome's own termination guide does), verify a
-  // fresh instance (in-memory nonce gone), then a new CDP event must be captured with durable state intact.
-  await (await extensionWorker()).evaluate(() => { globalThis.smokeNonce = 'before-termination'; });
+  // Reserve upload sequence 1 through the real popup message path before termination.
+  const extensionId = new URL((await extensionWorker()).url()).host;
+  // From here on, read durable state from an extension page: independent of Playwright's service-worker handle,
+  // which is not reliably refreshed after a real worker termination.
+  const reader = await context.newPage();
+  await reader.goto(`chrome-extension://${extensionId}/popup.html`);
+  read = async () => reader.evaluate(async () => (await chrome.storage.local.get('northStarResearchV1')).northStarResearchV1);
+  // Each message goes through a short-lived popup page so no extension page keeps the worker alive during termination.
+  const sendFromPopup = async (message) => {
+    const control = await context.newPage();
+    try {
+      await control.goto(`chrome-extension://${extensionId}/popup.html`);
+      return await control.evaluate((value) => chrome.runtime.sendMessage(value), message);
+    } finally { await control.close(); }
+  };
+  assert.equal((await sendFromPopup({ kind: 'upload' })).code, 'backend_permission_required', 'no request without an origin grant');
+  const reserved = (await read()).upload;
+  assert.deepEqual([reserved.pending?.sequence, reserved.nextSequence], [1, 1], 'sequence 1 reserved durably before network I/O');
+  assert.equal(reserved.pending.captureId, (await read()).outbox[0].captureId);
+
+  // Service-worker termination: close the extension worker target (as Chrome's own termination guide does).
+  // Real Chromium drops the extension's debugger session with the worker and delivers no onDetach. The fresh worker
+  // must detect that and stop honestly (no silent "active", no automatic re-attach); capture resumes after Start.
+  const terminated = liveWorker;
+  const fixtureTabId = (await read()).session.tabId;
   const cdp = await context.newCDPSession(page);
   const { targetInfos } = await cdp.send('Target.getTargets');
   const workerTarget = targetInfos.find((info) => info.type === 'service_worker' && info.url.startsWith('chrome-extension://'));
   assert.ok(workerTarget, 'extension service-worker target visible');
   await cdp.send('Target.closeTarget', { targetId: workerTarget.targetId });
-  for (let attempt = 0; attempt < 50 && context.serviceWorkers().length; attempt += 1) await new Promise((done) => setTimeout(done, 100));
+  // CDP is the source of truth: Playwright does not always emit 'close' for a terminated extension worker.
+  const workerTargetGone = async () => !(await cdp.send('Target.getTargets')).targetInfos.some((info) => info.targetId === workerTarget.targetId);
+  for (let attempt = 0; attempt < 50 && !await workerTargetGone(); attempt += 1) await new Promise((done) => setTimeout(done, 100));
+  assert.ok(await workerTargetGone(), 'terminated worker target closed');
+  if (liveWorker === terminated) liveWorker = null;
+  await page.evaluate(() => { window.lostSocket = new WebSocket('wss://pancake.vn/socket/websocket'); });
+  await new Promise((done) => setTimeout(done, 1000));
+  assert.equal((await read()).outbox.length, 1, 'no capture is possible while the debugger session is gone');
+  const woken = await sendFromPopup({ kind: 'status' }); // popup open starts a fresh worker instance
+  assert.equal(woken.result.active, false, 'fresh worker reports capture stopped, not a stale active session');
+  state = await read();
+  assert.equal(state.lastStop, 'worker-lost-debugger');
+  assert.ok(state.gaps.some((gap) => gap.reason === 'worker-restarted' && gap.possible), 'fresh instance declared the worker loss window');
+  assert.equal(state.gaps.at(-1).reason, 'worker-lost-debugger');
+  assert.equal(state.gaps.at(-1).until, null, 'open gap until the user restarts capture');
+  // The worker-restarted marker is written only by a fresh module evaluation of worker.mjs, i.e. a new instance.
+  const workerRestarted = state.gaps.some((gap) => gap.reason === 'worker-restarted');
+  // Explicit re-Start, seeded like the initial start: popup Start targets the active tab, which in this harness is the popup page itself.
+  await reader.evaluate(async (tabId) => {
+    const value = (await chrome.storage.local.get('northStarResearchV1')).northStarResearchV1;
+    const target = { id: tabId };
+    await chrome.debugger.attach({ tabId: target.id }, '1.3');
+    await chrome.storage.local.set({ northStarResearchV1: { ...value, session: { tabId: target.id, sockets: [], startedAt: new Date().toISOString(),
+      scope: { workspaceId: 'fixture-workspace', connectionId: 'fixture-connection', accountId: 'fixture-account', pageId: 'fixture-page' } } } });
+    await chrome.debugger.sendCommand({ tabId: target.id }, 'Network.enable');
+  }, fixtureTabId);
   await page.evaluate(() => { window.secondSocket = new WebSocket('wss://pancake.vn/socket/websocket'); });
   for (let attempt = 0; attempt < 50; attempt += 1) {
     state = await read();
     if (state.outbox.length >= 2) break;
     await new Promise((done) => setTimeout(done, 100));
   }
-  assert.equal(state.outbox.length, 2, `capture resumes after worker termination: ${JSON.stringify({ outbox: state.outbox.length, stop: state.lastStop })}`);
-  assert.equal(state.captureSeq, 2, 'capture sequence continues without reuse');
+  assert.equal(state.outbox.length, 2, `capture resumes after explicit restart: ${JSON.stringify({ outbox: state.outbox.length, stop: state.lastStop })}`);
   assert.notEqual(state.outbox[0].captureId, state.outbox[1].captureId);
-  const workerRestarted = await (await extensionWorker()).evaluate(() => globalThis.smokeNonce === undefined);
-  assert.ok(workerRestarted, 'capture after termination ran in a new worker instance');
+  // Sequence non-reuse across real termination: the retry reuses the persisted reservation, nothing new is allocated.
+  assert.equal((await sendFromPopup({ kind: 'upload' })).code, 'backend_permission_required');
+  const retried = (await read()).upload;
+  assert.deepEqual(retried.pending, reserved.pending, 'identical pending request after worker termination');
+  assert.equal(retried.nextSequence, 1, 'no sequence allocated twice');
 
   // Popup accessibility: rendered in a tab, labelled controls and a polite live status region.
-  const extensionId = new URL((await extensionWorker()).url()).host;
   const popup = await context.newPage();
   const popupErrors = [];
   popup.on('pageerror', (error) => popupErrors.push(error.message));
@@ -141,12 +205,13 @@ try {
   const tabCloseStop = state.lastStop;
   await context.close();
   context = await chromium.launchPersistentContext(profile, options);
+  trackWorkers();
   worker = await extensionWorker();
   const restored = await worker.evaluate(async () => (await chrome.storage.local.get('northStarResearchV1')).northStarResearchV1);
   assert.equal(restored.outbox.length, 2, 'outbox survives browser restart');
   assert.equal(restored.continuity, 'UNKNOWN');
   console.log(JSON.stringify({ result: 'PASS', realChromiumMV3: true, syntheticWebsocketCaptured: true, rawMessageExcluded: true, browserRestartPersistence: true, providerContacted: false,
-    packagedArtifact: packaged.zip.sha256, workerRestarted, captureAfterWorkerStop: true, driftFingerprintOnly: true, popupA11y: true, tabCloseStop }));
+    packagedArtifact: packaged.zip.sha256, workerRestarted, workerLostDebuggerDetected: true, captureAfterExplicitRestart: true, sequenceReservationSurvivedTermination: true, driftFingerprintOnly: true, popupA11y: true, tabCloseStop }));
 } finally {
   await context?.close();
   for (const socket of sockets) socket.destroy();

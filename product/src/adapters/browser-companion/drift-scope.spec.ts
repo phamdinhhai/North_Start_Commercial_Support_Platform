@@ -119,5 +119,8 @@ describe('popup accessibility and view model', () => {
     expect(popupView({ ...base, upload: 'ready', capture: 'ACTIVE' })).toMatchObject({ blocked: null, full: false, reset: false });
     expect(popupView({ ...base, upload: 'disabled' }).reset).toBe(true);
     expect(errorMessage('unknown-internal')).toMatch(/Capture unavailable/);
+    expect(popupView({ ...base, upload: 'disabled', freshEnrollmentRequired: true, gaps: [{ from: 't0', until: null, reason: 'tab-closed' }] }).summary)
+      .toMatch(/Fresh enrollment required.*Not observing since t0 \(tab-closed\)/);
+    expect(errorMessage('fresh_enrollment_required')).toMatch(/fresh enrollment/);
   });
 });
