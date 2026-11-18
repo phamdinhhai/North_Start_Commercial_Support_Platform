@@ -1,48 +1,8 @@
-import { readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
-import { runInNewContext } from 'node:vm';
-import { webcrypto } from 'node:crypto';
 import { describe, expect, it } from 'vitest';
 import contracts from '../adaptive-connectivity/pancake-contract-fixtures.json';
-
-const directory = resolve('src/adapters/browser-companion');
-const scope = { workspaceId: 'workspace-test', connectionId: 'connection-test', accountId: 'account-test', pageId: 'page-test' };
-const key = 'northStarResearchV1';
-const url = 'https://pancake.vn/';
-
-async function harness(initial: Record<string, any> = {}, fetcher: any = async () => { throw new Error("offline"); }) {
-  const protocol = await import(pathToFileURL(resolve(directory, 'protocol.mjs')).href);
-  const upload = await import(pathToFileURL(resolve(directory, 'upload.mjs')).href);
-  const handlers: Record<string, (...args: any[]) => any> = {};
-  const storage = structuredClone(initial);
-  const calls: string[] = [];
-  let tabUrl = url;
-  let failWrites = false;
-  const listener = (name: string) => ({ addListener: (callback: (...args: any[]) => any) => { handlers[name] = callback; } });
-  const chrome = {
-    permissions: { contains: async () => true },
-    runtime: { id: 'test-extension', getURL: (path: string) => `chrome-extension://test-extension/${path}`, onMessage: listener('message'), onStartup: listener('startup') },
-    storage: { local: {
-      get: async () => structuredClone(storage),
-      set: async (value: Record<string, unknown>) => { if (failWrites) throw new Error('disk_full'); Object.assign(storage, structuredClone(value)); },
-      setAccessLevel: async (value: unknown) => { calls.push(JSON.stringify(value)); },
-    } },
-    action: { setBadgeText: async ({ text }: { text: string }) => { calls.push(text); } },
-    tabs: { query: async () => [{ id: 1, url: tabUrl }], get: async () => ({ id: 1, url: tabUrl }) },
-    debugger: {
-      attach: async () => { calls.push('attach'); }, detach: async () => { calls.push('detach'); },
-      sendCommand: async () => { calls.push('enable'); }, getTargets: async () => [{ attached: true, tabId: 1, url: tabUrl }],
-      onEvent: listener('event'), onDetach: listener('detach'),
-    },
-  };
-  const source = (await readFile(resolve(directory, 'worker.mjs'), 'utf8')).replace(/^import .*;\r?\n/gm, '');
-  runInNewContext(source, { chrome, ...protocol, ...upload, crypto: webcrypto, URL, Date, fetch: fetcher, setTimeout, clearTimeout, AbortController, TextEncoder, TextDecoder });
-  const message = (kind: string, extra = {}) => new Promise<any>((done) => handlers.message({ kind, ...extra }, { id: 'test-extension', url: chrome.runtime.getURL('popup.html') }, done));
-  const socket = (requestId = 'socket-1') => handlers.event({ tabId: 1 }, 'Network.webSocketCreated', { requestId, url: 'wss://pancake.vn/socket/websocket?credential=synthetic-secret' });
-  const frame = (topic = 'pages:page-test', requestId = 'socket-1') => handlers.event({ tabId: 1 }, 'Network.webSocketFrameReceived', { requestId, response: { opcode: 1, payloadData: JSON.stringify([null, null, topic, 'pages:update_messages', { conversation_id: 'object-test', message: 'private-fixture-text' }]) } });
-  return { storage, calls, handlers, message, socket, frame, setTabUrl: (value: string) => { tabUrl = value; }, failWrites: () => { failWrites = true; } };
-}
+import { directory, harness, key, scope, url } from './companion-test-harness';
 
 describe('MV3 companion privacy and persistence', () => {
   it('persists pending before fetch and retries identical envelopes after offline worker restart', async () => {

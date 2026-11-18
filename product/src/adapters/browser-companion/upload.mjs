@@ -1,4 +1,5 @@
 import { validScope } from './protocol.mjs';
+import { conflictCode, driftNotice } from './lifecycle.mjs';
 
 const id = (value) => typeof value === 'string' && value.length > 0 && value.length <= 256 && !/[\x00-\x1f]/.test(value);
 const sameScope = (left, right) => ['workspaceId', 'connectionId', 'accountId', 'providerSurface', 'pageId'].every((key) => left?.[key] === right?.[key]);
@@ -20,6 +21,8 @@ export function configureUpload(state, input, at = Date.now()) {
   const same = previous?.enrollmentId === enrollment.enrollmentId && previous.origin === origin && sameScope(previous.scope, enrollment.scope);
   // Historical local-only observations lack a server-bound page grant. Never relabel them.
   if (state.outbox.length && !same) throw new Error('pending_outbox_binding');
+  // A blocked enrollment is resolved only through the explicit reset flow, never by re-pasting the same grant.
+  if (same && previous.status === 'blocked') throw new Error('blocked_requires_reset');
   if (state.session && !sameScope({ ...state.session.scope, providerSurface: 'pancake-conversations' }, enrollment.scope)) throw new Error('capture_scope_mismatch');
   return { ...state, upload: {
     origin, enrollmentId: enrollment.enrollmentId, token: enrollment.token, expiresAt: enrollment.expiresAt,
@@ -52,7 +55,8 @@ export function applyUploadResponse(state, status, ack) {
   const upload = state.upload;
   if (!upload?.pending) throw new Error('no_pending_upload');
   if (status === 401 || status === 403) return { ...state, upload: { ...upload, token: null, status: 'unauthorized' } };
-  if (status === 409) return { ...state, upload: { ...upload, status: 'blocked' } };
+  // Conflict blocks delivery until the user resolves it in the popup. No automatic gap retry exists.
+  if (status === 409) return { ...state, upload: { ...upload, status: 'blocked', blockedReason: conflictCode(ack) } };
   if (status < 200 || status >= 300 || !ack || !id(ack.receiptId) || !['stored', 'duplicate'].includes(ack.disposition) ||
       ack.captureId !== upload.pending.captureId || ack.sequence !== upload.pending.sequence || ack.enrollmentId !== upload.enrollmentId ||
       !Number.isSafeInteger(ack.checkpoint) || ack.checkpoint < upload.pending.sequence ||
@@ -64,7 +68,11 @@ export function applyUploadResponse(state, status, ack) {
     nextSequence: ack.checkpoint + 1, status: 'ready' } };
 }
 
+/** Redacted export: no token, pending request, socket request IDs or drift raw data (only fingerprints exist). */
 export function exportMetadata(state) {
-  const { upload, ...metadata } = state;
-  return { ...metadata, ...(upload ? { delivery: { enrollmentId: upload.enrollmentId, checkpoint: upload.checkpoint, status: upload.status } } : {}) };
+  const { upload, drift, lastExport: _lastExport, session, ...metadata } = state;
+  return { ...metadata, session: session ? { tabId: session.tabId, scope: session.scope, startedAt: session.startedAt } : null,
+    driftNotice: driftNotice(drift),
+    ...(upload ? { delivery: { enrollmentId: upload.enrollmentId, checkpoint: upload.checkpoint, status: upload.status,
+      ...(upload.status === 'blocked' ? { blockedReason: upload.blockedReason ?? 'CONFLICT_UNKNOWN' } : {}) } } : {}) };
 }

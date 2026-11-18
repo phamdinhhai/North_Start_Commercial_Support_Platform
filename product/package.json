@@ -17,6 +17,7 @@
     "test:watch": "vitest",
     "test:ail": "vitest run src/adapters/adaptive-connectivity src/adapters/browser-companion",
     "test:companion": "node scripts/ail/companion-browser-smoke.mjs",
+    "companion:package": "node scripts/companion-package.mjs",
     "test:cov": "vitest run --coverage",
     "test:e2e": "vitest run --config vitest.config.e2e.ts",
     "test:browser": "playwright test --config playwright.config.ts",

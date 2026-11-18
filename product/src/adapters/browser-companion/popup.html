@@ -3,35 +3,59 @@
 <meta charset="utf-8">
 <title>North Star Research Companion</title>
 <style>
-  body { width: 330px; margin: 20px; font: 15px Georgia, serif; background: #f2eee3; color: #193d36; }
-  h1 { font-size: 23px; } label { display: block; margin-top: 12px; }
-  input { width: 95%; padding: 6px; } button { margin: 14px 5px 0 0; padding: 8px; }
-  #status { white-space: pre-wrap; overflow-wrap: anywhere; }
+  body { width: 340px; margin: 20px; font: 15px Georgia, serif; background: #f2eee3; color: #193d36; }
+  h1 { font-size: 23px; } h2 { font-size: 18px; } label { display: block; margin-top: 12px; }
+  input:not([type=checkbox]):not([type=radio]), textarea { width: 95%; padding: 6px; } button { margin: 14px 5px 0 0; padding: 8px; }
+  :focus-visible { outline: 3px solid #b34700; outline-offset: 2px; }
+  fieldset { border: 1px solid #193d36; margin-top: 12px; } .alert { border: 2px solid #8a1c00; padding: 8px; background: #fff4ee; }
+  #details { white-space: pre-wrap; overflow-wrap: anywhere; font-size: 12px; }
 </style>
 <h1>North Star / Research</h1>
 <p>Observe one Pancake tab and one page channel. Event metadata stays on this device unless you explicitly enable upload. No cookies or message text are exported.</p>
-<p>Capture is partial. Activate before a new socket opens; existing socket history is unavailable. Stop disconnects the observer.</p>
-<form id="scope">
-  <label>Research workspace <input name="workspaceId" required maxlength="256"></label>
-  <label>Connection reference <input name="connectionId" required maxlength="256"></label>
-  <label>Account reference <input name="accountId" required maxlength="256"></label>
-  <label>Allowed Pancake page ID <input name="pageId" required maxlength="256"></label>
+<p>Capture is partial. Activate before a new socket opens; existing socket history is unavailable. Stop, closing the tab or navigating away disconnects the observer.</p>
+<p id="summary" role="status" aria-live="polite" aria-atomic="true"></p>
+<div id="blocked" class="alert" role="alert" hidden>
+  <h2 id="blocked-title">Delivery blocked</h2>
+  <p id="blocked-reason"></p>
+  <p>No automatic retry happens. Export the redacted metadata, then reset the enrollment and obtain a new one from your issuer.</p>
+</div>
+<p id="full" class="alert" role="alert" hidden>OUTBOX_FULL: capture stopped. Stored records are kept; nothing was overwritten. Upload or export, then reset to continue.</p>
+<form id="scope" aria-label="Capture scope">
+  <label for="workspaceId">Research workspace</label><input id="workspaceId" name="workspaceId" required maxlength="256" autocomplete="off">
+  <label for="connectionId">Connection reference</label><input id="connectionId" name="connectionId" required maxlength="256" autocomplete="off">
+  <label for="accountId">Account reference</label><input id="accountId" name="accountId" required maxlength="256" autocomplete="off">
+  <label for="pageId">Allowed Pancake page ID</label><input id="pageId" name="pageId" required maxlength="256" autocomplete="off">
   <button type="submit">Start on this tab</button>
   <button id="stop" type="button">Stop</button>
-  <button id="export" type="button">Export metadata</button>
+  <button id="export" type="button">Export redacted metadata</button>
 </form>
 <hr>
-<form id="upload-settings">
-  <h2>Optional backend upload</h2>
-  <p>Only use an enrollment issued by your trusted North Star server. Local scope labels do not grant access. Upload sends event identifiers and hashes, never cookies or message bodies.</p>
-  <label>Trusted backend origin <input id="backend" type="url" placeholder="https://research.example.org" required></label>
-  <label>Enrollment JSON <textarea id="enrollment" rows="4" required autocomplete="off" spellcheck="false"></textarea></label>
+<form id="upload-settings" aria-labelledby="upload-title">
+  <h2 id="upload-title">Optional backend upload</h2>
+  <p id="upload-help">Only use an enrollment issued by your trusted North Star server. Local scope labels do not grant access. Upload sends event identifiers and hashes, never cookies or message bodies.</p>
+  <label for="backend">Trusted backend origin</label><input id="backend" type="url" placeholder="https://research.example.org" required aria-describedby="upload-help">
+  <label for="enrollment">Enrollment JSON</label><textarea id="enrollment" rows="4" required autocomplete="off" spellcheck="false"></textarea>
   <label><input id="consent" type="checkbox" required> I approve sending scoped metadata to this origin.</label>
   <button type="submit">Enable upload</button>
 </form>
-<button id="upload" type="button">Upload / retry one record</button>
-<button id="disconnect" type="button">Disconnect upload</button>
-<p>Disconnect removes this device's token and stops capture. Server revocation must be performed by the enrollment issuer. Pending metadata is retained; export never includes the token. Restart preserves retry identity. Delivery ACK does not prove provider completeness.</p>
-<p id="status" role="status"></p>
+<button id="upload" type="button" aria-describedby="upload-note">Upload / retry one record</button>
+<button id="disconnect" type="button" aria-describedby="upload-note">Disconnect upload</button>
+<p id="upload-note">Disconnect removes this device's token and stops capture. Server revocation must be performed by the enrollment issuer. Pending metadata is retained; export never includes the token. Restart preserves retry identity. Delivery ACK does not prove provider completeness.</p>
+<form id="reset" aria-labelledby="reset-title" hidden>
+  <h2 id="reset-title">Reset enrollment</h2>
+  <p id="reset-help">Removes the local grant and sequence. A new issuer enrollment is required afterwards. Pending records must be exported first or explicitly discarded.</p>
+  <fieldset aria-describedby="reset-help">
+    <legend>Pending records</legend>
+    <label><input type="radio" name="disposition" value="exported" checked> I exported the current records</label>
+    <label><input type="radio" name="disposition" value="discarded"> Discard the current records</label>
+    <label><input id="confirm-discard" type="checkbox"> <span id="discard-label">I understand these records are permanently deleted.</span></label>
+  </fieldset>
+  <button type="submit">Reset enrollment</button>
+</form>
+<section id="drift" aria-labelledby="drift-title" hidden>
+  <h2 id="drift-title">Schema drift notice</h2>
+  <p id="drift-text"></p>
+</section>
+<details><summary>Technical status</summary><pre id="details"></pre></details>
 <script type="module" src="popup.mjs"></script>
 </html>
