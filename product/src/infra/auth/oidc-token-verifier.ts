@@ -8,9 +8,12 @@ import { JwksUnavailableError, type JwksKeyStore } from './jwks-key-store';
  * Enforces: algorithm allowlist (asymmetric only; `none`/HS* never), `kid` present, signature
  * against the sanitized JWKS, exact issuer, audience, `exp` required, `nbf`, bounded clock skew.
  * Only `(iss, sub)` leave this class: role/workspace/email/group claims are ignored by design.
- * // OPEN: PM-1 — token→capability mapping is deliberately absent.
+ * // ADR-006 — IdP claims/groups never grant authority (no token→capability mapping); access
+ * token lifetime ≤ 15 min so IdP-side deactivation takes effect within that bound.
  */
 const MAX_TOKEN_BYTES = 8192;
+/** ADR-006: access token TTL ≤ 15 minutes. */
+export const MAX_ACCESS_TOKEN_LIFETIME_SECONDS = 900;
 const MAX_SUBJECT_LENGTH = 255;
 const CONTROL_CHARS = /[\u0000-\u001f\u007f]/;
 /**
@@ -55,6 +58,12 @@ export class OidcTokenVerifier implements AccessTokenVerifier {
       if (typeof subject !== 'string' || subject.length === 0 || subject.length > MAX_SUBJECT_LENGTH ||
           CONTROL_CHARS.test(subject)) {
         return reject('missing_claim');
+      }
+      const exp = payload.exp as number; // required claim, validated by jwtVerify
+      const nowSeconds = Math.floor(this.now().getTime() / 1000);
+      if ((typeof payload.iat === 'number' && exp - payload.iat > MAX_ACCESS_TOKEN_LIFETIME_SECONDS) ||
+          exp - nowSeconds > MAX_ACCESS_TOKEN_LIFETIME_SECONDS + this.config.clockSkewSeconds) {
+        return reject('lifetime');
       }
       return { ok: true, principal: { issuer: this.config.issuer, subject } };
     } catch (error) {

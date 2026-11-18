@@ -38,6 +38,8 @@ describe('R2 independent QA — OIDC principal reaches /integration/enrollments'
     key = await createTestKey('kid-r2i');
     const store = new InMemoryMembershipStore();
     await store.grant({ workspaceId: 'ws-a', issuer: TEST_ISSUER, subject: 'mgr', baseRole: 'manager' });
+    // R3 / ADR-006: enrollment issue/revoke is admin-only, so the resolution probe uses an admin.
+    await store.grant({ workspaceId: 'ws-a', issuer: TEST_ISSUER, subject: 'adm', baseRole: 'admin' });
     const keys = new JwksKeyStore(async () => ({ keys: [key.publicJwk] }), { cacheMaxAgeMs: 600_000, refetchCooldownMs: 30_000 });
     const authenticator = new OidcAuthenticator(new OidcTokenVerifier(testConfig(), keys), store);
     const moduleRef = await Test.createTestingModule({ imports: [AppModule] })
@@ -68,10 +70,16 @@ describe('R2 independent QA — OIDC principal reaches /integration/enrollments'
   // Body {workspaceId} is refused AFTER principal resolution with 400 WORKSPACE_FROM_CONTEXT, so the
   // status code tells us whether the principal was resolved without touching the store.
   // Fixed by A-M5 (work/r2-fix-auth): flipped from it.fails.
-  it('verified manager is resolved by IntegrationController (expected 400 WORKSPACE_FROM_CONTEXT)', async () => {
-    const headers = { authorization: `Bearer ${await mintToken(key, { sub: 'mgr' })}` };
+  it('verified admin is resolved by IntegrationController (expected 400 WORKSPACE_FROM_CONTEXT)', async () => {
+    const headers = { authorization: `Bearer ${await mintToken(key, { sub: 'adm' })}` };
     const res = await inject('/integration/enrollments', headers, { workspaceId: 'ws-a' });
     expect(res.statusCode).toBe(400);
+  });
+
+  // R3 / ADR-006 expectation change: a verified manager is resolved but no longer authorized (403).
+  it('verified manager is resolved and refused by the ADR-006 matrix (expected 403)', async () => {
+    const headers = { authorization: `Bearer ${await mintToken(key, { sub: 'mgr' })}` };
+    expect((await inject('/integration/enrollments', headers, { workspaceId: 'ws-a' })).statusCode).toBe(403);
   });
   // The pre-fix 401 defect-evidence case was removed after A-M5; the case above guards the regression.
 });

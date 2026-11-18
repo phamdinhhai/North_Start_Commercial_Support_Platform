@@ -5,7 +5,7 @@ import { VerifiedContextRegistry } from './verified-context-registry';
 const KEYS = ['AUTH_MODE', 'AUTH_DEV_UNSIGNED_TOKENS', 'BOOTSTRAP_TOKEN', 'DEMO_WORKSPACES'] as const;
 const saved = Object.fromEntries(KEYS.map((k) => [k, process.env[k]]));
 
-describe('AuthService — AUTH_MODE=oidc seam (OPEN: PM-1)', () => {
+describe('AuthService — AUTH_MODE=oidc seam (ADR-006)', () => {
   afterEach(() => {
     for (const k of KEYS) {
       if (saved[k] === undefined) delete process.env[k];

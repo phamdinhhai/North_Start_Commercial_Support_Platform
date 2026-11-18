@@ -1,7 +1,7 @@
 import { Global, Inject, Logger, Module, type NestModule } from '@nestjs/common';
 import { HttpAdapterHost } from '@nestjs/core';
 import type { FastifyAdapter } from '@nestjs/platform-fastify';
-import { MEMBERSHIP_STORE, VERIFIED_CONTEXT_LOOKUP, type MembershipStore } from '../../ports/auth';
+import { MEMBERSHIP_ADMIN_CONFIG, MEMBERSHIP_STORE, VERIFIED_CONTEXT_LOOKUP, type MembershipAdminConfig, type MembershipStore } from '../../ports/auth';
 import { InMemoryMembershipStore } from '../membership/in-memory-membership.store';
 import { PgMembershipStore } from '../membership/pg-membership.store';
 import { PostgresService, resolvePilotStoreMode } from '../postgres/postgres.service';
@@ -12,13 +12,22 @@ import { OidcTokenVerifier } from './oidc-token-verifier';
 import { VerifiedContextRegistry } from './verified-context-registry';
 
 /**
- * Experimental OIDC wiring (AUTH_MODE=oidc; default legacy = no behaviour change).
+ * OIDC wiring (AUTH_MODE=oidc; default legacy = no behaviour change).
  * Bootstrap fails closed on any OIDC misconfiguration. In OIDC mode an `onRequest` hook
- * verifies the bearer token + server-side membership and attaches the resulting context to the
- * request; `AuthService.resolve` then reads it synchronously.
- * // OPEN: PM-1 — identity/membership only; no capability matrix or new authority.
+ * verifies the bearer token, resolves (iss, sub) → internal platform user and reads server-side
+ * membership, then attaches the resulting context to the request; `AuthService.resolve` reads it
+ * synchronously. // ADR-006 — identity/membership only; capabilities live in the policies.
  */
 export const OIDC_AUTHENTICATOR = Symbol('OIDC_AUTHENTICATOR');
+
+/**
+ * ADR-006 admin membership API config: enabled only in OIDC mode (an internal principal exists to
+ * attribute changes to); admins may pre-grant identities of the configured issuer only.
+ */
+export function membershipAdminConfig(env: NodeJS.ProcessEnv = process.env): MembershipAdminConfig | null {
+  if (resolveAuthMode(env) !== 'oidc') return null;
+  return Object.freeze({ issuers: Object.freeze([loadOidcConfig(env).issuer]) });
+}
 
 export function createOidcAuthenticator(store: MembershipStore, env: NodeJS.ProcessEnv = process.env): OidcAuthenticator | null {
   if (resolveAuthMode(env) !== 'oidc') return null;
@@ -55,13 +64,14 @@ export function earlyReply(decision: OidcDecision): { status: number; body: Reco
         return resolvePilotStoreMode() === 'postgres' ? new PgMembershipStore(db) : new InMemoryMembershipStore();
       },
     },
+    { provide: MEMBERSHIP_ADMIN_CONFIG, useFactory: () => membershipAdminConfig() },
     {
       provide: OIDC_AUTHENTICATOR,
       inject: [MEMBERSHIP_STORE],
       useFactory: (store: MembershipStore) => createOidcAuthenticator(store),
     },
   ],
-  exports: [VERIFIED_CONTEXT_LOOKUP, MEMBERSHIP_STORE],
+  exports: [VERIFIED_CONTEXT_LOOKUP, MEMBERSHIP_STORE, MEMBERSHIP_ADMIN_CONFIG],
 })
 export class OidcAuthModule implements NestModule {
   private readonly logger = new Logger(OidcAuthModule.name);

@@ -1,6 +1,7 @@
 import { randomBytes } from 'node:crypto';
 import { describe, it, expect, vi } from 'vitest';
 import { IntegrationIntake } from './intake';
+import { issuerSecretPathAllowed } from './config';
 import type { AuthContext } from '../../ports/auth';
 import type { IntegrationStore } from '../../ports/integration';
 
@@ -24,37 +25,39 @@ const b64 = (v: unknown) => Buffer.from(JSON.stringify(v)).toString('base64url')
 const header = (token: string) => JSON.parse(Buffer.from(token.split('.')[0], 'base64url').toString());
 
 describe('principal-authenticated enrollment issuance', () => {
-    it('denies unauthenticated, sales, viewer and demo principals before persistence', async () => {
+    it('ADR-006: denies unauthenticated, manager, sales, viewer and demo principals before persistence', async () => {
         const { svc, store } = make();
         await expect(svc.enrollAsPrincipal(null, {})).rejects.toMatchObject({ status: 401 });
-        await expect(svc.enrollAsPrincipal({ ...who('manager'), userId: 'm\nforged' }, { pageId: 'p1' })).rejects.toMatchObject({ status: 401 });
-        for (const ctx of [who('sales'), who('viewer'), who('manager', 'ws-a', true)])
+        await expect(svc.enrollAsPrincipal({ ...who('admin'), userId: 'm\nforged' }, { pageId: 'p1' })).rejects.toMatchObject({ status: 401 });
+        // ADR-006: enrollment connector issue/revoke is admin-only — manager is now 403.
+        for (const ctx of [who('manager'), who('sales'), who('viewer'), who('admin', 'ws-a', true)])
             await expect(svc.enrollAsPrincipal(ctx, { pageId: 'p1' })).rejects.toMatchObject({ status: 403, code: 'FORBIDDEN' });
-        await expect(svc.revokeAsPrincipal(who('sales'), { enrollmentId: '0'.repeat(36) })).rejects.toMatchObject({ status: 403 });
+        for (const ctx of [who('manager'), who('sales')])
+            await expect(svc.revokeAsPrincipal(ctx, { enrollmentId: '0'.repeat(36) })).rejects.toMatchObject({ status: 403 });
         expect(store.enroll).not.toHaveBeenCalled();
         expect(store.revoke).not.toHaveBeenCalled();
     });
-    it('denies a manager whose workspace has no allowlisted scope, or selects another workspace page', async () => {
+    it('denies an admin whose workspace has no allowlisted scope, or selects another workspace page', async () => {
         const { svc, store } = make();
-        await expect(svc.enrollAsPrincipal(who('manager', 'ws-other'), {})).rejects.toMatchObject({ status: 403, code: 'SCOPE_NOT_ALLOWED' });
-        await expect(svc.enrollAsPrincipal(who('manager', 'ws-b'), { pageId: 'p1' })).rejects.toMatchObject({ status: 403, code: 'SCOPE_NOT_ALLOWED' });
-        await expect(svc.enrollAsPrincipal(who('manager'), { pageId: 'not-allowed' })).rejects.toMatchObject({ status: 403 });
+        await expect(svc.enrollAsPrincipal(who('admin', 'ws-other'), {})).rejects.toMatchObject({ status: 403, code: 'SCOPE_NOT_ALLOWED' });
+        await expect(svc.enrollAsPrincipal(who('admin', 'ws-b'), { pageId: 'p1' })).rejects.toMatchObject({ status: 403, code: 'SCOPE_NOT_ALLOWED' });
+        await expect(svc.enrollAsPrincipal(who('admin'), { pageId: 'not-allowed' })).rejects.toMatchObject({ status: 403 });
         expect(store.enroll).not.toHaveBeenCalled();
     });
     it('rejects body-supplied workspace, unknown keys and ambiguous selection', async () => {
         const { svc, store } = make();
-        await expect(svc.enrollAsPrincipal(who('manager'), { workspaceId: 'ws-a', pageId: 'p1' })).rejects.toMatchObject({ status: 400, code: 'WORKSPACE_FROM_CONTEXT' });
+        await expect(svc.enrollAsPrincipal(who('admin'), { workspaceId: 'ws-a', pageId: 'p1' })).rejects.toMatchObject({ status: 400, code: 'WORKSPACE_FROM_CONTEXT' });
         for (const body of [null, [], { scope: allow[0] }, { pageId: 7 }, { providerSurface: 'other' }])
-            await expect(svc.enrollAsPrincipal(who('manager'), body)).rejects.toMatchObject({ status: 400 });
-        await expect(svc.enrollAsPrincipal(who('manager'), {})).rejects.toMatchObject({ status: 400, code: 'SCOPE_AMBIGUOUS' });
+            await expect(svc.enrollAsPrincipal(who('admin'), body)).rejects.toMatchObject({ status: 400 });
+        await expect(svc.enrollAsPrincipal(who('admin'), {})).rejects.toMatchObject({ status: 400, code: 'SCOPE_AMBIGUOUS' });
         expect(store.enroll).not.toHaveBeenCalled();
     });
-    it('issues for manager/admin of the same workspace with server scope and audits actor without token', async () => {
+    it('issues for an admin of the same workspace with server scope and audits actor without token', async () => {
         const { svc, store } = make();
-        const r = await svc.enrollAsPrincipal(who('manager'), { pageId: 'p2' });
+        const r = await svc.enrollAsPrincipal(who('admin'), { pageId: 'p2' });
         expect(r.scope).toEqual({ workspaceId: 'ws-a', connectionId: 'c1', accountId: 'a1', providerSurface: 'pancake-conversations', pageId: 'p2' });
         expect(header(r.token)).toEqual({ alg: 'HS256', typ: 'AIL-ENROLLMENT', kid: 'k1' });
-        expect(store.enroll).toHaveBeenCalledWith({ id: r.enrollmentId, scope: r.scope, expiresAt: r.expiresAt }, { issuance: 'principal', actorId: 'manager-user', role: 'manager', kid: 'k1' });
+        expect(store.enroll).toHaveBeenCalledWith({ id: r.enrollmentId, scope: r.scope, expiresAt: r.expiresAt }, { issuance: 'principal', actorId: 'admin-user', role: 'admin', kid: 'k1' });
         expect(JSON.stringify(store.enroll.mock.calls)).not.toContain(r.token.split('.')[2]);
         await svc.append('Bearer ' + r.token, upload('p2'));
         expect(store.append).toHaveBeenCalledOnce();
@@ -67,7 +70,7 @@ describe('principal-authenticated enrollment issuance', () => {
         const enrollmentId = '11111111-1111-4111-8111-111111111111';
         await svc.revokeAsPrincipal(who('admin', 'ws-b'), { enrollmentId });
         expect(store.revoke).toHaveBeenCalledWith(enrollmentId, { issuance: 'principal', actorId: 'admin-user', role: 'admin', workspaceId: 'ws-b' });
-        await expect(svc.revokeAsPrincipal(who('manager'), { enrollmentId, workspaceId: 'ws-b' })).rejects.toMatchObject({ status: 400 });
+        await expect(svc.revokeAsPrincipal(who('admin'), { enrollmentId, workspaceId: 'ws-b' })).rejects.toMatchObject({ status: 400 });
     });
     it('disables the deprecated issuer-secret path by config while principal issuance keeps working', async () => {
         // A-m6: explicit opt-in — a configured secret alone no longer enables the path.
@@ -75,7 +78,7 @@ describe('principal-authenticated enrollment issuance', () => {
             const { svc, store } = make({ ...base, ...patch });
             await expect(svc.enroll(issuer, {})).rejects.toMatchObject({ status: 404, code: 'ISSUER_PATH_DISABLED' });
             await expect(svc.revoke(issuer, { enrollmentId: '0'.repeat(36) })).rejects.toMatchObject({ status: 404 });
-            await svc.enrollAsPrincipal(who('manager', 'ws-b'), {});
+            await svc.enrollAsPrincipal(who('admin', 'ws-b'), {});
             expect(store.enroll).toHaveBeenCalledOnce();
         }
         const legacy = make({ ...base, AIL_ISSUER_SECRET: issuer, AIL_ISSUER_SECRET_ENABLED: 'true' });
@@ -98,14 +101,45 @@ describe('principal-authenticated enrollment issuance', () => {
     });
 });
 
+describe('ADR-006 R2-P-08 — issuer-secret enrollment only in local/test and only when opted in', () => {
+    const enrollmentId = '33333333-3333-4333-8333-333333333333';
+    const opted = { ...base, AIL_SCOPE_ALLOWLIST: JSON.stringify([allow[2]]), AIL_ISSUER_SECRET: issuer, AIL_ISSUER_SECRET_ENABLED: 'true' };
+    it('fails closed (503) in pilot, production, unknown/unset deployment and NODE_ENV=production even when opted in', async () => {
+        for (const patch of [{ DEPLOYMENT_MODE: 'pilot' }, { DEPLOYMENT_MODE: 'production' }, { DEPLOYMENT_MODE: 'staging' }, { DEPLOYMENT_MODE: undefined }, { DEPLOYMENT_MODE: 'test', NODE_ENV: 'production' }]) {
+            const s = make({ ...opted, ...patch });
+            await expect(s.svc.enroll(issuer, {})).rejects.toMatchObject({ status: 503 });
+            await expect(s.svc.revoke(issuer, { enrollmentId })).rejects.toMatchObject({ status: 503 });
+            expect(s.store.enroll).not.toHaveBeenCalled();
+            expect(s.store.revoke).not.toHaveBeenCalled();
+        }
+    });
+    it('works in local and test only with AIL_ISSUER_SECRET_ENABLED=true', async () => {
+        for (const mode of ['local', 'test']) {
+            const s = make({ ...opted, DEPLOYMENT_MODE: mode });
+            await expect(s.svc.enroll(issuer, {})).resolves.toMatchObject({ scope: expect.objectContaining({ workspaceId: 'ws-b' }) });
+            expect(s.store.enroll).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({ issuance: 'issuer-secret' }));
+            await expect(make({ ...opted, DEPLOYMENT_MODE: mode, AIL_ISSUER_SECRET_ENABLED: undefined }).svc.enroll(issuer, {})).rejects.toMatchObject({ status: 404, code: 'ISSUER_PATH_DISABLED' });
+        }
+    });
+    it('the issuer-path gate is independent of the research gate (defence in depth)', () => {
+        expect(issuerSecretPathAllowed({ DEPLOYMENT_MODE: 'test', AIL_ISSUER_SECRET_ENABLED: 'true' })).toBe(true);
+        expect(issuerSecretPathAllowed({ DEPLOYMENT_MODE: 'local', AIL_ISSUER_SECRET_ENABLED: 'true' })).toBe(true);
+        expect(issuerSecretPathAllowed({ DEPLOYMENT_MODE: 'pilot', AIL_ISSUER_SECRET_ENABLED: 'true' })).toBe(false);
+        expect(issuerSecretPathAllowed({ DEPLOYMENT_MODE: 'production', AIL_ISSUER_SECRET_ENABLED: 'true' })).toBe(false);
+        expect(issuerSecretPathAllowed({ DEPLOYMENT_MODE: 'test', NODE_ENV: 'production', AIL_ISSUER_SECRET_ENABLED: 'true' })).toBe(false);
+        expect(issuerSecretPathAllowed({ DEPLOYMENT_MODE: 'test' })).toBe(false);
+        expect(issuerSecretPathAllowed({ DEPLOYMENT_MODE: 'test', AIL_ISSUER_SECRET_ENABLED: 'TRUE' })).toBe(false);
+    });
+});
+
 describe('signing keyring rotation', () => {
     const rotated = { ...base, AIL_SIGNING_KEYS: keys({ kid: 'k2', secret: k2, state: 'active' }, { kid: 'k1', secret: k1, state: 'verify' }) };
     it('keeps unexpired tokens from a still-verifying key valid and signs new ones with the active kid', async () => {
         const s = make();
-        const old = await s.svc.enrollAsPrincipal(who('manager', 'ws-b'), {});
+        const old = await s.svc.enrollAsPrincipal(who('admin', 'ws-b'), {});
         Object.assign(s.env, rotated);
         await s.svc.append('Bearer ' + old.token, upload('p9', 'ws-b'));
-        const fresh = await s.svc.enrollAsPrincipal(who('manager', 'ws-b'), {});
+        const fresh = await s.svc.enrollAsPrincipal(who('admin', 'ws-b'), {});
         expect(header(fresh.token).kid).toBe('k2');
         expect(s.store.enroll).toHaveBeenLastCalledWith(expect.anything(), expect.objectContaining({ kid: 'k2' }));
         await s.svc.append('Bearer ' + fresh.token, upload('p9', 'ws-b'));
@@ -113,7 +147,7 @@ describe('signing keyring rotation', () => {
     });
     it('rejects retired, unknown, tampered kid and kid/claim mismatch with uniform 401', async () => {
         const s = make();
-        const old = await s.svc.enrollAsPrincipal(who('manager', 'ws-b'), {});
+        const old = await s.svc.enrollAsPrincipal(who('admin', 'ws-b'), {});
         const [h, p, sig] = old.token.split('.');
         Object.assign(s.env, { AIL_SIGNING_KEYS: keys({ kid: 'k2', secret: k2, state: 'active' }, { kid: 'k1', state: 'retired' }) });
         await expect(s.svc.append('Bearer ' + old.token, upload('p9', 'ws-b'))).rejects.toMatchObject({ status: 401, code: 'UNAUTHORIZED' });
@@ -130,7 +164,7 @@ describe('signing keyring rotation', () => {
     });
     it('rejects a token whose scope was removed from the server allowlist', async () => {
         const s = make();
-        const t = await s.svc.enrollAsPrincipal(who('manager', 'ws-b'), {});
+        const t = await s.svc.enrollAsPrincipal(who('admin', 'ws-b'), {});
         s.env.AIL_SCOPE_ALLOWLIST = JSON.stringify(allow.slice(0, 2));
         await expect(s.svc.append('Bearer ' + t.token, upload('p9', 'ws-b'))).rejects.toMatchObject({ status: 401 });
     });
@@ -155,6 +189,6 @@ describe('signing keyring rotation', () => {
             { AIL_WORKSPACE_ID: 'ws-a' },
         ];
         for (const patch of bad)
-            await expect(make({ ...base, ...patch }).svc.enrollAsPrincipal(who('manager', 'ws-b'), {})).rejects.toMatchObject({ status: 503, code: 'AIL_CONFIGURATION' });
+            await expect(make({ ...base, ...patch }).svc.enrollAsPrincipal(who('admin', 'ws-b'), {})).rejects.toMatchObject({ status: 503, code: 'AIL_CONFIGURATION' });
     });
 });

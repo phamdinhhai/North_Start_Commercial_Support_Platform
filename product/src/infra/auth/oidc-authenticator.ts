@@ -1,16 +1,18 @@
-import { createHash } from 'node:crypto';
 import type { AccessTokenVerifier, AuthContext, MembershipReader, TokenRejectionReason } from '../../ports/auth';
 
 /**
- * Turns a verified access token into an AuthContext using SERVER-SIDE membership only.
+ * Turns a verified access token into an AuthContext using SERVER-SIDE principals + membership only.
  *
- * - Identity = `(iss, sub)` from a verified token. Workspace and role come from the active
- *   membership row; never from client headers/body or unverified/unmapped token claims.
+ * - ADR-006 (R2-P-07): identity = verified `(iss, sub)`, resolved through `external_identity` to an
+ *   INTERNAL platform user id (UUID) which becomes `AuthContext.userId`. An unknown identity (or a
+ *   disabled user) is unauthenticated — logins never provision; an admin pre-grant creates the
+ *   user + identity link (see MembershipAdministration.grant).
+ * - Workspace and role come from the active membership row; never from client headers/body or
+ *   token claims (role/workspace/groups claims are ignored).
  * - A client may REQUEST a workspace via `x-workspace-id`; it is honored only when an active
  *   membership exists for that exact workspace, otherwise the request is forbidden (403).
- *   Selecting among existing memberships is not a PM-1 decision: it grants nothing new.
- * - Membership is read on every request (no cache), so revocation applies to the next request.
- * // OPEN: PM-1 — capability matrix, membership lifecycle/approval and revocation SLA remain open.
+ * - Principal + membership are read on every request (no cache), so revocation applies to the next
+ *   request (ADR-006: revocation effective on the next request).
  */
 export const WORKSPACE_REQUEST_HEADER = 'x-workspace-id';
 /** Existing base roles only (ports/auth AuthRole); unknown stored values are ignored. */
@@ -18,32 +20,13 @@ const BASE_ROLES: ReadonlySet<string> = new Set(['admin', 'manager', 'sales', 'v
 const WORKSPACE_ID_PATTERN = /^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$/;
 /** AuthContext contract shared with other consumers of AUTH_CONTEXT_RESOLVER. */
 const CONTEXT_WORKSPACE_PATTERN = /^[a-zA-Z0-9:_./-]{1,256}$/;
-const CONTROL_CHARS = /[\u0000-\u001f\u007f]/;
-/** Upper bound of AuthContext.userId (same bound as enrollment actor ids). */
-const MAX_USER_ID = 256;
-const ISSUER_TAG_HEX = 24;
-
-/**
- * A-m5: AuthContext.userId for an OIDC principal = `oidc:<sha256(iss) first 24 hex>:<sub>`.
- * - Namespaced by issuer, so a token from a different issuer (or a legacy/bootstrap actor id such
- *   as `bootstrap-admin` or an unsigned dev `userId`) can never equal an existing lead owner
- *   (`assignedTo === userId`) and silently inherit ownership.
- * - Stable: depends only on the verified `iss` (exact string) and `sub`; no lookup or mapping table.
- * - Contract: 1..256 chars, no control characters (subjects longer than 226 chars are refused).
- * Not an identity-resolution or merge rule: ID-1 concerns Customer/Lead identity, not operator
- * principals, and is untouched. // OPEN: PM-1 — a mapped internal user id may replace this form.
- */
-export function oidcUserId(issuer: string, subject: string): string | null {
-  if (subject.length === 0 || CONTROL_CHARS.test(subject) || issuer.length === 0 || CONTROL_CHARS.test(issuer)) return null;
-  const tag = createHash('sha256').update(issuer, 'utf8').digest('hex').slice(0, ISSUER_TAG_HEX);
-  const id = `oidc:${tag}:${subject}`;
-  return id.length <= MAX_USER_ID ? id : null;
-}
+/** Internal platform user ids are UUIDs (migration 010 `platform_user.id`). */
+const INTERNAL_USER_ID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 
 export type OidcDecision =
   | { readonly kind: 'none' }
   | { readonly kind: 'authenticated'; readonly context: AuthContext }
-  | { readonly kind: 'unauthenticated'; readonly reason: TokenRejectionReason | 'malformed_authorization' | 'no_membership' | 'workspace_selection_required' }
+  | { readonly kind: 'unauthenticated'; readonly reason: TokenRejectionReason | 'malformed_authorization' | 'unknown_identity' | 'no_membership' | 'workspace_selection_required' }
   | { readonly kind: 'forbidden'; readonly reason: 'workspace_not_member' }
   | { readonly kind: 'invalid_request'; readonly reason: 'workspace_header_invalid' };
 
@@ -69,14 +52,14 @@ export class OidcAuthenticator {
     const verification = await this.verifier.verify(authorization.slice('Bearer '.length));
     if (!verification.ok) return { kind: 'unauthenticated', reason: verification.reason };
     const { issuer, subject } = verification.principal;
-    const userId = oidcUserId(issuer, subject);
-    if (userId === null) return { kind: 'unauthenticated', reason: 'missing_claim' };
     const requested = single(headers[WORKSPACE_REQUEST_HEADER]);
     if (requested === null || (requested !== undefined && !WORKSPACE_ID_PATTERN.test(requested))) {
       return { kind: 'invalid_request', reason: 'workspace_header_invalid' };
     }
-    const active = (await this.memberships.listActive(issuer, subject))
-      .filter((m) => m.status === 'active' && m.revokedAt === null && m.issuer === issuer && m.subject === subject &&
+    const userId = await this.memberships.resolveUserId(issuer, subject);
+    if (userId === null || !INTERNAL_USER_ID.test(userId)) return { kind: 'unauthenticated', reason: 'unknown_identity' };
+    const active = (await this.memberships.listActive(userId))
+      .filter((m) => m.status === 'active' && m.revokedAt === null && m.userId === userId &&
         BASE_ROLES.has(m.baseRole) && CONTEXT_WORKSPACE_PATTERN.test(m.workspaceId) && !m.workspaceId.startsWith('demo:'));
     if (requested !== undefined) {
       const match = active.find((m) => m.workspaceId === requested);
@@ -90,7 +73,7 @@ export class OidcAuthenticator {
 }
 
 function toContext(workspaceId: string, userId: string, role: AuthContext['role']): AuthContext {
-  // userId = issuer-namespaced subject (see oidcUserId). Multi-issuer principal LINKING is
-  // deliberately not implemented (would touch PM-1 principal-model semantics).
+  // ADR-006: userId = internal platform user id; lead ownership and audit reference it, so adding
+  // or changing an IdP (a new external_identity link) never moves ownership.
   return Object.freeze({ workspaceId, userId, role, isDemo: false });
 }

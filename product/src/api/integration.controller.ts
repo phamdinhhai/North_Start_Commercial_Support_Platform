@@ -7,8 +7,9 @@ import { IntegrationError } from '../ports/integration';
 /**
  * Experimental research intake (default OFF via AIL_RESEARCH_ENABLED).
  * - `enrollments`, `enrollments/revoke`: principal resolved by AuthContextResolver from headers only
- *   (never the body). OPEN: PM-1 — reuses existing manager/admin workspace authority.
- * - `enroll`, `revoke`: DEPRECATED shared `x-integration-issuer` secret; disableable by config.
+ *   (never the body). ADR-006 — admin of the server-resolved workspace only (manager → 403).
+ * - `enroll`, `revoke`: DEPRECATED shared `x-integration-issuer` secret; ADR-006 (R2-P-08): only in
+ *   DEPLOYMENT_MODE local/test with AIL_ISSUER_SECRET_ENABLED=true, fail closed elsewhere.
  * - `observations`: signed enrollment capability token.
  */
 @Controller('integration')

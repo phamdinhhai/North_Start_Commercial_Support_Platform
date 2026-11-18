@@ -6,7 +6,7 @@ export interface SigningKey { kid: string; secret?: string; state: 'active' | 'v
  * Experimental research-intake configuration, re-read per request from the injected
  * environment so operators can rotate keys without a code change. Every malformed or
  * ambiguous setting fails closed with 503; nothing here is echoed to callers or logs.
- * OPEN: PM-1 — scope allowlist is a server-side sandbox grant, not a permission matrix.
+ * ADR-006 — scope allowlist is a server-side sandbox grant, not a permission matrix.
  */
 export const MIN_SECRET_BYTES = 32;
 const MAX_SECRET_BYTES = 4096;
@@ -82,6 +82,16 @@ function allowlist(env: NodeJS.ProcessEnv): IntegrationScope[] {
     return scopes;
 }
 
+/**
+ * ADR-006 (R2-P-08): the deprecated shared issuer-secret path may run ONLY when the deployment is
+ * `local` or `test` (and NODE_ENV is not production) AND `AIL_ISSUER_SECRET_ENABLED=true` (exact).
+ * Checked independently of the research gate so pilot/production stay closed even if research
+ * intake is ever opened there. To be removed once the OIDC path is verified on pilot.
+ */
+export function issuerSecretPathAllowed(env: NodeJS.ProcessEnv): boolean {
+    return ['local', 'test'].includes(env.DEPLOYMENT_MODE ?? '') && env.NODE_ENV !== 'production' && env.AIL_ISSUER_SECRET_ENABLED === 'true';
+}
+
 export function loadConfig(env: NodeJS.ProcessEnv): IntakeConfig {
     if (env.AIL_RESEARCH_ENABLED !== 'true')
         return fail('AIL_DISABLED', 404);
@@ -91,10 +101,12 @@ export function loadConfig(env: NodeJS.ProcessEnv): IntakeConfig {
     // Deprecated shared issuer secret (A-m6): EXPLICIT opt-in. Enabled only when
     // `AIL_ISSUER_SECRET_ENABLED=true`; unset/empty/`false` = disabled (any configured secret is
     // ignored); any other value is ambiguous → 503. Enabled without a valid secret → 503.
-    // OPEN: PM-1 — retirement of this path is a proposed register entry (R2-P-08).
+    // ADR-006 (R2-P-08): opted in outside local/test → 503 (fail closed, never silently enabled).
     const toggle = env.AIL_ISSUER_SECRET_ENABLED ?? '';
     if (!['', 'false', 'true'].includes(toggle))
         return misconfigured();
+    if (toggle === 'true' && !issuerSecretPathAllowed(env))
+        return fail('RESEARCH_ONLY', 503);
     const issuer = toggle === 'true' ? (env.AIL_ISSUER_SECRET ?? '') : null;
     if (issuer !== null && (!secretOk(issuer) || keys.some((k) => k.secret === issuer)))
         return misconfigured();

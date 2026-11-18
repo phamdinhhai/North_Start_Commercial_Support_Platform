@@ -4,7 +4,9 @@ import { resolveDeploymentMode } from '../postgres/postgres.service';
 /**
  * Experimental OIDC configuration (AUTH_MODE=oidc). Every validation failure throws so that
  * application bootstrap fails closed instead of starting with a weaker verifier.
- * // OPEN: PM-1 — provider choice, session/refresh design and revocation SLA are undecided.
+ * // ADR-006 — revocation applies on the next request (membership read per request); access token
+ * TTL ≤ 15 min is enforced by the verifier. IdP product choice and session/refresh design are
+ * not decided by ADR-006.
  */
 
 /** Asymmetric JWS algorithms only. `none` and every HS* (shared secret) are never accepted. */

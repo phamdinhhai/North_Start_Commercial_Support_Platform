@@ -26,11 +26,12 @@ import { AlsRequestAnnotator } from './infra/observability/request-context';
 import { CONNECTOR_HEALTH_READER, type ConnectorHealthReader } from './ports/connector-health';
 import { REQUEST_ANNOTATOR } from './ports/request-context';
 import { OidcAuthModule } from './infra/auth/oidc-auth.module';
+import { MembershipController } from './api/membership.controller';
 
 /** Composition root for the manual pilot loop and health delivery. */
 @Module({
   imports: [HealthModule, PilotLoopModule, OidcAuthModule],
-  controllers: [OperatorClientController, IntegrationController, ConnectorHealthController],
+  controllers: [OperatorClientController, IntegrationController, ConnectorHealthController, MembershipController],
   providers: [
     { provide: IntegrationIntake, inject: [PostgresService], useFactory: (db: PostgresService) => new IntegrationIntake(new PgIntegrationStore(db)) },
     // Observability (operational telemetry only; never commercial evidence).

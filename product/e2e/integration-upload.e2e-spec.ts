@@ -11,7 +11,7 @@ import { Migrator, loadMigrations } from '../src/infra/postgres/migrator';
 import { AuthService } from '../src/infra/auth/auth.service';
 import { AUTH_CONTEXT_RESOLVER, MEMBERSHIP_STORE, type AuthContext, type AuthRequestLike, type MembershipStore } from '../src/ports/auth';
 import { OIDC_AUTHENTICATOR } from '../src/infra/auth/oidc-auth.module';
-import { OidcAuthenticator, oidcUserId } from '../src/infra/auth/oidc-authenticator';
+import { OidcAuthenticator } from '../src/infra/auth/oidc-authenticator';
 import { OidcTokenVerifier } from '../src/infra/auth/oidc-token-verifier';
 import { JwksKeyStore } from '../src/infra/auth/jwks-key-store';
 import { createTestKey, mintToken, testConfig, TEST_AUDIENCE, TEST_ISSUER, type TestSigningKey } from '../src/infra/auth/oidc-test-kit';
@@ -202,29 +202,32 @@ suite('synthetic companion upload through real HTTP and PostgreSQL', () => {
   const kidOf = (token: string) => JSON.parse(Buffer.from(token.split('.')[0], 'base64url').toString()).kid;
   const upload = (captureId: string, sequence = 1) => ({ captureId, sequence, pageId: scope.pageId, observation: observation(captureId) });
 
-  it('issues enrollment only to manager/admin of the resolved workspace within the server allowlist and audits the actor', async () => {
+  it('issues enrollment only to an admin (ADR-006) of the resolved workspace within the server allowlist and audits the actor', async () => {
     await withEnv(r2, async () => {
-      const manager = principal(scope.workspaceId, 'manager');
+      const issuerAdmin = principal(scope.workspaceId, 'admin');
       expect((await request('/v1/integration/enrollments', {})).status).toBe(401);
+      // ADR-006: enrollment connector issue/revoke is admin-only — a same-workspace manager → 403.
+      expect((await request('/v1/integration/enrollments', { pageId: scope.pageId }, principal(scope.workspaceId, 'manager'))).status).toBe(403);
       expect((await request('/v1/integration/enrollments', {}, devToken(scope.workspaceId, 'sales'))).status).toBe(403);
       expect((await request('/v1/integration/enrollments', {}, devToken(scope.workspaceId, 'viewer'))).status).toBe(403);
-      expect((await request('/v1/integration/enrollments', { pageId: scope.pageId }, principal(other.workspaceId, 'manager'))).status).toBe(403);
-      expect((await request('/v1/integration/enrollments', { pageId: 'qa-unlisted-page' }, manager)).status).toBe(403);
-      const smuggled = await request('/v1/integration/enrollments', { workspaceId: other.workspaceId }, manager);
+      expect((await request('/v1/integration/enrollments', { pageId: scope.pageId }, principal(other.workspaceId, 'admin'))).status).toBe(403);
+      expect((await request('/v1/integration/enrollments', { pageId: 'qa-unlisted-page' }, issuerAdmin)).status).toBe(403);
+      const smuggled = await request('/v1/integration/enrollments', { workspaceId: other.workspaceId }, issuerAdmin);
       expect(smuggled).toMatchObject({ status: 400, body: { code: 'WORKSPACE_FROM_CONTEXT' } });
-      expect((await request('/v1/integration/enrollments', { padding: 'x'.repeat(20000) }, manager)).status).toBe(413);
-      const issued = await request('/v1/integration/enrollments', { pageId: scope.pageId }, manager);
+      expect((await request('/v1/integration/enrollments', { padding: 'x'.repeat(20000) }, issuerAdmin)).status).toBe(413);
+      const issued = await request('/v1/integration/enrollments', { pageId: scope.pageId }, issuerAdmin);
       expect(issued.status).toBe(201);
       expect(issued.body.scope).toEqual(scope);
       expect(kidOf(issued.body.token)).toBe('k1');
       const e = issued.body;
       expect((await request('/v1/integration/observations', upload('principal-1'), e.token)).status).toBe(201);
       const audit = await db.query("SELECT actor, workspace_id, event_type, new_value FROM audit_record WHERE entity_type='integration-enrollment' AND entity_id=$1 ORDER BY timestamp", [e.enrollmentId]);
-      expect(audit.rows).toEqual([{ actor: `manager@${scope.workspaceId}`, workspace_id: scope.workspaceId, event_type: 'integration.enrollment.issued',
-        new_value: { issuance: 'principal', role: 'manager', scope, kid: 'k1', capability: 'observation:append', expiresAt: e.expiresAt } }]);
+      expect(audit.rows).toEqual([{ actor: `admin@${scope.workspaceId}`, workspace_id: scope.workspaceId, event_type: 'integration.enrollment.issued',
+        new_value: { issuance: 'principal', role: 'admin', scope, kid: 'k1', capability: 'observation:append', expiresAt: e.expiresAt } }]);
       // Revocation by an admin of another workspace looks like a missing enrollment.
       expect((await request('/v1/integration/enrollments/revoke', { enrollmentId: e.enrollmentId }, principal(other.workspaceId, 'admin'))).status).toBe(404);
       expect((await request('/v1/integration/enrollments/revoke', { enrollmentId: e.enrollmentId }, devToken(scope.workspaceId, 'sales'))).status).toBe(403);
+      expect((await request('/v1/integration/enrollments/revoke', { enrollmentId: e.enrollmentId }, principal(scope.workspaceId, 'manager'))).status).toBe(403);
       expect((await request('/v1/integration/enrollments/revoke', { enrollmentId: e.enrollmentId }, principal(scope.workspaceId, 'admin'))).status).toBe(201);
       expect((await request('/v1/integration/observations', upload('principal-2', 2), e.token)).status).toBe(401);
       const rows = await db.query('SELECT a.*, i.operation FROM audit_record a JOIN integration_audit i ON i.enrollment_id::text = a.entity_id WHERE a.entity_id=$1', [e.enrollmentId]);
@@ -239,12 +242,12 @@ suite('synthetic companion upload through real HTTP and PostgreSQL', () => {
 
   it('rotates signing keys without invalidating unexpired tokens and rejects retired, unknown and tampered kids', async () => {
     await withEnv(r2, async () => {
-      const manager = principal(scope.workspaceId, 'manager');
-      const old = (await request('/v1/integration/enrollments', {}, manager)).body;
+      const issuerAdmin = principal(scope.workspaceId, 'admin');
+      const old = (await request('/v1/integration/enrollments', {}, issuerAdmin)).body;
       expect(kidOf(old.token)).toBe('k1');
       process.env.AIL_SIGNING_KEYS = keyring({ kid: 'k2', secret: k2, state: 'active' }, { kid: 'k1', secret: k1, state: 'verify' });
       expect((await request('/v1/integration/observations', upload('rotation-1'), old.token)).status).toBe(201);
-      const fresh = (await request('/v1/integration/enrollments', {}, manager)).body;
+      const fresh = (await request('/v1/integration/enrollments', {}, issuerAdmin)).body;
       expect(kidOf(fresh.token)).toBe('k2');
       expect((await request('/v1/integration/observations', upload('rotation-fresh'), fresh.token)).status).toBe(201);
       const [h, p, sig] = old.token.split('.');
@@ -282,7 +285,7 @@ suite('synthetic companion upload through real HTTP and PostgreSQL', () => {
   it('A-m6: issuer-secret revoke is bound to the allowlisted workspace and cannot revoke another workspace', async () => {
     let foreign = '';
     await withEnv(r2, async () => {
-      foreign = (await request('/v1/integration/enrollments', {}, principal(other.workspaceId, 'manager'))).body.enrollmentId;
+      foreign = (await request('/v1/integration/enrollments', {}, principal(other.workspaceId, 'admin'))).body.enrollmentId;
       // Allowlist spanning two workspaces: the shared secret cannot be bound to one → refused.
       expect((await request('/v1/integration/revoke', { enrollmentId: foreign }, undefined, issuer))).toMatchObject({ status: 400, body: { code: 'SCOPE_AMBIGUOUS' } });
     });
@@ -308,7 +311,7 @@ suite('AUTH_MODE=oidc principal enrollment through real HTTP and PostgreSQL memb
   const run = randomUUID().slice(0, 8);
   const workspaceId = `qa-oidc-${run}`;
   const scope = { workspaceId, connectionId: 'qa-oidc-connection', accountId: 'qa-oidc-account', pageId: 'qa-oidc-page' };
-  const [manager, sales] = [`mgr-${run}`, `sales-${run}`];
+  const [manager, sales, admin] = [`mgr-${run}`, `sales-${run}`, `adm-${run}`];
   const inject = async (url: string, body: unknown, headers: Record<string, string>) => {
     const res = await app.getHttpAdapter().getInstance().inject({ method: 'POST', url, payload: body as object, headers: { 'content-type': 'application/json', ...headers } });
     return { status: res.statusCode, body: res.json() as any };
@@ -335,6 +338,7 @@ suite('AUTH_MODE=oidc principal enrollment through real HTTP and PostgreSQL memb
       .overrideProvider(OIDC_AUTHENTICATOR).useFactory({ inject: [MEMBERSHIP_STORE], factory: (store: MembershipStore) => new OidcAuthenticator(new OidcTokenVerifier(testConfig(), keys), store) })
       .compile();
     memberships = module.get<MembershipStore>(MEMBERSHIP_STORE);
+    await memberships.grant({ workspaceId, issuer: TEST_ISSUER, subject: admin, baseRole: 'admin' });
     await memberships.grant({ workspaceId, issuer: TEST_ISSUER, subject: manager, baseRole: 'manager' });
     await memberships.grant({ workspaceId, issuer: TEST_ISSUER, subject: sales, baseRole: 'sales' });
     app = module.createNestApplication<NestFastifyApplication>(new FastifyAdapter(), { logger: false });
@@ -349,28 +353,65 @@ suite('AUTH_MODE=oidc principal enrollment through real HTTP and PostgreSQL memb
     Object.assign(process.env, prior);
   });
 
-  it('manager membership issues and revokes; sales gets 403; membership revocation denies the next request', async () => {
+  it('admin membership issues and revokes (ADR-006); manager and sales get 403; membership revocation denies the next request', async () => {
     expect((await inject('/v1/integration/enrollments', {}, await bearer(sales))).status).toBe(403);
+    expect((await inject('/v1/integration/enrollments', {}, await bearer(manager))).status).toBe(403);
     expect((await inject('/v1/integration/enrollments', {}, await bearer(`nobody-${run}`))).status).toBe(401);
-    const issued = await inject('/v1/integration/enrollments', {}, await bearer(manager));
+    const issued = await inject('/v1/integration/enrollments', {}, await bearer(admin));
     expect(issued.status).toBe(201);
     expect(issued.body.scope).toEqual({ ...scope, providerSurface: 'pancake-conversations' });
     const e = issued.body;
     expect((await inject('/v1/integration/observations', upload('oidc-1'), { authorization: `Bearer ${e.token}` })).status).toBe(201);
-    const actor = oidcUserId(TEST_ISSUER, manager);
+    // ADR-006: the audit actor is the internal platform user id, not an issuer/sub derivative.
+    const actor = await memberships.resolveUserId(TEST_ISSUER, admin);
+    expect(actor).toMatch(/^[0-9a-f-]{36}$/);
     const issuedAudit = await db.query("SELECT actor, workspace_id FROM audit_record WHERE entity_type='integration-enrollment' AND entity_id=$1 AND event_type='integration.enrollment.issued'", [e.enrollmentId]);
     expect(issuedAudit.rows).toEqual([{ actor, workspace_id: workspaceId }]);
     expect((await inject('/v1/integration/enrollments/revoke', { enrollmentId: e.enrollmentId }, await bearer(sales))).status).toBe(403);
-    expect((await inject('/v1/integration/enrollments/revoke', { enrollmentId: e.enrollmentId }, { ...(await bearer(manager)), 'x-workspace-id': workspaceId })).status).toBe(201);
+    expect((await inject('/v1/integration/enrollments/revoke', { enrollmentId: e.enrollmentId }, await bearer(manager))).status).toBe(403);
+    expect((await inject('/v1/integration/enrollments/revoke', { enrollmentId: e.enrollmentId }, { ...(await bearer(admin)), 'x-workspace-id': workspaceId })).status).toBe(201);
     expect((await inject('/v1/integration/observations', upload('oidc-2', 2), { authorization: `Bearer ${e.token}` })).status).toBe(401);
     const revokedAudit = await db.query("SELECT actor FROM audit_record WHERE entity_type='integration-enrollment' AND entity_id=$1 AND event_type='integration.enrollment.revoked'", [e.enrollmentId]);
     expect(revokedAudit.rows).toEqual([{ actor }]);
     // Deprecated issuer-secret path is off by default (A-m6).
     expect((await inject('/v1/integration/enroll', {}, { 'x-integration-issuer': 'x'.repeat(40) })).status).toBe(404);
     // Revoking the membership denies the very next enrollment request; history is audited (A-m4).
-    expect(await memberships.revoke({ workspaceId, issuer: TEST_ISSUER, subject: manager })).toBe(true);
-    expect((await inject('/v1/integration/enrollments', {}, await bearer(manager))).status).toBe(401);
-    const history = await db.query("SELECT a.operation FROM membership_audit a JOIN memberships m ON m.id=a.membership_id WHERE m.issuer=$1 AND m.subject=$2 ORDER BY a.id", [TEST_ISSUER, manager]);
+    expect(await memberships.revoke({ workspaceId, issuer: TEST_ISSUER, subject: admin })).toBe(true);
+    expect((await inject('/v1/integration/enrollments', {}, await bearer(admin))).status).toBe(401);
+    const history = await db.query('SELECT a.operation FROM membership_audit a WHERE a.user_id=$1 ORDER BY a.id', [actor]);
     expect(history.rows.map((r) => r.operation)).toEqual(['grant', 'revoke']);
+  });
+
+  // ADR-006 admin membership API through real HTTP and PostgreSQL: grant → login → role change →
+  // revoke, every change audited with the acting admin's internal user id (transaction-local actor).
+  it('admin membership API grants, changes role and revokes; membership_audit actor = acting admin internal id', async () => {
+    const lead = `lead-adm-${run}`;
+    await memberships.grant({ workspaceId, issuer: TEST_ISSUER, subject: lead, baseRole: 'admin' });
+    const leadId = await memberships.resolveUserId(TEST_ISSUER, lead);
+    const call = async (method: 'GET' | 'POST', url: string, sub: string, body?: unknown) => {
+      const res = await app.getHttpAdapter().getInstance().inject({ method, url, payload: body as object,
+        headers: { ...(body !== undefined ? { 'content-type': 'application/json' } : {}), ...(await bearer(sub)) } });
+      return { status: res.statusCode, body: res.json() as any };
+    };
+    const newcomer = `new-${run}`;
+    expect((await call('POST', '/v1/workspace/memberships', manager, { issuer: TEST_ISSUER, subject: newcomer, baseRole: 'sales' })).status).toBe(403);
+    expect((await call('GET', '/v1/workspace/memberships', sales)).status).toBe(403);
+    expect((await call('GET', '/v1/pilot/queue', newcomer)).status).toBe(401);
+    const granted = await call('POST', '/v1/workspace/memberships', lead, { issuer: TEST_ISSUER, subject: newcomer, baseRole: 'viewer' });
+    expect(granted.status).toBe(201);
+    expect((await call('GET', '/v1/pilot/queue', newcomer)).status).toBe(200);
+    const changed = await call('POST', `/v1/workspace/memberships/${granted.body.id}/role`, lead, { baseRole: 'sales' });
+    expect(changed.status).toBe(200);
+    const revoked = await call('POST', `/v1/workspace/memberships/${changed.body.granted.id}/revoke`, lead, {});
+    expect(revoked).toMatchObject({ status: 200, body: { status: 'revoked' } });
+    expect((await call('GET', '/v1/pilot/queue', newcomer)).status).toBe(401);
+    const rows = await db.query('SELECT operation, base_role, actor, actor_user_id, transaction_id FROM membership_audit WHERE user_id=$1 ORDER BY id', [granted.body.userId]);
+    expect(rows.rows.map((r) => [r.operation, r.base_role, r.actor, r.actor_user_id])).toEqual([
+      ['grant', 'viewer', leadId, leadId], ['revoke', 'viewer', leadId, leadId], ['grant', 'sales', leadId, leadId], ['revoke', 'sales', leadId, leadId],
+    ]);
+    expect(rows.rows[1].transaction_id).toBe(rows.rows[2].transaction_id);
+    const listed = await call('GET', '/v1/workspace/memberships?status=revoked', lead);
+    expect(listed.body.filter((m: any) => m.userId === granted.body.userId)).toHaveLength(2);
+    expect(listed.body.every((m: any) => m.workspaceId === workspaceId)).toBe(true);
   });
 });

@@ -30,15 +30,15 @@ export class IntegrationIntake {
     }
 
     /**
-     * Existing workspace authority only (manager/admin of the server-resolved workspace).
-     * OPEN: PM-1 — no new role or capability matrix; demo principals are never privileged.
+     * ADR-006 capability matrix: "Enrollment connector issue/revoke" = admin of the
+     * server-resolved workspace ONLY (manager → 403). Demo principals are never privileged.
      */
-    private principal(ctx: AuthContext | null): AuthContext & { role: 'admin' | 'manager' } {
+    private principal(ctx: AuthContext | null): AuthContext & { role: 'admin' } {
         if (!ctx || !actorId(ctx.userId) || !isId(ctx.workspaceId))
             return fail('UNAUTHORIZED', 401);
-        if (ctx.isDemo || (ctx.role !== 'manager' && ctx.role !== 'admin'))
+        if (ctx.isDemo || ctx.role !== 'admin')
             return fail('FORBIDDEN', 403);
-        return ctx as AuthContext & { role: 'admin' | 'manager' };
+        return ctx as AuthContext & { role: 'admin' };
     }
 
     private async issue(c: IntakeConfig, scope: IntegrationScope, actor: EnrollmentActor) {
@@ -103,7 +103,7 @@ export class IntegrationIntake {
         return { revoked: true };
     }
 
-    /** Immediate revocation by a manager/admin of the enrollment's own workspace. */
+    /** Immediate revocation by an admin of the enrollment's own workspace (ADR-006). */
     async revokeAsPrincipal(ctx: AuthContext | null, body: unknown) {
         loadConfig(this.env);
         const p = this.principal(ctx);
