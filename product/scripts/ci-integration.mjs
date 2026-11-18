@@ -10,6 +10,7 @@ const requiredSuites = [
   'src/infra/postgres/completion-provenance.integration.spec.ts',
   'src/infra/postgres/lead-access.integration.spec.ts',
   'src/infra/integration/receipts.integration.spec.ts',
+  'src/infra/observability/connector-health.integration.spec.ts',
   'src/infra/postgres/postgres.integration.spec.ts',
   'src/infra/postgres/migration-004.integration.spec.ts',
   'src/infra/postgres/migration-005.integration.spec.ts',
