@@ -64,3 +64,49 @@ E2E coverage of the new path: unauthenticated 401; sales/viewer (real `AuthServi
 
 - **D1 (OIDC):** this code consumes only `AuthContextResolver.resolve({headers})` via `AUTH_CONTEXT_RESOLVER`, exported from `PilotLoopModule`. Please keep that token bound there (or export your resolver under it). Expectations: `workspaceId` server-derived and matching `^[a-zA-Z0-9:_./-]{1,256}$`; `userId` 1–256 chars without control characters (emails/subjects OK); `role` from existing `AuthRole`; `isDemo=false` for real principals. The `Authorization` header on `/integration/enrollments` is the app credential, while on `/integration/observations` it is the enrollment token — confirm your resolver never accepts an enrollment token (it is a 3-part `AIL-ENROLLMENT` HMAC token).
 - **I (QA):** please re-run the e2e with your own DB and try: kid header manipulation (`alg` variations, duplicate JSON keys), cross-workspace selectors, allowlist edits mid-session, and verify no token material in logs/audit. Confirm the deprecation default (legacy path on while `AIL_ISSUER_SECRET` set) is acceptable or should flip to off.
+
+## Review fixes (2026-11-18, branch `work/r2-fix-auth`, base `93c39d9`)
+
+Source: `architecture-canonical-review.md` findings A-M5, A-m6 and A-M6. QA reproduced A-M5 as R2-I-02. These fixes supersede the "Shared issuer secret" paragraph and the residual-risk note about the stand-in resolver above.
+
+**A-M5: the principal path now works in `AUTH_MODE=oidc`**
+- Previously, `IntegrationController.principal()` passed a copy of the headers to the resolver, so the verified OIDC context was never found and every call returned 401.
+- The controller now passes the request headers object (`product/src/api/integration.controller.ts:59-65`).
+- The verified context is bound to a request-scoped symbol brand rather than to object identity. Details are in `iam-membership.md` → Review fixes.
+- The enrollment actor for an OIDC principal is the issuer-namespaced user id `oidc:<sha256(iss)[0..24]>:<sub>` (A-m5). It is written to `audit_record.actor` on issue and revoke.
+- New coverage:
+  - unit HTTP: `src/infra/auth/oidc-enrollment-http.spec.ts`, two tests;
+  - PostgreSQL e2e: "AUTH_MODE=oidc principal enrollment through real HTTP and PostgreSQL membership", with no stand-in resolver. It covers: manager issues → upload 201 → audit actor; sales issue/revoke 403; unknown principal 401; manager revoke 201 → upload 401; issuer path 404 by default; membership revoke → next request 401; `membership_audit` grant/revoke.
+
+**A-m6: issuer-secret path is now an explicit opt-in** (`product/src/application/integration/config.ts:91-101`)
+- `AIL_ISSUER_SECRET_ENABLED=true` is required. Behaviour by value:
+  - unset, empty or `false`: disabled. `/enroll` and `/revoke` return 404 `ISSUER_PATH_DISABLED`, and any configured `AIL_ISSUER_SECRET` is ignored.
+  - any other value: 503 `AIL_CONFIGURATION`.
+  - `true` with a missing, short or signing-key-equal secret: 503.
+- **Env var change:** `AIL_ISSUER_SECRET_ENABLED` changes from opt-out (`false` disables) to **opt-in** (`true` enables). Deployments that relied on the secret alone must add `AIL_ISSUER_SECRET_ENABLED=true`.
+
+**A-m6: issuer-secret revoke is no longer cross-workspace** (`product/src/application/integration/intake.ts:89-104`)
+- Previously it passed `workspaceId: null`. Now:
+  - The shared secret is bound to the single workspace named by the server scope allowlist. The store answers 404 for an enrollment in any other workspace, the same as an unknown id.
+  - If the allowlist spans more than one workspace, the secret cannot be bound, and revoke returns 400 `SCOPE_AMBIGUOUS` without touching the store. Use `/enrollments/revoke` instead.
+  - Several scopes in one workspace still bind that workspace.
+- Issuer-path issuance is unchanged: exactly one allowlisted scope is still required.
+- Actor attribution stays `issuer-secret` (unattributed). Retirement remains proposal R2-P-08 (PM-1).
+
+**A-M6:** reusing manager/admin for enrollment issue/revoke is an interim, proposal-only PM-1 capability entry. No RBAC change. The gate condition is in `iam-membership.md` → Review fixes.
+
+**Tests**
+- `src/application/integration/intake.principal.spec.ts`:
+  - "disables the deprecated issuer-secret path by config while principal issuance keeps working", now covering secret-only, `false` and empty;
+  - "A-m6: issuer-secret revoke is bound to the single allowlisted workspace, never cross-workspace";
+  - fail-closed configuration cases for `ENABLED=true` without a secret and `ENABLED=yes`.
+- `src/application/integration/intake.spec.ts`: the revoke expectation is now `workspaceId: 'w'`.
+- e2e:
+  - "disables the deprecated issuer-secret path by configuration while principal issuance continues": adds `ENABLED=true` without a secret → 503, and secret without `ENABLED` → 404;
+  - "A-m6: issuer-secret revoke is bound to the allowlisted workspace and cannot revoke another workspace": two-workspace allowlist → 400; foreign enrollment → 404 and still unrevoked; own enrollment → 201 with audit actor `issuer-secret`.
+
+**Verification** (local PG17 `disposable_r2_fix_auth`):
+- typecheck, lint and `architecture:check:strict` pass.
+- Unit: 61 files, 710 passed, 1 expected fail, 0 skipped.
+- `test:e2e`: 18 passed, 0 skipped.
+- `src/infra/membership src/infra/integration` integration: 13 passed, 0 skipped.

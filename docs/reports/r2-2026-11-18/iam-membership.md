@@ -110,3 +110,60 @@ All are compatible with the seam built here (`AccessTokenVerifier` + server memb
 - Only one issuer per deployment. No opaque-token/introspection support.
 - Membership store selection follows `resolvePilotStoreMode()` (Postgres required in production/pilot; in-memory empty store otherwise → all OIDC callers 401 locally unless seeded in tests).
 - Node ≥ 22.12 required at runtime for `jose` via `require(esm)`.
+
+## Review fixes (2026-11-18, branch `work/r2-fix-auth`, base `93c39d9`)
+
+Source: `architecture-canonical-review.md` findings A-M5, A-m4, A-m5 and A-M6. QA independently reproduced A-M5 as R2-I-02.
+
+| Finding | Fix | Where | Regression tests |
+|---|---|---|---|
+| **A-M5**: in `AUTH_MODE=oidc`, `/integration/enrollments(/revoke)` always returned 401. The controller resolved from `{ ...headers }`, but the registry was keyed by the identity of the headers object. | **(1)** The controller now passes the request's own headers object, like every other controller. Audited: `pilot-loop`, `feedback-telemetry` and `connector-health` already did.<br>**(2)** `VerifiedContextRegistry` no longer depends on object identity:<br>• It defines an opaque, frozen per-request brand on the request headers, under a module-private **enumerable symbol**.<br>• The brand is non-writable and non-configurable; attaching a second time throws.<br>• The context lives only in a `WeakMap` keyed by that brand.<br>• Server-side shallow copies keep the brand (spread, and Fastify's `Object.assign` header merge).<br>• A client cannot forge it: symbols never cross HTTP, and JSON, string keys or identical values do not match.<br>• Headers stay identical by string keys (`Object.keys` and JSON are unchanged). | `product/src/api/integration.controller.ts:59-65`<br>`product/src/infra/auth/verified-context-registry.ts` | **`src/infra/auth/oidc-enrollment-http.spec.ts`** (real `AppModule`, `AUTH_MODE=oidc`, runtime keys, in-memory JWKS):<br>• "manager membership issues and revokes an enrollment, attributed to the namespaced OIDC principal"<br>• "sales membership → 403; no membership / no token → 401; foreign workspace header → 403"<br>**`src/api/integration.controller.spec.ts`**: "A-M5: hands the resolver the request headers object itself, not a copy"<br>**`src/infra/auth/auth.service.oidc.spec.ts`**: "returns only the context attached to this request (brand), never one rebuilt from header values"<br>**QA's `src/api/integration.oidc.r2-review.spec.ts`** (adopted): `it.fails` flipped to `it`. The "evidence of current behaviour: 401" case keeps its name and is now `it.fails`.<br>**PostgreSQL e2e** (`product/e2e/integration-upload.e2e-spec.ts`): "AUTH_MODE=oidc principal enrollment through real HTTP and PostgreSQL membership" |
+| **A-m5**: `userId = sub`, with no issuer namespace. | `AuthContext.userId` for OIDC principals is now `oidc:<first 24 hex of sha256(iss)>:<sub>` (`oidcUserId`).<br>• Stable: built from the exact verified `iss` plus `sub`; no lookup table.<br>• Meets the resolver contract: 1–256 chars, no control characters. Subjects longer than 226 chars are refused as `missing_claim`.<br>• A different issuer, or a legacy actor id (`bootstrap-admin`, unsigned-dev ids, emails), can never equal it, so lead ownership (`assignedTo === userId`) cannot transfer silently.<br>• Membership rows still store the raw `(issuer, subject)`. | `product/src/infra/auth/oidc-authenticator.ts:22-41,72,93` | **`oidc-authenticator.spec.ts`**: "A-m5: userId is namespaced by issuer — stable, contract-bounded and never equal to the raw sub"<br>Expectations updated in `oidc-authenticator.spec.ts` and `pg-membership.store.integration.spec.ts`.<br>QA's `oidc-adversarial.r2-review.spec.ts` (b5e17f4) passes unchanged (4/4); it does not assert the raw sub. |
+| **A-m4**: DELETE was allowed, so revoke could be bypassed by delete plus re-insert, erasing history. Grant and revoke had no audit. | Migration 010 is unreleased and edited in place; up and down stay symmetric.<br>**Delete guard:** a `BEFORE DELETE` row trigger and a `BEFORE TRUNCATE` statement trigger on `memberships` raise `restrict_violation` (23001).<br>**Audit:** a new append-only `membership_audit` table with columns `membership_id → memberships`, `operation` (grant / revoke), `workspace_id`, `issuer`, `subject`, `base_role`, `actor`, `effective_at`, `recorded_at`.<br>• An `AFTER INSERT OR UPDATE` trigger writes it, so every path is recorded (store, operator SQL, seed).<br>• `UPDATE`, `DELETE` and `TRUNCATE` on it are refused.<br>• `actor` = transaction-local `north.membership_actor` if an operator sets it, else `db:<session_user>`.<br>**Why not `audit_record`:** its workspace-consistency trigger is lead-oriented, and append-only is not enforced in the DB.<br>No HTTP grant API was added (PM-1). | `product/migrations/010_workspace_membership.up.sql:47-113`<br>`.down.sql` | **`pg-membership.store.integration.spec.ts`**:<br>• "A-m4: DELETE and TRUNCATE are refused, so revoke cannot be bypassed by delete + re-insert"<br>• "A-m4: grant and revoke are recorded in append-only membership_audit with an actor"<br>• The down/up round-trip now also checks that `membership_audit` and all four trigger functions are gone, and that DELETE is refused after re-up.<br>**e2e**: checks the `grant`, `revoke` history. |
+| **A-M6**: manager/admin breadth is reachable through OIDC membership. | **No code change** (PM-1 human gate); see the next section. | — | — |
+
+### A-M6: PM-1 gate item (documentation only; RBAC unchanged)
+
+Migration 010 accepts `manager` and `admin` membership rows. In `AUTH_MODE=oidc`, such a row gives a real principal the existing breadth, which is still **undecided**:
+- workspace-wide lead read (`infra/rbac/rbac.service.ts`, QA-58);
+- enrollment issue and revoke (`application/integration/intake.ts` `principal()`);
+- connector-health read;
+- any future governed-action approval mapped to these roles.
+
+**Gate condition** (proposed register entry R2-P-05):
+- No `manager` or `admin` membership row may be created for real data until the PM-1 permissions RFC is accepted.
+- Until then, privileged rows are acceptable only in disposable test or local databases.
+- The capability rows `enrollment.issue`, `enrollment.revoke` and `connector-health.read` → manager/admin are **interim, proposal-only** entries for the PM-1 register.
+
+**Membership lifecycle** (re-grant after revoke, role change, who grants, revocation SLA) remains R2-P-06. Today, the unique key plus the one-way and no-delete guards refuse re-grant and role change. That is a refusal, not a decided policy.
+
+An optional `DEPLOYMENT_MODE` guard against privileged rows was **not** added, because it would itself encode PM-1 policy.
+
+### ID-1 non-impact (A-m5)
+
+ID-1 (merge thresholds) concerns Customer and Lead identity resolution. The namespaced id identifies only an **operator principal**:
+- It does not link, merge or match any Customer or Lead.
+- It does not derive identity from client input.
+- It does not map external identities to an internal user.
+
+R2-P-07 (`sub` vs `iss`+`sub` vs a mapped internal user id) stays open under PM-1. The prefixed form is a safe interim; a mapped id can replace it later.
+
+**Migration note:** if lead ownership was ever assigned to a raw `sub` in `AUTH_MODE=oidc` before this fix, that ownership no longer matches. OIDC is experimental and off by default, and no real data exists.
+
+### Verification (this branch, local PG17 `disposable_r2_fix_auth`)
+
+| Command | Result |
+|---|---|
+| `npm run typecheck` / `npm run lint` | pass / pass |
+| `npm run architecture:check:strict` | PASS (0 findings) |
+| `npm test -- --exclude '**/*.integration.spec.ts'` | 61 files: **710 passed, 1 expected fail**, 0 failed, 0 skipped. The expected fail is QA's defect-evidence case, now `it.fails`. |
+| `TEST_DATABASE_URL=… npm run test:e2e` | 2 files: **18 passed, 0 skipped** |
+| `TEST_DATABASE_URL=… npx vitest run src/infra/membership src/infra/integration --no-file-parallelism` | 2 files: **13 passed, 0 skipped** |
+| Same DB: governed-action, connector-health, completion-provenance, lead-access, pilot-loop and postgres integration suites | 6 files: 29 passed, 0 skipped |
+
+**Not run:** `migration-004/005/lifecycle.integration.spec.ts`. They `CREATE DATABASE`, which the single-DB rule does not allow. By inspection, the 010 down script still drops every object it creates, in dependency order.
+
+**Limitations**
+- The brand lives on the Node `IncomingMessage` headers object. Code that rebuilds headers from scratch (rather than shallow-copying them) still fails closed with 401.
+- `membership_audit.actor` defaults to the DB role unless the operator sets `north.membership_actor`. Linking it to an approved operator identity is PM-1.
+- The `VerifiedContextLookup` doc comment in `ports/auth.ts` ("keys are server-owned request objects") is still accurate. It was not edited because the file is outside this ownership.
