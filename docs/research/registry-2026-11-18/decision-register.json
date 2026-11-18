@@ -43,7 +43,7 @@
     {
       "id": "CE-2",
       "title": "Commercial Event scope",
-      "status": "OPEN",
+      "status": "RESOLVED_BY_ADR",
       "impact": "core/event-semantics",
       "current_guardrail": "Do not generalize inferred CommercialEvent semantics to observed/claimed/imported/operational assertions; provider webhooks, socket events, CAPI/Data Manager uploads and CRM task states are observations, not Commercial Events.",
       "next_evidence": [
@@ -64,18 +64,17 @@
         "P-2026-11-18-02"
       ],
       "resolution_rule": "Only a human RFC/gate recorded in docs/canonical may change this status; this registry cannot.",
-      "owner_decision": {
+      "resolution": {
         "adr": "docs/implementation-plan/decisions/ADR-005-ce2-commercial-assertion-scope.md",
         "decided_on": "2026-11-18",
         "decided_by": "Phạm Đình Hải (repository owner)",
-        "canonical_update": "PENDING_OWNER",
-        "note": "Owner accepted the ADR; docs/canonical/OPEN_DECISIONS.md is human-controlled and still lists this row as open until the owner applies the supersession. Status stays OPEN here to mirror canonical."
+        "canonical": "docs/canonical/OPEN_DECISIONS.md#resolved-decisions-supersession-log"
       }
     },
     {
       "id": "MM-1",
       "title": "Attribution model choice",
-      "status": "OPEN",
+      "status": "RESOLVED_BY_ADR",
       "impact": "measurement/revenue",
       "current_guardrail": "Attribution stays UNKNOWN with reason; provider conversion counts (Meta/TikTok/Google) stay namespaced and never become revenue credit.",
       "next_evidence": [
@@ -96,12 +95,11 @@
         "P-2026-11-18-04"
       ],
       "resolution_rule": "Only a human RFC/gate recorded in docs/canonical may change this status; this registry cannot.",
-      "owner_decision": {
+      "resolution": {
         "adr": "docs/implementation-plan/decisions/ADR-008-mm1-attribution-model.md",
         "decided_on": "2026-11-18",
         "decided_by": "Phạm Đình Hải (repository owner)",
-        "canonical_update": "PENDING_OWNER",
-        "note": "Owner accepted the ADR; docs/canonical/OPEN_DECISIONS.md is human-controlled and still lists this row as open until the owner applies the supersession. Status stays OPEN here to mirror canonical."
+        "canonical": "docs/canonical/OPEN_DECISIONS.md#resolved-decisions-supersession-log"
       }
     },
     {
@@ -158,7 +156,7 @@
     {
       "id": "PM-1",
       "title": "Detailed permissions and credential model",
-      "status": "OPEN",
+      "status": "RESOLVED_BY_ADR",
       "impact": "access/operations",
       "current_guardrail": "Enforce only the frozen lead-scoped boundary. Provider membership/tokens (Pancake page admin, Meta Page token, OA token) never grant North Star lead access.",
       "next_evidence": [
@@ -182,18 +180,17 @@
         "P-2026-11-18-10"
       ],
       "resolution_rule": "Only a human RFC/gate recorded in docs/canonical may change this status; this registry cannot.",
-      "owner_decision": {
+      "resolution": {
         "adr": "docs/implementation-plan/decisions/ADR-006-pm1-capability-matrix.md",
         "decided_on": "2026-11-18",
         "decided_by": "Phạm Đình Hải (repository owner)",
-        "canonical_update": "PENDING_OWNER",
-        "note": "Owner accepted the ADR; docs/canonical/OPEN_DECISIONS.md is human-controlled and still lists this row as open until the owner applies the supersession. Status stays OPEN here to mirror canonical."
+        "canonical": "docs/canonical/OPEN_DECISIONS.md#resolved-decisions-supersession-log"
       }
     },
     {
       "id": "LG-1",
       "title": "North Star vision versus current LVP scope",
-      "status": "OPEN",
+      "status": "RESOLVED_BY_ADR",
       "impact": "method/sequencing",
       "current_guardrail": "Synthetic/manual continuity loop remains the baseline; provider research and adaptive connectivity are experiments, not scope promotion.",
       "next_evidence": [
@@ -214,18 +211,17 @@
         "P-2026-11-18-10"
       ],
       "resolution_rule": "Only a human RFC/gate recorded in docs/canonical may change this status; this registry cannot.",
-      "owner_decision": {
+      "resolution": {
         "adr": "docs/implementation-plan/decisions/ADR-007-lg1-phase-scope.md",
         "decided_on": "2026-11-18",
         "decided_by": "Phạm Đình Hải (repository owner)",
-        "canonical_update": "PENDING_OWNER",
-        "note": "Owner accepted the ADR; docs/canonical/OPEN_DECISIONS.md is human-controlled and still lists this row as open until the owner applies the supersession. Status stays OPEN here to mirror canonical."
+        "canonical": "docs/canonical/OPEN_DECISIONS.md#resolved-decisions-supersession-log"
       }
     }
   ],
   "proposals": [
     {
-      "status": "PROPOSED",
+      "status": "ADOPTED",
       "approval_state": "NOT_APPROVED",
       "id": "P-2026-11-18-01",
       "title": "Unify evidence-level vocabulary across research registries",
@@ -270,7 +266,7 @@
       }
     },
     {
-      "status": "PROPOSED",
+      "status": "ADOPTED",
       "approval_state": "NOT_APPROVED",
       "id": "P-2026-11-18-02",
       "title": "PH4 Pancake ingestion path ordering",
@@ -329,11 +325,12 @@
       "owner_decision": {
         "adr": "docs/implementation-plan/decisions/ADR-007-lg1-phase-scope.md",
         "decided_on": "2026-11-18",
-        "canonical_update": "PENDING_OWNER"
+        "canonical_update": "APPLIED",
+        "decided_by": "Phạm Đình Hải (repository owner)"
       }
     },
     {
-      "status": "PROPOSED",
+      "status": "ADOPTED",
       "approval_state": "NOT_APPROVED",
       "id": "P-2026-11-18-03",
       "title": "First ads provider for read-only acquisition context",
@@ -388,11 +385,12 @@
       "owner_decision": {
         "adr": "docs/implementation-plan/decisions/ADR-008-mm1-attribution-model.md",
         "decided_on": "2026-11-18",
-        "canonical_update": "PENDING_OWNER"
+        "canonical_update": "APPLIED",
+        "decided_by": "Phạm Đình Hải (repository owner)"
       }
     },
     {
-      "status": "PROPOSED",
+      "status": "ADOPTED",
       "approval_state": "NOT_APPROVED",
       "id": "P-2026-11-18-04",
       "title": "Outcome export to ad platforms (CAPI / TikTok Events / Google Data Manager)",
@@ -443,11 +441,12 @@
       "owner_decision": {
         "adr": "docs/implementation-plan/decisions/ADR-008-mm1-attribution-model.md",
         "decided_on": "2026-11-18",
-        "canonical_update": "PENDING_OWNER"
+        "canonical_update": "APPLIED",
+        "decided_by": "Phạm Đình Hải (repository owner)"
       }
     },
     {
-      "status": "PROPOSED",
+      "status": "ADOPTED",
       "approval_state": "NOT_APPROVED",
       "id": "P-2026-11-18-05",
       "title": "Background job runtime",
@@ -501,7 +500,7 @@
       }
     },
     {
-      "status": "PROPOSED",
+      "status": "ADOPTED",
       "approval_state": "NOT_APPROVED",
       "id": "P-2026-11-18-06",
       "title": "Authentication/authorization building blocks",
@@ -543,11 +542,12 @@
       "owner_decision": {
         "adr": "docs/implementation-plan/decisions/ADR-006-pm1-capability-matrix.md",
         "decided_on": "2026-11-18",
-        "canonical_update": "PENDING_OWNER"
+        "canonical_update": "APPLIED",
+        "decided_by": "Phạm Đình Hải (repository owner)"
       }
     },
     {
-      "status": "PROPOSED",
+      "status": "ADOPTED",
       "approval_state": "NOT_APPROVED",
       "id": "P-2026-11-18-07",
       "title": "Connector platform vs narrow ports",
@@ -592,7 +592,7 @@
       }
     },
     {
-      "status": "PROPOSED",
+      "status": "ADOPTED",
       "approval_state": "NOT_APPROVED",
       "id": "P-2026-11-18-08",
       "title": "Zalo channel route",
@@ -639,7 +639,7 @@
       }
     },
     {
-      "status": "PROPOSED",
+      "status": "ADOPTED",
       "approval_state": "NOT_APPROVED",
       "id": "P-2026-11-18-09",
       "title": "First CRM target spike",
@@ -685,7 +685,7 @@
       }
     },
     {
-      "status": "PROPOSED",
+      "status": "ADOPTED",
       "approval_state": "NOT_APPROVED",
       "id": "P-2026-11-18-10",
       "title": "Policy on observed internal / reverse-engineered protocols",
@@ -728,7 +728,8 @@
       "owner_decision": {
         "adr": "docs/implementation-plan/decisions/ADR-007-lg1-phase-scope.md",
         "decided_on": "2026-11-18",
-        "canonical_update": "PENDING_OWNER"
+        "canonical_update": "APPLIED",
+        "decided_by": "Phạm Đình Hải (repository owner)"
       }
     }
   ]

@@ -189,3 +189,29 @@ test('rejects secret-like strings and stale taxonomy in consolidated registries'
   invalidConsolidated(await consolidated((r) => update(r, 'protocol-evidence-registry.json', (x) => { x.entries[0].limitations.push(syntheticSecret); })), /secret-like text/);
   invalidConsolidated(await consolidated((r) => update(r, 'provider-capability-registry.json', (x) => { x.capabilities[0].product = 'Anthropic Data Manager'; })), /stale Data Manager taxonomy/);
 });
+
+test('decision status mirrors the canonical supersession log, never the registry itself', async () => {
+  // CE-1 is still open in canonical: a registry may not self-declare it resolved.
+  invalidConsolidated(await consolidated((r) => update(r, 'decision-register.json', (x) => {
+    const row = x.decisions.find((d) => d.id === 'CE-1');
+    row.status = 'RESOLVED_BY_ADR';
+    row.resolution = { adr: 'docs/implementation-plan/decisions/ADR-005-ce2-commercial-assertion-scope.md', decided_on: '2026-11-18' };
+  })), /CE-1: must remain OPEN/);
+  // PM-1 is resolved in canonical: it must cite exactly the canonical ADR.
+  invalidConsolidated(await consolidated((r) => update(r, 'decision-register.json', (x) => {
+    x.decisions.find((d) => d.id === 'PM-1').resolution.adr = 'docs/implementation-plan/decisions/ADR-005-ce2-commercial-assertion-scope.md';
+  })), /PM-1: resolution.adr must be/);
+  // Reverting a canonically resolved row to OPEN is also inconsistent.
+  invalidConsolidated(await consolidated((r) => update(r, 'decision-register.json', (x) => {
+    x.decisions.find((d) => d.id === 'MM-1').status = 'OPEN';
+  })), /MM-1: canonical resolved it/);
+  // Generic ACCEPTED remains forbidden anywhere in the register.
+  invalidConsolidated(await consolidated((r) => update(r, 'decision-register.json', (x) => {
+    x.decisions.find((d) => d.id === 'ID-1').status = 'ACCEPTED';
+  })), /ACCEPTED is not allowed/);
+  // An ADOPTED proposal needs a dated owner decision.
+  invalidConsolidated(await consolidated((r) => update(r, 'decision-register.json', (x) => {
+    const p = x.proposals.find((q) => q.status === 'ADOPTED');
+    delete p.owner_decision;
+  })), /ADOPTED requires owner_decision/);
+});

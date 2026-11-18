@@ -50,3 +50,4 @@ RFC chốt transition table + scope, hoặc evidence mới từ experiment Gate 
 - **2026-11-18 — CE-2 (Decision §2) superseded by ADR-005** (owner approval, Phạm Đình Hải): Commercial Assertion umbrella; `CommercialEvent` = inferred assertion, non-inferred facts = `AssertionEnvelope`. The interim code shape is retained as the accepted model.
 - **CE-1 (Decision §1) remains interim and OPEN.** No transition table has been approved.
 - Canonical `OPEN_DECISIONS.md` / `COMMERCIAL_EVENT_MODEL.md` supersession text is pending application by the owner (canonical is human-controlled).
+- **2026-11-18 — Canonical supersession applied** with owner permission: `OPEN_DECISIONS.md` (supersession log), `COMMERCIAL_EVENT_MODEL.md` §2, `IDENTITY_MODEL.md`.

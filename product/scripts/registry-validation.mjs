@@ -94,6 +94,38 @@ function validateReports(docsRoot) {
     }
   }
 }
+const CANONICAL_DECISION_IDS = ['CE-1', 'CE-2', 'MM-1', 'ID-1', 'ID-2', 'PM-1', 'LG-1'];
+export const RESOLVED_STATUS = 'RESOLVED_BY_ADR';
+
+/**
+ * Canonical resolutions are read from the human-controlled supersession log in
+ * docs/canonical/OPEN_DECISIONS.md, never from a registry, so a registry cannot
+ * self-declare a decision resolved.
+ */
+export function canonicalResolutions(docsRoot = DEFAULT_DOCS_ROOT) {
+  const file = resolve(docsRoot, 'canonical', 'OPEN_DECISIONS.md');
+  const text = existsSync(file) ? readFileSync(file, 'utf8') : '';
+  const log = text.split(/^## Resolved decisions/m)[1]?.split(/^## /m)[0] ?? '';
+  const resolved = new Map();
+  for (const match of log.matchAll(/^\| (CE-1|CE-2|MM-1|ID-1|ID-2|PM-1|LG-1) \| `(ADR-[0-9]{3}-[a-z0-9-]+\.md)` \|/gm)) {
+    resolved.set(match[1], `docs/implementation-plan/decisions/${match[2]}`);
+  }
+  return resolved;
+}
+
+/** Each canonical decision is OPEN unless canonical lists it resolved; then it must cite that exact, existing ADR. */
+export function checkDecisionStatus(row, resolutions, docsRoot, label = `decision ${row.id}`) {
+  const adr = resolutions.get(row.id);
+  if (!adr) {
+    if (row.status !== 'OPEN') fail(`${label}: must remain OPEN until docs/canonical/OPEN_DECISIONS.md records its resolution`);
+    return;
+  }
+  if (row.status !== RESOLVED_STATUS) fail(`${label}: canonical resolved it by ${adr}; status must be ${RESOLVED_STATUS}`);
+  if (row.resolution?.adr !== adr) fail(`${label}: resolution.adr must be ${adr}`);
+  if (!existsSync(resolve(docsRoot, '..', adr))) fail(`${label}: ${adr} does not exist`);
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(String(row.resolution?.decided_on ?? ''))) fail(`${label}: resolution.decided_on must be an ISO date`);
+}
+
 export function validateRegistries(registryRoot = DEFAULT_REGISTRY_ROOT, docsRoot = DEFAULT_DOCS_ROOT) {
   const [decisions, capabilities, assets] = FILES.map((file) => load(registryRoot, file));
   for (const [name, registry] of [['decision', decisions], ['capability', capabilities], ['assets', assets]]) {
@@ -101,7 +133,11 @@ export function validateRegistries(registryRoot = DEFAULT_REGISTRY_ROOT, docsRoo
     walk(registry, name);
   }
   unique(decisions.decisions, 'id', 'decisions');
-  if ((decisions.decisions ?? []).length !== 7 || decisions.decisions.some((row) => row.status !== 'OPEN')) fail('decisions: all seven canonical decisions must remain OPEN');
+  const ids = (decisions.decisions ?? []).map((row) => row.id).sort();
+  if (JSON.stringify(ids) !== JSON.stringify([...CANONICAL_DECISION_IDS].sort())) fail('decisions: must list exactly the seven canonical decisions');
+  // Decisions always mirror the repository's canonical log; docsRoot only scopes monitored reports.
+  const resolutions = canonicalResolutions(DEFAULT_DOCS_ROOT);
+  for (const row of decisions.decisions) checkDecisionStatus(row, resolutions, DEFAULT_DOCS_ROOT);
   unique(capabilities.capabilities, 'id', 'capabilities');
   if (!capabilities.capabilities.some((row) => row.id === 'google.data-manager.call-conversions')) fail('capabilities: missing google.data-manager.call-conversions');
   unique(assets.assets, 'id', 'assets');
@@ -126,7 +162,7 @@ const DELIVERY = new Set(['push', 'poll', 'request-response', 'stream', 'batch-u
 const READINESS = { none: 'README_CLAIM', synthetic: 'SYNTHETIC_TESTED', contract: 'CONTRACT_TESTED', sandbox: 'LIVE_VERIFIED' };
 const VERDICTS = new Set(['ADOPT', 'ADAPT', 'REFERENCE', 'REJECT']);
 const ASSET_DECISIONS = new Set([...VERDICTS, 'DEFER']);
-const PROPOSAL_STATUSES = new Set(['PROPOSED', 'DRAFT', 'UNDER_REVIEW', 'REJECTED', 'WITHDRAWN']);
+const PROPOSAL_STATUSES = new Set(['PROPOSED', 'DRAFT', 'UNDER_REVIEW', 'ADOPTED', 'REJECTED', 'WITHDRAWN']);
 const FORBIDDEN_DECISION_STATES = new Set(['ACCEPTED', 'APPROVED', 'RESOLVED', 'CLOSED']);
 const CANONICAL_OPEN = ['CE-1', 'CE-2', 'MM-1', 'ID-1', 'ID-2', 'PM-1', 'LG-1'];
 const NIA = 'NOT_INDEPENDENTLY_AUDITED';
@@ -256,8 +292,10 @@ function validateDecisionRegister(reg, repoRoot) {
   unique(reg.decisions, 'id', 'canonical decisions');
   const ids = (reg.decisions ?? []).map((row) => row.id).sort();
   if (JSON.stringify(ids) !== JSON.stringify([...CANONICAL_OPEN].sort())) fail('decision-register: must list exactly CE-1, CE-2, MM-1, ID-1, ID-2, PM-1, LG-1');
+  const docsRoot = resolve(repoRoot, 'docs');
+  const resolutions = canonicalResolutions(docsRoot);
   for (const row of reg.decisions) {
-    if (row.status !== 'OPEN') fail(`decision ${row.id}: canonical open decision must remain OPEN`);
+    checkDecisionStatus(row, resolutions, docsRoot);
     if (row.evidence_refs) checkRefs(row.evidence_refs, `decision ${row.id}`, repoRoot);
   }
   unique(reg.proposals, 'id', 'proposals');
@@ -265,11 +303,14 @@ function validateDecisionRegister(reg, repoRoot) {
     const label = `proposal ${row.id}`;
     requireFields(row, ['title', 'context', 'alternatives', 'evidence_refs', 'trade_offs', 'recommendation', 'migration_impact', 'owner', 'approval_requirement', 'status'], label);
     if (!PROPOSAL_STATUSES.has(row.status)) fail(`${label}: invalid status ${row.status}`);
+    if (row.status === 'ADOPTED' && !/^\d{4}-\d{2}-\d{2}$/.test(String(row.owner_decision?.decided_on ?? ''))) fail(`${label}: ADOPTED requires owner_decision.decided_on`);
+    if (row.owner_decision?.adr && !existsSync(resolve(repoRoot, row.owner_decision.adr))) fail(`${label}: ${row.owner_decision.adr} does not exist`);
     if (!Array.isArray(row.alternatives) || row.alternatives.length < 2) fail(`${label}: at least two alternatives required`);
     for (const id of row.related_open_decisions ?? []) if (!CANONICAL_OPEN.includes(id)) fail(`${label}: unknown open decision ${id}`);
     checkRefs(row.evidence_refs, label, repoRoot);
   }
-  return { decisions: reg.decisions.length, proposals: (reg.proposals ?? []).length };
+  const resolvedCount = reg.decisions.filter((row) => row.status === RESOLVED_STATUS).length;
+  return { decisions: reg.decisions.length, openDecisions: reg.decisions.length - resolvedCount, resolvedDecisions: resolvedCount, proposals: (reg.proposals ?? []).length };
 }
 
 export function validateConsolidatedRegistries(root = DEFAULT_CONSOLIDATED_ROOT, { repoRoot = DEFAULT_REPO_ROOT, packageJson = DEFAULT_PACKAGE_JSON } = {}) {
@@ -295,6 +336,6 @@ if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1]
     const result = validateRegistries();
     console.log(`Registry validation: PASS (${result.decisions} decisions, ${result.capabilities} capabilities, ${result.assets} assets)`);
     const consolidated = validateConsolidatedRegistries();
-    console.log(`Consolidated registry validation: PASS (${consolidated.providerCapabilities} provider capabilities, ${consolidated.protocolEvidence} protocol evidence, ${consolidated.githubRepositories} GitHub repositories, ${consolidated.reusableAssets} reusable assets, ${consolidated.decisions} open decisions, ${consolidated.proposals} proposals)`);
+    console.log(`Consolidated registry validation: PASS (${consolidated.providerCapabilities} provider capabilities, ${consolidated.protocolEvidence} protocol evidence, ${consolidated.githubRepositories} GitHub repositories, ${consolidated.reusableAssets} reusable assets, ${consolidated.decisions} canonical decisions (${consolidated.openDecisions} open, ${consolidated.resolvedDecisions} resolved by ADR), ${consolidated.proposals} proposals)`);
   } catch (error) { console.error(error instanceof Error ? error.message : error); process.exitCode = 1; }
 }

@@ -53,7 +53,7 @@ Interactions are not identity. An InteractionEvidence is a pointer-based raw exc
 ## 6. Access/posture
 
 - Sales access is scoped to assigned customer/lead context, not to the full page/inbox.
-- Membership/role (operator/Marketing, Sales, Manager/Admin) are initial hypotheses; detailed permission enumeration is an OPEN DECISION - see `OPEN_DECISIONS.md` (PM-1).
+- Membership/role (operator/Marketing, Sales, Manager/Admin) are initial hypotheses; detailed permission enumeration was resolved on 2026-11-18 by ADR-006 (capability matrix over the existing base roles; I-09 unchanged) - see `OPEN_DECISIONS.md` (supersession log).
 
 > Source: `05_ENGINEERING/DATA_MODEL.md` - Access boundary; `03_PRODUCT/MODULES/COMMERCIAL_CONTINUITY.md`; `AGENTS.md` - "Sales access is scoped to assigned customer / lead context".
 
