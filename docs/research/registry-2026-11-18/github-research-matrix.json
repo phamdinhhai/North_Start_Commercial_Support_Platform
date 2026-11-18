@@ -23,6 +23,11 @@
     "source": "product/package.json (this branch)",
     "packages": [
       {
+        "name": "@nestjs/cli",
+        "range": "^11.0.0",
+        "scope": "devDependency"
+      },
+      {
         "name": "@nestjs/common",
         "range": "^11.0.0",
         "scope": "dependency"
@@ -38,48 +43,18 @@
         "scope": "dependency"
       },
       {
-        "name": "class-transformer",
-        "range": "^0.5.1",
-        "scope": "dependency"
-      },
-      {
-        "name": "class-validator",
-        "range": "^0.14.0",
-        "scope": "dependency"
-      },
-      {
-        "name": "pg",
-        "range": "^8.23.1",
-        "scope": "dependency"
-      },
-      {
-        "name": "reflect-metadata",
-        "range": "^0.2.0",
-        "scope": "dependency"
-      },
-      {
-        "name": "rxjs",
-        "range": "^7.8.0",
-        "scope": "dependency"
-      },
-      {
-        "name": "@nestjs/cli",
-        "range": "^11.0.0",
-        "scope": "devDependency"
-      },
-      {
         "name": "@nestjs/schematics",
         "range": "^11.0.0",
         "scope": "devDependency"
       },
       {
-        "name": "@playwright/test",
-        "range": "^1.56.1",
+        "name": "@nestjs/testing",
+        "range": "11.2.5",
         "scope": "devDependency"
       },
       {
-        "name": "@nestjs/testing",
-        "range": "11.2.5",
+        "name": "@playwright/test",
+        "range": "^1.56.1",
         "scope": "devDependency"
       },
       {
@@ -103,9 +78,39 @@
         "scope": "devDependency"
       },
       {
+        "name": "class-transformer",
+        "range": "^0.5.1",
+        "scope": "dependency"
+      },
+      {
+        "name": "class-validator",
+        "range": "^0.14.0",
+        "scope": "dependency"
+      },
+      {
         "name": "eslint",
         "range": "9.39.1",
         "scope": "devDependency"
+      },
+      {
+        "name": "jose",
+        "range": "6.2.17",
+        "scope": "dependency"
+      },
+      {
+        "name": "pg",
+        "range": "^8.23.1",
+        "scope": "dependency"
+      },
+      {
+        "name": "reflect-metadata",
+        "range": "^0.2.0",
+        "scope": "dependency"
+      },
+      {
+        "name": "rxjs",
+        "range": "^7.8.0",
+        "scope": "dependency"
       },
       {
         "name": "typescript",
@@ -118,15 +123,7 @@
         "scope": "devDependency"
       }
     ],
-    "integration_branch_additions_pending_merge": [
-      {
-        "name": "jose",
-        "version": "6.2.17",
-        "license": "MIT",
-        "source": "coordinator notice 2026-11-18 (D1 OIDC work)",
-        "note": "Flip gh.jose / asset.jose approved_dependency to true once product/package.json on this line contains jose."
-      }
-    ]
+    "integration_branch_additions_pending_merge": []
   },
   "research_recommendations": [
     {
@@ -1418,12 +1415,12 @@
       "inspected_paths": [],
       "implemented_capability": "JOSE/JWT/JWKS library for Node",
       "verdict": "ADOPT",
-      "verdict_reason": "OIDC access-token verifier behind AuthContextResolver. Approved runtime dependency jose@6.2.17 on the integration branch (D1); absent from this branch package.json, so approved_dependency=false here until merge.",
+      "verdict_reason": "OIDC access-token verifier behind AuthContextResolver. Approved runtime dependency jose@6.2.17 on the integration branch (D1); present in product/package.json since integration commit for D1 (2026-11-18).",
       "evidence_level": "README_CLAIM",
       "artifact_refs": [
         "https://github.com/panva/jose"
       ],
-      "approved_dependency": false,
+      "approved_dependency": true,
       "npm_package": "jose",
       "approved_on_integration_branch": {
         "version": "6.2.17",
