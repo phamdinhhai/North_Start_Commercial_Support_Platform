@@ -8,7 +8,7 @@ const base: RawAdsMetric = {
   providerAccountId: 'customers/100200300',
   providerObjectId: 'campaigns/998877',
   metricName: 'call_conversions',
-  nativeMetric: 'Event.call_info',
+  nativeMetric: 'metrics.conversions',
   value: 2,
   currency: 'VND',
   timezone: 'Asia/Ho_Chi_Minh',
@@ -16,8 +16,9 @@ const base: RawAdsMetric = {
   attributionWindow: '30d_click',
   occurredAt: '2026-11-04T00:00:00Z',
   capturedAt: '2026-11-04T01:00:00Z',
-  sourceVersion: 'v1.9',
-  providerSurface: 'google-data-manager-api',
+  sourceVersion: 'synthetic-google-ads-reporting',
+  // Reporting comes from the Google Ads API; Data Manager is an ingestion (upload) surface.
+  providerSurface: 'google-ads-api',
 };
 
 const providerFixtures: readonly RawAdsMetric[] = [
