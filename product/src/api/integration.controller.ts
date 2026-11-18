@@ -11,21 +11,21 @@ export class IntegrationController {
     @Post('enroll')
     enroll(
     @Headers('x-integration-issuer')
-    issuer: unknown, 
+    issuer: unknown,
     @Body()
     body: unknown) { return this.call(() => this.intake.enroll(issuer, body)); }
     @RouteConfig({ bodyLimit: 8192 })
     @Post('revoke')
     revoke(
     @Headers('x-integration-issuer')
-    issuer: unknown, 
+    issuer: unknown,
     @Body()
     body: unknown) { return this.call(() => this.intake.revoke(issuer, body)); }
     @RouteConfig({ bodyLimit: 8192 })
     @Post('observations')
     append(
     @Headers('authorization')
-    auth: unknown, 
+    auth: unknown,
     @Body()
     body: unknown) { return this.call(() => this.intake.append(auth, body)); }
     private async call<T>(fn: () => Promise<T>): Promise<T> {

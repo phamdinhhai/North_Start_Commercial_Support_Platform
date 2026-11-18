@@ -113,4 +113,3 @@ integration('completion provenance PostgreSQL migration and restart', () => {
     expect(await store.history(original.lead.id)).toEqual(historyBefore);
   });
 });
-
