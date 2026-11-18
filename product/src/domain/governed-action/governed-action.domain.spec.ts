@@ -22,10 +22,14 @@ const execFacts: ExecutionFacts = { ...facts, executorEnabled: true, currentStat
 const housekeeper = { actor: { kind: 'human' as const, id: 'ops' }, authorityAllowed: true, trigger: 'command' as const };
 const verification = (observation: Verification['observation']): Verification => ({ observation, evidence: null, observedAt: NOW.toISOString(), reason: observation });
 
+const AI_CE = { id: 'c0ffee00-0000-4000-8000-000000000001', workspaceId: 'ws', leadId: '7f1c2a9e-4b6d-4c1a-9f3e-2d5b8a7c6e10',
+  acquisitionMode: 'inferred', assertionStatus: 'draft', evidencePointers: ['envelope:1'] };
 function proposed(proposerKind: 'human' | 'ai' = 'human'): ActionProposal {
   return propose({
     id: 'p-1', workspaceId: 'ws', requestKey: 'rk', capability: budgetCap, target, arguments: { dailyBudget: money('110') },
     proposer: { kind: proposerKind, id: 'alice' }, rationale: 'why', constraints, constraintViolations: [], ttlMs: 3_600_000,
+    // ADR-005 R2-P-01: an AI draft must cite a draft inferred CommercialEvent with evidence.
+    ...(proposerKind === 'ai' ? { commercialEventRef: AI_CE.id, commercialEvent: AI_CE } : {}),
   }, NOW).proposal;
 }
 function authorized(): ActionProposal {

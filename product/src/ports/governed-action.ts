@@ -1,7 +1,9 @@
+import type { AssertionEnvelope } from '../domain/commercial-event/commercial-event';
 import type {
-  ActionActor, ActionConstraints, ActionEvent, ActionPrincipal, ActionProposal, ActionRefusal, JsonValue, ObservedState,
-  RiskClass, TargetResource, Transition, Verification,
+  ActionActor, ActionConstraints, ActionEvent, ActionPrincipal, ActionProposal, ActionRefusal, ActorRef, CommercialEventFacts,
+  JsonValue, ObservedState, ProposalRefusal, RiskClass, TargetResource, Transition, Verification,
 } from '../domain/governed-action/governed-action.types';
+import type { AuthRole } from './auth';
 
 /**
  * Ports for the Governed Commercial Action runtime.
@@ -28,13 +30,15 @@ export interface ActionPolicyContext {
   readonly riskClass: RiskClass;
   readonly target: TargetResource;
   readonly leadId?: string;
+  /** Proposer of an EXISTING proposal (absent while proposing), so a policy can scope AI to its own drafts. */
+  readonly proposer?: ActorRef;
 }
 
 /**
  * Authority + constraints. Unavailable/throwing policy is treated as DENY (fail closed).
- * OPEN: PM-1 — the capability matrix (which roles may propose/approve/execute which
- * capability) is not canonical; implementations must not widen existing access.
- * OPEN: PM-1 — lead-scoped action authority (I-09) for lead-linked actions is undecided.
+ * ADR-006 — production implementation: CapabilityMatrixActionPolicy (capability matrix with
+ * risk tiers; sales lead-scoped; AI draft-only; service none). Implementations must never widen
+ * I-09 lead access.
  */
 export interface ActionPolicy {
   constraintsFor(ctx: ActionPolicyContext): Promise<ActionConstraints>;
@@ -49,16 +53,62 @@ export interface ActionPolicy {
    * Lead-scoped access hook (I-09), consulted for EVERY command on a lead-linked proposal in
    * addition to the command decision. Implementations should back it with the lead store /
    * lead RBAC (existence + workspace + assignment). Default deny.
-   * OPEN: PM-1 — which roles reach which leads is undecided; no role is invented here.
+   * ADR-006 — backed by LeadAccessPort (RBAC canAccessLead); no role is invented here.
    */
   mayAccessLead(actor: ActionActor, ctx: ActionPolicyContext & { readonly leadId: string }): Promise<PolicyDecision>;
+  /** ADR-006 — engaging/releasing the kill switch: admin only. Default deny. */
+  mayOperateKillSwitch(actor: ActionActor, ctx: { readonly workspaceId: string; readonly capabilityId?: string }): Promise<PolicyDecision>;
+}
+
+/** ADR-006 — base role from server-side membership (never from IdP claims, headers or bodies). */
+export interface WorkspaceRoleLookup {
+  baseRoleOf(workspaceId: string, userId: string): Promise<AuthRole | undefined>;
+}
+
+/** Who asks for lead access, with the membership base role. */
+export interface LeadAccessSubject {
+  readonly workspaceId: string;
+  readonly userId: string;
+  readonly baseRole: AuthRole;
+}
+
+/**
+ * I-09 lead-scope hook (ADR-006). Production composition backs it with the lead store +
+ * RbacService.canAccessLead (see infra/governed-action/lead-access.ts). Errors ⇒ deny.
+ */
+export interface LeadAccessPort {
+  canAccessLead(subject: LeadAccessSubject, leadId: string): Promise<boolean>;
+}
+
+/**
+ * ADR-005 R2-P-01 — read-only lookup of a cited CommercialEvent, workspace scoped. A foreign or
+ * missing event is `undefined` (indistinguishable, I-09).
+ */
+export interface CommercialEventLookup {
+  find(workspaceId: string, commercialEventId: string): Promise<CommercialEventFacts | undefined>;
+}
+
+/**
+ * ADR-005 R2-P-02 — receives `observed` AssertionEnvelopes for verified action outcomes. Must be
+ * idempotent on `assertionId`. It records evidence only and must never change Commercial State.
+ */
+export interface AssertionSink {
+  emit(envelope: AssertionEnvelope): Promise<void>;
+}
+
+/** ADR-006 — workspace-scoped kill-switch control (admin only, audited by the implementation). */
+export interface ActionKillSwitchControl {
+  set(input: {
+    readonly workspaceId: string; readonly capabilityId?: string; readonly engaged: boolean;
+    readonly actor: ActorRef; readonly reason: string; readonly at: string;
+  }): Promise<void>;
 }
 
 /**
  * Resolves the caller's actor KIND (human / ai / service) server-side from the identity or
  * credential source (A-m2). The kind is never taken from the caller. `undefined` ⇒ refused.
- * OPEN: PM-1 — the credential-type → actor-kind mapping (e.g. agent credentials ⇒ `ai`) is
- * owned by the HTTP/identity seam that implements this port; none is wired in this build.
+ * ADR-006 — production: AuthContextActorResolver (members ⇒ human via membership; a server-side
+ * registry of service/AI principals).
  */
 export interface ActorResolver {
   resolve(principal: ActionPrincipal): Promise<ActionActor | undefined>;
@@ -128,6 +178,9 @@ export interface ActionStore {
   events(workspaceId: string, proposalId: string): Promise<ActionEvent[]>;
   appendRefusal(refusal: ActionRefusal): Promise<void>;
   refusals(workspaceId: string, proposalId: string): Promise<ActionRefusal[]>;
+  /** Refused PROPOSE commands (no proposal exists), append-only (ADR-005 R2-P-01). */
+  appendProposalRefusal(refusal: ProposalRefusal): Promise<void>;
+  proposalRefusals(workspaceId: string): Promise<ProposalRefusal[]>;
 }
 
 export interface GovernedActionClock {

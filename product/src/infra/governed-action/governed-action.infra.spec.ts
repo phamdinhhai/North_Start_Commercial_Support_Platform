@@ -90,7 +90,7 @@ describe('Synthetic executor / verifier', () => {
   });
 });
 
-describe('A-M3: capability scope is not decided in production code (OPEN: LG-1 / MM-1)', () => {
+describe('A-M3: capability scope is not decided in production code (ADR-007 / ADR-008: production catalog stays empty)', () => {
   const SRC = resolve(__dirname, '../..');
   const files = (dir: string): string[] => readdirSync(dir).flatMap((name) => {
     const path = join(dir, name);

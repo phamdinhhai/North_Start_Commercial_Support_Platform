@@ -16,11 +16,14 @@ const target = { provider: 'synthetic-ads', accountId: 'acct-1', resourceType: '
 const CAP = 'ads.campaign.budget.update';
 const budget = (amountMinor: string) => ({ dailyBudget: { amountMinor, currency: 'VND' } });
 
+const AI_CE = { id: 'c0ffee00-0000-4000-8000-000000000001', workspaceId: WS, leadId: '7f1c2a9e-4b6d-4c1a-9f3e-2d5b8a7c6e10',
+  acquisitionMode: 'inferred', assertionStatus: 'draft', evidencePointers: ['envelope:1'] };
+
 function harness(overrides: Partial<GovernedActionDeps> = {}, enabled = [{ workspaceId: WS, capabilityId: CAP }]) {
   let now = new Date('2026-11-18T09:00:00.000Z');
   const clock = { now: () => new Date(now) };
   const ports = createSyntheticActionPorts({
-    enabled, clock: clock.now, actors: [alice, bob, carol, drafter, outsider, svc],
+    enabled, clock: clock.now, actors: [alice, bob, carol, drafter, outsider, svc], commercialEvents: [AI_CE],
     policy: {
       constraints: { maxBudgetDeltaPercent: 20, protectedAccountIds: ['acct-protected'], approvalTtlMs: 15 * 60_000 },
       proposers: '*', approvers: ['alice', 'bob'], executors: ['alice', 'bob'], serviceExecutors: ['svc'],
@@ -32,7 +35,9 @@ function harness(overrides: Partial<GovernedActionDeps> = {}, enabled = [{ works
   const mayApprove = vi.spyOn(ports.policy, 'mayApprove');
   const service = new GovernedActionService({ ...ports, clock, executionTimeoutMs: 50, readbackTimeoutMs: 50, ...overrides });
   const propose = (actor: ActionActor = alice, args: unknown = budget('110000'), extra: Partial<{ requestKey: string; target: typeof target }> = {}) =>
-    service.propose(actor, { requestKey: extra.requestKey ?? `rk-${Math.random()}`, capabilityId: CAP, target: extra.target ?? target, arguments: args, rationale: 'synthetic test' });
+    service.propose(actor, { requestKey: extra.requestKey ?? `rk-${Math.random()}`, capabilityId: CAP, target: extra.target ?? target, arguments: args, rationale: 'synthetic test',
+      // ADR-005 R2-P-01: AI drafts cite a draft inferred CommercialEvent with evidence.
+      ...(actor.kind === 'ai' ? { commercialEventRef: AI_CE.id } : {}) });
   const previewed = async (actor: ActionActor = alice, args?: unknown) => {
     const p = await propose(actor, args);
     return service.preview(alice, p.id);
@@ -45,7 +50,7 @@ function harness(overrides: Partial<GovernedActionDeps> = {}, enabled = [{ works
 
 const code = (promise: Promise<unknown>) => promise.then(() => 'RESOLVED', (e: { code?: string }) => e.code ?? String(e));
 
-describe('GovernedActionService — authorization (I-03, PM-1 seam)', () => {
+describe('GovernedActionService — authorization (I-03, ADR-006 policy seam)', () => {
   it('runs the full synthetic happy path and audits every transition append-only', async () => {
     const h = harness();
     const p = await h.previewed();
@@ -142,6 +147,7 @@ describe('GovernedActionService — authorization (I-03, PM-1 seam)', () => {
     const tampering: ActionStore = {
       create: (t) => store.create(t), events: (w, id) => store.events(w, id), transition: (v, t) => store.transition(v, t),
       appendRefusal: (r) => store.appendRefusal(r), refusals: (w, id) => store.refusals(w, id),
+      appendProposalRefusal: (r) => store.appendProposalRefusal(r), proposalRefusals: (w) => store.proposalRefusals(w),
       get: async (w, id) => {
         const real = await store.get(w, id);
         return real && { ...real, arguments: budget('99999999') };

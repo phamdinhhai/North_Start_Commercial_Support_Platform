@@ -1,9 +1,10 @@
+import { hasEvidence, resolveProposalEvidence, type CommercialEventLookupResult } from './action-evidence';
 import { argumentsIntact, canonicalJson, deepFreeze, freezeArguments, sha256Hex } from './canonical-json';
 import { validateArguments, type CapabilityDefinition } from './capability-catalog';
 import {
   GovernedActionError, type ActionConstraints, type ActionEvent, type ActionEventType, type ActionProposal,
-  type ActionRefusal, type ActionState, type ActorRef, type ExecutorStatus, type JsonValue, type ObservedState,
-  type PreviewChange, type TargetResource, type Transition, type Verification,
+  type ActionRefusal, type ActionState, type ProposalRefusal, type ActorRef, type ExecutorStatus, type JsonValue, type ObservedState,
+  type PreviewChange, type ProposalEvidence, type TargetResource, type Transition, type Verification,
 } from './governed-action.types';
 
 export const MIN_PROPOSAL_TTL_MS = 60_000;
@@ -47,6 +48,11 @@ export interface ProposeInput {
   readonly constraintViolations: readonly string[];
   readonly ttlMs: number;
   readonly leadId?: string;
+  /** ADR-005 R2-P-01: cited CommercialEvent + evidence; required for AI proposers. */
+  readonly commercialEventRef?: string;
+  readonly evidenceRefs?: readonly unknown[];
+  /** Facts about `commercialEventRef` gathered through the CommercialEventLookup port. */
+  readonly commercialEvent?: CommercialEventLookupResult;
 }
 
 const fail = (code: ConstructorParameters<typeof GovernedActionError>[0], message: string, details: readonly string[] = []): never => {
@@ -120,7 +126,10 @@ export function baselineChanged(reviewed: ObservedState, current: ObservedState)
   return reviewed.status === 'OBSERVED' && current.status === 'OBSERVED' && canonicalJson(reviewed.value) !== canonicalJson(current.value);
 }
 
-/** PROPOSE — any authenticated actor, including AI. AI proposals are drafts only (I-03). */
+/**
+ * PROPOSE — any authorised actor, including AI. AI proposals are drafts only (I-03) and must
+ * cite a draft inferred CommercialEvent with evidence (ADR-005 R2-P-01, EVIDENCE_REQUIRED).
+ */
 export function propose(input: ProposeInput, now: Date): Transition {
   nonEmpty(input.id, 'id', 64);
   nonEmpty(input.workspaceId, 'workspaceId', 128);
@@ -136,6 +145,11 @@ export function propose(input: ProposeInput, now: Date): Transition {
     fail('INVALID_INPUT', 'ttlMs out of bounds');
   }
   const leadId = normalizeLeadId(input.leadId);
+  const evidence = resolveProposalEvidence({
+    workspaceId: input.workspaceId, proposer: input.proposer, ...(leadId ? { leadId } : {}),
+    ...(input.commercialEventRef !== undefined ? { commercialEventRef: input.commercialEventRef } : {}),
+    evidenceRefs: input.evidenceRefs, commercialEvent: input.commercialEvent,
+  });
   const frozen = freezeArguments(input.arguments);
   const violations = validateArguments(input.capability, frozen.arguments);
   if (violations.length > 0) fail('INVALID_ARGUMENTS', 'arguments do not match capability schema', violations);
@@ -148,6 +162,8 @@ export function propose(input: ProposeInput, now: Date): Transition {
     argumentDigest: frozen.digest, proposer: ref(input.proposer), rationale: input.rationale,
     constraints: { ...input.constraints, protectedAccountIds: [...input.constraints.protectedAccountIds] },
     ...(leadId ? { leadId } : {}),
+    ...(evidence.commercialEventRef ? { commercialEventRef: evidence.commercialEventRef } : {}),
+    evidenceRefs: [...evidence.evidenceRefs],
     idempotencyKey: `ga-${input.id}`, createdAt: now.toISOString(),
     expiresAt: new Date(now.getTime() + input.ttlMs).toISOString(),
     state: 'PROPOSED', version: 1, attempts: 0,
@@ -158,7 +174,7 @@ export function propose(input: ProposeInput, now: Date): Transition {
     reason: input.rationale,
     data: {
       capabilityId: proposal.capabilityId, argumentDigest: proposal.argumentDigest, draft: input.proposer.kind === 'ai',
-      leadId: leadId ?? null,
+      leadId: leadId ?? null, commercialEventRef: evidence.commercialEventRef ?? null, evidenceRefs: [...evidence.evidenceRefs],
     },
   });
   return { proposal, event };
@@ -175,10 +191,26 @@ export function deriveChanges(args: JsonValue, before: ObservedState): PreviewCh
   });
 }
 
-/** The preview digest binds the frozen argument digest, the observed baseline and the change list. */
-export function previewDigestOf(argumentDigest: string, beforeState: ObservedState, changes: readonly PreviewChange[]): string {
-  return sha256Hex(canonicalJson({ argumentDigest, beforeState, changes }));
+/**
+ * The preview digest binds the frozen argument digest, the observed baseline, the change list
+ * and — when the proposal cites any — the evidence shown to the approver (ADR-005).
+ */
+export function previewDigestOf(
+  argumentDigest: string, beforeState: ObservedState, changes: readonly PreviewChange[], evidence?: ProposalEvidence,
+): string {
+  if (!hasEvidence(evidence)) return sha256Hex(canonicalJson({ argumentDigest, beforeState, changes }));
+  return sha256Hex(canonicalJson({ argumentDigest, beforeState, changes, evidence: evidenceJson(evidence) }));
 }
+
+/** Evidence as plain JSON (stable shape for digests and event data). */
+export function evidenceJson(e: ProposalEvidence): { readonly [k: string]: JsonValue } {
+  return { commercialEventRef: e.commercialEventRef ?? null, evidenceRefs: [...e.evidenceRefs] };
+}
+
+const proposalEvidence = (p: ActionProposal): ProposalEvidence | undefined => {
+  const e: ProposalEvidence = { ...(p.commercialEventRef ? { commercialEventRef: p.commercialEventRef } : {}), evidenceRefs: p.evidenceRefs ?? [] };
+  return hasEvidence(e) ? e : undefined;
+};
 
 /** PREVIEW — read-only; re-preview is how a FAILED_VERIFIED action becomes re-authorizable. */
 export function preview(p: ActionProposal, input: { actor: ActorRef; beforeState: ObservedState }, now: Date): Transition {
@@ -186,14 +218,18 @@ export function preview(p: ActionProposal, input: { actor: ActorRef; beforeState
   requireNotExpired(p, now);
   requireIntact(p);
   const changes = deriveChanges(p.arguments, input.beforeState);
-  const previewDigest = previewDigestOf(p.argumentDigest, input.beforeState, changes);
+  const evidence = proposalEvidence(p);
+  const previewDigest = previewDigestOf(p.argumentDigest, input.beforeState, changes, evidence);
   // A-M1: the event carries the full reviewed content, so the digest can be re-derived from history.
+  // ADR-005: cited evidence is part of what the approver reviews.
   return transition(p, {
     state: 'PREVIEWED',
     approval: undefined,
-    preview: { beforeState: input.beforeState, changes, previewDigest, previewedAt: now.toISOString(), previewedBy: ref(input.actor) },
+    preview: { beforeState: input.beforeState, changes, previewDigest, previewedAt: now.toISOString(), previewedBy: ref(input.actor),
+      ...(evidence ? { evidence } : {}) },
   }, 'PREVIEWED', input.actor, now, 'preview generated', {
     previewDigest, argumentDigest: p.argumentDigest, beforeState: json(input.beforeState), changes: json(changes),
+    ...(evidence ? { evidence: evidenceJson(evidence) } : {}),
   });
 }
 
@@ -208,7 +244,7 @@ export interface AuthorizeInput {
 /**
  * AUTHORIZE — distinct human with authority. The approval binds the argument digest and
  * preview digest the human actually reviewed, and expires.
- * OPEN: PM-1 — authority itself is an injected policy fact; nothing here grants a role.
+ * ADR-006 — authority is an injected policy fact (capability matrix); nothing here grants a role.
  */
 export function authorize(p: ActionProposal, input: AuthorizeInput, now: Date): Transition {
   if (input.approver.kind === 'ai') fail('AI_CANNOT_AUTHORIZE', 'AI actors produce drafts only and can never authorize (I-03)');
@@ -317,6 +353,8 @@ export interface ExecutionResultInput {
   readonly reason: string;
   readonly providerReference?: string;
   readonly verification?: Verification;
+  /** False when nothing reached the provider (kill switch before dispatch). Default true. */
+  readonly dispatched?: boolean;
 }
 
 /** Outcome is VERIFIED only when the executor claim and an independent readback agree. */
@@ -336,7 +374,7 @@ export function recordExecutionResult(p: ActionProposal, input: ExecutionResultI
     // A-M1: everything needed to reconstruct this attempt from history alone.
     source: 'executor', outcome: state, attempt: p.attempts, executorStatus: input.executorStatus,
     executorReason: input.reason, providerReference: input.providerReference ?? null,
-    readback: obs ?? 'UNAVAILABLE', verification: json(input.verification ?? null),
+    readback: obs ?? 'UNAVAILABLE', verification: json(input.verification ?? null), dispatched: input.dispatched !== false,
     triggeredBy: json(p.execution ? ref(p.execution.startedBy) : null),
   });
 }
@@ -378,6 +416,31 @@ export function markStaleExecution(p: ActionProposal, input: HousekeepingInput &
 export function recordRefusal(p: ActionProposal, actor: ActorRef, command: string, error: GovernedActionError, now: Date): ActionRefusal {
   return deepFreeze({
     proposalId: p.id, workspaceId: p.workspaceId, proposalVersion: p.version, command: command.slice(0, 64),
+    code: error.code, actor: ref(actor), at: now.toISOString(), reason: error.message.slice(0, 2000), details: [...error.details],
+  });
+}
+
+const UUID_REF = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const label = (value: unknown, max: number): string => {
+  const text = typeof value === 'string' ? value.trim().slice(0, max) : '';
+  return text.length > 0 ? text : '-';
+};
+
+/**
+ * Audit a refused PROPOSE (ADR-005 R2-P-01: e.g. EVIDENCE_REQUIRED). No proposal exists, so the
+ * record is keyed by workspace + request key in a separate append-only log (I-05).
+ */
+export function recordProposalRefusal(
+  input: { readonly workspaceId: string; readonly requestKey?: unknown; readonly capabilityId?: unknown; readonly leadId?: unknown;
+    readonly commercialEventRef?: unknown },
+  actor: ActorRef, error: GovernedActionError, now: Date,
+): ProposalRefusal {
+  const uuid = (v: unknown) => (typeof v === 'string' && UUID_REF.test(v) ? v.toLowerCase() : undefined);
+  const leadId = uuid(input.leadId);
+  const commercialEventRef = uuid(input.commercialEventRef);
+  return deepFreeze({
+    workspaceId: input.workspaceId, requestKey: label(input.requestKey, 128), capabilityId: label(input.capabilityId, 128),
+    ...(leadId ? { leadId } : {}), ...(commercialEventRef ? { commercialEventRef } : {}),
     code: error.code, actor: ref(actor), at: now.toISOString(), reason: error.message.slice(0, 2000), details: [...error.details],
   });
 }

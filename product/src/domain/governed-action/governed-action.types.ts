@@ -11,10 +11,12 @@
  * - I-09: every proposal is workspace scoped; cross-workspace reads behave as "not found".
  * - I-10/I-11: provider capability ids are data; adapters own transport, not semantics.
  *
- * OPEN: PM-1 — who holds approval authority is NOT decided here; it is delegated to an
- * injected ActionPolicy port whose default implementation denies everything.
- * OPEN: CE-1 / CE-2 — a governed action is NOT a Commercial Event and does not move
- * Commercial State; linking action outcomes to CE/state is deferred to Gate #A.
+ * ADR-006 (resolves PM-1) — authority follows the capability matrix behind the injected
+ * ActionPolicy port (production: CapabilityMatrixActionPolicy; default: deny-all).
+ * ADR-005 (resolves CE-2) — a governed action is NOT a Commercial Assertion. AI proposals must
+ * cite a draft inferred CommercialEvent with evidence (R2-P-01); a verified outcome only yields
+ * an `observed` AssertionEnvelope (R2-P-02).
+ * OPEN: CE-1 — action outcomes never move Commercial State; transitions stay with ADR-001.
  */
 
 export type ActionState =
@@ -97,9 +99,38 @@ export interface PreviewChange {
   readonly beforeKnown: boolean;
 }
 
+/**
+ * What a proposal cites as its basis (ADR-005 R2-P-01). Frozen at proposal time and shown to
+ * approvers in the preview. Refs are opaque pointers to immutable evidence (I-12), never content.
+ */
+export interface ProposalEvidence {
+  /** A CommercialEvent id (UUID) in the same workspace (and same lead when lead-linked). */
+  readonly commercialEventRef?: string;
+  readonly evidenceRefs: readonly string[];
+}
+
+/**
+ * Read-side facts about a cited CommercialEvent, as returned by the CommercialEventLookup port.
+ * Strings rather than unions: an unrecognised status/mode must fail closed, not be coerced.
+ */
+export interface CommercialEventFacts {
+  readonly id: string;
+  readonly workspaceId: string;
+  readonly leadId: string;
+  /** `inferred` for a CommercialEvent (ADR-005 §2). */
+  readonly acquisitionMode: string;
+  /** `draft` is required for an AI proposal; `unknown` when provenance is missing (I-08). */
+  readonly assertionStatus: string;
+  /** Policy check of the CE; a `rejected` CE cannot support an AI proposal. */
+  readonly policyCheck?: string;
+  readonly evidencePointers: readonly string[];
+}
+
 export interface ActionPreview {
   readonly beforeState: ObservedState;
   readonly changes: readonly PreviewChange[];
+  /** ADR-005: evidence the proposal cites, exposed to approvers; bound into the digest when present. */
+  readonly evidence?: ProposalEvidence;
   readonly previewDigest: string;
   readonly previewedAt: string;
   readonly previewedBy: ActorRef;
@@ -162,6 +193,10 @@ export interface ActionProposal {
   readonly rationale: string;
   readonly constraints: ActionConstraints;
   readonly leadId?: string;
+  /** ADR-005 R2-P-01: cited CommercialEvent (required for AI proposals). Frozen. */
+  readonly commercialEventRef?: string;
+  /** ADR-005 R2-P-01: evidence pointers (≥1 for AI proposals). Frozen. */
+  readonly evidenceRefs: readonly string[];
   /** Stable per proposal; passed to the executor on every attempt so providers can dedupe. */
   readonly idempotencyKey: string;
   readonly createdAt: string;
@@ -219,6 +254,23 @@ export interface ActionRefusal {
   readonly details: readonly string[];
 }
 
+/**
+ * A refused PROPOSE (no proposal exists yet), e.g. an AI draft without a CommercialEvent
+ * (EVIDENCE_REQUIRED). Kept in its own append-only log (I-05; ADR-005 R2-P-01).
+ */
+export interface ProposalRefusal {
+  readonly workspaceId: string;
+  readonly requestKey: string;
+  readonly capabilityId: string;
+  readonly leadId?: string;
+  readonly commercialEventRef?: string;
+  readonly code: GovernedActionErrorCode;
+  readonly actor: ActorRef;
+  readonly at: string;
+  readonly reason: string;
+  readonly details: readonly string[];
+}
+
 export interface Transition {
   readonly proposal: ActionProposal;
   readonly event: ActionEvent;
@@ -249,7 +301,8 @@ export type GovernedActionErrorCode =
   | 'ALREADY_EXECUTED'
   | 'CONCURRENT_MODIFICATION'
   | 'REQUEST_KEY_CONFLICT'
-  | 'POLICY_UNAVAILABLE';
+  | 'POLICY_UNAVAILABLE'
+  | 'EVIDENCE_REQUIRED';
 
 export class GovernedActionError extends Error {
   constructor(

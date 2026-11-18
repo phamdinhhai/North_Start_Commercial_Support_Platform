@@ -19,11 +19,12 @@ export class DisabledExecutor implements ActionExecutor {
 }
 
 /**
- * OPEN: PM-1 — no capability matrix is canonical, so the default policy denies every
- * proposal, approval and execution, and returns the most restrictive constraints.
+ * Fail-closed default: denies every proposal, approval, execution, read, housekeeping, lead
+ * access and kill-switch operation, and returns the most restrictive constraints. The
+ * production matrix (ADR-006) is CapabilityMatrixActionPolicy and must be wired explicitly.
  */
 export class DenyAllActionPolicy implements ActionPolicy {
-  private static readonly DENY: PolicyDecision = { allowed: false, reason: 'PM-1 open: no action authority is granted by default' };
+  private static readonly DENY: PolicyDecision = { allowed: false, reason: 'no action authority is granted by default (ADR-006: wire the capability matrix)' };
   async constraintsFor(): Promise<ActionConstraints> {
     return { maxBudgetDeltaPercent: 0, protectedAccountIds: [], approvalTtlMs: 60_000 };
   }
@@ -33,6 +34,7 @@ export class DenyAllActionPolicy implements ActionPolicy {
   async mayRead(): Promise<PolicyDecision> { return DenyAllActionPolicy.DENY; }
   async mayHousekeep(): Promise<PolicyDecision> { return DenyAllActionPolicy.DENY; }
   async mayAccessLead(): Promise<PolicyDecision> { return DenyAllActionPolicy.DENY; }
+  async mayOperateKillSwitch(): Promise<PolicyDecision> { return DenyAllActionPolicy.DENY; }
 }
 
 /** Default actor resolver: resolves nobody, so every command is refused (fail closed). */
@@ -43,7 +45,7 @@ export class DenyAllActorResolver implements ActorResolver {
 /**
  * Explicit actor directory for synthetic/local runs and tests: the kind of each (workspace, id)
  * is configured server-side, never read from the caller (A-m2).
- * OPEN: PM-1 — a production resolver maps credential types to kinds at the identity seam.
+ * ADR-006 — production uses AuthContextActorResolver (membership + service-principal registry).
  */
 export class StaticActorResolver implements ActorResolver {
   private readonly kinds = new Map<string, ActionActor['kind']>();
@@ -101,11 +103,14 @@ export interface StaticActionPolicyConfig {
   readonly housekeepers?: readonly string[];
   /** Explicit lead grants: leadId → actor ids. Default: no lead access (I-09). */
   readonly leadAccess?: { readonly [leadId: string]: readonly string[] };
+  /** Actor ids allowed to engage/release the kill switch. Default: none. */
+  readonly killSwitchOperators?: readonly string[];
 }
 
 /**
- * Explicit allow-list policy for synthetic/local runs and tests. It is NOT a resolution of
- * PM-1: it grants nothing beyond the ids it is configured with, and never across workspaces.
+ * Explicit allow-list policy for synthetic/local runs and tests. It is NOT the ADR-006 matrix
+ * (see CapabilityMatrixActionPolicy): it grants nothing beyond the ids it is configured with,
+ * and never across workspaces.
  */
 export class StaticActionPolicy implements ActionPolicy {
   constructor(private readonly config: StaticActionPolicyConfig) {}
@@ -137,6 +142,11 @@ export class StaticActionPolicy implements ActionPolicy {
     const grants = this.config.leadAccess ?? {};
     const ids = Object.prototype.hasOwnProperty.call(grants, ctx.leadId) ? grants[ctx.leadId] : [];
     return allow(actor, ctx, ids.includes(actor.id), 'lead outside actor scope');
+  }
+  async mayOperateKillSwitch(actor: ActionActor, ctx: { workspaceId: string }): Promise<PolicyDecision> {
+    if (actor.workspaceId !== ctx.workspaceId) return { allowed: false, reason: 'workspace mismatch' };
+    return actor.kind === 'human' && (this.config.killSwitchOperators ?? []).includes(actor.id)
+      ? { allowed: true } : { allowed: false, reason: 'not a configured kill-switch operator' };
   }
 }
 

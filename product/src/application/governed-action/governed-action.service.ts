@@ -1,9 +1,11 @@
 import { randomUUID } from 'node:crypto';
 import { evaluateConstraints, type ConstraintStage } from '../../domain/governed-action/action-constraints';
+import { normalizeCommercialEventRef, type CommercialEventLookupResult } from '../../domain/governed-action/action-evidence';
 import {
   authorize, beginExecution, cancel, expire, markStaleExecution, normalizeLeadId, preview, propose, recordExecutionResult,
-  recordRefusal, recordVerification, reject, requireRunAuthority, type ExecutionFacts, type PolicyFacts,
+  recordProposalRefusal, recordRefusal, recordVerification, reject, requireRunAuthority, type ExecutionFacts, type PolicyFacts,
 } from '../../domain/governed-action/action-lifecycle';
+import { observedOutcomeAssertion } from '../../domain/governed-action/action-outcome-assertion';
 import {
   PRODUCTION_CAPABILITY_CATALOG, type CapabilityCatalog, type CapabilityDefinition,
 } from '../../domain/governed-action/capability-catalog';
@@ -12,9 +14,9 @@ import {
   type ActionRefusal, type JsonValue, type ObservedState, type TargetResource, type Transition, type Verification,
 } from '../../domain/governed-action/governed-action.types';
 import type {
-  ActionExecutionResult, ActionExecutor, ActionHousekeepingCommand, ActionKillSwitch, ActionPolicy, ActionPolicyContext,
-  ActionReadCommand, ActionRequest, ActionStore, ActionVerifier, ActorResolver, CapabilityEnablement, GovernedActionClock,
-  KillSwitchStatus, PolicyDecision,
+  ActionExecutionResult, ActionExecutor, ActionHousekeepingCommand, ActionKillSwitch, ActionKillSwitchControl, ActionPolicy,
+  ActionPolicyContext, ActionReadCommand, ActionRequest, ActionStore, ActionVerifier, ActorResolver, AssertionSink,
+  CapabilityEnablement, CommercialEventLookup, GovernedActionClock, KillSwitchStatus, PolicyDecision,
 } from '../../ports/governed-action';
 import { withDeadline } from './deadline';
 
@@ -27,7 +29,13 @@ export interface GovernedActionDeps {
   readonly verifier: ActionVerifier;
   readonly killSwitch: ActionKillSwitch;
   readonly enablement: CapabilityEnablement;
-  /** Defaults to the production catalog, which is empty (deny-all). OPEN: LG-1. */
+  /** ADR-005 R2-P-01: verifies the CommercialEvent an AI proposal cites. Required (no trusting default). */
+  readonly commercialEvents: CommercialEventLookup;
+  /** ADR-005 R2-P-02: receives observed assertions for verified outcomes. Required. */
+  readonly assertions: AssertionSink;
+  /** ADR-006: kill-switch control (admin only). Absent => operateKillSwitch is refused. */
+  readonly killSwitchControl?: ActionKillSwitchControl;
+  /** Defaults to the production catalog, which is empty (deny-all; ADR-007). */
   readonly catalog?: CapabilityCatalog;
   readonly clock?: GovernedActionClock;
   readonly newId?: () => string;
@@ -44,6 +52,16 @@ export interface ProposeCommand {
   readonly rationale: string;
   readonly ttlMs?: number;
   readonly leadId?: string;
+  /** ADR-005 R2-P-01: required for AI proposers; optional (but shown to approvers) for humans. */
+  readonly commercialEventRef?: string;
+  readonly evidenceRefs?: readonly string[];
+}
+
+export interface KillSwitchCommand {
+  readonly engaged: boolean;
+  /** Absent => the whole workspace. */
+  readonly capabilityId?: string;
+  readonly reason: string;
 }
 
 export interface AuthorizeCommand {
@@ -81,7 +99,22 @@ export class GovernedActionService {
 
   async propose(principal: ActionPrincipal, command: ProposeCommand): Promise<ActionProposal> {
     const actor = await this.resolveActor(principal);
-    const capability = this.capability(command.capabilityId);
+    try {
+      return await this.proposeAs(actor, command);
+    } catch (error) {
+      // ADR-005 R2-P-01: refused proposals (e.g. EVIDENCE_REQUIRED) are logged; nothing is stored.
+      if (isGovernedActionError(error) && error.code !== 'CONCURRENT_MODIFICATION') {
+        // The workspace always comes from the resolved actor, never from the command (I-09).
+        const refusal = recordProposalRefusal({ requestKey: command?.requestKey, capabilityId: command?.capabilityId,
+          leadId: command?.leadId, commercialEventRef: command?.commercialEventRef, workspaceId: actor.workspaceId }, actor, error, this.clock.now());
+        await this.deps.store.appendProposalRefusal(refusal).catch(() => undefined);
+      }
+      throw error;
+    }
+  }
+
+  private async proposeAs(actor: ActionActor, command: ProposeCommand): Promise<ActionProposal> {
+    const capability = this.capability(command?.capabilityId);
     const leadId = normalizeLeadId(command.leadId);
     const ctx: ActionPolicyContext = {
       workspaceId: actor.workspaceId, capabilityId: capability.id, riskClass: capability.riskClass,
@@ -94,10 +127,13 @@ export class GovernedActionService {
     const decision = await this.decide(() => this.deps.policy.mayPropose(actor, ctx));
     if (!decision.allowed) throw new GovernedActionError('ACTOR_NOT_AUTHORIZED', decision.reason);
     const constraints = await this.constraints(ctx);
+    const commercialEventRef = normalizeCommercialEventRef(command.commercialEventRef);
+    const commercialEvent = commercialEventRef ? await this.lookupCommercialEvent(actor.workspaceId, commercialEventRef) : undefined;
     const t = propose({
       id: this.newId(), workspaceId: actor.workspaceId, requestKey: command.requestKey, capability,
       target: command.target, arguments: command.arguments, proposer: actor, rationale: command.rationale,
       constraints, ttlMs: command.ttlMs ?? DEFAULT_TTL_MS, ...(leadId ? { leadId } : {}),
+      ...(commercialEventRef ? { commercialEventRef } : {}), evidenceRefs: command.evidenceRefs, commercialEvent,
       constraintViolations: evaluateConstraints({
         capability, target: command.target, arguments: command.arguments as JsonValue, constraints, stage: 'propose',
       }),
@@ -106,7 +142,9 @@ export class GovernedActionService {
     if (!result.created) {
       const existing = result.proposal;
       if (existing.argumentDigest !== t.proposal.argumentDigest || existing.capabilityId !== capability.id ||
-          !sameTarget(existing.target, t.proposal.target) || existing.leadId !== t.proposal.leadId) {
+          !sameTarget(existing.target, t.proposal.target) || existing.leadId !== t.proposal.leadId ||
+          existing.commercialEventRef !== t.proposal.commercialEventRef ||
+          JSON.stringify(existing.evidenceRefs ?? []) !== JSON.stringify(t.proposal.evidenceRefs)) {
         throw new GovernedActionError('REQUEST_KEY_CONFLICT', 'requestKey already used for a different action');
       }
     }
@@ -181,8 +219,10 @@ export class GovernedActionService {
 
     let result: ActionExecutionResult;
     let verification: Verification | undefined;
+    let dispatched = true;
     const lastLook = await this.killStatus(running);
     if (lastLook.engaged) {
+      dispatched = false;
       const reason = 'KILL_SWITCH_ENGAGED_BEFORE_DISPATCH';
       result = { status: 'NOT_APPLIED', reason };
       verification = { observation: 'NOT_EXECUTED', evidence: { dispatched: false }, observedAt: this.clock.now().toISOString(), reason };
@@ -193,17 +233,18 @@ export class GovernedActionService {
       if (result.status !== 'UNKNOWN') verification = await this.readback(request);
     }
     const done = recordExecutionResult(running, {
-      executorStatus: result.status, reason: result.reason ?? result.status, verification,
+      executorStatus: result.status, reason: result.reason ?? result.status, verification, dispatched,
       ...(result.status === 'APPLIED' && result.providerReference ? { providerReference: result.providerReference } : {}),
     }, this.clock.now());
     await this.deps.store.transition(running.version, done);
+    await this.emitObservedOutcome(done);
     return done.proposal;
   }
 
   /** Resolve an UNKNOWN outcome strictly from readback evidence. Never re-executes. */
   async verify(principal: ActionPrincipal, proposalId: string): Promise<ActionProposal> {
     const { actor, p } = await this.load(principal, proposalId, 'verify');
-    return this.guard(p, actor, 'verify', async () => {
+    const t = await this.guardTransition(p, actor, 'verify', async () => {
       if (p.state !== 'UNKNOWN') throw new GovernedActionError('INVALID_TRANSITION', `verify is not allowed from ${p.state}`);
       if (actor.kind === 'ai') throw new GovernedActionError('AI_CANNOT_EXECUTE', 'AI actors cannot resolve action outcomes');
       const authority = await this.decide(() => this.deps.policy.mayTriggerExecution(actor, this.ctx(p)));
@@ -211,6 +252,26 @@ export class GovernedActionService {
       const verification = await this.readback(this.request(p));
       return recordVerification(p, { actor, verification, authority }, this.clock.now());
     });
+    await this.emitObservedOutcome(t);
+    return t.proposal;
+  }
+
+  /** ADR-006: engage/release the workspace (or one capability) kill switch. Humans with authority only. */
+  async operateKillSwitch(principal: ActionPrincipal, command: KillSwitchCommand): Promise<void> {
+    const actor = await this.resolveActor(principal);
+    const reason = typeof command?.reason === 'string' ? command.reason.trim() : '';
+    const capabilityId = command?.capabilityId;
+    if (typeof command?.engaged !== 'boolean' || !reason || reason.length > 2000 ||
+        (capabilityId !== undefined && (typeof capabilityId !== 'string' || !capabilityId || capabilityId.length > 128))) {
+      throw new GovernedActionError('INVALID_INPUT', 'engaged, reason (1..2000) and an optional capabilityId are required');
+    }
+    if (actor.kind !== 'human') throw new GovernedActionError('ACTOR_NOT_AUTHORIZED', 'only a human may operate the kill switch');
+    const decision = await this.decide(() => this.deps.policy.mayOperateKillSwitch(actor,
+      { workspaceId: actor.workspaceId, ...(capabilityId ? { capabilityId } : {}) }));
+    if (!decision.allowed) throw new GovernedActionError('ACTOR_NOT_AUTHORIZED', decision.reason);
+    if (!this.deps.killSwitchControl) throw new GovernedActionError('POLICY_UNAVAILABLE', 'no kill-switch control is configured');
+    await this.deps.killSwitchControl.set({ workspaceId: actor.workspaceId, ...(capabilityId ? { capabilityId } : {}),
+      engaged: command.engaged, actor: { kind: actor.kind, id: actor.id }, reason, at: this.clock.now().toISOString() });
   }
 
   /** Crash recovery: EXECUTING past its lease becomes UNKNOWN (then verify). Policy-gated; never AI. */
@@ -266,7 +327,7 @@ export class GovernedActionService {
     const p = await this.deps.store.get(actor.workspaceId, proposalId);
     if (!p || p.workspaceId !== actor.workspaceId) throw new GovernedActionError('NOT_FOUND', 'proposal not found');
     if (p.leadId) {
-      // OPEN: PM-1 — lead-scoped access is delegated to the policy hook; no role is assumed here.
+      // ADR-006 — lead scope (I-09) is the policy hook (RBAC canAccessLead); no role is assumed here.
       const lead = await this.decide(() => this.deps.policy.mayAccessLead(actor, { ...this.ctx(p), leadId: p.leadId! }));
       if (!lead.allowed) {
         throw await this.audited(p, actor, command, new GovernedActionError('NOT_FOUND', 'proposal not found', ['LEAD_SCOPE_DENIED']));
@@ -291,7 +352,7 @@ export class GovernedActionService {
 
   private ctx(p: ActionProposal): ActionPolicyContext {
     return { workspaceId: p.workspaceId, capabilityId: p.capabilityId, riskClass: p.riskClass, target: p.target,
-      ...(p.leadId ? { leadId: p.leadId } : {}) };
+      ...(p.leadId ? { leadId: p.leadId } : {}), proposer: { kind: p.proposer.kind, id: p.proposer.id } };
   }
 
   private request(p: ActionProposal): ActionRequest {
@@ -302,6 +363,10 @@ export class GovernedActionService {
 
   /** Run a domain command; persist its transition, or log the refusal (no CAS) and rethrow. */
   private async guard(p: ActionProposal, actor: ActionActor, command: string, run: () => Promise<Transition>): Promise<ActionProposal> {
+    return (await this.guardTransition(p, actor, command, run)).proposal;
+  }
+
+  private async guardTransition(p: ActionProposal, actor: ActionActor, command: string, run: () => Promise<Transition>): Promise<Transition> {
     let t: Transition;
     try {
       t = await run();
@@ -309,7 +374,27 @@ export class GovernedActionService {
       throw await this.audited(p, actor, command, error);
     }
     await this.deps.store.transition(p.version, t);
-    return t.proposal;
+    return t;
+  }
+
+  /** ADR-005 R2-P-01: facts for a cited CE; a lookup failure is reported, never guessed. */
+  private async lookupCommercialEvent(workspaceId: string, ref: string): Promise<CommercialEventLookupResult> {
+    try {
+      return await this.deps.commercialEvents.find(workspaceId, ref);
+    } catch {
+      return 'UNAVAILABLE';
+    }
+  }
+
+  /**
+   * ADR-005 R2-P-02: a provider-observed verified outcome becomes an `observed` AssertionEnvelope.
+   * OPEN: CE-1 — evidence only; no Commercial State / Outcome transition is ever invoked here.
+   * Best effort after the outcome is durable: a sink failure never undoes it, and the assertion id
+   * is derived from the outcome event, so a later re-emission from history is idempotent.
+   */
+  private async emitObservedOutcome(t: Transition): Promise<void> {
+    const envelope = observedOutcomeAssertion(t.proposal, t.event, this.clock.now());
+    if (envelope) await this.deps.assertions.emit(envelope).catch(() => undefined);
   }
 
   /** A-m1 / R2-I-01: refusals go to the append-only refusal log and never bump the version. */

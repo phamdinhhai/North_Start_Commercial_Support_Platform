@@ -249,5 +249,6 @@ function bind(store: ActionStore): ActionStore {
   return {
     create: (t) => store.create(t), get: (w, id) => store.get(w, id), transition: (v, t) => store.transition(v, t),
     events: (w, id) => store.events(w, id), appendRefusal: (r) => store.appendRefusal(r), refusals: (w, id) => store.refusals(w, id),
+      appendProposalRefusal: (r) => store.appendProposalRefusal(r), proposalRefusals: (w) => store.proposalRefusals(w),
   };
 }

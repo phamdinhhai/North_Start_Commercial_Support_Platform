@@ -1,4 +1,4 @@
-import type { JsonValue, RiskClass } from './governed-action.types';
+import { RISK_CLASSES, type JsonValue, type RiskClass } from './governed-action.types';
 
 /**
  * Capability ids are DATA, not code paths. Every capability is disabled by default;
@@ -13,12 +13,33 @@ export type ArgumentRule =
   | { readonly kind: 'enum'; readonly values: readonly string[] }
   | { readonly kind: 'money' };
 
+/**
+ * What a capability touches. ADR-006: money / budget / order / payment / outbound customer
+ * messaging / conversion upload are HIGH impact and force risk class HIGH or CRITICAL.
+ */
+export type CapabilityImpact =
+  | 'money' | 'budget' | 'order' | 'payment' | 'outbound_customer_message' | 'conversion_upload'
+  | 'external_record';
+
+export const HIGH_IMPACTS: readonly CapabilityImpact[] = Object.freeze([
+  'money', 'budget', 'order', 'payment', 'outbound_customer_message', 'conversion_upload',
+]);
+
+/** ADR-006 approval tier: only LOW is the low tier; anything else is high (deny-by-default). */
+export type RiskTier = 'low' | 'high';
+export function riskTierOf(riskClass: RiskClass): RiskTier {
+  return riskClass === 'LOW' ? 'low' : 'high';
+}
+
 export interface CapabilityDefinition {
   readonly id: string;
-  /** Opaque grouping label; it carries no scope decision (OPEN: LG-1). */
+  /** Opaque grouping label; scope is decided by ADR-007 enablement, never by this label. */
   readonly family: string;
   readonly description: string;
+  /** ADR-006 risk class (catalog data). HIGH_IMPACTS require HIGH or CRITICAL. */
   readonly riskClass: RiskClass;
+  /** What the capability touches; drives the minimum risk class (ADR-006). */
+  readonly impact: readonly CapabilityImpact[];
   /** Consequential actions spend money or reach customers. */
   readonly consequential: boolean;
   /** Spent money / sent messages cannot be undone; at most a separately authorized compensation. */
@@ -35,22 +56,31 @@ export interface CapabilityCatalog {
   find(id: string): CapabilityDefinition | undefined;
 }
 
+/** Reject a definition whose risk class understates what it touches (ADR-006). */
+function validateRisk(d: CapabilityDefinition): void {
+  if (!RISK_CLASSES.includes(d.riskClass)) throw new Error(`capability ${d.id}: unknown risk class ${String(d.riskClass)}`);
+  const high = (d.impact ?? []).filter((i) => HIGH_IMPACTS.includes(i));
+  if (high.length > 0 && d.riskClass !== 'HIGH' && d.riskClass !== 'CRITICAL') throw new Error(`capability ${d.id}: high-impact (${high.join(', ')}) requires risk class HIGH or CRITICAL`);
+}
+
 export function createCapabilityCatalog(definitions: readonly CapabilityDefinition[]): CapabilityCatalog {
-  const entries = Object.freeze(definitions.map((d) => Object.freeze({ ...d })));
+  const entries = Object.freeze(definitions.map((d) => Object.freeze({ ...d, impact: Object.freeze([...(d.impact ?? [])]) })));
   const ids = new Set<string>();
   for (const d of entries) {
     if (ids.has(d.id)) throw new Error(`duplicate capability id: ${d.id}`);
+    validateRisk(d);
     ids.add(d.id);
   }
   return Object.freeze({ entries, find: (id: string) => entries.find((c) => c.id === id) });
 }
 
 /**
- * The production catalog ships EMPTY, i.e. deny-all: no outbound capability exists until a
- * product/phase gate admits one.
- * OPEN: LG-1 — whether outbound action capabilities (Pancake send, ad budget/status, POS
- * order) are in current-phase scope is undecided (R2-P-03). OPEN: MM-1 — conversion-upload
- * semantics are undecided (R2-P-04). Concrete research examples live only in a test fixture.
+ * The production catalog ships EMPTY, i.e. deny-all.
+ * ADR-007 (resolves LG-1): outbound/consequential capabilities exist only in test fixtures;
+ * admitting one for real data needs a DECISION_LOG/ADR entry (provider rights, readback
+ * contract, ADR-006 risk class, kill switch, rollback) after the pre-PH4 gate verdict.
+ * ADR-008 (resolves MM-1): conversion export stays off; when admitted it is HIGH risk, admin-
+ * approved, and exports only `corroborated` outcomes with recorded consent.
  */
 export const PRODUCTION_CAPABILITY_CATALOG: CapabilityCatalog = createCapabilityCatalog([]);
 

@@ -1,10 +1,11 @@
 import type { CapabilityCatalog } from '../../domain/governed-action/capability-catalog';
-import type { ActionActor, ActionPrincipal } from '../../domain/governed-action/governed-action.types';
+import type { ActionActor, ActionPrincipal, CommercialEventFacts } from '../../domain/governed-action/governed-action.types';
 import { SYNTHETIC_CAPABILITY_CATALOG } from '../../domain/governed-action/testing/synthetic-capabilities.fixture';
 import type { ActionStore, ActorResolver } from '../../ports/governed-action';
 import {
   StaticActionPolicy, StaticActorResolver, StaticCapabilityEnablement, StaticKillSwitch, type StaticActionPolicyConfig,
 } from './defaults';
+import { InMemoryAssertionSink, StaticCommercialEventLookup } from './commercial-evidence';
 import { InMemoryActionStore } from './in-memory-action.store';
 import { SyntheticExecutor, SyntheticProviderLedger, SyntheticVerifier } from './synthetic-executor';
 
@@ -22,6 +23,8 @@ export interface SyntheticRuntimeOptions {
   readonly actors?: readonly ActionActor[];
   /** Defaults to the synthetic TEST catalog (research examples). Never the production catalog. */
   readonly catalog?: CapabilityCatalog;
+  /** CommercialEvent facts an AI proposal may cite (ADR-005 R2-P-01). Default: none. */
+  readonly commercialEvents?: readonly CommercialEventFacts[];
 }
 
 /**
@@ -41,6 +44,8 @@ export function createSyntheticActionPorts(options: SyntheticRuntimeOptions) {
     policy: new StaticActionPolicy(options.policy),
     actors: options.actors ? new StaticActorResolver(options.actors) : syntheticHumans(options.enabled.map((e) => e.workspaceId)),
     catalog: options.catalog ?? SYNTHETIC_CAPABILITY_CATALOG,
+    commercialEvents: new StaticCommercialEventLookup(options.commercialEvents ?? []),
+    assertions: new InMemoryAssertionSink(),
   };
 }
 

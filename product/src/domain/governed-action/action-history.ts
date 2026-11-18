@@ -1,7 +1,8 @@
 import { previewDigestOf } from './action-lifecycle';
 import {
   GovernedActionError, type ActionApproval, type ActionEvent, type ActionExecution, type ActionOutcome, type ActionPreview,
-  type ActionState, type ExecutorStatus, type JsonValue, type ObservedState, type OutcomeState, type PreviewChange, type Verification,
+  type ActionState, type ExecutorStatus, type JsonValue, type ObservedState, type OutcomeState, type PreviewChange, type ProposalEvidence,
+  type Verification,
 } from './governed-action.types';
 
 /**
@@ -26,6 +27,14 @@ const num = (d: Data, k: string): number => d[k] as number;
 const verificationOf = (d: Data): Verification | undefined =>
   d.verification === null || d.verification === undefined ? undefined : d.verification as unknown as Verification;
 
+/** ADR-005: evidence shown to the approver, as recorded in the PREVIEWED event. */
+const evidenceOf = (d: Data): ProposalEvidence | undefined => {
+  const raw = d.evidence as { readonly commercialEventRef?: JsonValue; readonly evidenceRefs?: JsonValue } | null | undefined;
+  if (!raw || typeof raw !== 'object') return undefined;
+  const refs = Array.isArray(raw.evidenceRefs) ? raw.evidenceRefs.filter((r): r is string => typeof r === 'string') : [];
+  return { ...(typeof raw.commercialEventRef === 'string' ? { commercialEventRef: raw.commercialEventRef } : {}), evidenceRefs: refs };
+};
+
 const corrupt = (e: ActionEvent, why: string): never => {
   throw new GovernedActionError('INVALID_INPUT', `history event ${e.sequence} (${e.type}) is not reconstructable: ${why}`);
 };
@@ -42,9 +51,11 @@ export function replayLifecycle(events: readonly ActionEvent[]): LifecycleProjec
         const beforeState = d.beforeState as unknown as ObservedState;
         const changes = d.changes as unknown as PreviewChange[];
         if (!beforeState || !Array.isArray(changes)) corrupt(e, 'preview content missing');
-        if (previewDigestOf(str(d, 'argumentDigest'), beforeState, changes) !== str(d, 'previewDigest')) corrupt(e, 'preview digest mismatch');
+        const evidence = evidenceOf(d);
+        if (previewDigestOf(str(d, 'argumentDigest'), beforeState, changes, evidence) !== str(d, 'previewDigest')) corrupt(e, 'preview digest mismatch');
         s = { ...s, approval: undefined,
-          preview: { beforeState, changes, previewDigest: str(d, 'previewDigest'), previewedAt: e.at, previewedBy: e.actor } };
+          preview: { beforeState, changes, previewDigest: str(d, 'previewDigest'), previewedAt: e.at, previewedBy: e.actor,
+            ...(evidence ? { evidence } : {}) } };
         break;
       }
       case 'AUTHORIZED':

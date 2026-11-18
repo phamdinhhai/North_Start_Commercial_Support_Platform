@@ -151,6 +151,7 @@ describe('GovernedActionService — execution, UNKNOWN outcomes and verification
     const crashing: ActionStore = {
       create: (t) => store.create(t), get: (w, id) => store.get(w, id), events: (w, id) => store.events(w, id),
       appendRefusal: (r) => store.appendRefusal(r), refusals: (w, id) => store.refusals(w, id),
+      appendProposalRefusal: (r) => store.appendProposalRefusal(r), proposalRefusals: (w) => store.proposalRefusals(w),
       transition: async (v, t) => {
         if (t.event.type === 'OUTCOME_RECORDED' && t.event.reason !== 'EXECUTION_LEASE_EXPIRED') throw new Error('process crashed');
         return store.transition(v, t);

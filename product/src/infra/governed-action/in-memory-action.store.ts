@@ -1,6 +1,6 @@
 import { deepFreeze } from '../../domain/governed-action/canonical-json';
 import {
-  GovernedActionError, type ActionEvent, type ActionProposal, type ActionRefusal, type Transition,
+  GovernedActionError, type ActionEvent, type ActionProposal, type ActionRefusal, type ProposalRefusal, type Transition,
 } from '../../domain/governed-action/governed-action.types';
 import type { ActionStore, CreateResult } from '../../ports/governed-action';
 
@@ -17,6 +17,7 @@ export class InMemoryActionStore implements ActionStore {
   private readonly requestKeys = new Map<string, string>();
   private readonly log = new Map<string, ActionEvent[]>();
   private readonly refusalLog = new Map<string, ActionRefusal[]>();
+  private readonly proposeRefusalLog = new Map<string, ProposalRefusal[]>();
 
   async create(t: Transition): Promise<CreateResult> {
     const { proposal, event } = t;
@@ -64,5 +65,16 @@ export class InMemoryActionStore implements ActionStore {
 
   async refusals(workspaceId: string, proposalId: string): Promise<ActionRefusal[]> {
     return (this.refusalLog.get(key(workspaceId, proposalId)) ?? []).map(clone);
+  }
+
+  /** Refused PROPOSE commands (ADR-005 R2-P-01); append-only, workspace scoped. */
+  async appendProposalRefusal(refusal: ProposalRefusal): Promise<void> {
+    const list = this.proposeRefusalLog.get(refusal.workspaceId) ?? [];
+    list.push(clone(refusal));
+    this.proposeRefusalLog.set(refusal.workspaceId, list);
+  }
+
+  async proposalRefusals(workspaceId: string): Promise<ProposalRefusal[]> {
+    return (this.proposeRefusalLog.get(workspaceId) ?? []).map(clone);
   }
 }
