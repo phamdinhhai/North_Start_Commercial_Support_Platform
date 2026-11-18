@@ -2,6 +2,7 @@ import { mkdtempSync, readFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { spawnSync } from 'node:child_process';
+import { randomBytes } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import { Client } from 'pg';
 
@@ -53,15 +54,16 @@ async function main() {
   adminUrl.pathname = '/postgres';
   const admin = new Client({ connectionString: adminUrl.toString(), connectionTimeoutMillis: 5_000 });
   const vitest = resolve(productRoot, 'node_modules/vitest/vitest.mjs');
+  // Per-run names: concurrent runs on a shared server never drop each other's databases.
+  const runId = randomBytes(6).toString('hex');
   let currentDatabase;
   try {
     await admin.connect();
     let totalPassed = 0;
     for (const [index, suite] of requiredSuites.entries()) {
-      const database = `north_start_ci_${index}`;
-      currentDatabase = database;
-      await admin.query(`DROP DATABASE IF EXISTS ${database} WITH (FORCE)`);
+      const database = `north_start_ci_${runId}_${index}`;
       await admin.query(`CREATE DATABASE ${database}`);
+      currentDatabase = database;
       const suiteUrl = new URL(url.toString());
       suiteUrl.pathname = `/${database}`;
       const output = join(directory, `results-${index}.json`);
@@ -82,6 +84,7 @@ async function main() {
       }
       totalPassed += report.numPassedTests;
       await admin.query(`DROP DATABASE IF EXISTS ${database} WITH (FORCE)`);
+      currentDatabase = undefined;
     }
     console.log(`Integration gate: ${requiredSuites.length} suites, ${totalPassed} tests passed without skips`);
   } finally {
