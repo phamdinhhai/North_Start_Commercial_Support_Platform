@@ -63,7 +63,14 @@
       "related_proposals": [
         "P-2026-11-18-02"
       ],
-      "resolution_rule": "Only a human RFC/gate recorded in docs/canonical may change this status; this registry cannot."
+      "resolution_rule": "Only a human RFC/gate recorded in docs/canonical may change this status; this registry cannot.",
+      "owner_decision": {
+        "adr": "docs/implementation-plan/decisions/ADR-005-ce2-commercial-assertion-scope.md",
+        "decided_on": "2026-11-18",
+        "decided_by": "Phạm Đình Hải (repository owner)",
+        "canonical_update": "PENDING_OWNER",
+        "note": "Owner accepted the ADR; docs/canonical/OPEN_DECISIONS.md is human-controlled and still lists this row as open until the owner applies the supersession. Status stays OPEN here to mirror canonical."
+      }
     },
     {
       "id": "MM-1",
@@ -88,7 +95,14 @@
         "P-2026-11-18-03",
         "P-2026-11-18-04"
       ],
-      "resolution_rule": "Only a human RFC/gate recorded in docs/canonical may change this status; this registry cannot."
+      "resolution_rule": "Only a human RFC/gate recorded in docs/canonical may change this status; this registry cannot.",
+      "owner_decision": {
+        "adr": "docs/implementation-plan/decisions/ADR-008-mm1-attribution-model.md",
+        "decided_on": "2026-11-18",
+        "decided_by": "Phạm Đình Hải (repository owner)",
+        "canonical_update": "PENDING_OWNER",
+        "note": "Owner accepted the ADR; docs/canonical/OPEN_DECISIONS.md is human-controlled and still lists this row as open until the owner applies the supersession. Status stays OPEN here to mirror canonical."
+      }
     },
     {
       "id": "ID-1",
@@ -167,7 +181,14 @@
         "P-2026-11-18-08",
         "P-2026-11-18-10"
       ],
-      "resolution_rule": "Only a human RFC/gate recorded in docs/canonical may change this status; this registry cannot."
+      "resolution_rule": "Only a human RFC/gate recorded in docs/canonical may change this status; this registry cannot.",
+      "owner_decision": {
+        "adr": "docs/implementation-plan/decisions/ADR-006-pm1-capability-matrix.md",
+        "decided_on": "2026-11-18",
+        "decided_by": "Phạm Đình Hải (repository owner)",
+        "canonical_update": "PENDING_OWNER",
+        "note": "Owner accepted the ADR; docs/canonical/OPEN_DECISIONS.md is human-controlled and still lists this row as open until the owner applies the supersession. Status stays OPEN here to mirror canonical."
+      }
     },
     {
       "id": "LG-1",
@@ -192,7 +213,14 @@
         "P-2026-11-18-02",
         "P-2026-11-18-10"
       ],
-      "resolution_rule": "Only a human RFC/gate recorded in docs/canonical may change this status; this registry cannot."
+      "resolution_rule": "Only a human RFC/gate recorded in docs/canonical may change this status; this registry cannot.",
+      "owner_decision": {
+        "adr": "docs/implementation-plan/decisions/ADR-007-lg1-phase-scope.md",
+        "decided_on": "2026-11-18",
+        "decided_by": "Phạm Đình Hải (repository owner)",
+        "canonical_update": "PENDING_OWNER",
+        "note": "Owner accepted the ADR; docs/canonical/OPEN_DECISIONS.md is human-controlled and still lists this row as open until the owner applies the supersession. Status stays OPEN here to mirror canonical."
+      }
     }
   ],
   "proposals": [
@@ -234,7 +262,12 @@
       "recommendation": "Adopt the seven-level enum for new registries; keep legacy files read-only; validator enforces it.",
       "migration_impact": "Docs/validator only; no product code or schema change.",
       "owner": "Engineering (research tooling)",
-      "approval_requirement": "Architecture review of registry-validation change"
+      "approval_requirement": "Architecture review of registry-validation change",
+      "owner_decision": {
+        "decided_on": "2026-11-18",
+        "decided_by": "Phạm Đình Hải (repository owner)",
+        "scope": "engineering recommendation adopted as stated"
+      }
     },
     {
       "status": "PROPOSED",
@@ -292,7 +325,12 @@
       "recommendation": "Request one pilot-page Public API credential and a dedicated test POS shop; implement read polling + POS webhook receiver; keep socket and companion as research-only gap detectors.",
       "migration_impact": "New adapter behind existing envelope/receipt tables; no canonical change.",
       "owner": "Product + Engineering (PH4 gate)",
-      "approval_requirement": "PH4 Pancake spike verdict (Product + Engineering)"
+      "approval_requirement": "PH4 Pancake spike verdict (Product + Engineering)",
+      "owner_decision": {
+        "adr": "docs/implementation-plan/decisions/ADR-007-lg1-phase-scope.md",
+        "decided_on": "2026-11-18",
+        "canonical_update": "PENDING_OWNER"
+      }
     },
     {
       "status": "PROPOSED",
@@ -346,7 +384,12 @@
       "recommendation": "Choose the provider used by the first pilot workspace; read-only daily spend + IDs; attribution stays UNKNOWN.",
       "migration_impact": "Append-only observation table keyed by provider/account/object/interval/config.",
       "owner": "Product",
-      "approval_requirement": "Product decision + provider app approval"
+      "approval_requirement": "Product decision + provider app approval",
+      "owner_decision": {
+        "adr": "docs/implementation-plan/decisions/ADR-008-mm1-attribution-model.md",
+        "decided_on": "2026-11-18",
+        "canonical_update": "PENDING_OWNER"
+      }
     },
     {
       "status": "PROPOSED",
@@ -396,7 +439,12 @@
       "recommendation": "Defer until MM-1 RFC and consent review; if started, Data Manager (not legacy upload) with human-approved batches.",
       "migration_impact": "Outbound job + audit records; no canonical attribution field.",
       "owner": "Data + Product",
-      "approval_requirement": "MM-1 RFC + write-path RFC + Security"
+      "approval_requirement": "MM-1 RFC + write-path RFC + Security",
+      "owner_decision": {
+        "adr": "docs/implementation-plan/decisions/ADR-008-mm1-attribution-model.md",
+        "decided_on": "2026-11-18",
+        "canonical_update": "PENDING_OWNER"
+      }
     },
     {
       "status": "PROPOSED",
@@ -445,7 +493,12 @@
       "recommendation": "PostgreSQL job/outbox first; ADAPT BullMQ idempotency patterns; reject Temporal/Kafka for now.",
       "migration_impact": "One migration adding job table (owned by persistence agent).",
       "owner": "Engineering",
-      "approval_requirement": "PH3 persistence/migration review"
+      "approval_requirement": "PH3 persistence/migration review",
+      "owner_decision": {
+        "decided_on": "2026-11-18",
+        "decided_by": "Phạm Đình Hải (repository owner)",
+        "scope": "engineering recommendation adopted as stated"
+      }
     },
     {
       "status": "PROPOSED",
@@ -486,7 +539,12 @@
       "recommendation": "jose-based verifier behind AuthContextResolver with a provider-neutral IdP; keep policy in-process; IdP roles never grant lead access.",
       "migration_impact": "Auth module only; membership tables owned by platform.",
       "owner": "Security",
-      "approval_requirement": "PM-1 RFC + Security review"
+      "approval_requirement": "PM-1 RFC + Security review",
+      "owner_decision": {
+        "adr": "docs/implementation-plan/decisions/ADR-006-pm1-capability-matrix.md",
+        "decided_on": "2026-11-18",
+        "canonical_update": "PENDING_OWNER"
+      }
     },
     {
       "status": "PROPOSED",
@@ -526,7 +584,12 @@
       "recommendation": "Narrow ports until a second OAuth provider is live.",
       "migration_impact": "None now.",
       "owner": "Engineering",
-      "approval_requirement": "Architecture review + Legal (if ELv2 considered)"
+      "approval_requirement": "Architecture review + Legal (if ELv2 considered)",
+      "owner_decision": {
+        "decided_on": "2026-11-18",
+        "decided_by": "Phạm Đình Hải (repository owner)",
+        "scope": "engineering recommendation adopted as stated"
+      }
     },
     {
       "status": "PROPOSED",
@@ -568,7 +631,12 @@
       "recommendation": "OA only; reject personal route; obtain official docs + test OA before any code.",
       "migration_impact": "None now.",
       "owner": "Product",
-      "approval_requirement": "Product + Security"
+      "approval_requirement": "Product + Security",
+      "owner_decision": {
+        "decided_on": "2026-11-18",
+        "decided_by": "Phạm Đình Hải (repository owner)",
+        "scope": "engineering recommendation adopted as stated"
+      }
     },
     {
       "status": "PROPOSED",
@@ -609,7 +677,12 @@
       "recommendation": "Spike against the CRM the first pilot customer uses; external IDs only, no field ownership until ID-2 RFC.",
       "migration_impact": "External-reference table only.",
       "owner": "Engineering + Product",
-      "approval_requirement": "ID-2 mapping RFC"
+      "approval_requirement": "ID-2 mapping RFC",
+      "owner_decision": {
+        "decided_on": "2026-11-18",
+        "decided_by": "Phạm Đình Hải (repository owner)",
+        "scope": "engineering recommendation adopted as stated"
+      }
     },
     {
       "status": "PROPOSED",
@@ -651,7 +724,12 @@
       "recommendation": "Research-only; promotion requires written provider permission artifact.",
       "migration_impact": "None.",
       "owner": "Founder + Security",
-      "approval_requirement": "Founder/Product phase gate + Legal"
+      "approval_requirement": "Founder/Product phase gate + Legal",
+      "owner_decision": {
+        "adr": "docs/implementation-plan/decisions/ADR-007-lg1-phase-scope.md",
+        "decided_on": "2026-11-18",
+        "canonical_update": "PENDING_OWNER"
+      }
     }
   ]
 }

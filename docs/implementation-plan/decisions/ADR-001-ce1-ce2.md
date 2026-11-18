@@ -44,3 +44,9 @@ RFC chốt transition table + scope, hoặc evidence mới từ experiment Gate 
 - `08-verification.md` Gate #A record
 
 > **ID sync note:** Single system R-01…R-28 (`03-requirements.md`), C-01…C-12 (`04-architecture.md`). No dual ID systems. C-12 clarified: workspace isolation = R-01, lead-scoped access = I-09/R-03 — tách biệt, không gộp (OPEN PM-1).
+
+## Gate outcome (append-only)
+
+- **2026-11-18 — CE-2 (Decision §2) superseded by ADR-005** (owner approval, Phạm Đình Hải): Commercial Assertion umbrella; `CommercialEvent` = inferred assertion, non-inferred facts = `AssertionEnvelope`. The interim code shape is retained as the accepted model.
+- **CE-1 (Decision §1) remains interim and OPEN.** No transition table has been approved.
+- Canonical `OPEN_DECISIONS.md` / `COMMERCIAL_EVENT_MODEL.md` supersession text is pending application by the owner (canonical is human-controlled).
