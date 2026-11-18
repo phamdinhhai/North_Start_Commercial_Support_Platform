@@ -8,7 +8,9 @@
       "reason": "ReDoS via repeated extglobs; affects <=4.0.7 and no patched release exists (latest 4.0.7 on 2026-11-18). Reached only through vitest/vite/@nestjs/cli/typescript-eslint tooling matching repository-controlled globs; `npm audit --omit=dev` reports zero advisories.",
       "recordedAt": "2026-11-18",
       "expires": "2026-12-18",
-      "approval": "PENDING_HUMAN_ACCEPTANCE"
+      "approval": "ACCEPTED_BY_OWNER",
+      "approvedBy": "Phạm Đình Hải (repository owner)",
+      "approvedAt": "2026-11-18"
     }
   ]
 }
