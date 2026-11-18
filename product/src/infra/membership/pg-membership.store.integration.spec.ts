@@ -65,22 +65,22 @@ integration('migration 010 + PgMembershipStore (PostgreSQL, ADR-006)', () => {
 
   it('enforces partial-unique active membership, identity uniqueness, base-role, workspace FK and demo-prefix in the database', async () => {
     const userId = (await store.resolveUserId(issuer, 'alice'))!;
-    await expect(db.query("INSERT INTO memberships(workspace_id, user_id, base_role) VALUES ($1,$2,'viewer')", [WS_A, userId]))
+    await expect(db.query("INSERT INTO memberships(workspace_id, user_id, identity_id, base_role) VALUES ($1,$2,(SELECT id FROM external_identity WHERE user_id=$2 LIMIT 1),'viewer')", [WS_A, userId]))
       .rejects.toMatchObject({ code: '23505', constraint: 'memberships_active_unique' });
     await expect(store.grant({ workspaceId: WS_A, issuer, subject: 'alice', baseRole: 'viewer' })).rejects.toMatchObject({ code: 'MEMBERSHIP_EXISTS', status: 409 });
     await expect(db.query('INSERT INTO external_identity(issuer, subject, user_id) VALUES ($1, $2, $3)', [issuer, 'alice', adminId]))
       .rejects.toMatchObject({ code: '23505' });
-    await expect(db.query("INSERT INTO memberships(workspace_id, user_id, base_role) VALUES ($1,$2,'owner')", [WS_A, adminId]))
+    await expect(db.query("INSERT INTO memberships(workspace_id, user_id, identity_id, base_role) VALUES ($1,$2,(SELECT id FROM external_identity WHERE user_id=$2 LIMIT 1),'owner')", [WS_A, adminId]))
       .rejects.toMatchObject({ code: '23514' });
     const demoWs = `demo:${run}`;
     await db.query('INSERT INTO workspace(id, name) VALUES ($1, $2)', [demoWs, 'demo sandbox']);
-    await expect(db.query("INSERT INTO memberships(workspace_id, user_id, base_role) VALUES ($1,$2,'viewer')", [demoWs, userId]))
+    await expect(db.query("INSERT INTO memberships(workspace_id, user_id, identity_id, base_role) VALUES ($1,$2,(SELECT id FROM external_identity WHERE user_id=$2 LIMIT 1),'viewer')", [demoWs, userId]))
       .rejects.toMatchObject({ code: '23514' });
-    await expect(db.query("INSERT INTO memberships(workspace_id, user_id, base_role) VALUES ('ws-missing',$1,'viewer')", [userId]))
+    await expect(db.query("INSERT INTO memberships(workspace_id, user_id, identity_id, base_role) VALUES ('ws-missing',$1,(SELECT id FROM external_identity WHERE user_id=$1 LIMIT 1),'viewer')", [userId]))
       .rejects.toMatchObject({ code: '23503' });
-    await expect(db.query("INSERT INTO memberships(workspace_id, user_id, base_role) VALUES ($1,$2,'viewer')", [WS_B, randomUUID()]))
-      .rejects.toMatchObject({ code: '23503' });
-    await expect(db.query("INSERT INTO memberships(workspace_id, user_id, base_role, status) VALUES ($1,$2,'viewer','revoked')", [WS_B, adminId]))
+    await expect(db.query("INSERT INTO memberships(workspace_id, user_id, identity_id, base_role) VALUES ($1,$2,(SELECT id FROM external_identity WHERE user_id=$2 LIMIT 1),'viewer')", [WS_B, randomUUID()]))
+      .rejects.toMatchObject({ code: '23514' }); // no identity link of that user → refused before the FK
+    await expect(db.query("INSERT INTO memberships(workspace_id, user_id, identity_id, base_role, status) VALUES ($1,$2,(SELECT id FROM external_identity WHERE user_id=$2 LIMIT 1),'viewer','revoked')", [WS_B, adminId]))
       .rejects.toMatchObject({ code: '23514' });
   });
 
@@ -154,7 +154,7 @@ integration('migration 010 + PgMembershipStore (PostgreSQL, ADR-006)', () => {
     const listed = await store.list(WS_A);
     const ivy = listed.filter((m) => m.userId === row.userId);
     expect(ivy.map((m) => m.status)).toEqual(['active', 'revoked']);
-    expect(ivy[0].identities).toEqual([{ issuer, subject: 'ivy' }]);
+    expect(ivy[0].identity).toEqual({ issuer, subject: 'ivy' });
     expect((await store.list(WS_A, { status: 'revoked' })).every((m) => m.status === 'revoked')).toBe(true);
   });
 
@@ -184,7 +184,8 @@ integration('migration 010 + PgMembershipStore (PostgreSQL, ADR-006)', () => {
         expect(gone.rows[0].t).toBeNull();
       }
       const fn = await tx.query(`SELECT 1 FROM pg_proc WHERE proname IN ('memberships_guard_update', 'memberships_guard_delete',
-        'memberships_audit_write', 'membership_audit_append_only', 'platform_user_guard_update', 'principal_guard_immutable')`);
+        'memberships_audit_write', 'membership_audit_append_only', 'platform_user_guard_update', 'principal_guard_immutable',
+        'memberships_check_identity')`);
       expect(fn.rowCount).toBe(0);
       await tx.query(m.up);
       const fresh = await new PgMembershipStore(tx).grant({ workspaceId: WS_A, issuer, subject: 'fresh', baseRole: 'viewer' });
@@ -196,7 +197,7 @@ integration('migration 010 + PgMembershipStore (PostgreSQL, ADR-006)', () => {
       const audited = await tx.query('SELECT operation FROM membership_audit WHERE membership_id=$1', [fresh.id]);
       expect(audited.rows).toEqual([{ operation: 'grant' }]);
       await tx.query('SAVEPOINT partial_unique');
-      await expect(tx.query("INSERT INTO memberships(workspace_id, user_id, base_role) VALUES ($1,$2,'admin')", [WS_A, fresh.userId])).rejects.toMatchObject({ code: '23505' });
+      await expect(tx.query("INSERT INTO memberships(workspace_id, user_id, identity_id, base_role) VALUES ($1,$2,(SELECT id FROM external_identity WHERE user_id=$2 LIMIT 1),'admin')", [WS_A, fresh.userId])).rejects.toMatchObject({ code: '23505' });
       await tx.query('ROLLBACK TO SAVEPOINT partial_unique');
       throw new Rollback('leave the shared disposable database unchanged');
     })).rejects.toBeInstanceOf(Rollback);

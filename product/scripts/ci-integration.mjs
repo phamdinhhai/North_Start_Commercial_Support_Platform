@@ -18,6 +18,7 @@ const requiredSuites = [
   'src/infra/postgres/migration-lifecycle.integration.spec.ts',
   'src/infra/postgres/pilot-loop.integration.spec.ts',
   'src/infra/membership/pg-membership.store.integration.spec.ts',
+  'src/infra/membership/pg-membership.tenancy.integration.spec.ts',
   'src/infra/governed-action/governed-action.integration.spec.ts',
   'src/infra/governed-action/governed-action.review-fixes.integration.spec.ts',
   'src/infra/governed-action/governed-action.adr005.integration.spec.ts',

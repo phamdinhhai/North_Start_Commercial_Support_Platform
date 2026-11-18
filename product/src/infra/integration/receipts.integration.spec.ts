@@ -9,7 +9,7 @@ suite('durable integration receipt transaction', () => {
     let db: PostgresService;
     let store: PgIntegrationStore;
     const enrollment = (): Enrollment => ({ id: randomUUID(), scope: { workspaceId: 'synthetic', connectionId: randomUUID(), accountId: 'a', providerSurface: 'pancake-conversations', pageId: 'p' }, expiresAt: new Date(Date.now() + 60000).toISOString() });
-    const issued: IssuanceAudit = { issuance: 'principal', actorId: 'manager-1', role: 'manager', kid: 'k1' };
+    const issued: IssuanceAudit = { issuance: 'principal', actorId: 'admin-1', role: 'admin', kid: 'k1' };
     const legacy: RevocationRequest = { issuance: 'issuer-secret', actorId: 'issuer-secret', role: null, workspaceId: null };
     const upload: Upload = { captureId: 'capture', sequence: 1, pageId: 'p', observation: { completeness: 'UNKNOWN' } };
     beforeAll(async () => { db = new PostgresService({ connectionString: process.env.TEST_DATABASE_URL }); await new Migrator(db, loadMigrations()).up(); store = new PgIntegrationStore(db); });
@@ -72,11 +72,11 @@ suite('durable integration receipt transaction', () => {
     it('audits issuance and scoped revocation by actor without token material', async () => {
         const e = enrollment();
         await store.enroll(e, issued);
-        await expect(store.revoke(e.id, { issuance: 'principal', actorId: 'other-manager', role: 'manager', workspaceId: 'foreign' })).rejects.toMatchObject({ code: 'ENROLLMENT_NOT_FOUND', status: 404 });
-        await store.revoke(e.id, { issuance: 'principal', actorId: 'manager-1', role: 'manager', workspaceId: 'synthetic' });
+        await expect(store.revoke(e.id, { issuance: 'principal', actorId: 'other-admin', role: 'admin', workspaceId: 'foreign' })).rejects.toMatchObject({ code: 'ENROLLMENT_NOT_FOUND', status: 404 });
+        await store.revoke(e.id, { issuance: 'principal', actorId: 'admin-1', role: 'admin', workspaceId: 'synthetic' });
         const rows = await db.query<{ actor: string; workspace_id: string; event_type: string; new_value: Record<string, unknown> }>("SELECT actor,workspace_id,event_type,new_value FROM audit_record WHERE entity_type='integration-enrollment' AND entity_id=$1 ORDER BY timestamp", [e.id]);
-        expect(rows.rows.map(r => [r.event_type, r.actor, r.workspace_id])).toEqual([['integration.enrollment.issued', 'manager-1', 'synthetic'], ['integration.enrollment.revoked', 'manager-1', 'synthetic']]);
-        expect(rows.rows[0].new_value).toEqual({ issuance: 'principal', role: 'manager', scope: e.scope, kid: 'k1', capability: 'observation:append', expiresAt: e.expiresAt });
+        expect(rows.rows.map(r => [r.event_type, r.actor, r.workspace_id])).toEqual([['integration.enrollment.issued', 'admin-1', 'synthetic'], ['integration.enrollment.revoked', 'admin-1', 'synthetic']]);
+        expect(rows.rows[0].new_value).toEqual({ issuance: 'principal', role: 'admin', scope: e.scope, kid: 'k1', capability: 'observation:append', expiresAt: e.expiresAt });
         expect(JSON.stringify(rows.rows)).not.toMatch(/token|secret/i);
     });
 });

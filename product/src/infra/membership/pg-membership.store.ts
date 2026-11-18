@@ -20,6 +20,11 @@ import { BASE_ROLES, MAX_MEMBERSHIP_LIST, UUID_PATTERN, assertActor, assertMembe
  *   `north.membership_actor` to the acting admin's internal user id; the database trigger writes
  *   append-only `membership_audit` rows with that actor (operator/seed path: `db:<session_user>`).
  * - Rows are never deleted; role change = revoke + new row in the same transaction.
+ * - Tenant isolation: each membership records the identity link its grant used (`identity_id`);
+ *   listings expose only that identity, never links created for other workspaces. USER_DISABLED is
+ *   only stated to a workspace that already has a relationship with the user.
+ * - LAST_ADMIN: revoking/demoting an admin locks the workspace row (FOR NO KEY UPDATE) and refuses
+ *   when no other active admin would remain; concurrent changes serialize on that lock.
  */
 interface MembershipRow {
   id: string;
@@ -87,10 +92,16 @@ export class PgMembershipStore implements MembershipStore {
     const who = assertActor(actor);
     try {
       return await this.transaction(who, async (tx) => {
-        const userId = await this.provision(tx, input.issuer, input.subject);
+        const link = await this.provision(tx, input.issuer, input.subject);
+        if (link.disabled) {
+          // Non-enumerating: only a workspace with an existing (active or historical) membership
+          // learns that the user is disabled; anyone else gets an ordinary grant (login stays refused).
+          const known = await tx.query('SELECT 1 FROM memberships WHERE workspace_id = $1 AND user_id = $2 LIMIT 1', [input.workspaceId, link.userId]);
+          if ((known.rowCount ?? 0) > 0) throw new MembershipError('USER_DISABLED', 409);
+        }
         const result = await tx.query<MembershipRow>(
-          `INSERT INTO memberships (workspace_id, user_id, base_role) VALUES ($1, $2, $3) RETURNING ${COLUMNS}`,
-          [input.workspaceId, userId, input.baseRole],
+          `INSERT INTO memberships (workspace_id, user_id, identity_id, base_role) VALUES ($1, $2, $3, $4) RETURNING ${COLUMNS}`,
+          [input.workspaceId, link.userId, link.identityId, input.baseRole],
         );
         return required(result.rows[0]);
       });
@@ -101,6 +112,10 @@ export class PgMembershipStore implements MembershipStore {
     }
   }
 
+  /**
+   * Operator/test break-glass seam (not reachable over HTTP): revokes by identity WITHOUT the
+   * last-admin guard, exactly like operator SQL. The admin API uses revokeById/changeRole.
+   */
   async revoke(input: { workspaceId: string; issuer: string; subject: string }, actor: MembershipActor = null): Promise<boolean> {
     const who = assertActor(actor);
     return this.transaction(who, async (tx) => {
@@ -136,11 +151,13 @@ export class PgMembershipStore implements MembershipStore {
     const who = assertActor(actor);
     if (!UUID_PATTERN.test(input.membershipId)) return null;
     return this.transaction(who, async (tx) => {
-      const revoked = await this.revokeRow(tx, input.workspaceId, input.membershipId);
+      const revoked = await this.revokeRow(tx, input.workspaceId, input.membershipId, input.baseRole);
       if (!revoked) return null;
+      // The new row keeps the granting identity of the row it replaces (tenant-scoped provenance).
       const result = await tx.query<MembershipRow>(
-        `INSERT INTO memberships (workspace_id, user_id, base_role) VALUES ($1, $2, $3) RETURNING ${COLUMNS}`,
-        [revoked.workspaceId, revoked.userId, input.baseRole],
+        `INSERT INTO memberships (workspace_id, user_id, identity_id, base_role)
+         SELECT workspace_id, user_id, identity_id, $2 FROM memberships WHERE id = $1 RETURNING ${COLUMNS}`,
+        [revoked.id, input.baseRole],
       );
       return { revoked, granted: required(result.rows[0]) };
     });
@@ -149,11 +166,10 @@ export class PgMembershipStore implements MembershipStore {
   async list(workspaceId: string, options: { status?: MembershipStatus; limit?: number } = {}): Promise<WorkspaceMemberListing[]> {
     assertWorkspaceId(workspaceId);
     const limit = Math.min(Math.max(1, Math.trunc(options.limit ?? MAX_MEMBERSHIP_LIST)), MAX_MEMBERSHIP_LIST);
-    const result = await this.db.query<MembershipRow & { identities: { issuer: string; subject: string }[] }>(
-      `SELECT m.id, m.workspace_id, m.user_id, m.base_role, m.status, m.created_at, m.revoked_at,
-              COALESCE((SELECT json_agg(json_build_object('issuer', i.issuer, 'subject', i.subject) ORDER BY i.created_at, i.issuer, i.subject)
-                          FROM external_identity i WHERE i.user_id = m.user_id), '[]'::json) AS identities
-         FROM memberships m
+    // Only the identity THIS membership was granted through (never other links of the user).
+    const result = await this.db.query<MembershipRow & { issuer: string; subject: string }>(
+      `SELECT m.id, m.workspace_id, m.user_id, m.base_role, m.status, m.created_at, m.revoked_at, i.issuer, i.subject
+         FROM memberships m JOIN external_identity i ON i.id = m.identity_id
         WHERE m.workspace_id = $1 AND ($2::text IS NULL OR m.status = $2)
         ORDER BY m.created_at DESC, m.id
         LIMIT $3`,
@@ -161,27 +177,39 @@ export class PgMembershipStore implements MembershipStore {
     );
     return result.rows.flatMap((row) => {
       const membership = toMembership(row);
-      return membership ? [Object.freeze({ ...membership, identities: row.identities.map(({ issuer, subject }) => ({ issuer, subject })) })] : [];
+      return membership ? [Object.freeze({ ...membership, identity: Object.freeze({ issuer: row.issuer, subject: row.subject }) })] : [];
     });
   }
 
   /** Existing identity link → its user; unknown identity → new platform user + immutable link. */
-  private async provision(tx: SqlExecutor, issuer: string, subject: string): Promise<string> {
-    const existing = await tx.query<{ id: string; status: string }>(
-      `SELECT u.id, u.status FROM external_identity i JOIN platform_user u ON u.id = i.user_id
+  private async provision(tx: SqlExecutor, issuer: string, subject: string): Promise<{ userId: string; identityId: string; disabled: boolean }> {
+    const existing = await tx.query<{ user_id: string; identity_id: string; status: string }>(
+      `SELECT u.id AS user_id, i.id AS identity_id, u.status FROM external_identity i JOIN platform_user u ON u.id = i.user_id
         WHERE i.issuer = $1 AND i.subject = $2 FOR SHARE OF u`,
       [issuer, subject],
     );
-    if (existing.rows[0]) {
-      if (existing.rows[0].status !== 'active') throw new MembershipError('USER_DISABLED', 409);
-      return existing.rows[0].id;
-    }
+    const row = existing.rows[0];
+    if (row) return { userId: row.user_id, identityId: row.identity_id, disabled: row.status !== 'active' };
     const user = await tx.query<{ id: string }>('INSERT INTO platform_user DEFAULT VALUES RETURNING id');
-    await tx.query('INSERT INTO external_identity (issuer, subject, user_id) VALUES ($1, $2, $3)', [issuer, subject, user.rows[0].id]);
-    return user.rows[0].id;
+    const link = await tx.query<{ id: string }>('INSERT INTO external_identity (issuer, subject, user_id) VALUES ($1, $2, $3) RETURNING id', [issuer, subject, user.rows[0].id]);
+    return { userId: user.rows[0].id, identityId: link.rows[0].id, disabled: false };
   }
 
-  private async revokeRow(tx: SqlExecutor, workspaceId: string, membershipId: string): Promise<WorkspaceMembership | null> {
+  /**
+   * Revokes an active row of this workspace. LAST_ADMIN: when the row is an admin and the change
+   * does not keep it admin (`nextRole`), the workspace row is locked first (serializing concurrent
+   * membership changes of this workspace) and the change is refused if no other active admin remains.
+   */
+  private async revokeRow(tx: SqlExecutor, workspaceId: string, membershipId: string, nextRole?: AuthRole): Promise<WorkspaceMembership | null> {
+    await tx.query('SELECT 1 FROM workspace WHERE id = $1 FOR NO KEY UPDATE', [workspaceId]);
+    const target = await tx.query<{ base_role: string; status: string }>(
+      'SELECT base_role, status FROM memberships WHERE id = $1 AND workspace_id = $2', [membershipId, workspaceId]);
+    if (target.rows[0]?.status === 'active' && target.rows[0].base_role === 'admin' && nextRole !== 'admin') {
+      const others = await tx.query<{ n: number }>(
+        `SELECT count(*)::int AS n FROM memberships
+          WHERE workspace_id = $1 AND status = 'active' AND base_role = 'admin' AND id <> $2`, [workspaceId, membershipId]);
+      if ((others.rows[0]?.n ?? 0) < 1) throw new MembershipError('LAST_ADMIN', 409);
+    }
     const result = await tx.query<MembershipRow>(
       `UPDATE memberships SET status = 'revoked', revoked_at = now()
         WHERE id = $1 AND workspace_id = $2 AND status = 'active' RETURNING ${COLUMNS}`,

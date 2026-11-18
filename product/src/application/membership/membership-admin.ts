@@ -17,7 +17,9 @@ import {
  * - Grant is the only provisioning path for a new external identity (user + identity link).
  * - Revoke is terminal; role change = revoke + grant (new row) atomically; nothing is deleted.
  * - An admin cannot revoke or change their own membership (prevents accidental lock-out and
- *   self-escalation paths; another admin must do it).
+ *   self-escalation paths; another admin must do it). The store additionally refuses revoking or
+ *   demoting the workspace's last active admin (LAST_ADMIN, race-safe).
+ * - Listings expose only the identity each membership was granted through (tenant isolation).
  */
 const BASE_ROLES: readonly AuthRole[] = ['admin', 'manager', 'sales', 'viewer'];
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
@@ -48,7 +50,8 @@ export interface MembershipView {
 }
 
 export interface MembershipListingView extends MembershipView {
-  identities: { issuer: string; subject: string }[];
+  /** Only the identity this workspace's grant used (tenant isolation). */
+  identity: { issuer: string; subject: string };
 }
 
 function view(m: WorkspaceMembership): MembershipView {
@@ -108,7 +111,7 @@ export class MembershipAdminService {
     const status = q.status;
     if (status !== undefined && !(LIST_STATUSES as readonly unknown[]).includes(status)) return fail('INPUT_INVALID');
     const rows: WorkspaceMemberListing[] = await this.guard(() => this.store.list(admin.workspaceId, { status: status as MembershipStatus | undefined }));
-    return rows.map((m) => ({ ...view(m), identities: m.identities.map(({ issuer, subject }) => ({ issuer, subject })) }));
+    return rows.map((m) => ({ ...view(m), identity: { issuer: m.identity.issuer, subject: m.identity.subject } }));
   }
 
   /** ADR-006: admin of the server-resolved workspace, real (non-demo) internal principal. */

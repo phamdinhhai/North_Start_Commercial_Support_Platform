@@ -1,4 +1,4 @@
-/** Experimental metadata receipt contracts. OPEN: PM-1; no commercial mutation authority. */
+/** Experimental metadata receipt contracts. // ADR-006 — no commercial mutation authority. */
 export interface IntegrationScope {
     workspaceId: string;
     connectionId: string;
@@ -32,12 +32,13 @@ export class IntegrationError extends Error {
 /**
  * Who issued or revoked an enrollment. Never contains token material or key secrets.
  * `issuance` distinguishes the deprecated shared-secret path from an authenticated principal.
- * OPEN: PM-1 — reuses existing manager/admin workspace authority; no new role is introduced.
+ * // ADR-006 — enrollment connector issue/revoke is admin-only: a principal actor is always an
+ * admin of the server-resolved workspace; the deprecated issuer-secret path has no role (null).
  */
 export interface EnrollmentActor {
     issuance: 'principal' | 'issuer-secret';
     actorId: string;
-    role: 'admin' | 'manager' | null;
+    role: 'admin' | null;
 }
 export interface IssuanceAudit extends EnrollmentActor {
     kid: string;

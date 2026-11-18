@@ -17,6 +17,7 @@ CREATE TABLE platform_user (
 );
 
 CREATE TABLE external_identity (
+  id         UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   issuer     TEXT NOT NULL,
   subject    TEXT NOT NULL,
   user_id    UUID NOT NULL REFERENCES platform_user(id),
@@ -32,6 +33,9 @@ CREATE TABLE memberships (
   id           UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   workspace_id TEXT NOT NULL REFERENCES workspace(id),
   user_id      UUID NOT NULL REFERENCES platform_user(id),
+  -- Tenant isolation (R3 review): the identity link THIS workspace's grant used. A workspace only
+  -- ever sees the identities its own grants named, never links created for other workspaces.
+  identity_id  UUID NOT NULL REFERENCES external_identity(id),
   base_role    TEXT NOT NULL,
   status       TEXT NOT NULL DEFAULT 'active',
   created_at   TIMESTAMPTZ NOT NULL DEFAULT now(),
@@ -90,7 +94,7 @@ CREATE TRIGGER external_identity_guard_truncate
 CREATE FUNCTION memberships_guard_update() RETURNS trigger AS $$
 BEGIN
   IF NEW.id <> OLD.id OR NEW.workspace_id <> OLD.workspace_id OR NEW.user_id <> OLD.user_id
-     OR NEW.base_role <> OLD.base_role OR NEW.created_at <> OLD.created_at THEN
+     OR NEW.identity_id <> OLD.identity_id OR NEW.base_role <> OLD.base_role OR NEW.created_at <> OLD.created_at THEN
     RAISE EXCEPTION 'memberships identity/role columns are immutable' USING ERRCODE = 'check_violation';
   END IF;
   IF NOT (OLD.status = 'active' AND NEW.status = 'revoked') THEN
@@ -103,6 +107,20 @@ $$ LANGUAGE plpgsql;
 CREATE TRIGGER memberships_guard_update
   BEFORE UPDATE ON memberships
   FOR EACH ROW EXECUTE FUNCTION memberships_guard_update();
+
+-- The granting identity must be a link of the membership's own user.
+CREATE FUNCTION memberships_check_identity() RETURNS trigger AS $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM external_identity WHERE id = NEW.identity_id AND user_id = NEW.user_id) THEN
+    RAISE EXCEPTION 'memberships.identity_id must belong to memberships.user_id' USING ERRCODE = 'check_violation';
+  END IF;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER memberships_check_identity
+  BEFORE INSERT ON memberships
+  FOR EACH ROW EXECUTE FUNCTION memberships_check_identity();
 
 -- A-m4: rows are never deleted. DELETE/TRUNCATE would let "revoke" be bypassed by delete +
 -- re-insert and would erase history (I-05).
@@ -131,6 +149,7 @@ CREATE TABLE membership_audit (
   operation      TEXT NOT NULL CHECK (operation IN ('grant', 'revoke')),
   workspace_id   TEXT NOT NULL,
   user_id        UUID NOT NULL REFERENCES platform_user(id),
+  identity_id    UUID NOT NULL REFERENCES external_identity(id),
   base_role      TEXT NOT NULL,
   actor          TEXT NOT NULL CHECK (length(actor) BETWEEN 1 AND 256 AND actor !~ '[[:cntrl:]]'),
   actor_user_id  UUID REFERENCES platform_user(id),
@@ -150,11 +169,11 @@ DECLARE
   who      TEXT := COALESCE(actor_id::text, 'db:' || session_user);
 BEGIN
   IF TG_OP = 'INSERT' THEN
-    INSERT INTO membership_audit (membership_id, operation, workspace_id, user_id, base_role, actor, actor_user_id, effective_at)
-    VALUES (NEW.id, 'grant', NEW.workspace_id, NEW.user_id, NEW.base_role, who, actor_id, NEW.created_at);
+    INSERT INTO membership_audit (membership_id, operation, workspace_id, user_id, identity_id, base_role, actor, actor_user_id, effective_at)
+    VALUES (NEW.id, 'grant', NEW.workspace_id, NEW.user_id, NEW.identity_id, NEW.base_role, who, actor_id, NEW.created_at);
   ELSIF OLD.status = 'active' AND NEW.status = 'revoked' THEN
-    INSERT INTO membership_audit (membership_id, operation, workspace_id, user_id, base_role, actor, actor_user_id, effective_at)
-    VALUES (NEW.id, 'revoke', NEW.workspace_id, NEW.user_id, NEW.base_role, who, actor_id, NEW.revoked_at);
+    INSERT INTO membership_audit (membership_id, operation, workspace_id, user_id, identity_id, base_role, actor, actor_user_id, effective_at)
+    VALUES (NEW.id, 'revoke', NEW.workspace_id, NEW.user_id, NEW.identity_id, NEW.base_role, who, actor_id, NEW.revoked_at);
   END IF;
   RETURN NULL;
 END;

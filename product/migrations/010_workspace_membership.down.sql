@@ -11,6 +11,8 @@ DROP TABLE IF EXISTS membership_audit;
 DROP TRIGGER IF EXISTS memberships_guard_truncate ON memberships;
 DROP TRIGGER IF EXISTS memberships_guard_delete ON memberships;
 DROP FUNCTION IF EXISTS memberships_guard_delete();
+DROP TRIGGER IF EXISTS memberships_check_identity ON memberships;
+DROP FUNCTION IF EXISTS memberships_check_identity();
 DROP TRIGGER IF EXISTS memberships_guard_update ON memberships;
 DROP FUNCTION IF EXISTS memberships_guard_update();
 DROP TABLE IF EXISTS memberships;

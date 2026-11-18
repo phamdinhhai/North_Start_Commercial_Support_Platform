@@ -92,7 +92,7 @@ describe('ADR-006 admin membership API (AUTH_MODE=oidc)', () => {
     expect((await call('GET', '/pilot/queue', 'newbie')).status).toBe(200);
     const listed = await call('GET', URL, 'ada');
     expect(listed.status).toBe(200);
-    expect(listed.body.find((m: { id: string }) => m.id === granted.body.id)).toMatchObject({ identities: [{ issuer: TEST_ISSUER, subject: 'newbie' }] });
+    expect(listed.body.find((m: { id: string }) => m.id === granted.body.id)).toMatchObject({ identity: { issuer: TEST_ISSUER, subject: 'newbie' } });
     expect(listed.body.every((m: { workspaceId: string }) => m.workspaceId === 'ws-a')).toBe(true);
     expect((await call('POST', URL, 'ada', { issuer: TEST_ISSUER, subject: 'newbie', baseRole: 'viewer' })).body).toEqual(expect.objectContaining({ code: 'MEMBERSHIP_EXISTS' }));
   });

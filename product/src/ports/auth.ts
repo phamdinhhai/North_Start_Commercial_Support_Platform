@@ -79,7 +79,11 @@ export interface WorkspaceMembership {
 }
 
 export interface WorkspaceMemberListing extends WorkspaceMembership {
-  readonly identities: readonly ExternalIdentityRef[];
+  /**
+   * Tenant isolation: ONLY the identity link this membership was granted through. Other identity
+   * links of the same platform user (e.g. created for another workspace) are never exposed.
+   */
+  readonly identity: ExternalIdentityRef;
 }
 
 /** Read side used on every request; no caching so revocation applies to the next request. */
@@ -113,15 +117,20 @@ export interface MembershipAdministration {
   /**
    * Safe provisioning path: links (issuer, subject) to a platform user — creating the user and
    * the link when the identity is unknown — then inserts a NEW active membership.
-   * Fails with MembershipError MEMBERSHIP_EXISTS (409) while an active row exists, USER_DISABLED (409).
+   * Fails with MembershipError MEMBERSHIP_EXISTS (409) while an active row exists. USER_DISABLED
+   * (409) only when this workspace already has a (active or historical) membership of that user —
+   * otherwise the grant proceeds unchanged, so a disabled state never enumerates across workspaces.
    */
   grant(input: MembershipGrantInput, actor?: MembershipActor): Promise<WorkspaceMembership>;
   /** Operator/test seam: revoke the active membership of (issuer, subject) in the workspace. */
   revoke(input: { workspaceId: string; issuer: string; subject: string }, actor?: MembershipActor): Promise<boolean>;
   get(workspaceId: string, membershipId: string): Promise<WorkspaceMembership | null>;
-  /** Revokes an ACTIVE membership of this workspace; null when unknown, foreign or already revoked. */
+  /**
+   * Revokes an ACTIVE membership of this workspace; null when unknown, foreign or already revoked.
+   * LAST_ADMIN (409) when it is the workspace's only active admin (race-safe).
+   */
   revokeById(input: { workspaceId: string; membershipId: string }, actor?: MembershipActor): Promise<WorkspaceMembership | null>;
-  /** Revoke + grant (new row, new role) atomically; null when unknown, foreign or not active. */
+  /** Revoke + grant (new row, new role) atomically; null when unknown, foreign or not active; LAST_ADMIN on demoting the only admin. */
   changeRole(
     input: { workspaceId: string; membershipId: string; baseRole: AuthRole },
     actor?: MembershipActor,
@@ -132,7 +141,7 @@ export interface MembershipAdministration {
 
 export type MembershipStore = MembershipReader & MembershipAdministration;
 
-export type MembershipErrorCode = 'MEMBERSHIP_EXISTS' | 'USER_DISABLED' | 'CONFLICT' | 'INPUT_INVALID';
+export type MembershipErrorCode = 'MEMBERSHIP_EXISTS' | 'USER_DISABLED' | 'LAST_ADMIN' | 'CONFLICT' | 'INPUT_INVALID';
 
 export class MembershipError extends Error {
   constructor(readonly code: MembershipErrorCode, readonly status: number) {

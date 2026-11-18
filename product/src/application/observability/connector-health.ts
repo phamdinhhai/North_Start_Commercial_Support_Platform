@@ -53,7 +53,7 @@ function view(row: EnrollmentHealthRow, observedAt: Date): EnrollmentHealthView 
 /**
  * Read-only connector health query. Authorization: an authenticated, non-demo manager or
  * admin sees only enrollments scoped to their own server-resolved workspace (I-09).
- * OPEN: PM-1 — manager/admin capability matrix; this read is the narrowest safe default.
+ * // ADR-006 — capability "Connector health (đọc)" = admin + manager; sales/viewer/demo denied.
  */
 export class ConnectorHealthQuery {
   constructor(

@@ -3,7 +3,7 @@ import { describe, it, expect, vi } from 'vitest';
 import { IntegrationIntake } from './intake';
 import { issuerSecretPathAllowed } from './config';
 import type { AuthContext } from '../../ports/auth';
-import type { IntegrationStore } from '../../ports/integration';
+import type { EnrollmentActor, IntegrationStore } from '../../ports/integration';
 
 const secret = () => randomBytes(32).toString('base64url');
 const [k1, k2, issuer] = [secret(), secret(), secret()];
@@ -129,6 +129,16 @@ describe('ADR-006 R2-P-08 — issuer-secret enrollment only in local/test and on
         expect(issuerSecretPathAllowed({ DEPLOYMENT_MODE: 'test', NODE_ENV: 'production', AIL_ISSUER_SECRET_ENABLED: 'true' })).toBe(false);
         expect(issuerSecretPathAllowed({ DEPLOYMENT_MODE: 'test' })).toBe(false);
         expect(issuerSecretPathAllowed({ DEPLOYMENT_MODE: 'test', AIL_ISSUER_SECRET_ENABLED: 'TRUE' })).toBe(false);
+    });
+});
+
+describe('ADR-006 — enrollment actor contract', () => {
+    it('EnrollmentActor.role admits only admin (principal) or null (issuer-secret); manager is a type error', () => {
+        // @ts-expect-error ADR-006: manager is not an enrollment issuance role
+        const manager: EnrollmentActor = { issuance: 'principal', actorId: 'm', role: 'manager' };
+        const admin: EnrollmentActor = { issuance: 'principal', actorId: 'a', role: 'admin' };
+        const secret: EnrollmentActor = { issuance: 'issuer-secret', actorId: 'issuer-secret', role: null };
+        expect([manager, admin, secret].map((a) => a.role)).toEqual(['manager', 'admin', null]);
     });
 });
 

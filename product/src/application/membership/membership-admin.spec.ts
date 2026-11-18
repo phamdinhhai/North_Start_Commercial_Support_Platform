@@ -83,7 +83,7 @@ describe('MembershipAdminService + InMemoryMembershipStore — lifecycle', () =>
     expect(store.auditLog().at(-1)).toMatchObject({ operation: 'grant', membershipId: granted.id, actor: admin.userId });
     const listed = await svc.list(admin, {});
     expect(listed.map((m) => m.id)).toContain(granted.id);
-    expect(listed.find((m) => m.id === granted.id)?.identities).toEqual([{ issuer: ISSUER, subject: 'carol' }]);
+    expect(listed.find((m) => m.id === granted.id)?.identity).toEqual({ issuer: ISSUER, subject: 'carol' });
     await expect(svc.grant(admin, { issuer: ISSUER, subject: 'carol', baseRole: 'viewer' })).rejects.toMatchObject({ status: 409, code: 'MEMBERSHIP_EXISTS' });
     const otherAdmin = { ...admin, workspaceId: 'ws-b' };
     expect(await svc.list(otherAdmin, {})).toEqual([]);
@@ -108,5 +108,37 @@ describe('MembershipAdminService + InMemoryMembershipStore — lifecycle', () =>
     const own = (await store.listActive(admin.userId))[0];
     await expect(svc.revoke(admin, own.id)).rejects.toMatchObject({ status: 409, code: 'SELF_MEMBERSHIP_CHANGE' });
     await expect(svc.changeRole(admin, own.id, { baseRole: 'viewer' })).rejects.toMatchObject({ status: 409, code: 'SELF_MEMBERSHIP_CHANGE' });
+  });
+
+  it('tenant isolation: a workspace lists only the identity its own grant used; USER_DISABLED never enumerates other workspaces', async () => {
+    const inA = await svc.grant(admin, { issuer: ISSUER, subject: 'pat', baseRole: 'sales' });
+    store.linkIdentity(inA.userId, 'https://second-idp.invalid', 'pat-b');
+    const adminB = await store.grant({ workspaceId: 'ws-b', issuer: ISSUER, subject: 'root-b', baseRole: 'admin' });
+    const ctxB: AuthContext = { workspaceId: 'ws-b', userId: adminB.userId, role: 'admin', isDemo: false };
+    const svcB = new MembershipAdminService(store, { issuers: [ISSUER, 'https://second-idp.invalid'] });
+    const inB = await svcB.grant(ctxB, { issuer: 'https://second-idp.invalid', subject: 'pat-b', baseRole: 'viewer' });
+    expect(inB.userId).toBe(inA.userId);
+    expect((await svc.list(admin, {})).find((m) => m.id === inA.id)?.identity).toEqual({ issuer: ISSUER, subject: 'pat' });
+    expect(JSON.stringify(await svc.list(admin, {}))).not.toContain('pat-b');
+    expect((await svcB.list(ctxB, {})).find((m) => m.id === inB.id)?.identity).toEqual({ issuer: 'https://second-idp.invalid', subject: 'pat-b' });
+    store.setUserStatus(inA.userId, 'disabled');
+    const fresh = await store.grant({ workspaceId: 'ws-c', issuer: ISSUER, subject: 'root-c', baseRole: 'admin' });
+    const ctxC: AuthContext = { workspaceId: 'ws-c', userId: fresh.userId, role: 'admin', isDemo: false };
+    await expect(svc.grant(ctxC, { issuer: ISSUER, subject: 'pat', baseRole: 'viewer' })).resolves.toMatchObject({ status: 'active', workspaceId: 'ws-c' });
+    await svc.revoke(admin, inA.id);
+    await expect(svc.grant(admin, { issuer: ISSUER, subject: 'pat', baseRole: 'sales' })).rejects.toMatchObject({ status: 409, code: 'USER_DISABLED' });
+  });
+
+  it('LAST_ADMIN: two admins revoking each other concurrently — exactly one succeeds', async () => {
+    const second = await svc.grant(admin, { issuer: ISSUER, subject: 'co-admin', baseRole: 'admin' });
+    const own = (await store.listActive(admin.userId))[0];
+    const ctx2: AuthContext = { workspaceId: 'ws-a', userId: second.userId, role: 'admin', isDemo: false };
+    const results = await Promise.allSettled([svc.revoke(admin, second.id), svc.revoke(ctx2, own.id)]);
+    expect(results.filter((r) => r.status === 'fulfilled')).toHaveLength(1);
+    expect(results.find((r) => r.status === 'rejected')).toMatchObject({ reason: { code: 'LAST_ADMIN', status: 409 } });
+    expect((await svc.list(admin, { status: 'active' })).filter((m) => m.baseRole === 'admin')).toHaveLength(1);
+    const remaining = (await svc.list(admin, { status: 'active' })).find((m) => m.baseRole === 'admin')!;
+    await expect(store.changeRole({ workspaceId: 'ws-a', membershipId: remaining.id, baseRole: 'viewer' })).rejects.toMatchObject({ code: 'LAST_ADMIN' });
+    await expect(store.revokeById({ workspaceId: 'ws-a', membershipId: remaining.id })).rejects.toMatchObject({ code: 'LAST_ADMIN' });
   });
 });

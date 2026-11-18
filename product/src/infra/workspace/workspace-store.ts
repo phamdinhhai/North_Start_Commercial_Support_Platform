@@ -4,7 +4,7 @@
  * Mỗi store entry gắn với workspaceId — query scoped, cross-workspace reject.
  * NOTE: workspace isolation (R-01) ≠ I-09 (lead-scoped access). I-09 enforced separately
  * in domain layer where Sales access is scoped to assigned lead, not entire workspace inbox.
- * // OPEN: PM-1 — I-09 lead-scoped chưa chốt chi tiết
+ * // ADR-006 — lead-scoped read (I-09) is decided in the capability matrix and enforced by RbacService.
  *
  * In-memory PH1, được replace bởi durable persistence trong PH3+.
  */
