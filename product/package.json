@@ -37,7 +37,7 @@
     "test:registry": "node --test scripts/registry-validation.test.mjs",
     "architecture:check": "node scripts/check-architecture.mjs --report",
     "architecture:check:strict": "node scripts/check-architecture.mjs",
-    "test:ail:research": "node --test scripts/ail/facebook-research-summary.test.mjs scripts/ail/facebook-tag-research-policy.test.mjs scripts/ail/websocket-fault-probe.test.mjs"
+    "test:ail:research": "node --test scripts/ail/facebook-research-summary.test.mjs scripts/ail/facebook-tag-research-policy.test.mjs scripts/ail/websocket-fault-probe.test.mjs scripts/ail/research-capture-gate.test.mjs"
   },
   "dependencies": {
     "@nestjs/common": "^11.0.0",
