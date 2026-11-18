@@ -36,6 +36,16 @@ describe('integration response boundary', () => {
         await expect(controller.revokeAsPrincipal({}, { enrollmentId: 'x' })).rejects.toMatchObject({ status: 401 });
         expect(intake.revokeAsPrincipal).toHaveBeenCalledWith(null, { enrollmentId: 'x' });
     });
+    it('A-M5: hands the resolver the request headers object itself, not a copy', async () => {
+        const { intake, auth, controller } = setup();
+        vi.mocked(intake.enrollAsPrincipal).mockResolvedValue({} as never);
+        vi.mocked(intake.revokeAsPrincipal).mockResolvedValue({ revoked: true });
+        const headers = { authorization: 'Bearer app' };
+        await controller.enrollAsPrincipal(headers, {});
+        await controller.revokeAsPrincipal(headers, { enrollmentId: 'x' });
+        expect(auth.resolve.mock.calls.map(([req]) => req.headers)).toEqual([headers, headers]);
+        for (const [req] of auth.resolve.mock.calls) expect(req.headers).toBe(headers);
+    });
     it('redacts resolver failures as unavailable without leaking detail', async () => {
         const { auth, controller } = setup();
         auth.resolve.mockImplementation(() => { throw new Error('idp secret detail'); });

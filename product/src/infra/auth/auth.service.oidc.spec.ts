@@ -13,15 +13,29 @@ describe('AuthService — AUTH_MODE=oidc seam (OPEN: PM-1)', () => {
     }
   });
 
-  it('returns only the context attached to this exact headers object', () => {
+  it('returns only the context attached to this request (brand), never one rebuilt from header values', () => {
     process.env.AUTH_MODE = 'oidc';
     const registry = new VerifiedContextRegistry();
     const svc = new AuthService(registry);
     const headers: Record<string, string | undefined> = { authorization: 'Bearer anything' };
     registry.attach(headers, { workspaceId: 'ws-a', userId: 'alice', role: 'sales', isDemo: false });
     expect(svc.resolve({ headers })).toEqual({ workspaceId: 'ws-a', userId: 'alice', role: 'sales', isDemo: false });
-    // A copy with identical values (what a client could reproduce) does not match.
-    expect(svc.resolve({ headers: { ...headers } })).toBeNull();
+    // A-M5: server-side shallow copies (spread, Fastify's Object.assign merge) keep the request brand.
+    expect(svc.resolve({ headers: { ...headers } })).toEqual({ workspaceId: 'ws-a', userId: 'alice', role: 'sales', isDemo: false });
+    expect(svc.resolve({ headers: Object.assign({}, headers, { 'x-extra': '1' }) })?.userId).toBe('alice');
+    // What a client can reproduce — identical string values, JSON round-trip, any header named
+    // like the brand — does not match.
+    expect(svc.resolve({ headers: { authorization: 'Bearer anything' } })).toBeNull();
+    expect(svc.resolve({ headers: JSON.parse(JSON.stringify(headers)) })).toBeNull();
+    expect(svc.resolve({ headers: { authorization: 'Bearer anything', 'north.verifiedContext': '{}', 'Symbol(north.verifiedContext)': '{}' } })).toBeNull();
+    // A brand from another registry instance is unknown here; a request is branded at most once.
+    const other = new VerifiedContextRegistry();
+    expect(other.lookup(headers)).toBeNull();
+    expect(() => registry.attach(headers, { workspaceId: 'ws-b', userId: 'mallory', role: 'admin', isDemo: false })).toThrow();
+    expect(svc.resolve({ headers })?.workspaceId).toBe('ws-a');
+    // Headers are not mutated in any visible (string-keyed) way.
+    expect(Object.keys(headers)).toEqual(['authorization']);
+    expect(JSON.stringify(headers)).toBe('{"authorization":"Bearer anything"}');
   });
 
   it('without a lookup (e.g. manually constructed), OIDC mode denies every bearer', () => {

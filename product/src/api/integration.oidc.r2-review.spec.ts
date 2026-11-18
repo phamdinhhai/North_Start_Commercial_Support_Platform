@@ -67,16 +67,11 @@ describe('R2 independent QA — OIDC principal reaches /integration/enrollments'
 
   // Body {workspaceId} is refused AFTER principal resolution with 400 WORKSPACE_FROM_CONTEXT, so the
   // status code tells us whether the principal was resolved without touching the store.
-  it.fails('verified manager is resolved by IntegrationController (expected 400 WORKSPACE_FROM_CONTEXT)', async () => {
+  // Fixed by A-M5 (work/r2-fix-auth): flipped from it.fails.
+  it('verified manager is resolved by IntegrationController (expected 400 WORKSPACE_FROM_CONTEXT)', async () => {
     const headers = { authorization: `Bearer ${await mintToken(key, { sub: 'mgr' })}` };
     const res = await inject('/integration/enrollments', headers, { workspaceId: 'ws-a' });
     expect(res.statusCode).toBe(400);
   });
-
-  it('evidence of current behaviour: 401 UNAUTHORIZED although the token and membership are valid', async () => {
-    const headers = { authorization: `Bearer ${await mintToken(key, { sub: 'mgr' })}` };
-    const res = await inject('/integration/enrollments', headers, { workspaceId: 'ws-a' });
-    expect(res.statusCode).toBe(401);
-    expect(res.json()).toMatchObject({ code: 'UNAUTHORIZED' });
-  });
+  // The pre-fix 401 defect-evidence case was removed after A-M5; the case above guards the regression.
 });

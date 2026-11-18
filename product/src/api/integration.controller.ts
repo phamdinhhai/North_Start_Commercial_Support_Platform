@@ -55,9 +55,13 @@ export class IntegrationController {
     auth: unknown,
     @Body()
     body: unknown) { return this.call(() => this.intake.append(auth, body)); }
-    /** Headers only: the request body never participates in principal resolution. */
+    /**
+     * Headers only: the request body never participates in principal resolution.
+     * A-M5: pass the request's own headers object (as every other controller does), never a
+     * copy — the verified OIDC context is bound to it by the request hook.
+     */
     private principal(headers: Record<string, string | undefined>): AuthContext | null {
-        return this.auth.resolve({ headers: { ...headers } });
+        return this.auth.resolve({ headers });
     }
     private async call<T>(fn: () => Promise<T>): Promise<T> {
         try {

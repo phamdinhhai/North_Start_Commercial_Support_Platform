@@ -1,3 +1,4 @@
+import { createHash } from 'node:crypto';
 import type { AccessTokenVerifier, AuthContext, MembershipReader, TokenRejectionReason } from '../../ports/auth';
 
 /**
@@ -18,6 +19,26 @@ const WORKSPACE_ID_PATTERN = /^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$/;
 /** AuthContext contract shared with other consumers of AUTH_CONTEXT_RESOLVER. */
 const CONTEXT_WORKSPACE_PATTERN = /^[a-zA-Z0-9:_./-]{1,256}$/;
 const CONTROL_CHARS = /[\u0000-\u001f\u007f]/;
+/** Upper bound of AuthContext.userId (same bound as enrollment actor ids). */
+const MAX_USER_ID = 256;
+const ISSUER_TAG_HEX = 24;
+
+/**
+ * A-m5: AuthContext.userId for an OIDC principal = `oidc:<sha256(iss) first 24 hex>:<sub>`.
+ * - Namespaced by issuer, so a token from a different issuer (or a legacy/bootstrap actor id such
+ *   as `bootstrap-admin` or an unsigned dev `userId`) can never equal an existing lead owner
+ *   (`assignedTo === userId`) and silently inherit ownership.
+ * - Stable: depends only on the verified `iss` (exact string) and `sub`; no lookup or mapping table.
+ * - Contract: 1..256 chars, no control characters (subjects longer than 226 chars are refused).
+ * Not an identity-resolution or merge rule: ID-1 concerns Customer/Lead identity, not operator
+ * principals, and is untouched. // OPEN: PM-1 — a mapped internal user id may replace this form.
+ */
+export function oidcUserId(issuer: string, subject: string): string | null {
+  if (subject.length === 0 || CONTROL_CHARS.test(subject) || issuer.length === 0 || CONTROL_CHARS.test(issuer)) return null;
+  const tag = createHash('sha256').update(issuer, 'utf8').digest('hex').slice(0, ISSUER_TAG_HEX);
+  const id = `oidc:${tag}:${subject}`;
+  return id.length <= MAX_USER_ID ? id : null;
+}
 
 export type OidcDecision =
   | { readonly kind: 'none' }
@@ -48,9 +69,8 @@ export class OidcAuthenticator {
     const verification = await this.verifier.verify(authorization.slice('Bearer '.length));
     if (!verification.ok) return { kind: 'unauthenticated', reason: verification.reason };
     const { issuer, subject } = verification.principal;
-    if (subject.length === 0 || subject.length > 256 || CONTROL_CHARS.test(subject)) {
-      return { kind: 'unauthenticated', reason: 'missing_claim' };
-    }
+    const userId = oidcUserId(issuer, subject);
+    if (userId === null) return { kind: 'unauthenticated', reason: 'missing_claim' };
     const requested = single(headers[WORKSPACE_REQUEST_HEADER]);
     if (requested === null || (requested !== undefined && !WORKSPACE_ID_PATTERN.test(requested))) {
       return { kind: 'invalid_request', reason: 'workspace_header_invalid' };
@@ -61,16 +81,16 @@ export class OidcAuthenticator {
     if (requested !== undefined) {
       const match = active.find((m) => m.workspaceId === requested);
       if (!match) return { kind: 'forbidden', reason: 'workspace_not_member' };
-      return { kind: 'authenticated', context: toContext(match.workspaceId, subject, match.baseRole) };
+      return { kind: 'authenticated', context: toContext(match.workspaceId, userId, match.baseRole) };
     }
     if (active.length === 0) return { kind: 'unauthenticated', reason: 'no_membership' };
     if (active.length > 1) return { kind: 'unauthenticated', reason: 'workspace_selection_required' };
-    return { kind: 'authenticated', context: toContext(active[0].workspaceId, subject, active[0].baseRole) };
+    return { kind: 'authenticated', context: toContext(active[0].workspaceId, userId, active[0].baseRole) };
   }
 }
 
-function toContext(workspaceId: string, subject: string, role: AuthContext['role']): AuthContext {
-  // userId = OIDC `sub` of the single configured issuer. Multi-issuer principal linking is
-  // deliberately not implemented (would touch ID-1/PM-1 identity semantics).
-  return Object.freeze({ workspaceId, userId: subject, role, isDemo: false });
+function toContext(workspaceId: string, userId: string, role: AuthContext['role']): AuthContext {
+  // userId = issuer-namespaced subject (see oidcUserId). Multi-issuer principal LINKING is
+  // deliberately not implemented (would touch PM-1 principal-model semantics).
+  return Object.freeze({ workspaceId, userId, role, isDemo: false });
 }
