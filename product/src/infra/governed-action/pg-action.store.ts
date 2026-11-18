@@ -1,7 +1,7 @@
 import { deepFreeze, parseCanonical } from '../../domain/governed-action/canonical-json';
 import {
-  GovernedActionError, type ActionConstraints, type ActionEvent, type ActionProposal, type ActorKind, type ActionState,
-  type RiskClass, type TargetResource, type Transition,
+  GovernedActionError, type ActionConstraints, type ActionEvent, type ActionProposal, type ActionRefusal, type ActorKind,
+  type ActionState, type GovernedActionErrorCode, type RiskClass, type TargetResource, type Transition,
 } from '../../domain/governed-action/governed-action.types';
 import type { ActionStore, CreateResult } from '../../ports/governed-action';
 import type { TransactionRunner } from '../postgres/migrator';
@@ -21,6 +21,11 @@ interface EventRow {
   reason: string; data: ActionEvent['data']; recorded_at: Date;
 }
 
+interface RefusalRow {
+  workspace_id: string; proposal_id: string; proposal_version: number; command: string; code: GovernedActionErrorCode;
+  actor_kind: ActorKind; actor_id: string; reason: string; details: string[]; recorded_at: Date;
+}
+
 const PROPOSAL_COLUMNS = `id, workspace_id, request_key, capability_id, risk_class, target, arguments_canonical,
   argument_digest, proposer_kind, proposer_id, rationale, constraints, lead_id, idempotency_key, created_at,
   expires_at, state, version, attempts, projection`;
@@ -28,7 +33,8 @@ const PROPOSAL_COLUMNS = `id, workspace_id, request_key, capability_id, risk_cla
 /**
  * PostgreSQL ActionStore (migration 011). Every transition is a single transaction:
  * CAS UPDATE on (workspace_id, id, version) + INSERT of the event with sequence = new version.
- * Events are append-only at the database level (triggers refuse UPDATE/DELETE/TRUNCATE).
+ * Events and refusals are append-only at the database level (triggers refuse UPDATE/DELETE/TRUNCATE).
+ * Refusals are a separate table and never take part in the proposal CAS (A-m1).
  */
 export class PgActionStore implements ActionStore {
   constructor(private readonly db: TransactionRunner & SqlExecutor) {}
@@ -96,6 +102,31 @@ export class PgActionStore implements ActionStore {
       proposalId: r.proposal_id, workspaceId: r.workspace_id, sequence: r.sequence, type: r.event_type,
       fromState: r.from_state, toState: r.to_state, actor: { kind: r.actor_kind, id: r.actor_id },
       at: r.recorded_at.toISOString(), reason: r.reason, data: r.data,
+    }));
+  }
+
+  async appendRefusal(r: ActionRefusal): Promise<void> {
+    if (!isUuid(r.proposalId)) throw new GovernedActionError('NOT_FOUND', 'proposal not found');
+    await this.db.query(
+      `INSERT INTO governed_action_refusal
+         (workspace_id, proposal_id, proposal_version, command, code, actor_kind, actor_id, reason, details, recorded_at)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9::jsonb,$10)`,
+      [r.workspaceId, r.proposalId, r.proposalVersion, r.command, r.code, r.actor.kind, r.actor.id, r.reason,
+        JSON.stringify(r.details), r.at],
+    );
+  }
+
+  async refusals(workspaceId: string, proposalId: string): Promise<ActionRefusal[]> {
+    if (!isUuid(proposalId)) return [];
+    const result = await this.db.query<RefusalRow>(
+      `SELECT workspace_id, proposal_id, proposal_version, command, code, actor_kind, actor_id, reason, details, recorded_at
+         FROM governed_action_refusal WHERE workspace_id = $1 AND proposal_id = $2 ORDER BY id`,
+      [workspaceId, proposalId],
+    );
+    return result.rows.map((r) => deepFreeze({
+      proposalId: r.proposal_id, workspaceId: r.workspace_id, proposalVersion: r.proposal_version, command: r.command,
+      code: r.code, actor: { kind: r.actor_kind, id: r.actor_id }, at: r.recorded_at.toISOString(), reason: r.reason,
+      details: r.details,
     }));
   }
 }

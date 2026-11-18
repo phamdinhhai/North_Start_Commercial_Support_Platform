@@ -5,18 +5,21 @@ import {
   authorize, beginExecution, markStaleExecution, preview, propose, recordExecutionResult, recordVerification,
   type ExecutionFacts, type PolicyFacts,
 } from './action-lifecycle';
-import { CAPABILITY_CATALOG, findCapability, parseMoney, validateArguments } from './capability-catalog';
+import { PRODUCTION_CAPABILITY_CATALOG, parseMoney, validateArguments } from './capability-catalog';
+import { SYNTHETIC_CAPABILITY_CATALOG } from './testing/synthetic-capabilities.fixture';
 import type { ActionProposal, ObservedState, Verification } from './governed-action.types';
 
 const NOW = new Date('2026-11-18T09:00:00.000Z');
 const later = (ms: number) => new Date(NOW.getTime() + ms);
+const findCapability = (id: string) => SYNTHETIC_CAPABILITY_CATALOG.find(id);
 const budgetCap = findCapability('ads.campaign.budget.update')!;
 const target = { provider: 'synthetic-ads', accountId: 'acct-1', resourceType: 'campaign', resourceId: 'cmp-1' };
 const constraints = { maxBudgetDeltaPercent: 20, protectedAccountIds: ['acct-x'], approvalTtlMs: 600_000 };
 const money = (amountMinor: string, currency = 'VND') => ({ amountMinor, currency });
 const observed = (amount: string): ObservedState => ({ status: 'OBSERVED', value: { dailyBudget: money(amount) }, synthetic: true });
 const facts: PolicyFacts = { authority: { allowed: true }, capabilityEnabled: true, killSwitch: { engaged: false }, constraintViolations: [] };
-const execFacts: ExecutionFacts = { ...facts, executorEnabled: true };
+const execFacts: ExecutionFacts = { ...facts, executorEnabled: true, currentState: observed('100') };
+const housekeeper = { actor: { kind: 'human' as const, id: 'ops' }, authorityAllowed: true, trigger: 'command' as const };
 const verification = (observation: Verification['observation']): Verification => ({ observation, evidence: null, observedAt: NOW.toISOString(), reason: observation });
 
 function proposed(proposerKind: 'human' | 'ai' = 'human'): ActionProposal {
@@ -60,9 +63,16 @@ describe('canonical JSON + digest', () => {
 });
 
 describe('capability catalog', () => {
-  it('declares every capability as data, consequential and disabled by default', () => {
-    expect(CAPABILITY_CATALOG.map((c) => c.id)).toEqual(expect.arrayContaining(['ads.campaign.budget.update', 'pancake.message.send', 'pos.order.create']));
-    expect(CAPABILITY_CATALOG.every((c) => c.enabledByDefault === false && c.consequential && Object.isFrozen(c))).toBe(true);
+  it('A-M3: the production catalog ships empty (deny-all); research examples exist only in the test fixture', () => {
+    expect(PRODUCTION_CAPABILITY_CATALOG.entries).toEqual([]);
+    for (const id of ['pancake.message.send', 'ads.campaign.budget.update', 'ads.campaign.status.update', 'ads.offline_conversion.upload', 'pos.order.create']) {
+      expect(PRODUCTION_CAPABILITY_CATALOG.find(id)).toBeUndefined();
+      expect(SYNTHETIC_CAPABILITY_CATALOG.find(id)).toBeDefined();
+    }
+  });
+  it('declares every fixture capability as data, consequential and disabled by default', () => {
+    const entries = SYNTHETIC_CAPABILITY_CATALOG.entries;
+    expect(entries.every((c) => c.enabledByDefault === false && c.consequential && Object.isFrozen(c))).toBe(true);
   });
   it('validates exact argument shapes and integer minor-unit money', () => {
     expect(validateArguments(budgetCap, { dailyBudget: money('100') })).toEqual([]);
@@ -132,9 +142,10 @@ describe('lifecycle state machine', () => {
     expect(outcome('APPLIED')).toBe('UNKNOWN');
     const unknown = recordExecutionResult(started, { executorStatus: 'UNKNOWN', reason: 'timeout' }, NOW).proposal;
     throwsCode(() => beginExecution(unknown, { actor: { kind: 'human', id: 'a' }, facts: execFacts }, NOW), 'OUTCOME_UNKNOWN_RETRY_REFUSED');
-    expect(recordVerification(unknown, { actor: { kind: 'service', id: 's' }, verification: verification('UNKNOWN') }, NOW).proposal.state).toBe('UNKNOWN');
-    expect(recordVerification(unknown, { actor: { kind: 'service', id: 's' }, verification: verification('EXECUTED') }, NOW).proposal.state).toBe('SUCCEEDED_VERIFIED');
-    throwsCode(() => markStaleExecution(started, 60_000, later(59_999)), 'EXECUTION_IN_FLIGHT');
-    expect(markStaleExecution(started, 60_000, later(60_000)).proposal.state).toBe('UNKNOWN');
+    const granted = { allowed: true, serviceGrant: true };
+    expect(recordVerification(unknown, { actor: { kind: 'service', id: 's' }, verification: verification('UNKNOWN'), authority: granted }, NOW).proposal.state).toBe('UNKNOWN');
+    expect(recordVerification(unknown, { actor: { kind: 'service', id: 's' }, verification: verification('EXECUTED'), authority: granted }, NOW).proposal.state).toBe('SUCCEEDED_VERIFIED');
+    throwsCode(() => markStaleExecution(started, { ...housekeeper, leaseMs: 60_000 }, later(59_999)), 'EXECUTION_IN_FLIGHT');
+    expect(markStaleExecution(started, { ...housekeeper, leaseMs: 60_000 }, later(60_000)).proposal.state).toBe('UNKNOWN');
   });
 });

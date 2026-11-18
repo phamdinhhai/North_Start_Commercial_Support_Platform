@@ -1,27 +1,34 @@
 import { randomUUID } from 'node:crypto';
 import { evaluateConstraints, type ConstraintStage } from '../../domain/governed-action/action-constraints';
 import {
-  authorize, beginExecution, cancel, expire, markStaleExecution, preview, propose, recordExecutionResult,
-  recordRefusal, recordVerification, reject, type ExecutionFacts, type PolicyFacts,
+  authorize, beginExecution, cancel, expire, markStaleExecution, normalizeLeadId, preview, propose, recordExecutionResult,
+  recordRefusal, recordVerification, reject, requireRunAuthority, type ExecutionFacts, type PolicyFacts,
 } from '../../domain/governed-action/action-lifecycle';
-import { findCapability, type CapabilityDefinition } from '../../domain/governed-action/capability-catalog';
 import {
-  GovernedActionError, isGovernedActionError, type ActionActor, type ActionEvent, type ActionProposal,
-  type JsonValue, type ObservedState, type TargetResource, type Transition, type Verification,
+  PRODUCTION_CAPABILITY_CATALOG, type CapabilityCatalog, type CapabilityDefinition,
+} from '../../domain/governed-action/capability-catalog';
+import {
+  GovernedActionError, isGovernedActionError, type ActionActor, type ActionEvent, type ActionPrincipal, type ActionProposal,
+  type ActionRefusal, type JsonValue, type ObservedState, type TargetResource, type Transition, type Verification,
 } from '../../domain/governed-action/governed-action.types';
 import type {
-  ActionExecutionResult, ActionExecutor, ActionKillSwitch, ActionPolicy, ActionPolicyContext, ActionRequest,
-  ActionStore, ActionVerifier, CapabilityEnablement, GovernedActionClock, KillSwitchStatus, PolicyDecision,
+  ActionExecutionResult, ActionExecutor, ActionHousekeepingCommand, ActionKillSwitch, ActionPolicy, ActionPolicyContext,
+  ActionReadCommand, ActionRequest, ActionStore, ActionVerifier, ActorResolver, CapabilityEnablement, GovernedActionClock,
+  KillSwitchStatus, PolicyDecision,
 } from '../../ports/governed-action';
 import { withDeadline } from './deadline';
 
 export interface GovernedActionDeps {
   readonly store: ActionStore;
   readonly policy: ActionPolicy;
+  /** Server-side actor-kind resolution (A-m2). Required: there is no trusting default. */
+  readonly actors: ActorResolver;
   readonly executor: ActionExecutor;
   readonly verifier: ActionVerifier;
   readonly killSwitch: ActionKillSwitch;
   readonly enablement: CapabilityEnablement;
+  /** Defaults to the production catalog, which is empty (deny-all). OPEN: LG-1. */
+  readonly catalog?: CapabilityCatalog;
   readonly clock?: GovernedActionClock;
   readonly newId?: () => string;
   readonly executionTimeoutMs?: number;
@@ -47,15 +54,18 @@ export interface AuthorizeCommand {
 
 const DEFAULT_TTL_MS = 24 * 60 * 60_000;
 const DENY_UNAVAILABLE: PolicyDecision = { allowed: false, reason: 'POLICY_UNAVAILABLE' };
+const ACTOR_KINDS = new Set(['human', 'ai', 'service']);
 
 /**
  * Governed Commercial Action runtime: Propose → Preview → Authorize → Execute → Verify → Audit.
  * Not wired to HTTP in this round. Every command is workspace scoped from the authenticated
- * actor; every state change and every in-workspace refusal is appended to the event log.
+ * principal, whose kind is resolved server-side; every state change is appended to the event
+ * log and every in-workspace refusal to the separate refusal log (no version bump).
  */
 export class GovernedActionService {
   private readonly clock: GovernedActionClock;
   private readonly newId: () => string;
+  private readonly catalog: CapabilityCatalog;
   private readonly executionTimeoutMs: number;
   private readonly readbackTimeoutMs: number;
   private readonly executionLeaseMs: number;
@@ -63,24 +73,31 @@ export class GovernedActionService {
   constructor(private readonly deps: GovernedActionDeps) {
     this.clock = deps.clock ?? { now: () => new Date() };
     this.newId = deps.newId ?? randomUUID;
+    this.catalog = deps.catalog ?? PRODUCTION_CAPABILITY_CATALOG;
     this.executionTimeoutMs = deps.executionTimeoutMs ?? 10_000;
     this.readbackTimeoutMs = deps.readbackTimeoutMs ?? 10_000;
     this.executionLeaseMs = deps.executionLeaseMs ?? 5 * 60_000;
   }
 
-  async propose(actor: ActionActor, command: ProposeCommand): Promise<ActionProposal> {
+  async propose(principal: ActionPrincipal, command: ProposeCommand): Promise<ActionProposal> {
+    const actor = await this.resolveActor(principal);
     const capability = this.capability(command.capabilityId);
+    const leadId = normalizeLeadId(command.leadId);
     const ctx: ActionPolicyContext = {
       workspaceId: actor.workspaceId, capabilityId: capability.id, riskClass: capability.riskClass,
-      target: command.target, ...(command.leadId ? { leadId: command.leadId } : {}),
+      target: command.target, ...(leadId ? { leadId } : {}),
     };
+    if (leadId) {
+      const lead = await this.decide(() => this.deps.policy.mayAccessLead(actor, { ...ctx, leadId }));
+      if (!lead.allowed) throw new GovernedActionError('ACTOR_NOT_AUTHORIZED', 'lead is outside the actor scope');
+    }
     const decision = await this.decide(() => this.deps.policy.mayPropose(actor, ctx));
     if (!decision.allowed) throw new GovernedActionError('ACTOR_NOT_AUTHORIZED', decision.reason);
     const constraints = await this.constraints(ctx);
     const t = propose({
       id: this.newId(), workspaceId: actor.workspaceId, requestKey: command.requestKey, capability,
       target: command.target, arguments: command.arguments, proposer: actor, rationale: command.rationale,
-      constraints, ttlMs: command.ttlMs ?? DEFAULT_TTL_MS, ...(command.leadId ? { leadId: command.leadId } : {}),
+      constraints, ttlMs: command.ttlMs ?? DEFAULT_TTL_MS, ...(leadId ? { leadId } : {}),
       constraintViolations: evaluateConstraints({
         capability, target: command.target, arguments: command.arguments as JsonValue, constraints, stage: 'propose',
       }),
@@ -89,15 +106,15 @@ export class GovernedActionService {
     if (!result.created) {
       const existing = result.proposal;
       if (existing.argumentDigest !== t.proposal.argumentDigest || existing.capabilityId !== capability.id ||
-          !sameTarget(existing.target, t.proposal.target)) {
+          !sameTarget(existing.target, t.proposal.target) || existing.leadId !== t.proposal.leadId) {
         throw new GovernedActionError('REQUEST_KEY_CONFLICT', 'requestKey already used for a different action');
       }
     }
     return result.proposal;
   }
 
-  async preview(actor: ActionActor, proposalId: string): Promise<ActionProposal> {
-    const p = await this.load(actor, proposalId);
+  async preview(principal: ActionPrincipal, proposalId: string): Promise<ActionProposal> {
+    const { actor, p } = await this.load(principal, proposalId, 'preview');
     return this.guard(p, actor, 'preview', async () => {
       const decision = await this.decide(() => this.deps.policy.mayPropose(actor, this.ctx(p)));
       if (!decision.allowed) throw new GovernedActionError('ACTOR_NOT_AUTHORIZED', decision.reason);
@@ -106,47 +123,54 @@ export class GovernedActionService {
     });
   }
 
-  async authorize(actor: ActionActor, proposalId: string, command: AuthorizeCommand): Promise<ActionProposal> {
-    const p = await this.load(actor, proposalId);
+  async authorize(principal: ActionPrincipal, proposalId: string, command: AuthorizeCommand): Promise<ActionProposal> {
+    const { actor, p } = await this.load(principal, proposalId, 'authorize');
     return this.guard(p, actor, 'authorize', async () => {
       const facts = await this.policyFacts(p, 'authorize', () => this.deps.policy.mayApprove(actor, this.ctx(p)));
       return authorize(p, { approver: actor, ...command, facts }, this.clock.now());
     });
   }
 
-  async reject(actor: ActionActor, proposalId: string, reason: string): Promise<ActionProposal> {
-    const p = await this.load(actor, proposalId);
+  async reject(principal: ActionPrincipal, proposalId: string, reason: string): Promise<ActionProposal> {
+    const { actor, p } = await this.load(principal, proposalId, 'reject');
     return this.guard(p, actor, 'reject', async () => {
       const decision = await this.decide(() => this.deps.policy.mayApprove(actor, this.ctx(p)));
       return reject(p, { actor, reason, authorityAllowed: decision.allowed }, this.clock.now());
     });
   }
 
-  async cancel(actor: ActionActor, proposalId: string, reason: string): Promise<ActionProposal> {
-    const p = await this.load(actor, proposalId);
+  async cancel(principal: ActionPrincipal, proposalId: string, reason: string): Promise<ActionProposal> {
+    const { actor, p } = await this.load(principal, proposalId, 'cancel');
     return this.guard(p, actor, 'cancel', async () => {
       const decision = await this.decide(() => this.deps.policy.mayApprove(actor, this.ctx(p)));
       return cancel(p, { actor, reason, authorityAllowed: decision.allowed }, this.clock.now());
     });
   }
 
-  /** Housekeeping: move an elapsed proposal/approval to EXPIRED. */
-  async expire(actor: ActionActor, proposalId: string): Promise<ActionProposal> {
-    const p = await this.load(actor, proposalId);
-    return this.guard(p, actor, 'expire', async () => expire(p, this.clock.now()));
+  /** Housekeeping: move an elapsed proposal/approval to EXPIRED. Policy-gated; never AI (A-M4, A-m3). */
+  async expire(principal: ActionPrincipal, proposalId: string): Promise<ActionProposal> {
+    const { actor, p } = await this.load(principal, proposalId, 'expire');
+    return this.guard(p, actor, 'expire', async () => {
+      const allowed = await this.housekeeping(actor, p, 'expire');
+      return expire(p, { actor, authorityAllowed: allowed, trigger: 'command' }, this.clock.now());
+    });
   }
 
-  async execute(actor: ActionActor, proposalId: string): Promise<ActionProposal> {
-    const p = await this.load(actor, proposalId);
+  async execute(principal: ActionPrincipal, proposalId: string): Promise<ActionProposal> {
+    const { actor, p } = await this.load(principal, proposalId, 'execute');
     let begun: Transition;
     try {
-      const policyFacts = await this.policyFacts(p, 'execute', () => this.deps.policy.mayTriggerExecution(actor, this.ctx(p)));
-      const facts: ExecutionFacts = { ...policyFacts, executorEnabled: this.deps.executor.mode === 'synthetic' };
+      // R2-I-14: constraints are evaluated against a fresh read, not only the preview baseline.
+      const currentState: ObservedState = p.state === 'AUTHORIZED' ? await this.readCurrentState(p)
+        : p.preview?.beforeState ?? { status: 'UNKNOWN', reason: 'NOT_READ' };
+      const policyFacts = await this.policyFacts(p, 'execute', () => this.deps.policy.mayTriggerExecution(actor, this.ctx(p)), currentState);
+      const facts: ExecutionFacts = { ...policyFacts, executorEnabled: this.deps.executor.mode === 'synthetic', currentState };
       begun = beginExecution(p, { actor, facts }, this.clock.now());
     } catch (error) {
       if (isGovernedActionError(error) && error.code === 'APPROVAL_EXPIRED') {
-        await this.deps.store.transition(p.version, expire(p, this.clock.now())).catch(() => undefined);
-        throw error;
+        // Reached only after execution authority was established; the caller is the recorded trigger (A-m3).
+        const expired = expire(p, { actor, authorityAllowed: true, trigger: 'execute' }, this.clock.now());
+        await this.deps.store.transition(p.version, expired).catch(() => undefined);
       }
       throw await this.audited(p, actor, 'execute', error);
     }
@@ -177,47 +201,92 @@ export class GovernedActionService {
   }
 
   /** Resolve an UNKNOWN outcome strictly from readback evidence. Never re-executes. */
-  async verify(actor: ActionActor, proposalId: string): Promise<ActionProposal> {
-    const p = await this.load(actor, proposalId);
+  async verify(principal: ActionPrincipal, proposalId: string): Promise<ActionProposal> {
+    const { actor, p } = await this.load(principal, proposalId, 'verify');
     return this.guard(p, actor, 'verify', async () => {
       if (p.state !== 'UNKNOWN') throw new GovernedActionError('INVALID_TRANSITION', `verify is not allowed from ${p.state}`);
       if (actor.kind === 'ai') throw new GovernedActionError('AI_CANNOT_EXECUTE', 'AI actors cannot resolve action outcomes');
-      const decision = await this.decide(() => this.deps.policy.mayTriggerExecution(actor, this.ctx(p)));
-      if (!decision.allowed) throw new GovernedActionError('ACTOR_NOT_AUTHORIZED', decision.reason);
+      const authority = await this.decide(() => this.deps.policy.mayTriggerExecution(actor, this.ctx(p)));
+      requireRunAuthority(actor, authority, 'resolve action outcomes');
       const verification = await this.readback(this.request(p));
-      return recordVerification(p, { actor, verification }, this.clock.now());
+      return recordVerification(p, { actor, verification, authority }, this.clock.now());
     });
   }
 
-  /** Crash recovery: EXECUTING past its lease becomes UNKNOWN (then verify). */
-  async recoverStaleExecution(actor: ActionActor, proposalId: string): Promise<ActionProposal> {
-    const p = await this.load(actor, proposalId);
-    return this.guard(p, actor, 'recover', async () => markStaleExecution(p, this.executionLeaseMs, this.clock.now()));
+  /** Crash recovery: EXECUTING past its lease becomes UNKNOWN (then verify). Policy-gated; never AI. */
+  async recoverStaleExecution(principal: ActionPrincipal, proposalId: string): Promise<ActionProposal> {
+    const { actor, p } = await this.load(principal, proposalId, 'recover');
+    return this.guard(p, actor, 'recover', async () => {
+      const allowed = await this.housekeeping(actor, p, 'recover');
+      return markStaleExecution(p, { actor, authorityAllowed: allowed, trigger: 'command', leaseMs: this.executionLeaseMs }, this.clock.now());
+    });
   }
 
-  async history(actor: ActionActor, proposalId: string): Promise<ActionEvent[]> {
-    await this.load(actor, proposalId);
-    return this.deps.store.events(actor.workspaceId, proposalId);
+  async history(principal: ActionPrincipal, proposalId: string): Promise<ActionEvent[]> {
+    const { p } = await this.readable(principal, proposalId, 'history');
+    return this.deps.store.events(p.workspaceId, p.id);
   }
 
-  async get(actor: ActionActor, proposalId: string): Promise<ActionProposal> {
-    return this.load(actor, proposalId);
+  async refusals(principal: ActionPrincipal, proposalId: string): Promise<ActionRefusal[]> {
+    const { p } = await this.readable(principal, proposalId, 'refusals');
+    return this.deps.store.refusals(p.workspaceId, p.id);
+  }
+
+  async get(principal: ActionPrincipal, proposalId: string): Promise<ActionProposal> {
+    return (await this.readable(principal, proposalId, 'get')).p;
   }
 
   // ---------------------------------------------------------------- helpers
 
   private capability(id: string): CapabilityDefinition {
-    const capability = findCapability(id);
+    const capability = this.catalog.find(id);
     if (!capability) throw new GovernedActionError('UNKNOWN_CAPABILITY', `unknown capability: ${id}`);
     return capability;
   }
 
-  private async load(actor: ActionActor, proposalId: string): Promise<ActionProposal> {
-    if (!actor?.workspaceId) throw new GovernedActionError('INVALID_INPUT', 'actor workspace is required');
+  /** A-m2: the kind comes from the resolver, never from the caller-supplied object. */
+  private async resolveActor(principal: ActionPrincipal): Promise<ActionActor> {
+    if (!principal?.workspaceId || !principal.id) throw new GovernedActionError('INVALID_INPUT', 'actor workspace is required');
+    const claim: ActionPrincipal = { id: principal.id, workspaceId: principal.workspaceId };
+    let resolved: ActionActor | undefined;
+    try {
+      resolved = await this.deps.actors.resolve(claim);
+    } catch {
+      resolved = undefined;
+    }
+    if (!resolved || resolved.id !== claim.id || resolved.workspaceId !== claim.workspaceId || !ACTOR_KINDS.has(resolved.kind)) {
+      throw new GovernedActionError('ACTOR_NOT_AUTHORIZED', 'actor identity could not be resolved');
+    }
+    return Object.freeze({ kind: resolved.kind, id: resolved.id, workspaceId: resolved.workspaceId });
+  }
+
+  /** Workspace isolation + lead scope (I-09). Foreign or out-of-scope proposals look missing. */
+  private async load(principal: ActionPrincipal, proposalId: string, command: string): Promise<{ actor: ActionActor; p: ActionProposal }> {
+    const actor = await this.resolveActor(principal);
     const p = await this.deps.store.get(actor.workspaceId, proposalId);
-    // Foreign-workspace proposals are indistinguishable from missing ones (I-09).
     if (!p || p.workspaceId !== actor.workspaceId) throw new GovernedActionError('NOT_FOUND', 'proposal not found');
-    return p;
+    if (p.leadId) {
+      // OPEN: PM-1 — lead-scoped access is delegated to the policy hook; no role is assumed here.
+      const lead = await this.decide(() => this.deps.policy.mayAccessLead(actor, { ...this.ctx(p), leadId: p.leadId! }));
+      if (!lead.allowed) {
+        throw await this.audited(p, actor, command, new GovernedActionError('NOT_FOUND', 'proposal not found', ['LEAD_SCOPE_DENIED']));
+      }
+    }
+    return { actor, p };
+  }
+
+  private async readable(principal: ActionPrincipal, proposalId: string, command: ActionReadCommand) {
+    const loaded = await this.load(principal, proposalId, command);
+    const decision = await this.decide(() => this.deps.policy.mayRead(loaded.actor, this.ctx(loaded.p), command));
+    if (!decision.allowed) {
+      throw await this.audited(loaded.p, loaded.actor, command, new GovernedActionError('ACTOR_NOT_AUTHORIZED', decision.reason));
+    }
+    return loaded;
+  }
+
+  private async housekeeping(actor: ActionActor, p: ActionProposal, command: ActionHousekeepingCommand): Promise<boolean> {
+    if (actor.kind === 'ai') return false; // the domain refuses AI housekeeping (I-03)
+    return (await this.decide(() => this.deps.policy.mayHousekeep(actor, this.ctx(p), command))).allowed;
   }
 
   private ctx(p: ActionProposal): ActionPolicyContext {
@@ -228,10 +297,10 @@ export class GovernedActionService {
   private request(p: ActionProposal): ActionRequest {
     return { workspaceId: p.workspaceId, proposalId: p.id, capabilityId: p.capabilityId, target: p.target,
       arguments: p.arguments, canonicalArguments: p.canonicalArguments, argumentDigest: p.argumentDigest,
-      idempotencyKey: p.idempotencyKey, attempt: Math.max(1, p.attempts) };
+      idempotencyKey: p.execution?.idempotencyKey ?? p.idempotencyKey, attempt: p.execution?.attempt ?? Math.max(1, p.attempts) };
   }
 
-  /** Run a domain command; persist its transition, or audit the refusal and rethrow. */
+  /** Run a domain command; persist its transition, or log the refusal (no CAS) and rethrow. */
   private async guard(p: ActionProposal, actor: ActionActor, command: string, run: () => Promise<Transition>): Promise<ActionProposal> {
     let t: Transition;
     try {
@@ -243,10 +312,11 @@ export class GovernedActionService {
     return t.proposal;
   }
 
+  /** A-m1 / R2-I-01: refusals go to the append-only refusal log and never bump the version. */
   private async audited(p: ActionProposal, actor: ActionActor, command: string, error: unknown): Promise<unknown> {
     if (isGovernedActionError(error) && error.code !== 'CONCURRENT_MODIFICATION') {
-      // Best effort: a lost race on the refusal record must not mask the original refusal.
-      await this.deps.store.transition(p.version, recordRefusal(p, actor, command, error, this.clock.now())).catch(() => undefined);
+      // Best effort: a failed refusal write must not mask the original refusal.
+      await this.deps.store.appendRefusal(recordRefusal(p, actor, command, error, this.clock.now())).catch(() => undefined);
     }
     return error;
   }
@@ -254,7 +324,8 @@ export class GovernedActionService {
   private async decide(fn: () => Promise<PolicyDecision>): Promise<PolicyDecision> {
     try {
       const d = await fn();
-      return d && d.allowed === true ? d : { allowed: false, reason: (d as { reason?: string })?.reason ?? 'DENIED' };
+      if (d && d.allowed === true) return d.serviceGrant === true ? { allowed: true, serviceGrant: true } : { allowed: true };
+      return { allowed: false, reason: (d as { reason?: string })?.reason ?? 'DENIED' };
     } catch {
       return DENY_UNAVAILABLE;
     }
@@ -286,23 +357,23 @@ export class GovernedActionService {
   }
 
   private async policyFacts(p: ActionProposal, stage: ConstraintStage,
-    authority: () => Promise<PolicyDecision>): Promise<PolicyFacts> {
+    authority: () => Promise<PolicyDecision>, baseline?: ObservedState): Promise<PolicyFacts> {
     const [decision, capabilityEnabled, killSwitch, constraints] = await Promise.all([
       this.decide(authority), this.enabled(p), this.killStatus(p), this.constraints(this.ctx(p)),
     ]);
+    const beforeState = baseline ?? p.preview?.beforeState;
     const constraintViolations = evaluateConstraints({
       capability: this.capability(p.capabilityId), target: p.target, arguments: p.arguments,
-      constraints, stage, ...(p.preview ? { beforeState: p.preview.beforeState } : {}),
+      constraints, stage, ...(beforeState ? { beforeState } : {}),
     });
     return { authority: decision, capabilityEnabled, killSwitch, constraintViolations };
   }
 
   private async readCurrentState(p: ActionProposal): Promise<ObservedState> {
-    const full = this.request(p);
     const request: Omit<ActionRequest, 'attempt'> = {
-      workspaceId: full.workspaceId, proposalId: full.proposalId, capabilityId: full.capabilityId, target: full.target,
-      arguments: full.arguments, canonicalArguments: full.canonicalArguments, argumentDigest: full.argumentDigest,
-      idempotencyKey: full.idempotencyKey,
+      workspaceId: p.workspaceId, proposalId: p.id, capabilityId: p.capabilityId, target: p.target,
+      arguments: p.arguments, canonicalArguments: p.canonicalArguments, argumentDigest: p.argumentDigest,
+      idempotencyKey: p.idempotencyKey,
     };
     const r = await withDeadline((signal) => this.deps.verifier.readCurrentState(request, signal), this.readbackTimeoutMs);
     if (!r.ok) return { status: 'UNKNOWN', reason: r.timedOut ? 'READBACK_TIMEOUT' : 'READBACK_UNAVAILABLE' };

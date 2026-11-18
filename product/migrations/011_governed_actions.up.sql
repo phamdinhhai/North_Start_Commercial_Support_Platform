@@ -2,6 +2,9 @@
 -- → Execute → Verify → Audit). Synthetic/disabled executors only; no live provider writes.
 -- I-03 AI draft-only · I-05 append-only audit · I-08 UNKNOWN outcome visible · I-09 workspace scope.
 -- OPEN: PM-1 (approval authority) · OPEN: CE-1/CE-2 (actions do not move Commercial State).
+-- OPEN: LG-1 / MM-1 — this migration creates storage only; it seeds NO capabilities. The
+-- production capability catalog is empty (deny-all) until a phase gate admits one.
+-- History (A-M1): every event row carries the evidence needed to rebuild the projection.
 
 CREATE TABLE governed_action_proposal (
   id UUID PRIMARY KEY,
@@ -17,7 +20,8 @@ CREATE TABLE governed_action_proposal (
   proposer_id TEXT NOT NULL,
   rationale TEXT NOT NULL,
   constraints JSONB NOT NULL CHECK (jsonb_typeof(constraints) = 'object'),
-  lead_id TEXT,
+  -- Stable Lead ID (I-07) when the action is lead-linked; access is lead-scoped (I-09).
+  lead_id UUID,
   idempotency_key TEXT NOT NULL,
   created_at TIMESTAMPTZ NOT NULL,
   expires_at TIMESTAMPTZ NOT NULL CHECK (expires_at > created_at),
@@ -63,17 +67,35 @@ CREATE TABLE governed_action_event (
   proposal_id UUID NOT NULL,
   sequence INTEGER NOT NULL CHECK (sequence >= 1),
   event_type TEXT NOT NULL CHECK (event_type IN ('PROPOSED','PREVIEWED','AUTHORIZED','REJECTED','CANCELLED',
-    'EXPIRED','EXECUTION_STARTED','OUTCOME_RECORDED','VERIFICATION_RECORDED','COMMAND_REFUSED')),
+    'EXPIRED','EXECUTION_STARTED','OUTCOME_RECORDED','VERIFICATION_RECORDED')),
   from_state TEXT,
   to_state TEXT NOT NULL,
   actor_kind TEXT NOT NULL CHECK (actor_kind IN ('human','ai','service','system')),
   actor_id TEXT NOT NULL,
   reason TEXT NOT NULL,
-  data JSONB NOT NULL DEFAULT '{}'::jsonb,
+  data JSONB NOT NULL DEFAULT '{}'::jsonb CHECK (jsonb_typeof(data) = 'object'),
   recorded_at TIMESTAMPTZ NOT NULL,
   PRIMARY KEY (proposal_id, sequence),
   FOREIGN KEY (workspace_id, proposal_id) REFERENCES governed_action_proposal (workspace_id, id)
 );
+
+-- Refused commands (I-05) — a separate append-only log that never bumps the proposal version,
+-- so refused callers cannot make legitimate commands lose the CAS (A-m1).
+CREATE TABLE governed_action_refusal (
+  id BIGSERIAL PRIMARY KEY,
+  workspace_id TEXT NOT NULL,
+  proposal_id UUID NOT NULL,
+  proposal_version INTEGER NOT NULL CHECK (proposal_version >= 1),
+  command TEXT NOT NULL CHECK (length(command) BETWEEN 1 AND 64),
+  code TEXT NOT NULL CHECK (length(code) BETWEEN 1 AND 64),
+  actor_kind TEXT NOT NULL CHECK (actor_kind IN ('human','ai','service')),
+  actor_id TEXT NOT NULL,
+  reason TEXT NOT NULL,
+  details JSONB NOT NULL DEFAULT '[]'::jsonb CHECK (jsonb_typeof(details) = 'array'),
+  recorded_at TIMESTAMPTZ NOT NULL,
+  FOREIGN KEY (workspace_id, proposal_id) REFERENCES governed_action_proposal (workspace_id, id)
+);
+CREATE INDEX idx_governed_action_refusal_proposal ON governed_action_refusal (workspace_id, proposal_id, id);
 
 -- Append-only: UPDATE, DELETE and TRUNCATE are refused at the database (I-05).
 CREATE FUNCTION governed_action_event_append_only() RETURNS trigger LANGUAGE plpgsql AS $$
@@ -88,4 +110,10 @@ CREATE TRIGGER governed_action_event_no_truncate
   FOR EACH STATEMENT EXECUTE FUNCTION governed_action_event_append_only();
 CREATE TRIGGER governed_action_proposal_no_truncate
   BEFORE TRUNCATE ON governed_action_proposal
+  FOR EACH STATEMENT EXECUTE FUNCTION governed_action_event_append_only();
+CREATE TRIGGER governed_action_refusal_no_mutation
+  BEFORE UPDATE OR DELETE ON governed_action_refusal
+  FOR EACH ROW EXECUTE FUNCTION governed_action_event_append_only();
+CREATE TRIGGER governed_action_refusal_no_truncate
+  BEFORE TRUNCATE ON governed_action_refusal
   FOR EACH STATEMENT EXECUTE FUNCTION governed_action_event_append_only();

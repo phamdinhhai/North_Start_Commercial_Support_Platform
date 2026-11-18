@@ -1,15 +1,19 @@
+import { readFileSync, readdirSync, statSync } from 'node:fs';
+import { join, relative, resolve, sep } from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { propose, recordRefusal } from '../../domain/governed-action/action-lifecycle';
-import { findCapability } from '../../domain/governed-action/capability-catalog';
+import { preview, propose, recordRefusal } from '../../domain/governed-action/action-lifecycle';
 import { GovernedActionError } from '../../domain/governed-action/governed-action.types';
-import { DenyAllActionPolicy, DisabledExecutor, StaticCapabilityEnablement, StaticKillSwitch } from './defaults';
+import { SYNTHETIC_CAPABILITY_CATALOG } from '../../domain/governed-action/testing/synthetic-capabilities.fixture';
+import {
+  DenyAllActionPolicy, DenyAllActorResolver, DisabledExecutor, StaticActorResolver, StaticCapabilityEnablement, StaticKillSwitch,
+} from './defaults';
 import { InMemoryActionStore } from './in-memory-action.store';
 import { SyntheticExecutor, SyntheticProviderLedger, SyntheticVerifier } from './synthetic-executor';
 
 const NOW = new Date('2026-11-18T09:00:00.000Z');
 const target = { provider: 'synthetic-ads', accountId: 'a', resourceType: 'campaign', resourceId: 'c' };
 const created = (id = 'p-1', workspaceId = 'ws', requestKey = 'rk') => propose({
-  id, workspaceId, requestKey, capability: findCapability('ads.campaign.status.update')!, target, arguments: { status: 'PAUSED' },
+  id, workspaceId, requestKey, capability: SYNTHETIC_CAPABILITY_CATALOG.find('ads.campaign.status.update')!, target, arguments: { status: 'PAUSED' },
   proposer: { kind: 'human', id: 'alice' }, rationale: 'r', constraints: { protectedAccountIds: [], approvalTtlMs: 60_000 },
   constraintViolations: [], ttlMs: 60_000,
 }, NOW);
@@ -23,13 +27,25 @@ describe('InMemoryActionStore', () => {
     expect((await store.create(created('p-2'))).proposal.id).toBe('p-1');
     expect((await store.create(created('p-3', 'ws-other'))).created).toBe(true);
     expect(await store.get('ws-other', 'p-1')).toBeUndefined();
-    const refusal = recordRefusal(t.proposal, { kind: 'human', id: 'bob' }, 'test', new GovernedActionError('INVALID_INPUT', 'x'), NOW);
-    await store.transition(1, refusal);
-    await expect(store.transition(1, refusal)).rejects.toMatchObject({ code: 'CONCURRENT_MODIFICATION' });
+    const previewed = preview(t.proposal, { actor: { kind: 'human', id: 'bob' }, beforeState: { status: 'UNKNOWN', reason: 'x' } }, NOW);
+    await store.transition(1, previewed);
+    await expect(store.transition(1, previewed)).rejects.toMatchObject({ code: 'CONCURRENT_MODIFICATION' });
     expect((await store.events('ws', 'p-1')).map((e) => e.sequence)).toEqual([1, 2]);
     expect(await store.events('ws-other', 'p-1')).toEqual([]);
-    const forged = { ...refusal, proposal: { ...refusal.proposal, version: 3, argumentDigest: 'f'.repeat(64) }, event: { ...refusal.event, sequence: 3 } };
+    const forged = { ...previewed, proposal: { ...previewed.proposal, version: 3, argumentDigest: 'f'.repeat(64) }, event: { ...previewed.event, sequence: 3 } };
     await expect(store.transition(2, forged)).rejects.toMatchObject({ code: 'DIGEST_MISMATCH' });
+  });
+
+  it('A-m1: refusals are appended to a separate log and never bump the proposal version', async () => {
+    const store = new InMemoryActionStore();
+    const t = created();
+    await store.create(t);
+    const refusal = recordRefusal(t.proposal, { kind: 'ai', id: 'spam' }, 'authorize', new GovernedActionError('AI_CANNOT_AUTHORIZE', 'x'), NOW);
+    for (let i = 0; i < 5; i += 1) await store.appendRefusal(refusal);
+    expect((await store.get('ws', 'p-1'))?.version).toBe(1);
+    expect(await store.refusals('ws', 'p-1')).toHaveLength(5);
+    expect(await store.refusals('ws-other', 'p-1')).toEqual([]);
+    await expect(store.appendRefusal({ ...refusal, proposalId: 'missing' })).rejects.toMatchObject({ code: 'NOT_FOUND' });
   });
 });
 
@@ -37,7 +53,12 @@ describe('safe defaults', () => {
   it('DisabledExecutor throws, DenyAll denies, kill switch starts engaged, enablement starts empty', async () => {
     await expect(new DisabledExecutor().execute()).rejects.toThrow(/no executor is enabled/);
     const policy = new DenyAllActionPolicy();
-    for (const decision of [await policy.mayPropose(), await policy.mayApprove(), await policy.mayTriggerExecution()]) expect(decision.allowed).toBe(false);
+    for (const decision of [await policy.mayPropose(), await policy.mayApprove(), await policy.mayTriggerExecution(),
+      await policy.mayRead(), await policy.mayHousekeep(), await policy.mayAccessLead()]) expect(decision.allowed).toBe(false);
+    expect(await new DenyAllActorResolver().resolve()).toBeUndefined();
+    const resolver = new StaticActorResolver([{ kind: 'ai', id: 'bot', workspaceId: 'ws' }]);
+    expect(await resolver.resolve({ id: 'bot', workspaceId: 'ws' })).toEqual({ kind: 'ai', id: 'bot', workspaceId: 'ws' });
+    expect(await resolver.resolve({ id: 'bot', workspaceId: 'ws-other' })).toBeUndefined();
     expect(await policy.constraintsFor()).toMatchObject({ maxBudgetDeltaPercent: 0 });
     expect(await new StaticKillSwitch().status({ capabilityId: 'x' })).toMatchObject({ engaged: true, scope: 'global' });
     expect(await new StaticCapabilityEnablement().isEnabled('ws', 'ads.campaign.budget.update')).toBe(false);
@@ -66,5 +87,31 @@ describe('Synthetic executor / verifier', () => {
     const pending = executor.execute(request, ac.signal);
     ac.abort();
     await expect(pending).rejects.toThrow('aborted');
+  });
+});
+
+describe('A-M3: capability scope is not decided in production code (OPEN: LG-1 / MM-1)', () => {
+  const SRC = resolve(__dirname, '../..');
+  const files = (dir: string): string[] => readdirSync(dir).flatMap((name) => {
+    const path = join(dir, name);
+    return statSync(path).isDirectory() ? files(path) : /\.ts$/.test(name) ? [path] : [];
+  });
+
+  it('only specs and the synthetic runtime import the synthetic capability fixture; nothing in production imports the synthetic runtime', () => {
+    const offenders = files(SRC).filter((f) => !f.endsWith('.spec.ts')).flatMap((f) => {
+      const source = readFileSync(f, 'utf8');
+      const rel = relative(SRC, f).split(sep).join('/');
+      const hits: string[] = [];
+      if (/synthetic-capabilities\.fixture/.test(source) && rel !== 'infra/governed-action/synthetic-runtime.ts') hits.push(rel);
+      if (/governed-action\/synthetic-runtime|from '\.\/synthetic-runtime'/.test(source)) hits.push(rel);
+      return hits;
+    });
+    expect(offenders).toEqual([]);
+  });
+
+  it('migration 011 creates storage only and seeds no capabilities', () => {
+    const up = readFileSync(resolve(SRC, '../migrations/011_governed_actions.up.sql'), 'utf8');
+    expect(up).not.toMatch(/\bINSERT\b/i);
+    for (const id of ['pancake.message.send', 'ads.campaign', 'ads.offline_conversion', 'pos.order']) expect(up).not.toContain(id);
   });
 });

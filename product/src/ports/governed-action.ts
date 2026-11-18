@@ -1,6 +1,6 @@
 import type {
-  ActionActor, ActionConstraints, ActionEvent, ActionProposal, JsonValue, ObservedState, RiskClass,
-  TargetResource, Transition, Verification,
+  ActionActor, ActionConstraints, ActionEvent, ActionPrincipal, ActionProposal, ActionRefusal, JsonValue, ObservedState,
+  RiskClass, TargetResource, Transition, Verification,
 } from '../domain/governed-action/governed-action.types';
 
 /**
@@ -11,7 +11,16 @@ import type {
  * live executor cannot be plugged in without a reviewed type change (Human Gate).
  */
 
-export type PolicyDecision = { readonly allowed: true } | { readonly allowed: false; readonly reason: string };
+/**
+ * `serviceGrant: true` is the explicit grant a `service` actor needs to trigger execution or
+ * verification (A-m2). Absent ⇒ service actors are denied even when `allowed` is true.
+ */
+export type PolicyDecision =
+  | { readonly allowed: true; readonly serviceGrant?: boolean }
+  | { readonly allowed: false; readonly reason: string };
+
+export type ActionReadCommand = 'get' | 'history' | 'refusals';
+export type ActionHousekeepingCommand = 'expire' | 'recover';
 
 export interface ActionPolicyContext {
   readonly workspaceId: string;
@@ -32,6 +41,27 @@ export interface ActionPolicy {
   mayPropose(actor: ActionActor, ctx: ActionPolicyContext): Promise<PolicyDecision>;
   mayApprove(actor: ActionActor, ctx: ActionPolicyContext): Promise<PolicyDecision>;
   mayTriggerExecution(actor: ActionActor, ctx: ActionPolicyContext): Promise<PolicyDecision>;
+  /** Reads of a proposal, its history and its refusal log (I-09; A-M4). Default deny. */
+  mayRead(actor: ActionActor, ctx: ActionPolicyContext, command: ActionReadCommand): Promise<PolicyDecision>;
+  /** Housekeeping: expire / stale-execution recovery (A-M4). AI is refused before this. Default deny. */
+  mayHousekeep(actor: ActionActor, ctx: ActionPolicyContext, command: ActionHousekeepingCommand): Promise<PolicyDecision>;
+  /**
+   * Lead-scoped access hook (I-09), consulted for EVERY command on a lead-linked proposal in
+   * addition to the command decision. Implementations should back it with the lead store /
+   * lead RBAC (existence + workspace + assignment). Default deny.
+   * OPEN: PM-1 — which roles reach which leads is undecided; no role is invented here.
+   */
+  mayAccessLead(actor: ActionActor, ctx: ActionPolicyContext & { readonly leadId: string }): Promise<PolicyDecision>;
+}
+
+/**
+ * Resolves the caller's actor KIND (human / ai / service) server-side from the identity or
+ * credential source (A-m2). The kind is never taken from the caller. `undefined` ⇒ refused.
+ * OPEN: PM-1 — the credential-type → actor-kind mapping (e.g. agent credentials ⇒ `ai`) is
+ * owned by the HTTP/identity seam that implements this port; none is wired in this build.
+ */
+export interface ActorResolver {
+  resolve(principal: ActionPrincipal): Promise<ActionActor | undefined>;
 }
 
 export interface KillSwitchStatus {
@@ -88,13 +118,16 @@ export interface CreateResult {
 /**
  * Persistence. `transition` is compare-and-set on `expectedVersion` and appends the event
  * atomically; a lost race throws GovernedActionError('CONCURRENT_MODIFICATION').
- * All reads are workspace scoped; a foreign workspace sees nothing (I-09).
+ * Refusals are appended to a separate append-only log that never touches the proposal
+ * version (A-m1). All reads are workspace scoped; a foreign workspace sees nothing (I-09).
  */
 export interface ActionStore {
   create(transition: Transition): Promise<CreateResult>;
   get(workspaceId: string, proposalId: string): Promise<ActionProposal | undefined>;
   transition(expectedVersion: number, transition: Transition): Promise<void>;
   events(workspaceId: string, proposalId: string): Promise<ActionEvent[]>;
+  appendRefusal(refusal: ActionRefusal): Promise<void>;
+  refusals(workspaceId: string, proposalId: string): Promise<ActionRefusal[]>;
 }
 
 export interface GovernedActionClock {

@@ -15,10 +15,11 @@ export type ArgumentRule =
 
 export interface CapabilityDefinition {
   readonly id: string;
-  readonly family: 'ads' | 'pancake' | 'pos';
+  /** Opaque grouping label; it carries no scope decision (OPEN: LG-1). */
+  readonly family: string;
   readonly description: string;
   readonly riskClass: RiskClass;
-  /** Consequential actions spend money or reach customers; all current entries are. */
+  /** Consequential actions spend money or reach customers. */
   readonly consequential: boolean;
   /** Spent money / sent messages cannot be undone; at most a separately authorized compensation. */
   readonly reversibility: 'NONE' | 'COMPENSATION_ONLY';
@@ -28,51 +29,30 @@ export interface CapabilityDefinition {
   readonly enabledByDefault: false;
 }
 
-const def = (d: CapabilityDefinition): CapabilityDefinition => Object.freeze(d);
-
-export const CAPABILITY_CATALOG: readonly CapabilityDefinition[] = Object.freeze([
-  def({
-    id: 'ads.campaign.budget.update', family: 'ads', riskClass: 'HIGH', consequential: true,
-    description: 'Change a campaign daily budget (exact minor units, explicit currency).',
-    reversibility: 'COMPENSATION_ONLY', constraintKind: 'budget', resourceType: 'campaign',
-    arguments: { dailyBudget: { kind: 'money' } }, enabledByDefault: false,
-  }),
-  def({
-    id: 'ads.campaign.status.update', family: 'ads', riskClass: 'HIGH', consequential: true,
-    description: 'Pause or activate a campaign.',
-    reversibility: 'COMPENSATION_ONLY', constraintKind: 'none', resourceType: 'campaign',
-    arguments: { status: { kind: 'enum', values: ['PAUSED', 'ACTIVE'] } }, enabledByDefault: false,
-  }),
-  def({
-    id: 'ads.offline_conversion.upload', family: 'ads', riskClass: 'MEDIUM', consequential: true,
-    description: 'Upload one offline conversion assertion reference (provider metric, not revenue truth).',
-    reversibility: 'NONE', constraintKind: 'none', resourceType: 'conversion_action',
-    arguments: { conversionRef: { kind: 'ref' } }, enabledByDefault: false,
-  }),
-  def({
-    id: 'pancake.message.send', family: 'pancake', riskClass: 'HIGH', consequential: true,
-    description: 'Send a human-approved draft into a conversation (deferred by ARCHITECTURE_CONSTITUTION §5).',
-    reversibility: 'NONE', constraintKind: 'none', resourceType: 'conversation',
-    arguments: { draftRef: { kind: 'ref' } }, enabledByDefault: false,
-  }),
-  def({
-    id: 'pancake.conversation.tag.update', family: 'pancake', riskClass: 'LOW', consequential: true,
-    description: 'Add or remove a conversation tag in the external inbox.',
-    reversibility: 'COMPENSATION_ONLY', constraintKind: 'none', resourceType: 'conversation',
-    arguments: { tagRef: { kind: 'ref' }, operation: { kind: 'enum', values: ['ADD', 'REMOVE'] } },
-    enabledByDefault: false,
-  }),
-  def({
-    id: 'pos.order.create', family: 'pos', riskClass: 'CRITICAL', consequential: true,
-    description: 'Create an order in an external POS from an approved order draft reference.',
-    reversibility: 'COMPENSATION_ONLY', constraintKind: 'none', resourceType: 'order',
-    arguments: { orderDraftRef: { kind: 'ref' } }, enabledByDefault: false,
-  }),
-]);
-
-export function findCapability(id: string): CapabilityDefinition | undefined {
-  return CAPABILITY_CATALOG.find((c) => c.id === id);
+/** Lookup of capability definitions; injected into the runtime (never a global). */
+export interface CapabilityCatalog {
+  readonly entries: readonly CapabilityDefinition[];
+  find(id: string): CapabilityDefinition | undefined;
 }
+
+export function createCapabilityCatalog(definitions: readonly CapabilityDefinition[]): CapabilityCatalog {
+  const entries = Object.freeze(definitions.map((d) => Object.freeze({ ...d })));
+  const ids = new Set<string>();
+  for (const d of entries) {
+    if (ids.has(d.id)) throw new Error(`duplicate capability id: ${d.id}`);
+    ids.add(d.id);
+  }
+  return Object.freeze({ entries, find: (id: string) => entries.find((c) => c.id === id) });
+}
+
+/**
+ * The production catalog ships EMPTY, i.e. deny-all: no outbound capability exists until a
+ * product/phase gate admits one.
+ * OPEN: LG-1 — whether outbound action capabilities (Pancake send, ad budget/status, POS
+ * order) are in current-phase scope is undecided (R2-P-03). OPEN: MM-1 — conversion-upload
+ * semantics are undecided (R2-P-04). Concrete research examples live only in a test fixture.
+ */
+export const PRODUCTION_CAPABILITY_CATALOG: CapabilityCatalog = createCapabilityCatalog([]);
 
 const REF = /^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$/;
 const MINOR_UNITS = /^(0|[1-9][0-9]{0,17})$/;

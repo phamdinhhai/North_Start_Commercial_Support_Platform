@@ -2,17 +2,27 @@ import { argumentsIntact, canonicalJson, deepFreeze, freezeArguments, sha256Hex 
 import { validateArguments, type CapabilityDefinition } from './capability-catalog';
 import {
   GovernedActionError, type ActionConstraints, type ActionEvent, type ActionEventType, type ActionProposal,
-  type ActionState, type ActorRef, type ExecutorStatus, type JsonValue, type ObservedState, type PreviewChange,
-  type TargetResource, type Transition, type Verification,
+  type ActionRefusal, type ActionState, type ActorRef, type ExecutorStatus, type JsonValue, type ObservedState,
+  type PreviewChange, type TargetResource, type Transition, type Verification,
 } from './governed-action.types';
 
 export const MIN_PROPOSAL_TTL_MS = 60_000;
 export const MAX_PROPOSAL_TTL_MS = 7 * 24 * 60 * 60_000;
 export const MAX_APPROVAL_TTL_MS = 24 * 60 * 60_000;
 
+/**
+ * Authority as decided by the injected policy. `serviceGrant` must be explicitly true for a
+ * `service` actor to trigger execution or verification (A-m2; default deny).
+ */
+export interface Authority {
+  readonly allowed: boolean;
+  readonly reason?: string;
+  readonly serviceGrant?: boolean;
+}
+
 /** Facts gathered by the application layer from ports; the domain makes the decision. */
 export interface PolicyFacts {
-  readonly authority: { readonly allowed: boolean; readonly reason?: string };
+  readonly authority: Authority;
   readonly capabilityEnabled: boolean;
   readonly killSwitch: { readonly engaged: boolean; readonly reason?: string };
   readonly constraintViolations: readonly string[];
@@ -20,6 +30,8 @@ export interface PolicyFacts {
 
 export interface ExecutionFacts extends PolicyFacts {
   readonly executorEnabled: boolean;
+  /** Fresh read-only observation taken at execute time (R2-I-14). */
+  readonly currentState: ObservedState;
 }
 
 export interface ProposeInput {
@@ -42,6 +54,20 @@ const fail = (code: ConstructorParameters<typeof GovernedActionError>[0], messag
 };
 
 const ref = (actor: ActorRef): ActorRef => ({ kind: actor.kind, id: actor.id });
+/** Event payloads are JSON; the domain records stored here are JSON-compatible by construction. */
+const json = (value: unknown): JsonValue => value as JsonValue;
+
+/** Stable Lead IDs are UUIDs (I-07); normalised to lower case. */
+const LEAD_ID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+export function normalizeLeadId(leadId: string | undefined): string | undefined {
+  if (leadId === undefined) return undefined;
+  if (typeof leadId !== 'string' || !LEAD_ID.test(leadId)) fail('INVALID_INPUT', 'leadId must be a UUID');
+  return leadId.toLowerCase();
+}
+
+/** Idempotency key of one execution attempt; retries of the SAME attempt reuse it (R2-I-15). */
+export const attemptIdempotencyKey = (p: Pick<ActionProposal, 'idempotencyKey'>, attempt: number): string =>
+  `${p.idempotencyKey}-${attempt}`;
 
 function nonEmpty(value: string | undefined, name: string, max = 256): string {
   if (typeof value !== 'string' || value.trim().length === 0 || value.length > max) fail('INVALID_INPUT', `${name} is required (1..${max} chars)`);
@@ -78,6 +104,22 @@ function requireGates(facts: PolicyFacts): void {
   if (facts.constraintViolations.length > 0) fail('CONSTRAINT_VIOLATION', 'constraints violated', facts.constraintViolations);
 }
 
+/** I-03 + A-m2: AI never; service only with an explicit policy grant; humans with authority. */
+export function requireRunAuthority(actor: ActorRef, authority: Authority, what: string): void {
+  if (actor.kind === 'ai') fail('AI_CANNOT_EXECUTE', `AI actors cannot ${what} (I-03)`);
+  if (actor.kind === 'system') fail('ACTOR_NOT_AUTHORIZED', `system housekeeping cannot ${what}`);
+  if (!authority.allowed) fail('ACTOR_NOT_AUTHORIZED', authority.reason ?? `actor may not ${what}`);
+  if (actor.kind === 'service' && authority.serviceGrant !== true) {
+    fail('ACTOR_NOT_AUTHORIZED', `service actors need an explicit policy grant to ${what}`);
+  }
+}
+
+/** True when the externally observed baseline is no longer the one the approver reviewed. */
+export function baselineChanged(reviewed: ObservedState, current: ObservedState): boolean {
+  if (reviewed.status !== current.status) return true;
+  return reviewed.status === 'OBSERVED' && current.status === 'OBSERVED' && canonicalJson(reviewed.value) !== canonicalJson(current.value);
+}
+
 /** PROPOSE — any authenticated actor, including AI. AI proposals are drafts only (I-03). */
 export function propose(input: ProposeInput, now: Date): Transition {
   nonEmpty(input.id, 'id', 64);
@@ -93,6 +135,7 @@ export function propose(input: ProposeInput, now: Date): Transition {
   if (!Number.isInteger(input.ttlMs) || input.ttlMs < MIN_PROPOSAL_TTL_MS || input.ttlMs > MAX_PROPOSAL_TTL_MS) {
     fail('INVALID_INPUT', 'ttlMs out of bounds');
   }
+  const leadId = normalizeLeadId(input.leadId);
   const frozen = freezeArguments(input.arguments);
   const violations = validateArguments(input.capability, frozen.arguments);
   if (violations.length > 0) fail('INVALID_ARGUMENTS', 'arguments do not match capability schema', violations);
@@ -104,7 +147,7 @@ export function propose(input: ProposeInput, now: Date): Transition {
     target: { ...input.target }, arguments: frozen.arguments, canonicalArguments: frozen.canonical,
     argumentDigest: frozen.digest, proposer: ref(input.proposer), rationale: input.rationale,
     constraints: { ...input.constraints, protectedAccountIds: [...input.constraints.protectedAccountIds] },
-    ...(input.leadId ? { leadId: input.leadId } : {}),
+    ...(leadId ? { leadId } : {}),
     idempotencyKey: `ga-${input.id}`, createdAt: now.toISOString(),
     expiresAt: new Date(now.getTime() + input.ttlMs).toISOString(),
     state: 'PROPOSED', version: 1, attempts: 0,
@@ -113,7 +156,10 @@ export function propose(input: ProposeInput, now: Date): Transition {
     proposalId: proposal.id, workspaceId: proposal.workspaceId, sequence: 1, type: 'PROPOSED',
     fromState: null, toState: 'PROPOSED', actor: ref(input.proposer), at: proposal.createdAt,
     reason: input.rationale,
-    data: { capabilityId: proposal.capabilityId, argumentDigest: proposal.argumentDigest, draft: input.proposer.kind === 'ai' },
+    data: {
+      capabilityId: proposal.capabilityId, argumentDigest: proposal.argumentDigest, draft: input.proposer.kind === 'ai',
+      leadId: leadId ?? null,
+    },
   });
   return { proposal, event };
 }
@@ -129,19 +175,25 @@ export function deriveChanges(args: JsonValue, before: ObservedState): PreviewCh
   });
 }
 
+/** The preview digest binds the frozen argument digest, the observed baseline and the change list. */
+export function previewDigestOf(argumentDigest: string, beforeState: ObservedState, changes: readonly PreviewChange[]): string {
+  return sha256Hex(canonicalJson({ argumentDigest, beforeState, changes }));
+}
+
 /** PREVIEW — read-only; re-preview is how a FAILED_VERIFIED action becomes re-authorizable. */
 export function preview(p: ActionProposal, input: { actor: ActorRef; beforeState: ObservedState }, now: Date): Transition {
   requireState(p, ['PROPOSED', 'PREVIEWED', 'FAILED_VERIFIED'], 'preview');
   requireNotExpired(p, now);
   requireIntact(p);
   const changes = deriveChanges(p.arguments, input.beforeState);
-  const previewDigest = sha256Hex(canonicalJson({ argumentDigest: p.argumentDigest, beforeState: input.beforeState, changes }));
+  const previewDigest = previewDigestOf(p.argumentDigest, input.beforeState, changes);
+  // A-M1: the event carries the full reviewed content, so the digest can be re-derived from history.
   return transition(p, {
     state: 'PREVIEWED',
     approval: undefined,
     preview: { beforeState: input.beforeState, changes, previewDigest, previewedAt: now.toISOString(), previewedBy: ref(input.actor) },
   }, 'PREVIEWED', input.actor, now, 'preview generated', {
-    previewDigest, beforeState: input.beforeState.status,
+    previewDigest, argumentDigest: p.argumentDigest, beforeState: json(input.beforeState), changes: json(changes),
   });
 }
 
@@ -179,7 +231,9 @@ export function authorize(p: ActionProposal, input: AuthorizeInput, now: Date): 
       approver: ref(input.approver), argumentDigest: p.argumentDigest, previewDigest: p.preview!.previewDigest,
       approvedAt: now.toISOString(), expiresAt, reason: input.reason, consumed: false,
     },
-  }, 'AUTHORIZED', input.approver, now, input.reason, { argumentDigest: p.argumentDigest, approvalExpiresAt: expiresAt });
+  }, 'AUTHORIZED', input.approver, now, input.reason, {
+    argumentDigest: p.argumentDigest, previewDigest: p.preview!.previewDigest, approvalExpiresAt: expiresAt,
+  });
 }
 
 /** REJECT — human with authority, not the proposer (who would simply cancel). */
@@ -198,14 +252,29 @@ export function cancel(p: ActionProposal, input: { actor: ActorRef; reason: stri
   return transition(p, { state: 'CANCELLED' }, 'CANCELLED', input.actor, now, nonEmpty(input.reason, 'reason', 2000));
 }
 
+export interface HousekeepingInput {
+  /** The real triggering actor; `system` only for a genuinely system-initiated sweep (A-m3). */
+  readonly actor: ActorRef;
+  readonly authorityAllowed: boolean;
+  /** What caused the housekeeping: an explicit command, an expired approval seen at execute, or a sweep. */
+  readonly trigger: 'command' | 'execute' | 'sweep';
+}
+
+/** Housekeeping (expire / stale recovery): never AI; otherwise needs housekeeping authority. */
+function requireHousekeeping(input: HousekeepingInput, what: string): void {
+  if (input.actor.kind === 'ai') fail('ACTOR_NOT_AUTHORIZED', `AI actors cannot ${what} (I-03)`);
+  if (input.actor.kind !== 'system' && !input.authorityAllowed) fail('ACTOR_NOT_AUTHORIZED', `actor may not ${what}`);
+}
+
 /** EXPIRE — housekeeping when the proposal or its approval window has elapsed. */
-export function expire(p: ActionProposal, now: Date): Transition {
+export function expire(p: ActionProposal, input: HousekeepingInput, now: Date): Transition {
+  requireHousekeeping(input, 'expire proposals');
   requireState(p, ['PROPOSED', 'PREVIEWED', 'AUTHORIZED'], 'expire');
   const proposalExpired = now.getTime() >= Date.parse(p.expiresAt);
   const approvalExpired = p.state === 'AUTHORIZED' && !!p.approval && now.getTime() >= Date.parse(p.approval.expiresAt);
   if (!proposalExpired && !approvalExpired) fail('INVALID_TRANSITION', 'nothing has expired');
-  return transition(p, { state: 'EXPIRED' }, 'EXPIRED', { kind: 'system', id: 'governed-action-clock' }, now,
-    approvalExpired && !proposalExpired ? 'approval expired before execution' : 'proposal expired');
+  return transition(p, { state: 'EXPIRED' }, 'EXPIRED', input.actor, now,
+    approvalExpired && !proposalExpired ? 'approval expired before execution' : 'proposal expired', { trigger: input.trigger });
 }
 
 /**
@@ -218,8 +287,7 @@ export function beginExecution(p: ActionProposal, input: { actor: ActorRef; fact
   if (p.state === 'SUCCEEDED_VERIFIED') fail('ALREADY_EXECUTED', 'action already executed and verified');
   if (p.state === 'FAILED_VERIFIED') fail('REAUTHORIZATION_REQUIRED', 're-preview and re-authorize before another attempt');
   requireState(p, ['AUTHORIZED'], 'execute');
-  if (input.actor.kind === 'ai') fail('AI_CANNOT_EXECUTE', 'AI actors cannot trigger execution (I-03)');
-  if (input.actor.kind === 'system') fail('ACTOR_NOT_AUTHORIZED', 'system housekeeping cannot trigger execution');
+  requireRunAuthority(input.actor, input.facts.authority, 'trigger execution');
   const approval = p.approval;
   if (!approval || approval.consumed) fail('REAUTHORIZATION_REQUIRED', 'no unused approval');
   if (now.getTime() >= Date.parse(approval!.expiresAt)) fail('APPROVAL_EXPIRED', 'approval has expired');
@@ -228,14 +296,20 @@ export function beginExecution(p: ActionProposal, input: { actor: ActorRef; fact
   if (approval!.argumentDigest !== p.argumentDigest || approval!.previewDigest !== p.preview?.previewDigest) {
     fail('DIGEST_MISMATCH', 'approval is not bound to the current arguments/preview');
   }
-  if (!input.facts.authority.allowed) fail('ACTOR_NOT_AUTHORIZED', input.facts.authority.reason ?? 'actor may not trigger execution');
   if (!input.facts.executorEnabled) fail('EXECUTOR_DISABLED', 'no executor is enabled');
+  // R2-I-14: the approver reviewed a specific baseline; if it moved, the approval no longer applies.
+  if (baselineChanged(p.preview!.beforeState, input.facts.currentState)) {
+    fail('PREVIEW_STALE', 'external state changed since the reviewed preview; re-preview and re-authorize');
+  }
   requireGates(input.facts);
   const attempt = p.attempts + 1;
+  const idempotencyKey = attemptIdempotencyKey(p, attempt);
   return transition(p, {
     state: 'EXECUTING', attempts: attempt, approval: { ...approval!, consumed: true }, outcome: undefined,
-    execution: { attempt, idempotencyKey: p.idempotencyKey, startedAt: now.toISOString(), startedBy: ref(input.actor) },
-  }, 'EXECUTION_STARTED', input.actor, now, 'execution attempt started', { attempt, idempotencyKey: p.idempotencyKey });
+    execution: { attempt, idempotencyKey, startedAt: now.toISOString(), startedBy: ref(input.actor) },
+  }, 'EXECUTION_STARTED', input.actor, now, 'execution attempt started', {
+    attempt, idempotencyKey, approvedPreviewDigest: approval!.previewDigest, currentState: json(input.facts.currentState),
+  });
 }
 
 export interface ExecutionResultInput {
@@ -259,36 +333,51 @@ export function recordExecutionResult(p: ActionProposal, input: ExecutionResultI
       ...(input.providerReference ? { providerReference: input.providerReference } : {}) },
     outcome: { state, reason, recordedAt: now.toISOString(), ...(input.verification ? { verification: input.verification } : {}) },
   }, 'OUTCOME_RECORDED', { kind: 'system', id: 'governed-action-runtime' }, now, reason, {
-    outcome: state, executorStatus: input.executorStatus, readback: obs ?? 'UNAVAILABLE', attempt: p.attempts,
+    // A-M1: everything needed to reconstruct this attempt from history alone.
+    source: 'executor', outcome: state, attempt: p.attempts, executorStatus: input.executorStatus,
+    executorReason: input.reason, providerReference: input.providerReference ?? null,
+    readback: obs ?? 'UNAVAILABLE', verification: json(input.verification ?? null),
+    triggeredBy: json(p.execution ? ref(p.execution.startedBy) : null),
   });
 }
 
 /** VERIFY — resolves UNKNOWN only from readback evidence; never by re-executing. */
-export function recordVerification(p: ActionProposal, input: { actor: ActorRef; verification: Verification }, now: Date): Transition {
+export function recordVerification(
+  p: ActionProposal, input: { actor: ActorRef; verification: Verification; authority: Authority }, now: Date,
+): Transition {
   requireState(p, ['UNKNOWN'], 'verify');
-  if (input.actor.kind === 'ai') fail('AI_CANNOT_EXECUTE', 'AI actors cannot resolve action outcomes');
+  requireRunAuthority(input.actor, input.authority, 'resolve action outcomes');
   const obs = input.verification.observation;
   const state: ActionState = obs === 'EXECUTED' ? 'SUCCEEDED_VERIFIED' : obs === 'NOT_EXECUTED' ? 'FAILED_VERIFIED' : 'UNKNOWN';
   return transition(p, {
     state,
     outcome: { state: state as 'SUCCEEDED_VERIFIED' | 'FAILED_VERIFIED' | 'UNKNOWN', reason: input.verification.reason,
       recordedAt: now.toISOString(), verification: input.verification },
-  }, 'VERIFICATION_RECORDED', input.actor, now, input.verification.reason, { observation: obs, outcome: state });
+  }, 'VERIFICATION_RECORDED', input.actor, now, input.verification.reason, {
+    observation: obs, outcome: state, attempt: p.attempts, verification: json(input.verification),
+  });
 }
 
 /** A crashed/abandoned EXECUTING attempt becomes UNKNOWN after its lease — never re-executed. */
-export function markStaleExecution(p: ActionProposal, leaseMs: number, now: Date): Transition {
+export function markStaleExecution(p: ActionProposal, input: HousekeepingInput & { leaseMs: number }, now: Date): Transition {
+  requireHousekeeping(input, 'recover stale executions');
   requireState(p, ['EXECUTING'], 'mark stale');
-  if (!p.execution || now.getTime() < Date.parse(p.execution.startedAt) + leaseMs) fail('EXECUTION_IN_FLIGHT', 'execution lease still active');
+  if (!p.execution || now.getTime() < Date.parse(p.execution.startedAt) + input.leaseMs) fail('EXECUTION_IN_FLIGHT', 'execution lease still active');
   return transition(p, {
     state: 'UNKNOWN',
     outcome: { state: 'UNKNOWN', reason: 'EXECUTION_LEASE_EXPIRED', recordedAt: now.toISOString() },
-  }, 'OUTCOME_RECORDED', { kind: 'system', id: 'governed-action-runtime' }, now, 'EXECUTION_LEASE_EXPIRED', { outcome: 'UNKNOWN' });
+  }, 'OUTCOME_RECORDED', input.actor, now, 'EXECUTION_LEASE_EXPIRED', {
+    source: 'lease-expired', outcome: 'UNKNOWN', attempt: p.attempts, leaseMs: input.leaseMs, trigger: input.trigger,
+  });
 }
 
-/** Audit a refused command without changing state (I-05: refusals are inspectable too). */
-export function recordRefusal(p: ActionProposal, actor: ActorRef, command: string, error: GovernedActionError, now: Date): Transition {
-  return transition(p, {}, 'COMMAND_REFUSED', actor, now, error.message, {
-    command, code: error.code, details: [...error.details],
+/**
+ * Audit a refused command (I-05: refusals are inspectable too). Returns a record for the
+ * separate append-only refusal log; it never bumps the proposal version (A-m1, R2-I-01).
+ */
+export function recordRefusal(p: ActionProposal, actor: ActorRef, command: string, error: GovernedActionError, now: Date): ActionRefusal {
+  return deepFreeze({
+    proposalId: p.id, workspaceId: p.workspaceId, proposalVersion: p.version, command: command.slice(0, 64),
+    code: error.code, actor: ref(actor), at: now.toISOString(), reason: error.message.slice(0, 2000), details: [...error.details],
   });
 }

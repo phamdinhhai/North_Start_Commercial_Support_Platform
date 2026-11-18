@@ -68,7 +68,7 @@ describe('R2 independent QA — governed action refusals during EXECUTING', () =
   // version, so the in-flight executor's outcome CAS (store.transition(running.version, …))
   // loses: the provider effect happened, execute() rejects CONCURRENT_MODIFICATION, the outcome
   // (and providerReference) is never recorded, and the proposal is stuck EXECUTING until lease expiry.
-  it.fails('a duplicate execute refused with EXECUTION_IN_FLIGHT must not break the in-flight outcome', async () => {
+  it('a duplicate execute refused with EXECUTION_IN_FLIGHT must not break the in-flight outcome', async () => {
     const h = gatedHarness();
     const p = await h.authorized();
     const run = h.service.execute(alice, p.id);
@@ -80,7 +80,7 @@ describe('R2 independent QA — governed action refusals during EXECUTING', () =
     expect(h.execute).toHaveBeenCalledTimes(1);
   });
 
-  it.fails('an AI actor refused while EXECUTING must not break the in-flight outcome', async () => {
+  it('an AI actor refused while EXECUTING must not break the in-flight outcome', async () => {
     const h = gatedHarness();
     const p = await h.authorized();
     const run = h.service.execute(alice, p.id);
@@ -89,19 +89,5 @@ describe('R2 independent QA — governed action refusals during EXECUTING', () =
     h.release();
     expect((await run).state).toBe('SUCCEEDED_VERIFIED');
   });
-
-  it('evidence of current behaviour: effect applied, outcome lost, proposal left EXECUTING', async () => {
-    const h = gatedHarness();
-    const p = await h.authorized();
-    const run = h.service.execute(alice, p.id);
-    await h.dispatched;
-    await expect(h.service.execute(alice, p.id)).rejects.toMatchObject({ code: 'EXECUTION_IN_FLIGHT' });
-    h.release();
-    await expect(run).rejects.toMatchObject({ code: 'CONCURRENT_MODIFICATION' });
-    expect(h.ports.ledger.appliedCount()).toBe(1);
-    const after = await h.service.get(alice, p.id);
-    expect(after.state).toBe('EXECUTING');
-    const history = await h.service.history(alice, p.id);
-    expect(history.map((e) => e.type)).not.toContain('OUTCOME_RECORDED');
-  });
+  // The pre-fix defect-evidence case was removed after R2-I-01; the cases above guard the regression.
 });

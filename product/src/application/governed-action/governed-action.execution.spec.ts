@@ -8,6 +8,7 @@ const WS = 'ws-a';
 const alice: ActionActor = { kind: 'human', id: 'alice', workspaceId: WS };
 const bob: ActionActor = { kind: 'human', id: 'bob', workspaceId: WS };
 const svc: ActionActor = { kind: 'service', id: 'svc', workspaceId: WS };
+const ai: ActionActor = { kind: 'ai', id: 'ai', workspaceId: WS };
 const target = { provider: 'synthetic-ads', accountId: 'acct-1', resourceType: 'campaign', resourceId: 'cmp-1' };
 const CAP = 'ads.campaign.budget.update';
 const budget = (amountMinor: string) => ({ dailyBudget: { amountMinor, currency: 'VND' } });
@@ -17,9 +18,9 @@ function harness(overrides: Partial<GovernedActionDeps> = {}) {
   let now = new Date('2026-11-18T09:00:00.000Z');
   const clock = { now: () => new Date(now) };
   const ports = createSyntheticActionPorts({
-    enabled: [{ workspaceId: WS, capabilityId: CAP }], clock: clock.now,
+    enabled: [{ workspaceId: WS, capabilityId: CAP }], clock: clock.now, actors: [alice, bob, svc, ai],
     policy: { constraints: { maxBudgetDeltaPercent: 20, protectedAccountIds: [], approvalTtlMs: 15 * 60_000 },
-      proposers: '*', approvers: ['bob'], executors: ['alice', 'svc'] },
+      proposers: '*', approvers: ['bob'], executors: ['alice'], serviceExecutors: ['svc'], readers: '*', housekeepers: ['svc'] },
   });
   ports.ledger.seed({ workspaceId: WS, target }, budget('100000'));
   const execute = vi.spyOn(ports.executor, 'execute');
@@ -78,7 +79,8 @@ describe('GovernedActionService — execution, UNKNOWN outcomes and verification
     expect(again.approval?.consumed).toBe(false);
     const done = await h.service.execute(alice, p.id);
     expect(done.state).toBe('SUCCEEDED_VERIFIED');
-    expect(h.execute.mock.calls.map(([r]) => [r.attempt, r.idempotencyKey])).toEqual([[1, `ga-${p.id}`], [2, `ga-${p.id}`]]);
+    // R2-I-15: one idempotency key per attempt; a re-authorized attempt is a new provider operation.
+    expect(h.execute.mock.calls.map(([r]) => [r.attempt, r.idempotencyKey])).toEqual([[1, `ga-${p.id}-1`], [2, `ga-${p.id}-2`]]);
   });
 
   it('inconclusive readback keeps UNKNOWN visible and still refuses retries', async () => {
@@ -92,7 +94,7 @@ describe('GovernedActionService — execution, UNKNOWN outcomes and verification
     vi.spyOn(h.ports.verifier, 'readback').mockRejectedValueOnce(new Error('provider read down'));
     expect((await h.service.verify(alice, p.id)).outcome?.reason).toBe('READBACK_UNAVAILABLE');
     expect(await code(h.service.execute(alice, p.id))).toBe('OUTCOME_UNKNOWN_RETRY_REFUSED');
-    expect(await code(h.service.verify({ kind: 'ai', id: 'ai', workspaceId: WS }, p.id))).toBe('AI_CANNOT_EXECUTE');
+    expect(await code(h.service.verify(ai, p.id))).toBe('AI_CANNOT_EXECUTE');
   });
 
   it('executor claim without matching readback is never reported as verified', async () => {
@@ -148,6 +150,7 @@ describe('GovernedActionService — execution, UNKNOWN outcomes and verification
     const store = h.ports.store;
     const crashing: ActionStore = {
       create: (t) => store.create(t), get: (w, id) => store.get(w, id), events: (w, id) => store.events(w, id),
+      appendRefusal: (r) => store.appendRefusal(r), refusals: (w, id) => store.refusals(w, id),
       transition: async (v, t) => {
         if (t.event.type === 'OUTCOME_RECORDED' && t.event.reason !== 'EXECUTION_LEASE_EXPIRED') throw new Error('process crashed');
         return store.transition(v, t);

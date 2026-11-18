@@ -1,6 +1,6 @@
 import { deepFreeze } from '../../domain/governed-action/canonical-json';
 import {
-  GovernedActionError, type ActionEvent, type ActionProposal, type Transition,
+  GovernedActionError, type ActionEvent, type ActionProposal, type ActionRefusal, type Transition,
 } from '../../domain/governed-action/governed-action.types';
 import type { ActionStore, CreateResult } from '../../ports/governed-action';
 
@@ -10,12 +10,13 @@ const clone = <T>(value: T): T => deepFreeze(structuredClone(value));
 /**
  * In-memory ActionStore for tests / local synthetic runs. Same contract as the PostgreSQL
  * store: workspace-scoped reads, (workspace, requestKey) uniqueness, CAS on version,
- * append-only events (no API exists to update or delete an event).
+ * append-only events and refusals (no API exists to update or delete either).
  */
 export class InMemoryActionStore implements ActionStore {
   private readonly proposals = new Map<string, ActionProposal>();
   private readonly requestKeys = new Map<string, string>();
   private readonly log = new Map<string, ActionEvent[]>();
+  private readonly refusalLog = new Map<string, ActionRefusal[]>();
 
   async create(t: Transition): Promise<CreateResult> {
     const { proposal, event } = t;
@@ -50,5 +51,18 @@ export class InMemoryActionStore implements ActionStore {
 
   async events(workspaceId: string, proposalId: string): Promise<ActionEvent[]> {
     return (this.log.get(key(workspaceId, proposalId)) ?? []).map(clone);
+  }
+
+  /** Append-only and outside the proposal CAS: never touches the proposal version (A-m1). */
+  async appendRefusal(refusal: ActionRefusal): Promise<void> {
+    const k = key(refusal.workspaceId, refusal.proposalId);
+    if (!this.proposals.has(k)) throw new GovernedActionError('NOT_FOUND', 'proposal not found');
+    const list = this.refusalLog.get(k) ?? [];
+    list.push(clone(refusal));
+    this.refusalLog.set(k, list);
+  }
+
+  async refusals(workspaceId: string, proposalId: string): Promise<ActionRefusal[]> {
+    return (this.refusalLog.get(key(workspaceId, proposalId)) ?? []).map(clone);
   }
 }

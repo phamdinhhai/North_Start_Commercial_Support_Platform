@@ -11,6 +11,7 @@ const bob: ActionActor = { kind: 'human', id: 'bob', workspaceId: WS };
 const carol: ActionActor = { kind: 'human', id: 'carol', workspaceId: WS };
 const drafter: ActionActor = { kind: 'ai', id: 'ai-drafter', workspaceId: WS };
 const outsider: ActionActor = { kind: 'human', id: 'bob', workspaceId: 'ws-b' };
+const svc: ActionActor = { kind: 'service', id: 'svc', workspaceId: WS };
 const target = { provider: 'synthetic-ads', accountId: 'acct-1', resourceType: 'campaign', resourceId: 'cmp-1' };
 const CAP = 'ads.campaign.budget.update';
 const budget = (amountMinor: string) => ({ dailyBudget: { amountMinor, currency: 'VND' } });
@@ -19,10 +20,11 @@ function harness(overrides: Partial<GovernedActionDeps> = {}, enabled = [{ works
   let now = new Date('2026-11-18T09:00:00.000Z');
   const clock = { now: () => new Date(now) };
   const ports = createSyntheticActionPorts({
-    enabled, clock: clock.now,
+    enabled, clock: clock.now, actors: [alice, bob, carol, drafter, outsider, svc],
     policy: {
       constraints: { maxBudgetDeltaPercent: 20, protectedAccountIds: ['acct-protected'], approvalTtlMs: 15 * 60_000 },
-      proposers: '*', approvers: ['alice', 'bob'], executors: ['alice', 'bob', 'svc'],
+      proposers: '*', approvers: ['alice', 'bob'], executors: ['alice', 'bob'], serviceExecutors: ['svc'],
+      readers: '*', housekeepers: ['alice'],
     },
   });
   ports.ledger.seed({ workspaceId: WS, target }, budget('100000'));
@@ -56,7 +58,7 @@ describe('GovernedActionService — authorization (I-03, PM-1 seam)', () => {
     expect(done.state).toBe('SUCCEEDED_VERIFIED');
     expect(done.outcome?.verification?.observation).toBe('EXECUTED');
     expect(h.execute).toHaveBeenCalledTimes(1);
-    expect(h.execute.mock.calls[0][0]).toMatchObject({ idempotencyKey: `ga-${p.id}`, attempt: 1, argumentDigest: p.argumentDigest });
+    expect(h.execute.mock.calls[0][0]).toMatchObject({ idempotencyKey: `ga-${p.id}-1`, attempt: 1, argumentDigest: p.argumentDigest });
     expect(h.ports.ledger.state({ workspaceId: WS, target })).toEqual(budget('110000'));
     const events = await h.service.history(alice, p.id);
     expect(events.map((e) => [e.sequence, e.type, e.fromState, e.toState])).toEqual([
@@ -75,8 +77,8 @@ describe('GovernedActionService — authorization (I-03, PM-1 seam)', () => {
     const authorized = await h.authorizeAs(bob, p);
     expect(await code(h.service.execute(drafter, p.id))).toBe('AI_CANNOT_EXECUTE');
     expect(h.execute).not.toHaveBeenCalled();
-    const refusals = (await h.service.history(alice, p.id)).filter((e) => e.type === 'COMMAND_REFUSED');
-    expect(refusals.map((e) => e.data.code)).toEqual(['AI_CANNOT_AUTHORIZE', 'AI_CANNOT_EXECUTE']);
+    const refusals = await h.service.refusals(alice, p.id);
+    expect(refusals.map((r) => r.code)).toEqual(['AI_CANNOT_AUTHORIZE', 'AI_CANNOT_EXECUTE']);
     expect((await h.service.get(alice, p.id)).state).toBe(authorized.state);
   });
 
@@ -85,7 +87,7 @@ describe('GovernedActionService — authorization (I-03, PM-1 seam)', () => {
     const p = await h.previewed(alice);
     expect(await code(h.authorizeAs(alice, p))).toBe('SELF_APPROVAL_DENIED');
     expect(await code(h.authorizeAs(carol, p))).toBe('ACTOR_NOT_AUTHORIZED');
-    expect(await code(h.authorizeAs({ kind: 'service', id: 'svc', workspaceId: WS }, p))).toBe('HUMAN_APPROVER_REQUIRED');
+    expect(await code(h.authorizeAs(svc, p))).toBe('HUMAN_APPROVER_REQUIRED');
     expect((await h.service.get(alice, p.id)).state).toBe('PREVIEWED');
   });
 
@@ -139,6 +141,7 @@ describe('GovernedActionService — authorization (I-03, PM-1 seam)', () => {
     const store = h.ports.store;
     const tampering: ActionStore = {
       create: (t) => store.create(t), events: (w, id) => store.events(w, id), transition: (v, t) => store.transition(v, t),
+      appendRefusal: (r) => store.appendRefusal(r), refusals: (w, id) => store.refusals(w, id),
       get: async (w, id) => {
         const real = await store.get(w, id);
         return real && { ...real, arguments: budget('99999999') };

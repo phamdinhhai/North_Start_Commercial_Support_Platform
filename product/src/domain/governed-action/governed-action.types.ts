@@ -49,8 +49,18 @@ export interface ActorRef {
   readonly id: string;
 }
 
-/** An authenticated caller; the workspace comes from the auth context, never from a body. */
-export interface ActionActor extends ActorRef {
+/**
+ * Who is calling, as asserted by the authentication layer: identity + workspace only.
+ * The actor KIND is never taken from the caller; it is resolved server-side through the
+ * ActorResolver port (A-m2). Extra fields supplied by a caller (e.g. a `kind`) are ignored.
+ */
+export interface ActionPrincipal {
+  readonly id: string;
+  readonly workspaceId: string;
+}
+
+/** A server-resolved caller; the workspace comes from the auth context, never from a body. */
+export interface ActionActor extends ActorRef, ActionPrincipal {
   readonly kind: 'human' | 'ai' | 'service';
   readonly workspaceId: string;
 }
@@ -175,8 +185,7 @@ export type ActionEventType =
   | 'EXPIRED'
   | 'EXECUTION_STARTED'
   | 'OUTCOME_RECORDED'
-  | 'VERIFICATION_RECORDED'
-  | 'COMMAND_REFUSED';
+  | 'VERIFICATION_RECORDED';
 
 /** Append-only audit record (I-05). `sequence` is 1-based and contiguous per proposal. */
 export interface ActionEvent {
@@ -190,6 +199,24 @@ export interface ActionEvent {
   readonly at: string;
   readonly reason: string;
   readonly data: { readonly [key: string]: JsonValue };
+}
+
+/**
+ * A refused command (I-05: refusals are inspectable). Refusals live in their own append-only
+ * log and never advance the proposal version, so a refused caller cannot make legitimate
+ * commands lose the compare-and-set race (A-m1).
+ */
+export interface ActionRefusal {
+  readonly proposalId: string;
+  readonly workspaceId: string;
+  /** Proposal version the refused command observed; informational, not a CAS input. */
+  readonly proposalVersion: number;
+  readonly command: string;
+  readonly code: GovernedActionErrorCode;
+  readonly actor: ActorRef;
+  readonly at: string;
+  readonly reason: string;
+  readonly details: readonly string[];
 }
 
 export interface Transition {

@@ -1,8 +1,8 @@
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 import { randomUUID } from 'node:crypto';
 import { GovernedActionService } from '../../application/governed-action/governed-action.service';
-import { recordRefusal } from '../../domain/governed-action/action-lifecycle';
-import { GovernedActionError, type ActionActor } from '../../domain/governed-action/governed-action.types';
+import { preview } from '../../domain/governed-action/action-lifecycle';
+import type { ActionActor } from '../../domain/governed-action/governed-action.types';
 import { Migrator, loadMigrations } from '../postgres/migrator';
 import { PostgresService } from '../postgres/postgres.service';
 import { PgActionStore } from './pg-action.store';
@@ -98,8 +98,8 @@ suite('governed actions on PostgreSQL (migration 011)', () => {
   it('raw store CAS: two transitions from the same version — exactly one commits', async () => {
     const r = runtime();
     const p = await r.service.propose(alice, { requestKey: randomUUID(), capabilityId: CAP, target, arguments: budget('105000'), rationale: 'cas' });
-    const refusal = (who: string) => recordRefusal(p, { kind: 'human', id: who }, 'cas', new GovernedActionError('INVALID_INPUT', who), new Date());
-    const outcomes = await Promise.allSettled([store.transition(1, refusal('x')), store.transition(1, refusal('y'))]);
+    const previewBy = (who: string) => preview(p, { actor: { kind: 'human', id: who }, beforeState: { status: 'UNKNOWN', reason: who } }, new Date());
+    const outcomes = await Promise.allSettled([store.transition(1, previewBy('x')), store.transition(1, previewBy('y'))]);
     expect(outcomes.filter((o) => o.status === 'fulfilled')).toHaveLength(1);
     expect(outcomes.find((o): o is PromiseRejectedResult => o.status === 'rejected')?.reason).toMatchObject({ code: 'CONCURRENT_MODIFICATION' });
     expect((await store.events(wsA, p.id)).map((e) => e.sequence)).toEqual([1, 2]);
@@ -148,6 +148,7 @@ suite('governed actions on PostgreSQL (migration 011)', () => {
     expect((await r.service.verify(alice, p.id)).state).toBe('SUCCEEDED_VERIFIED');
     expect(r.execute).toHaveBeenCalledTimes(1);
     const types = (await store.events(wsA, p.id)).map((e) => e.type);
-    expect(types).toEqual(['PROPOSED', 'PREVIEWED', 'AUTHORIZED', 'EXECUTION_STARTED', 'OUTCOME_RECORDED', 'COMMAND_REFUSED', 'VERIFICATION_RECORDED']);
+    expect(types).toEqual(['PROPOSED', 'PREVIEWED', 'AUTHORIZED', 'EXECUTION_STARTED', 'OUTCOME_RECORDED', 'VERIFICATION_RECORDED']);
+    expect((await store.refusals(wsA, p.id)).map((x) => [x.command, x.code, x.proposalVersion])).toEqual([['execute', 'OUTCOME_UNKNOWN_RETRY_REFUSED', 5]]);
   });
 });
