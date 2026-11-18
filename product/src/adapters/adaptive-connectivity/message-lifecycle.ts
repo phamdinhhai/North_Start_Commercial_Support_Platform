@@ -50,14 +50,18 @@ export interface SchemaDriftRecord {
   readonly semantics: 'UNKNOWN';
 }
 
-export type TransportSignal = 'joined' | 'join-rejected' | 'auth-expired' | 'channel-closed' | 'channel-error' | 'heartbeat' | 'other';
+/**
+ * 'reply-ok' is any successful Phoenix reply (heartbeat, push or join). Only join-tracker.ts may
+ * upgrade it to 'joined', after matching (topic, join_ref, ref) of an outbound phx_join (R2-I-03).
+ */
+export type TransportSignal = 'joined' | 'reply-ok' | 'join-rejected' | 'auth-expired' | 'channel-closed' | 'channel-error' | 'heartbeat' | 'other';
 
 export type LifecycleResult =
   | { readonly kind: 'message-metadata'; readonly label: LifecycleLabel; readonly observation: Observation; readonly messages: readonly MessageMetadata[] }
   | { readonly kind: 'read-state'; readonly observation: Observation; readonly conversationId: string; readonly seen: boolean | 'UNKNOWN' }
   | { readonly kind: 'conversation-metadata'; readonly observation: Observation }
   | { readonly kind: 'schema-drift'; readonly drift: SchemaDriftRecord; readonly observation: Observation | null }
-  | { readonly kind: 'transport'; readonly eventType: string; readonly signal: TransportSignal }
+  | { readonly kind: 'transport'; readonly eventType: string; readonly signal: TransportSignal; readonly topic: string; readonly joinRef: string | null; readonly ref: string | null }
   | Extract<FrameResult, { kind: 'ignored' | 'rejected' }>;
 
 type Json = Record<string, unknown>;
@@ -69,10 +73,10 @@ export function classifyLifecycleFrame(raw: string, context: CaptureContext): Li
   if (base.kind === 'rejected') return base;
   if (base.kind === 'ignored' && base.reason === 'outbound_frame') return base;
   // Base accepted structure, size and topic scope before any of the branches below.
-  const [, , topic, event, payload] = JSON.parse(raw) as [unknown, unknown, string, string, Json];
+  const [joinRef, ref, topic, event, payload] = JSON.parse(raw) as [string | null, string | null, string, string, Json];
   const drift = (reason: SchemaDriftRecord['reason'], observation: Observation | null = null): LifecycleResult =>
     ({ kind: 'schema-drift', observation, drift: driftRecord(reason, raw, topic, event, payload, context) });
-  if (base.kind === 'control') return { kind: 'transport', eventType: event, signal: transportSignal(event, payload) };
+  if (base.kind === 'control') return { kind: 'transport', eventType: event, signal: transportSignal(event, payload), topic, joinRef, ref };
   if (base.kind === 'ignored') {
     if (event === READ_STATE_EVENT && topic !== 'phoenix') {
       if (payload.page_id != null && payload.page_id !== topic.slice(6)) return { kind: 'rejected', reason: 'scope_mismatch' };
@@ -94,10 +98,13 @@ export function classifyLifecycleFrame(raw: string, context: CaptureContext): Li
   return { kind: 'conversation-metadata', observation };
 }
 
-/** Map a transport signal to a continuity lifecycle input. Join ACK reconnects but never closes a gap. */
-export function transportSignalToInput(signal: TransportSignal, at: string):
-  { readonly kind: 'connected' | 'disconnected' | 'auth-expired'; readonly at: string } | null {
-  if (signal === 'joined') return { kind: 'connected', at };
+/**
+ * Map a transport signal to a continuity lifecycle input. A matched join ACK reconnects one page but never
+ * closes a gap; an unmatched 'reply-ok' (e.g. heartbeat reply) changes nothing.
+ */
+export function transportSignalToInput(signal: TransportSignal, at: string, pageId: string | null = null):
+  { readonly kind: 'connected' | 'disconnected' | 'auth-expired'; readonly at: string; readonly pageId?: string } | null {
+  if (signal === 'joined') return pageId === null ? { kind: 'connected', at } : { kind: 'connected', at, pageId };
   if (signal === 'auth-expired') return { kind: 'auth-expired', at };
   if (signal === 'channel-closed' || signal === 'channel-error' || signal === 'join-rejected') return { kind: 'disconnected', at };
   return null;
@@ -108,7 +115,7 @@ function transportSignal(event: string, payload: Json): TransportSignal {
   if (event === 'phx_close') return 'channel-closed';
   if (event === 'phx_error') return 'channel-error';
   if (event !== 'phx_reply') return 'other';
-  if (payload.status === 'ok') return 'joined';
+  if (payload.status === 'ok') return 'reply-ok';
   if (payload.status !== 'error') return 'other';
   // Synthetic assumption: the live auth-expiry frame shape is unverified (BLOCKED on authorized account).
   const reason = isRecord(payload.response) ? payload.response.reason : undefined;

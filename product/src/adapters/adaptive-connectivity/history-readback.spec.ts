@@ -4,7 +4,7 @@ import { analyzeReadback, collectionKey, runBoundedReadback, type ReadbackCollec
 const messages: ReadbackCollection = { pageId: 'p-1', kind: 'messages', conversationId: 'conv-1' };
 const at = (second: number) => new Date(Date.parse('2026-11-18T01:00:00.000Z') + second * 1000).toISOString();
 const ids = (from: number, to: number) => Array.from({ length: to - from }, (_, i) => `m-${from + i}`);
-const ok = (offset: number, itemIds: string[], readerId = 'r-1', second = offset): ReadbackPage => ({ status: 'ok', readerId, offset, fetchedAt: at(second), itemIds });
+const ok = (offset: number, itemIds: string[], readerId = 'r-1', second = offset): ReadbackPage => ({ status: 'ok', readerId, offset, requestedAt: at(second), fetchedAt: at(second), itemIds });
 
 describe('bounded readback analysis', () => {
   it('mirrors the inherited 25 + 16 + empty sample as contiguous-to-terminal but completeness UNKNOWN', () => {
@@ -50,8 +50,8 @@ describe('bounded readback analysis', () => {
   it('keeps failed and partial pages as UNKNOWN ranges while retaining partial IDs', () => {
     const result = analyzeReadback(messages, [
       ok(0, ids(0, 10)),
-      { status: 'partial', readerId: 'r-1', offset: 10, fetchedAt: at(10), itemIds: ['m-10', 'm-12'], invalidItems: 1 },
-      { status: 'failed', readerId: 'r-2', offset: 20, fetchedAt: at(11), reason: 'timeout' },
+      { status: 'partial', readerId: 'r-1', offset: 10, requestedAt: at(10), fetchedAt: at(10), itemIds: ['m-10', 'm-12'], invalidItems: 1 },
+      { status: 'failed', readerId: 'r-2', offset: 20, requestedAt: at(11), fetchedAt: at(11), reason: 'timeout' },
       ok(30, []),
     ]);
     expect(result).toMatchObject({ coverage: 'partial', failedPages: 1, partialPages: 1, provenRanges: [{ from: 0, to: 10 }], terminalAt: null, unknownRanges: [{ from: 10, to: null }] });
@@ -60,7 +60,7 @@ describe('bounded readback analysis', () => {
 
   it('rejects contradictory terminals and reports no coverage when nothing succeeded', () => {
     expect(analyzeReadback(messages, [ok(0, ids(0, 5)), ok(5, []), ok(3, [], 'r-2')]).terminalAt).toBeNull();
-    expect(analyzeReadback(messages, [{ status: 'failed', readerId: 'r-1', offset: 0, fetchedAt: at(0), reason: 'http_error' }])).toMatchObject({ coverage: 'none', unknownRanges: [{ from: 0, to: null }] });
+    expect(analyzeReadback(messages, [{ status: 'failed', readerId: 'r-1', offset: 0, requestedAt: at(0), fetchedAt: at(0), reason: 'http_error' }])).toMatchObject({ coverage: 'none', unknownRanges: [{ from: 0, to: null }] });
     expect(analyzeReadback(messages, [])).toMatchObject({ coverage: 'none', startedAt: null });
   });
 
@@ -76,7 +76,7 @@ describe('bounded readback analysis', () => {
     expect(() => analyzeReadback(messages, [ok(-1, [])])).toThrow('invalid_page');
     expect(() => analyzeReadback(messages, [ok(0, ['m-1', 'm-1'])])).toThrow('invalid_page');
     expect(() => analyzeReadback(messages, [{ ...ok(0, []), fetchedAt: 'later' }])).toThrow('invalid_page');
-    expect(() => analyzeReadback(messages, [{ status: 'partial', readerId: 'r', offset: 0, fetchedAt: at(0), itemIds: [], invalidItems: 0 }])).toThrow('invalid_page');
+    expect(() => analyzeReadback(messages, [{ status: 'partial', readerId: 'r', offset: 0, requestedAt: at(0), fetchedAt: at(0), itemIds: [], invalidItems: 0 }])).toThrow('invalid_page');
     expect(() => analyzeReadback(messages, Array.from({ length: 201 }, (_, i) => ok(i, [])))).toThrow('invalid_readback');
   });
 });

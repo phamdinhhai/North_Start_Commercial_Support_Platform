@@ -142,15 +142,17 @@ describe('transport signals', () => {
     [{ status: 'error', response: { reason: 'session_expired' } }, 'auth-expired'],
     [{ status: 'error', response: { reason: 'rate_limited' } }, 'join-rejected'],
     [{ status: 'error' }, 'join-rejected'],
-    [{ status: 'ok' }, 'joined'],
+    [{ status: 'ok' }, 'reply-ok'],
     [{ status: 'timeout' }, 'other'],
   ])('classifies reply %j as %s', (payload, signal) => {
-    expect(classify(frame('phx_reply', payload))).toEqual({ kind: 'transport', eventType: 'phx_reply', signal });
+    expect(classify(frame('phx_reply', payload))).toEqual({ kind: 'transport', eventType: 'phx_reply', signal, topic: 'pages:synthetic-page', joinRef: null, ref: null });
   });
 
   it('maps signals to continuity inputs; heartbeat and unknown replies change nothing', () => {
     const at = context.observedAt;
     expect(transportSignalToInput('joined', at)).toEqual({ kind: 'connected', at });
+    expect(transportSignalToInput('joined', at, 'p-1')).toEqual({ kind: 'connected', at, pageId: 'p-1' });
+    expect(transportSignalToInput('reply-ok', at)).toBeNull();
     expect(transportSignalToInput('auth-expired', at)).toEqual({ kind: 'auth-expired', at });
     for (const signal of ['channel-closed', 'channel-error', 'join-rejected'] as const) expect(transportSignalToInput(signal, at)).toEqual({ kind: 'disconnected', at });
     expect(transportSignalToInput('heartbeat', at)).toBeNull();

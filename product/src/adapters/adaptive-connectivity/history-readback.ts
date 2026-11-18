@@ -12,10 +12,12 @@ export interface ReadbackCollection {
   readonly conversationId: string | null;
 }
 
+/** requestedAt is taken BEFORE the request is sent; fetchedAt after the response (R2-I-06). */
+interface PageTimes { readonly readerId: string; readonly offset: number; readonly requestedAt: string; readonly fetchedAt: string }
 export type ReadbackPage =
-  | { readonly status: 'ok'; readonly readerId: string; readonly offset: number; readonly fetchedAt: string; readonly itemIds: readonly string[] }
-  | { readonly status: 'partial'; readonly readerId: string; readonly offset: number; readonly fetchedAt: string; readonly itemIds: readonly string[]; readonly invalidItems: number }
-  | { readonly status: 'failed'; readonly readerId: string; readonly offset: number; readonly fetchedAt: string; readonly reason: 'timeout' | 'http_error' | 'malformed' };
+  | (PageTimes & { readonly status: 'ok'; readonly itemIds: readonly string[] })
+  | (PageTimes & { readonly status: 'partial'; readonly itemIds: readonly string[]; readonly invalidItems: number })
+  | (PageTimes & { readonly status: 'failed'; readonly reason: 'timeout' | 'http_error' | 'malformed' });
 
 export interface OffsetRange { readonly from: number; readonly to: number | null }
 
@@ -36,6 +38,7 @@ export interface ReadbackAnalysis {
   /** Never 'complete': contiguous-to-terminal still says nothing about tombstones or concurrent mutation. */
   readonly coverage: 'contiguous-to-terminal' | 'partial' | 'none';
   readonly completeness: 'UNKNOWN';
+  /** Earliest request time across pages; the readback can only describe provider state from here on. */
   readonly startedAt: string | null;
   readonly endedAt: string | null;
 }
@@ -53,6 +56,7 @@ export function collectionKey(collection: ReadbackCollection): string {
 
 function validatePage(page: ReadbackPage): void {
   if (!page || !validId(page.readerId) || !Number.isSafeInteger(page.offset) || page.offset < 0 || !validTime(page.fetchedAt) ||
+      !validTime(page.requestedAt) || Date.parse(page.requestedAt) > Date.parse(page.fetchedAt) ||
       !['ok', 'partial', 'failed'].includes(page.status)) throw new Error('invalid_page');
   if (page.status === 'failed') {
     if (!['timeout', 'http_error', 'malformed'].includes(page.reason)) throw new Error('invalid_page');
@@ -120,7 +124,9 @@ export function analyzeReadback(collection: ReadbackCollection, pages: readonly 
   if (terminalAt === null) unknownRanges.push({ from: cursor, to: null });
   const stable = !positionConflicts.length && !movedIds.length;
   const okPages = pages.filter((page) => page.status === 'ok');
-  const times = pages.map((page) => page.fetchedAt).sort((a, b) => Date.parse(a) - Date.parse(b));
+  const byTime = (a: string, b: string) => Date.parse(a) - Date.parse(b);
+  const requested = pages.map((page) => page.requestedAt).sort(byTime);
+  const fetched = pages.map((page) => page.fetchedAt).sort(byTime);
   return {
     collection: { ...collection }, itemIds: [...sightings.keys()].sort(), provenRanges, unknownRanges, terminalAt,
     duplicateSightings: [...sightings.values()].reduce((sum, count) => sum + count - 1, 0),
@@ -129,7 +135,7 @@ export function analyzeReadback(collection: ReadbackCollection, pages: readonly 
     partialPages: pages.filter((page) => page.status === 'partial').length,
     readers: [...new Set(pages.map((page) => page.readerId))].sort(),
     coverage: terminalAt !== null && unknownRanges.length === 0 && stable ? 'contiguous-to-terminal' : okPages.length ? 'partial' : 'none',
-    completeness: 'UNKNOWN', startedAt: times[0] ?? null, endedAt: times[times.length - 1] ?? null,
+    completeness: 'UNKNOWN', startedAt: requested[0] ?? null, endedAt: fetched[fetched.length - 1] ?? null,
   };
 }
 
@@ -150,24 +156,25 @@ export async function runBoundedReadback(port: ReadbackPort, clock: ReadbackCloc
   let offset = 0;
   while (pages.length < options.maxPages) {
     let response: { readonly items: readonly unknown[] };
+    const requestedAt = clock.now();
     try {
       response = await port.fetchPage({ collection: { ...collection }, offset, limit: options.limit });
     } catch {
-      pages.push({ status: 'failed', readerId: options.readerId, offset, fetchedAt: clock.now(), reason: 'http_error' });
+      pages.push({ status: 'failed', readerId: options.readerId, offset, requestedAt, fetchedAt: clock.now(), reason: 'http_error' });
       break;
     }
     const fetchedAt = clock.now();
     if (!response || !Array.isArray(response.items) || response.items.length > options.limit) {
-      pages.push({ status: 'failed', readerId: options.readerId, offset, fetchedAt, reason: 'malformed' });
+      pages.push({ status: 'failed', readerId: options.readerId, offset, requestedAt, fetchedAt, reason: 'malformed' });
       break;
     }
     const ids = response.items.map((item) => (item && typeof item === 'object' && validId((item as { id?: unknown }).id) ? (item as { id: string }).id : null));
     const valid = [...new Set(ids.filter((id): id is string => id !== null))];
     if (valid.length !== ids.length) {
-      pages.push({ status: 'partial', readerId: options.readerId, offset, fetchedAt, itemIds: valid, invalidItems: ids.length - valid.length });
+      pages.push({ status: 'partial', readerId: options.readerId, offset, requestedAt, fetchedAt, itemIds: valid, invalidItems: ids.length - valid.length });
       break;
     }
-    pages.push({ status: 'ok', readerId: options.readerId, offset, fetchedAt, itemIds: valid });
+    pages.push({ status: 'ok', readerId: options.readerId, offset, requestedAt, fetchedAt, itemIds: valid });
     if (!valid.length) break;
     offset += valid.length;
   }

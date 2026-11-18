@@ -75,3 +75,42 @@ PostgreSQL was not needed. Nothing in this layer persists.
 - Gap reconciliation covers the current message-ID set only. Conversations deleted during the window, tag/read-state transitions and intermediate edits remain UNKNOWN, as do A→B→A sequences, as in the inherited tests.
 - `reconcileGapBySnapshot` trusts the `ReadbackAnalysis` objects it is given. Their provenance must be enforced by whatever future code produces them; no producer exists here.
 - The browser-companion decoder (`protocol.mjs`, not owned here) does not know `pages:seen_conversation`. If read state is to be captured in the browser, the owner of that file must add it with matching shape checks.
+
+## Review fixes (2026-11-18, branch `work/r2-fix-pancake`, base `4ec9bd1`)
+
+These changes respond to `independent-qa.md` and `architecture-canonical-review.md`. Each fix was test-first.
+
+- `review-fixes.spec.ts` was written before the code. Its first run failed because the API under test did not exist yet (the `join-tracker` module was missing), not on assertions.
+- The QA spec `lifecycle.r2-review.spec.ts` had `it.fails` cases. Those were flipped to `it`.
+- The QA spec's helpers were changed to express a real rejoin: an outbound `phx_join` followed by the matching reply. The `requestedAt` field was added to its readback pages and the reconcile call uses the new signature.
+- The QA spec's two "evidence of current behaviour" cases, which asserted the defects, were replaced with assertions of the fixed behaviour.
+
+Evidence levels are unchanged: everything here is SYNTHETIC_TESTED only.
+
+| Finding | Fix | Code | Tests |
+|---|---|---|---|
+| R2-I-03 (MAJOR) | The classifier now maps every `phx_reply{status:ok}` to `reply-ok`, which produces no continuity input. A new `join-tracker.ts` records outbound `phx_join` frames on allowed `pages:<id>` topics, keeping at most 32 pending and letting a re-sent join replace the earlier one. Only a reply with the same (topic, join_ref, ref) as a pending join is upgraded to `joined`, and that pending entry is then removed. Heartbeat replies on `phoenix`, a different ref, another page or a missing join_ref never count as a rejoin. | `message-lifecycle.ts` (`transportSignal`, `transportSignalToInput`); `join-tracker.ts` (`recordOutboundJoin`, `resolveTransportSignal`) | `lifecycle.r2-review.spec.ts` "a heartbeat reply after phx_error does not bound the open gap", "a snapshot taken after a heartbeat reply ... cannot reconcile the gap"; `review-fixes.spec.ts` "R2-I-03 ..." block |
+| R2-I-04 (MAJOR) | The ledger now stores every distinct (observedAt, label, contentHash) variant per capture ID. All derived fields are computed from that set, so any arrival order gives the same snapshot. Replaying a capture ID with different content returns `capture-conflict` and is listed in `conflictedCaptureIds`. An identical replay is still `duplicate-capture`. | `message-ledger.ts` (`derive`, `recordSighting`; ledger state version 2) | `lifecycle.r2-review.spec.ts` "same captureId with different content yields the same ledger regardless of arrival order"; `review-fixes.spec.ts` "R2-I-04 ..." |
+| R2-I-06 | `ReadbackPage.requestedAt` is now required and is taken before `await port.fetchPage`. `requestedAt` must not be later than `fetchedAt`. The analysis `startedAt` is the earliest request time, so a request sent before the rejoin fails the "readback started after gap end" check even if the response arrives after it. | `history-readback.ts` (`PageTimes`, `validatePage`, `analyzeReadback`, `runBoundedReadback`) | `review-fixes.spec.ts` "records requestedAt before awaiting the port", "refuses reconciliation when a request was sent before the rejoin ...", "rejects pages whose request time is after their response time" |
+| R2-I-07 | Continuity state now records `pages`: the pages joined through a matched join reply. When a gap opens it copies them into `requiredPages`. The gap's `end` is set only once every required page has rejoined. The caller no longer supplies `pageIds`: `reconcileGapBySnapshot(state, gapId, { analyses, provenance, alsoRequired? })`. A gap with no known pages (including upgraded legacy checkpoints) can never be reconciled (`no_required_pages`). | `continuity.ts` (`nextWindows`, `reconcileGapBySnapshot`); `readback-correlation.ts` (`evaluateGapCoverage`) | `review-fixes.spec.ts` "R2-I-07 ..." block (two-page gap, single-page snapshot refused) |
+| R2-I-08 | A `connected` input timestamped before the open gap's `start` returns the new disposition `out-of-order` and leaves state unchanged. The next valid rejoin still works. | `continuity.ts` `advanceContinuity` | `review-fixes.spec.ts` "rejects the input as out-of-order and later inputs still work" |
+| A-m8 | Reconciliation now requires `provenance { producer, readerIds }`. Every analysis reader must be listed, otherwise the result is `unattributed_reader:*`. The gap record stores the producer, the reader IDs and, for each input, the collection, `requestedFrom`, `respondedUntil` and a sha256 `analysisDigest`. Checkpoint validation checks these fields and requires each `requestedFrom` to be at or after the gap end. | `continuity.ts` (`GapWindow.reconciliation`, `validReconciliation`); `readback-correlation.ts` (`validateProvenance`, `analysisDigest`) | `review-fixes.spec.ts` "A-m8 ..." block |
+| A-m7 | **Not changed, deliberately.** Quarantined schema-drift records still keep only filtered key names, the key count and the payload hash, not the raw frame. Raw retention for quarantined frames versus a keyed hash is the open privacy decision R2-P-09, which needs a human decision. This is a known gap against "mapping errors preserve the raw envelope" (ARCHITECTURE_CONSTITUTION §3). Nothing in this layer persists today. | — | — |
+
+### Remaining limitations
+
+- The pending-join model is a synthetic contract. Real Pancake join/ref behaviour, and whether the server ever answers a stale join, is unverified and BLOCKED on an authorized account.
+- `provenance.producer` is a label that the caller asserts; it is not authenticated. Binding it to an authenticated producer is future work, when a real readback producer exists.
+- The digest covers the analysis object, not the raw provider responses, which are never retained.
+- Per-capture variant lists in the ledger have no size limit, just as the ledger as a whole has none.
+
+Verification in `product/`:
+
+| Command | Result |
+|---|---|
+| `npm run typecheck` | pass |
+| `npm run lint` | pass |
+| `npm run architecture:check:strict` | PASS (0 findings) |
+| `npm test -- --exclude '**/*.integration.spec.ts'` | 65 files; 736 passed, 5 expected-fail. All 5 expected-fail cases are in other agents' areas (api OIDC, governed-action, json-logger). There are 0 in adaptive-connectivity. |
+
+adaptive-connectivity alone: 10 files, 170 tests passed.

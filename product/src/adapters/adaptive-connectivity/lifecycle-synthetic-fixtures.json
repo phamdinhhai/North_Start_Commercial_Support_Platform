@@ -63,9 +63,9 @@
     {
       "name": "rejoin-ack",
       "synthetic": true,
-      "provenance": "Phoenix join ACK; one bounded page-channel rejoin was live-observed earlier, payload here is synthetic",
+      "provenance": "Phoenix join ACK; one bounded page-channel rejoin was live-observed earlier, payload here is synthetic. Classifier yields reply-ok; only join-tracker.ts upgrades it to joined after matching an outbound phx_join (R2-I-03)",
       "frame": ["synthetic-join", "synthetic-ref", "pages:synthetic-page", "phx_reply", {"status": "ok", "response": {}}],
-      "expected": {"kind": "transport", "signal": "joined"}
+      "expected": {"kind": "transport", "signal": "reply-ok"}
     }
   ]
 }

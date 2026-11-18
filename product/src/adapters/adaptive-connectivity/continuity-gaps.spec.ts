@@ -3,6 +3,9 @@ import { advanceContinuity, initialContinuity, reconcileGapBySnapshot, restoreCo
 import { analyzeReadback, type ReadbackCollection } from './history-readback';
 import { classifyLifecycleFrame, transportSignalToInput } from './message-lifecycle';
 import type { CaptureContext } from './phoenix-observer';
+import { emptyJoinTracker, recordOutboundJoin, resolveTransportSignal } from './join-tracker';
+
+const provenance = { producer: 'synthetic-readback-runner/1', readerIds: ['r-1'] };
 
 const scope = { workspaceId: 'synthetic-workspace', connectionId: 'synthetic-connection', accountId: 'synthetic-account', providerSurface: 'pancake-conversations' as const };
 const at = (second: number) => new Date(Date.parse('2026-11-18T03:00:00.000Z') + second * 1000).toISOString();
@@ -22,11 +25,19 @@ const signal = (raw: unknown[], second: number) => {
   return input;
 };
 const close = (second: number) => signal(['j', 'r', 'pages:p-1', 'phx_close', {}], second);
-const join = (second: number) => signal(['j', 'r', 'pages:p-1', 'phx_reply', { status: 'ok', response: {} }], second);
+const join = (second: number) => {
+  const sent = recordOutboundJoin(emptyJoinTracker(), JSON.stringify(['j', 'r', 'pages:p-1', 'phx_join', {}]), { ...context, direction: 'sent', observedAt: at(second) });
+  const reply = classifyLifecycleFrame(JSON.stringify(['j', 'r', 'pages:p-1', 'phx_reply', { status: 'ok', response: {} }]), { ...context, observedAt: at(second) });
+  if (reply.kind !== 'transport') throw new Error('fixture');
+  const resolved = resolveTransportSignal(sent.tracker, reply);
+  const input = transportSignalToInput(resolved.signal, at(second), resolved.pageId);
+  if (!input) throw new Error('fixture');
+  return input;
+};
 const expired = (second: number) => signal(['j', 'r', 'pages:p-1', 'phx_reply', { status: 'error', response: { reason: 'token_expired' } }], second);
 const full = (collection: ReadbackCollection, itemIds: string[], second: number) => analyzeReadback(collection, [
-  { status: 'ok', readerId: 'r-1', offset: 0, fetchedAt: at(second), itemIds },
-  { status: 'ok', readerId: 'r-1', offset: itemIds.length, fetchedAt: at(second + 1), itemIds: [] },
+  { status: 'ok', readerId: 'r-1', offset: 0, requestedAt: at(second), fetchedAt: at(second), itemIds },
+  { status: 'ok', readerId: 'r-1', offset: itemIds.length, requestedAt: at(second + 1), fetchedAt: at(second + 1), itemIds: [] },
 ]);
 const snapshot = (second: number) => [full({ pageId: 'p-1', kind: 'conversations', conversationId: null }, ['conv-1'], second),
   full({ pageId: 'p-1', kind: 'messages', conversationId: 'conv-1' }, ['m-1', 'm-2'], second)];
@@ -44,7 +55,7 @@ describe('gap windows from socket close / rejoin', () => {
     expect(state.gaps).toEqual([]);
     state = step(state, { kind: 'observation', observation: observe('m-1', 5) });
     state = step(state, close(20));
-    expect(state.gaps).toEqual([{ id: 'gap-1', causes: ['disconnected'], start: at(5), end: null, status: 'UNKNOWN', reconciliation: null }]);
+    expect(state.gaps).toEqual([{ id: 'gap-1', causes: ['disconnected'], start: at(5), end: null, requiredPages: ['p-1'], rejoinedPages: [], status: 'UNKNOWN', reconciliation: null }]);
     state = step(state, join(80));
     expect(state.gaps[0]).toMatchObject({ start: at(5), end: at(80), status: 'UNKNOWN', reconciliation: null });
     expect(state).toMatchObject({ continuity: 'UNKNOWN', status: 'connected', gapSince: at(0) });
@@ -72,7 +83,7 @@ describe('gap windows from socket close / rejoin', () => {
     const state = closedAndRejoined();
     expect(restoreContinuity(JSON.stringify(state), scope)).toEqual(state);
     const legacy = { version: 1, scope, status: 'disconnected', lastObservedAt: at(5), gapSince: at(5), continuity: 'UNKNOWN', seen: [] };
-    expect(restoreContinuity(JSON.stringify(legacy), scope).gaps).toEqual([{ id: 'gap-1', causes: ['legacy-checkpoint'], start: at(5), end: null, status: 'UNKNOWN', reconciliation: null }]);
+    expect(restoreContinuity(JSON.stringify(legacy), scope).gaps).toEqual([{ id: 'gap-1', causes: ['legacy-checkpoint'], start: at(5), end: null, requiredPages: [], rejoinedPages: [], status: 'UNKNOWN', reconciliation: null }]);
     expect(restoreContinuity(JSON.stringify({ ...legacy, status: 'connected' }), scope).gaps).toEqual([]);
   });
 
@@ -95,8 +106,8 @@ describe('session expiry', () => {
     state = step(state, expired(10));
     const rejoin = advanceContinuity(state, join(20));
     expect(rejoin.disposition).toBe('blocked');
-    expect(rejoin.state.gaps).toEqual([{ id: 'gap-1', causes: ['auth-expired'], start: at(5), end: null, status: 'UNKNOWN', reconciliation: null }]);
-    const attempt = reconcileGapBySnapshot(rejoin.state, 'gap-1', ['p-1'], snapshot(30));
+    expect(rejoin.state.gaps).toEqual([{ id: 'gap-1', causes: ['auth-expired'], start: at(5), end: null, requiredPages: ['p-1'], rejoinedPages: [], status: 'UNKNOWN', reconciliation: null }]);
+    const attempt = reconcileGapBySnapshot(rejoin.state, 'gap-1', { analyses: snapshot(30), provenance });
     expect(attempt.evaluation.eligible).toBe(false);
     expect(attempt.evaluation.reasons).toEqual(expect.arrayContaining(['gap_not_bounded', 'status_auth-expired']));
     expect(attempt.state).toEqual(rejoin.state);
@@ -113,7 +124,7 @@ describe('session expiry', () => {
 describe('reconciled-by-snapshot (never replayed)', () => {
   it('marks only the bounded window after a covering readback that started after rejoin', () => {
     const state = closedAndRejoined();
-    const result = reconcileGapBySnapshot(state, 'gap-1', ['p-1'], snapshot(100));
+    const result = reconcileGapBySnapshot(state, 'gap-1', { analyses: snapshot(100), provenance });
     expect(result.evaluation.eligible).toBe(true);
     expect(result.state.gaps[0]).toMatchObject({ status: 'reconciled-by-snapshot', end: at(80),
       reconciliation: { basis: 'bounded-snapshot', readbackStartedAt: at(100), transitionsInWindow: 'UNKNOWN' } });
@@ -124,21 +135,21 @@ describe('reconciled-by-snapshot (never replayed)', () => {
 
   it('refuses a readback that started before rejoin and leaves state untouched', () => {
     const state = closedAndRejoined();
-    const result = reconcileGapBySnapshot(state, 'gap-1', ['p-1'], snapshot(50));
+    const result = reconcileGapBySnapshot(state, 'gap-1', { analyses: snapshot(50), provenance });
     expect(result.evaluation.eligible).toBe(false);
     expect(result.state).toEqual(state);
   });
 
   it('refuses while disconnected again, for unknown gaps, and for a second reconciliation', () => {
     const state = closedAndRejoined();
-    expect(reconcileGapBySnapshot(step(state, close(90)), 'gap-1', ['p-1'], snapshot(100)).evaluation.reasons).toContain('status_disconnected');
-    expect(() => reconcileGapBySnapshot(state, 'gap-9', ['p-1'], snapshot(100))).toThrow('unknown_gap');
-    const once = reconcileGapBySnapshot(state, 'gap-1', ['p-1'], snapshot(100)).state;
-    expect(reconcileGapBySnapshot(once, 'gap-1', ['p-1'], snapshot(200)).evaluation.reasons).toContain('gap_not_unknown');
+    expect(reconcileGapBySnapshot(step(state, close(90)), 'gap-1', { analyses: snapshot(100), provenance }).evaluation.reasons).toContain('status_disconnected');
+    expect(() => reconcileGapBySnapshot(state, 'gap-9', { analyses: snapshot(100), provenance })).toThrow('unknown_gap');
+    const once = reconcileGapBySnapshot(state, 'gap-1', { analyses: snapshot(100), provenance }).state;
+    expect(reconcileGapBySnapshot(once, 'gap-1', { analyses: snapshot(200), provenance }).evaluation.reasons).toContain('gap_not_unknown');
   });
 
   it('keeps the A->B->A limitation: a reconciled window still records transitions as UNKNOWN', () => {
-    const result = reconcileGapBySnapshot(closedAndRejoined(), 'gap-1', ['p-1'], snapshot(100));
+    const result = reconcileGapBySnapshot(closedAndRejoined(), 'gap-1', { analyses: snapshot(100), provenance });
     expect(result.state.gaps[0].reconciliation?.transitionsInWindow).toBe('UNKNOWN');
     expect(result.state.continuity).toBe('UNKNOWN');
   });

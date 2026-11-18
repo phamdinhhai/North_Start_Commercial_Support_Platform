@@ -1,12 +1,14 @@
 import { describe, expect, it } from 'vitest';
 import { analyzeReadback, collectionKey, type ReadbackCollection, type ReadbackPage } from './history-readback';
 import { correlateLiveWithReadback, evaluateGapCoverage } from './readback-correlation';
+
+const provenance = { producer: 'synthetic-readback-runner/1', readerIds: ['r-1'] };
 import type { LiveMessage } from './message-ledger';
 import type { GapWindow } from './continuity';
 
 const collection: ReadbackCollection = { pageId: 'p-1', kind: 'messages', conversationId: 'conv-1' };
 const at = (second: number) => new Date(Date.parse('2026-11-18T02:00:00.000Z') + second * 1000).toISOString();
-const page = (offset: number, itemIds: string[], second = 100, c = collection): { c: ReadbackCollection; p: ReadbackPage } => ({ c, p: { status: 'ok', readerId: 'r-1', offset, fetchedAt: at(second), itemIds } });
+const page = (offset: number, itemIds: string[], second = 100, c = collection): { c: ReadbackCollection; p: ReadbackPage } => ({ c, p: { status: 'ok', readerId: 'r-1', offset, requestedAt: at(second), fetchedAt: at(second), itemIds } });
 const full = (itemIds: string[], second = 100, c = collection) => analyzeReadback(c, [page(0, itemIds, second, c).p, page(itemIds.length, [], second + 1, c).p]);
 const live = (id: string, second = 10, deletionLabelled = false): LiveMessage => ({ providerMessageId: id, earliestObservedAt: at(second), deletionLabelled });
 
@@ -44,12 +46,12 @@ describe('live observation vs readback correlation', () => {
 });
 
 describe('gap coverage evaluation', () => {
-  const gap: GapWindow = { id: 'gap-1', causes: ['disconnected'], start: at(0), end: at(60), status: 'UNKNOWN', reconciliation: null };
+  const gap: GapWindow = { id: 'gap-1', causes: ['disconnected'], start: at(0), end: at(60), requiredPages: ['p-1'], rejoinedPages: ['p-1'], status: 'UNKNOWN', reconciliation: null };
   const list = (conversations: string[], second = 100) => full(conversations, second, { pageId: 'p-1', kind: 'conversations', conversationId: null });
   const history = (conversationId: string, second = 100) => full(['m-1'], second, { pageId: 'p-1', kind: 'messages', conversationId });
 
   it('is eligible only with a contiguous list plus contiguous history for every listed conversation after the window', () => {
-    const result = evaluateGapCoverage(gap, ['p-1'], [list(['conv-1', 'conv-2']), history('conv-1'), history('conv-2')]);
+    const result = evaluateGapCoverage(gap, [list(['conv-1', 'conv-2']), history('conv-1'), history('conv-2')], provenance);
     expect(result).toMatchObject({ eligible: true, reasons: [], readbackStartedAt: at(100) });
     expect(result.collections).toHaveLength(3);
   });
@@ -63,18 +65,20 @@ describe('gap coverage evaluation', () => {
     ['partial history', gap, [list(['conv-1']), analyzeReadback({ pageId: 'p-1', kind: 'messages', conversationId: 'conv-1' }, [page(0, ['m-1']).p])], 'not_contiguous'],
     ['foreign page', gap, [list(['conv-1']), history('conv-1'), full([], 100, { pageId: 'p-9', kind: 'conversations', conversationId: null })], 'unexpected_page:p-9'],
   ] as const)('is not eligible: %s', (_name, window, analyses, reason) => {
-    const result = evaluateGapCoverage(window, ['p-1'], analyses);
+    const result = evaluateGapCoverage(window, analyses, provenance);
     expect(result.eligible).toBe(false);
     expect(result.reasons.some((item) => item.startsWith(reason))).toBe(true);
   });
 
   it('requires history for live-observed conversations missing from the current list', () => {
-    const result = evaluateGapCoverage(gap, ['p-1'], [list(['conv-1']), history('conv-1')], [{ pageId: 'p-1', conversationId: 'conv-gone' }]);
+    const result = evaluateGapCoverage(gap, [list(['conv-1']), history('conv-1')], provenance, [{ pageId: 'p-1', conversationId: 'conv-gone' }]);
     expect(result.reasons).toEqual([`missing_message_history:${collectionKey({ pageId: 'p-1', kind: 'messages', conversationId: 'conv-gone' })}`]);
   });
 
   it('rejects duplicated collections and invalid inputs', () => {
-    expect(evaluateGapCoverage(gap, ['p-1'], [list(['conv-1']), history('conv-1'), history('conv-1')]).reasons[0]).toMatch(/^duplicate_collection/);
-    expect(() => evaluateGapCoverage(gap, [], [])).toThrow('invalid_gap_coverage_input');
+    expect(evaluateGapCoverage(gap, [list(['conv-1']), history('conv-1'), history('conv-1')], provenance).reasons[0]).toMatch(/^duplicate_collection/);
+    expect(evaluateGapCoverage({ ...gap, requiredPages: [], rejoinedPages: [] }, [], provenance).reasons).toContain('no_required_pages');
+    expect(() => evaluateGapCoverage(gap, [], { producer: 'x', readerIds: [] })).toThrow('invalid_provenance');
+    expect(() => evaluateGapCoverage(gap, null as never, provenance)).toThrow('invalid_gap_coverage_input');
   });
 });

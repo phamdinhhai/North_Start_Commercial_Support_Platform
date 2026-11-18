@@ -1,3 +1,4 @@
+import { createHash } from 'node:crypto';
 import { validId, validTime } from './observation';
 import { collectionKey, type ReadbackAnalysis } from './history-readback';
 import type { LiveMessage } from './message-ledger';
@@ -61,19 +62,37 @@ export interface GapCoverageEvaluation {
   readonly collections: readonly string[];
 }
 
+/** Who or what produced the readback analyses (A-m8). Reader IDs must cover every analysis reader. */
+export interface ReadbackProvenance {
+  readonly producer: string;
+  readonly readerIds: readonly string[];
+}
+
+export function validateProvenance(provenance: ReadbackProvenance): void {
+  if (!provenance || !validId(provenance.producer) || !Array.isArray(provenance.readerIds) || !provenance.readerIds.length ||
+      provenance.readerIds.length > 64 || !provenance.readerIds.every(validId)) throw new Error('invalid_provenance');
+}
+
+/** Deterministic sha256 over the analysis as produced by analyzeReadback (fixed key order). */
+export function analysisDigest(analysis: ReadbackAnalysis): string {
+  return createHash('sha256').update(JSON.stringify(analysis), 'utf8').digest('hex');
+}
+
 /**
- * A gap window may become "reconciled-by-snapshot" only when, for every subscribed page, a contiguous
- * conversation-list readback and a contiguous message-history readback for every listed (and every
- * additionally required) conversation all started after the window ended. This still is not replay.
+ * A gap window may become "reconciled-by-snapshot" only when, for every page the observer had joined when
+ * the gap opened (gap.requiredPages, taken from continuity state, R2-I-07), a contiguous conversation-list
+ * readback and a contiguous message-history readback for every listed (and every additionally required)
+ * conversation were all REQUESTED after the window ended (R2-I-06). This still is not replay.
  */
-export function evaluateGapCoverage(gap: GapWindow, pageIds: readonly string[], analyses: readonly ReadbackAnalysis[],
+export function evaluateGapCoverage(gap: GapWindow, analyses: readonly ReadbackAnalysis[], provenance: ReadbackProvenance,
   alsoRequired: readonly { readonly pageId: string; readonly conversationId: string }[] = []): GapCoverageEvaluation {
-  if (!Array.isArray(pageIds) || !pageIds.length || !pageIds.every(validId) || !Array.isArray(analyses) || !Array.isArray(alsoRequired)) {
-    throw new Error('invalid_gap_coverage_input');
-  }
+  validateProvenance(provenance);
+  if (!gap || !Array.isArray(gap.requiredPages) || !Array.isArray(analyses) || !Array.isArray(alsoRequired)) throw new Error('invalid_gap_coverage_input');
+  const pageIds = gap.requiredPages;
   const reasons: string[] = [];
   if (gap.status !== 'UNKNOWN') reasons.push('gap_not_unknown');
   if (gap.end === null) reasons.push('gap_not_bounded');
+  if (!pageIds.length) reasons.push('no_required_pages');
   const byKey = new Map<string, ReadbackAnalysis>();
   for (const analysis of analyses) {
     const key = collectionKey(analysis.collection);
@@ -84,6 +103,7 @@ export function evaluateGapCoverage(gap: GapWindow, pageIds: readonly string[], 
     if (gap.end !== null && (analysis.startedAt === null || Date.parse(analysis.startedAt) < Date.parse(gap.end))) {
       reasons.push(`started_before_gap_end:${key}`);
     }
+    for (const reader of analysis.readers) if (!provenance.readerIds.includes(reader)) reasons.push(`unattributed_reader:${reader}`);
   }
   const required = new Set(alsoRequired.map((item) => collectionKey({ pageId: item.pageId, kind: 'messages', conversationId: item.conversationId })));
   for (const pageId of pageIds) {
@@ -94,5 +114,5 @@ export function evaluateGapCoverage(gap: GapWindow, pageIds: readonly string[], 
   for (const key of [...required].sort()) if (!byKey.has(key)) reasons.push(`missing_message_history:${key}`);
   const starts = analyses.map((analysis) => analysis.startedAt).filter((value): value is string => value !== null)
     .sort((a, b) => Date.parse(a) - Date.parse(b));
-  return { eligible: reasons.length === 0, reasons, readbackStartedAt: starts[0] ?? null, collections: [...byKey.keys()].sort() };
+  return { eligible: reasons.length === 0, reasons: [...new Set(reasons)], readbackStartedAt: starts[0] ?? null, collections: [...byKey.keys()].sort() };
 }
