@@ -18,13 +18,11 @@ import { HealthModule } from './scripts/health.module';
 import { PilotLoopModule } from './scripts/pilot-loop.module';
 import { ConnectorHealthController } from './api/connector-health.controller';
 import { ConnectorHealthQuery } from './application/observability/connector-health';
-import { AuthService } from './infra/auth/auth.service';
 import { JsonLogger } from './infra/observability/json-logger';
 import { HttpMetrics } from './infra/observability/http-metrics';
 import { MetricsReporter, RequestContextInterceptor, registerHttpObservability, type HookHost } from './infra/observability/http-observability';
 import { PgConnectorHealthReader } from './infra/observability/pg-connector-health.reader';
 import { AlsRequestAnnotator } from './infra/observability/request-context';
-import { AUTH_CONTEXT_RESOLVER } from './ports/auth';
 import { CONNECTOR_HEALTH_READER, type ConnectorHealthReader } from './ports/connector-health';
 import { REQUEST_ANNOTATOR } from './ports/request-context';
 
@@ -40,7 +38,6 @@ import { REQUEST_ANNOTATOR } from './ports/request-context';
     { provide: MetricsReporter, inject: [JsonLogger, HttpMetrics], useFactory: (logger: JsonLogger, metrics: HttpMetrics) => new MetricsReporter(logger, metrics) },
     { provide: APP_INTERCEPTOR, useClass: RequestContextInterceptor },
     { provide: REQUEST_ANNOTATOR, useClass: AlsRequestAnnotator },
-    { provide: AUTH_CONTEXT_RESOLVER, useClass: AuthService },
     { provide: CONNECTOR_HEALTH_READER, inject: [PostgresService], useFactory: (db: PostgresService) => new PgConnectorHealthReader(db) },
     { provide: ConnectorHealthQuery, inject: [CONNECTOR_HEALTH_READER], useFactory: (reader: ConnectorHealthReader) => new ConnectorHealthQuery(reader) },
   ],

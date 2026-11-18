@@ -5,7 +5,7 @@ import { Migrator, loadMigrations } from '../postgres/migrator';
 import { PgIntegrationStore } from '../integration/pg-integration.store';
 import { PgConnectorHealthReader, type ReadOnlySql } from './pg-connector-health.reader';
 import { ConnectorHealthQuery } from '../../application/observability/connector-health';
-import type { Enrollment, Upload } from '../../ports/integration';
+import type { Enrollment, IssuanceAudit, Upload } from '../../ports/integration';
 import type { AuthContext } from '../../ports/auth';
 
 // Explicit database opt-in; CI (ci-integration.mjs) requires every test here to run.
@@ -27,6 +27,7 @@ suite('connector health read model over migration 008 tables (PostgreSQL)', () =
     observation: { completeness: 'UNKNOWN', marker: 'PRIVATE-OBSERVATION-CONTENT' },
   });
   const manager = (workspaceId: string): AuthContext => ({ workspaceId, userId: 'm1', role: 'manager', isDemo: false });
+  const issued: IssuanceAudit = { issuance: 'issuer-secret', actorId: 'test-issuer', role: null, kid: 'test-kid' };
   const ids: Record<string, string> = {};
 
   beforeAll(async () => {
@@ -36,7 +37,7 @@ suite('connector health read model over migration 008 tables (PostgreSQL)', () =
     reader = new PgConnectorHealthReader(db);
 
     const active = enrollment(wsA);
-    await store.enroll(active);
+    await store.enroll(active, issued);
     await store.append(active, upload(1), 'f1');
     await store.append(active, upload(2), 'f2');
     // A rejected gap must not move the checkpoint (and is not persisted as a count).
@@ -44,17 +45,17 @@ suite('connector health read model over migration 008 tables (PostgreSQL)', () =
     ids.active = active.id;
 
     const revoked = enrollment(wsA);
-    await store.enroll(revoked);
+    await store.enroll(revoked, issued);
     await store.append(revoked, upload(1), 'r1');
-    await store.revoke(revoked.id);
+    await store.revoke(revoked.id, { issuance: 'issuer-secret', actorId: 'test-issuer', role: null, workspaceId: null });
     ids.revoked = revoked.id;
 
     const expired = enrollment(wsA, -60_000);
-    await store.enroll(expired);
+    await store.enroll(expired, issued);
     ids.expired = expired.id;
 
     const foreign = enrollment(wsB);
-    await store.enroll(foreign);
+    await store.enroll(foreign, issued);
     await store.append(foreign, upload(1), 'b1');
     ids.foreign = foreign.id;
   });
