@@ -20,7 +20,7 @@ export const fail = (code: string, status = 400): never => { throw new Integrati
 const misconfigured = (): never => fail('AIL_CONFIGURATION', 503);
 
 export interface IntakeConfig {
-    /** Legacy shared issuer secret; null when the deprecated path is disabled. */
+    /** Legacy shared issuer secret; null unless `AIL_ISSUER_SECRET_ENABLED=true` (A-m6). */
     issuer: string | null;
     keys: SigningKey[];
     active: SigningKey & { secret: string };
@@ -88,10 +88,14 @@ export function loadConfig(env: NodeJS.ProcessEnv): IntakeConfig {
     if (!['local', 'test'].includes(env.DEPLOYMENT_MODE ?? '') || env.NODE_ENV === 'production')
         return fail('RESEARCH_ONLY', 503);
     const keys = keyring(env);
-    // Deprecated: the shared issuer secret path is on only while a secret is configured and
-    // `AIL_ISSUER_SECRET_ENABLED` is not `false`. Prefer principal-authenticated issuance.
-    const rawIssuer = env.AIL_ISSUER_SECRET ?? '';
-    const issuer = env.AIL_ISSUER_SECRET_ENABLED === 'false' || rawIssuer === '' ? null : rawIssuer;
+    // Deprecated shared issuer secret (A-m6): EXPLICIT opt-in. Enabled only when
+    // `AIL_ISSUER_SECRET_ENABLED=true`; unset/empty/`false` = disabled (any configured secret is
+    // ignored); any other value is ambiguous → 503. Enabled without a valid secret → 503.
+    // OPEN: PM-1 — retirement of this path is a proposed register entry (R2-P-08).
+    const toggle = env.AIL_ISSUER_SECRET_ENABLED ?? '';
+    if (!['', 'false', 'true'].includes(toggle))
+        return misconfigured();
+    const issuer = toggle === 'true' ? (env.AIL_ISSUER_SECRET ?? '') : null;
     if (issuer !== null && (!secretOk(issuer) || keys.some((k) => k.secret === issuer)))
         return misconfigured();
     const active = keys.find((k): k is SigningKey & { secret: string } => k.state === 'active' && !!k.secret)!;

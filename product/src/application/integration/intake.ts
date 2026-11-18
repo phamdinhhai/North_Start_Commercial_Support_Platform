@@ -17,8 +17,8 @@ export class IntegrationIntake {
     constructor(private readonly store: IntegrationStore, private readonly env: NodeJS.ProcessEnv = process.env) { }
 
     /**
-     * DEPRECATED shared issuer secret. Disabled when `AIL_ISSUER_SECRET` is unset or
-     * `AIL_ISSUER_SECRET_ENABLED=false`; a disabled path is indistinguishable from a missing route.
+     * DEPRECATED shared issuer secret. Disabled unless `AIL_ISSUER_SECRET_ENABLED=true` (explicit
+     * opt-in, A-m6); a disabled path is indistinguishable from a missing route (404).
      */
     private issuer(secret: unknown): IntakeConfig {
         const c = loadConfig(this.env);
@@ -86,9 +86,20 @@ export class IntegrationIntake {
         return body.enrollmentId;
     }
 
+    /**
+     * DEPRECATED. A-m6: the shared secret is a deployment-level credential whose only workspace
+     * binding is the server scope allowlist, so revocation is bound to the single workspace that
+     * allowlist names (an enrollment of any other workspace answers 404 like a missing id). An
+     * allowlist spanning several workspaces cannot bind the secret → 400 SCOPE_AMBIGUOUS; use the
+     * principal route. Never `workspaceId: null` (cross-workspace) any more.
+     */
     async revoke(secret: unknown, body: unknown) {
-        this.issuer(secret);
-        await this.store.revoke(this.enrollmentId(body), { ...ISSUER_ACTOR, workspaceId: null });
+        const c = this.issuer(secret);
+        const id = this.enrollmentId(body);
+        const workspaces = [...new Set(c.scopes.map((s) => s.workspaceId))];
+        if (workspaces.length !== 1)
+            return fail('SCOPE_AMBIGUOUS');
+        await this.store.revoke(id, { ...ISSUER_ACTOR, workspaceId: workspaces[0] });
         return { revoked: true };
     }
 

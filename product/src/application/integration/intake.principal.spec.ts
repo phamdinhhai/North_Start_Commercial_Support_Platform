@@ -70,15 +70,31 @@ describe('principal-authenticated enrollment issuance', () => {
         await expect(svc.revokeAsPrincipal(who('manager'), { enrollmentId, workspaceId: 'ws-b' })).rejects.toMatchObject({ status: 400 });
     });
     it('disables the deprecated issuer-secret path by config while principal issuance keeps working', async () => {
-        for (const patch of [{}, { AIL_ISSUER_SECRET: issuer, AIL_ISSUER_SECRET_ENABLED: 'false' }]) {
+        // A-m6: explicit opt-in — a configured secret alone no longer enables the path.
+        for (const patch of [{}, { AIL_ISSUER_SECRET: issuer }, { AIL_ISSUER_SECRET: issuer, AIL_ISSUER_SECRET_ENABLED: 'false' }, { AIL_ISSUER_SECRET: issuer, AIL_ISSUER_SECRET_ENABLED: '' }]) {
             const { svc, store } = make({ ...base, ...patch });
             await expect(svc.enroll(issuer, {})).rejects.toMatchObject({ status: 404, code: 'ISSUER_PATH_DISABLED' });
             await expect(svc.revoke(issuer, { enrollmentId: '0'.repeat(36) })).rejects.toMatchObject({ status: 404 });
             await svc.enrollAsPrincipal(who('manager', 'ws-b'), {});
             expect(store.enroll).toHaveBeenCalledOnce();
         }
-        const legacy = make({ ...base, AIL_ISSUER_SECRET: issuer });
+        const legacy = make({ ...base, AIL_ISSUER_SECRET: issuer, AIL_ISSUER_SECRET_ENABLED: 'true' });
         await expect(legacy.svc.enroll(issuer, {})).rejects.toMatchObject({ status: 400, code: 'SCOPE_AMBIGUOUS' });
+    });
+    it('A-m6: issuer-secret revoke is bound to the single allowlisted workspace, never cross-workspace', async () => {
+        const enrollmentId = '22222222-2222-4222-8222-222222222222';
+        const single = make({ ...base, AIL_SCOPE_ALLOWLIST: JSON.stringify([allow[2]]), AIL_ISSUER_SECRET: issuer, AIL_ISSUER_SECRET_ENABLED: 'true' });
+        await single.svc.revoke(issuer, { enrollmentId });
+        expect(single.store.revoke).toHaveBeenCalledWith(enrollmentId, { issuance: 'issuer-secret', actorId: 'issuer-secret', role: null, workspaceId: 'ws-b' });
+        // Two scopes of ONE workspace still bind that workspace.
+        const sameWs = make({ ...base, AIL_SCOPE_ALLOWLIST: JSON.stringify(allow.slice(0, 2)), AIL_ISSUER_SECRET: issuer, AIL_ISSUER_SECRET_ENABLED: 'true' });
+        await sameWs.svc.revoke(issuer, { enrollmentId });
+        expect(sameWs.store.revoke).toHaveBeenCalledWith(enrollmentId, expect.objectContaining({ workspaceId: 'ws-a' }));
+        // Allowlist spanning several workspaces: the shared secret cannot be bound → refused, no store call.
+        const multi = make({ ...base, AIL_ISSUER_SECRET: issuer, AIL_ISSUER_SECRET_ENABLED: 'true' });
+        await expect(multi.svc.revoke(issuer, { enrollmentId })).rejects.toMatchObject({ status: 400, code: 'SCOPE_AMBIGUOUS' });
+        expect(multi.store.revoke).not.toHaveBeenCalled();
+        expect(single.store.revoke.mock.calls.every(([, req]) => req.workspaceId !== null)).toBe(true);
     });
 });
 
@@ -129,8 +145,10 @@ describe('signing keyring rotation', () => {
             { AIL_SIGNING_KEYS: keys({ kid: 'k1', secret: k1, state: 'active' }, { kid: 'k0', secret: k2, state: 'retired' }) },
             { AIL_SIGNING_KEYS: '{not json' },
             { AIL_SIGNING_SECRET: k2 },
-            { AIL_ISSUER_SECRET: k1 },
-            { AIL_ISSUER_SECRET: 'short-issuer' },
+            { AIL_ISSUER_SECRET: k1, AIL_ISSUER_SECRET_ENABLED: 'true' },
+            { AIL_ISSUER_SECRET: 'short-issuer', AIL_ISSUER_SECRET_ENABLED: 'true' },
+            { AIL_ISSUER_SECRET_ENABLED: 'true' },
+            { AIL_ISSUER_SECRET: issuer, AIL_ISSUER_SECRET_ENABLED: 'yes' },
             { AIL_SCOPE_ALLOWLIST: JSON.stringify([{ ...allow[0], extra: 'x' }]) },
             { AIL_SCOPE_ALLOWLIST: JSON.stringify([allow[0], allow[0]]) },
             { AIL_SCOPE_ALLOWLIST: '[]' },
