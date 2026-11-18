@@ -21,6 +21,8 @@ integration('completion provenance PostgreSQL migration and restart', () => {
   const legacyWorkId = randomUUID();
   const migrations = loadMigrations();
   const migration = migrations.find((m) => m.version === '009_work_completion_provenance')!;
+  // Pin to <= 009 so later, unrelated migrations do not change what `down()` reverts.
+  const through009 = migrations.filter((m) => m.version <= migration.version);
 
   beforeAll(async () => {
     const admin = new PostgresService({ connectionString: databaseUrl, max: 1 });
@@ -35,7 +37,7 @@ integration('completion provenance PostgreSQL migration and restart', () => {
       (id,lead_id,workspace_id,action,responsible_party,origin,status,completion_evidence,actor,reason)
       VALUES ($1,$2,$3,'call','internal','explicit-request','completed','declared','sales','legacy reason')`,
     [legacyWorkId, legacyLeadId, workspaceId]);
-    await new Migrator(db, migrations).up();
+    await new Migrator(db, through009).up();
   });
 
   afterAll(async () => {
@@ -102,7 +104,7 @@ integration('completion provenance PostgreSQL migration and restart', () => {
     }
     const original = completed[0];
     const historyBefore = await store.history(original.lead.id);
-    const migrator = new Migrator(db, migrations);
+    const migrator = new Migrator(db, through009);
     expect(await migrator.down()).toEqual([migration.version]);
     expect(await migrator.up()).toEqual([migration.version]);
     const after = (await store.load(original.lead.id))!.workItems[0];

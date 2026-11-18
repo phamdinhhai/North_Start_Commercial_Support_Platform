@@ -16,6 +16,7 @@ const requiredSuites = [
   'src/infra/postgres/migration-005.integration.spec.ts',
   'src/infra/postgres/migration-lifecycle.integration.spec.ts',
   'src/infra/postgres/pilot-loop.integration.spec.ts',
+  'src/infra/membership/pg-membership.store.integration.spec.ts',
 ];
 
 async function main() {

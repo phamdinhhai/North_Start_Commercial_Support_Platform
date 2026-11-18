@@ -1,6 +1,7 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable, Logger, Optional } from '@nestjs/common';
 import { timingSafeEqual } from 'node:crypto';
-import type { AuthContext, AuthRequestLike, AuthRole, AuthContextResolver } from '../../ports/auth';
+import { VERIFIED_CONTEXT_LOOKUP, type AuthContext, type AuthRequestLike, type AuthRole, type AuthContextResolver, type VerifiedContextLookup } from '../../ports/auth';
+import { resolveAuthMode } from './oidc-config';
 export type { AuthContext, AuthRequestLike, AuthRole } from '../../ports/auth';
 
 /**
@@ -35,6 +36,13 @@ export class AuthService implements AuthContextResolver {
   private readonly logger = new Logger(AuthService.name);
 
   /**
+   * `verified` is only consulted when AUTH_MODE=oidc (experimental, default OFF). It holds
+   * contexts produced by OidcAuthModule's request hook from a verified token + server-side
+   * membership. Absent lookup in OIDC mode → every bearer request is unauthenticated.
+   */
+  constructor(@Optional() @Inject(VERIFIED_CONTEXT_LOOKUP) private readonly verified?: VerifiedContextLookup) {}
+
+  /**
    * Resolve auth context from request.
    * - Demo: `x-demo-workspace` — DEMO-ONLY and OPT-IN (`DEMO_WORKSPACES=true`). The value is a
    *   SANDBOX LABEL, not a workspace selector: it always resolves to `demo:<name>`, so a caller
@@ -53,6 +61,15 @@ export class AuthService implements AuthContextResolver {
       const sandbox = `${DEMO_PREFIX}${sanitizeDemoName(demoWs) || 'anon'}`;
       return { workspaceId: sandbox, userId: `${sandbox}:viewer`, role: 'viewer', isDemo: true };
     }
+    let oidc: boolean;
+    try {
+      oidc = resolveAuthMode() === 'oidc';
+    } catch {
+      return null; // unknown AUTH_MODE: fail closed (bootstrap already refuses to start)
+    }
+    // OIDC mode: bearer = verified OIDC access token only; unsigned dev tokens and the
+    // bootstrap admin hook are disabled (deny-only change). // OPEN: PM-1
+    if (oidc) return this.verified?.lookup(req.headers) ?? null;
     const auth = asSingleHeader(req.headers['authorization'] ?? req.headers['Authorization']);
     const bootstrap = asSingleHeader(req.headers['x-bootstrap-token']);
     const expectedBootstrap = process.env.BOOTSTRAP_TOKEN;
