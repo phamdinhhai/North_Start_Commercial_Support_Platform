@@ -5,8 +5,11 @@ import { BASE_ROLES, assertMembershipInput } from './in-memory-membership.store'
 /**
  * PostgreSQL membership store (migration 010, table `memberships`). Parameterized SQL only.
  * Reads are uncached so a committed revocation is visible to the next request.
- * // OPEN: PM-1 — grant/revoke are operator/test seams; approval workflow and audit linkage
- * are undecided and nothing here is reachable over HTTP.
+ * Every grant/revoke is recorded by the database in append-only `membership_audit` (A-m4); rows
+ * are never deleted. An operator may attribute a change by setting the transaction-local
+ * `north.membership_actor` before calling grant/revoke (default actor `db:<session_user>`).
+ * // OPEN: PM-1 — grant/revoke are operator/test seams; approval workflow, re-grant/role-change
+ * policy and actor linkage are undecided and nothing here is reachable over HTTP.
  */
 interface MembershipRow {
   workspace_id: string;
