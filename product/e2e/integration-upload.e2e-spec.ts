@@ -4,12 +4,17 @@ import { FastifyAdapter, type NestFastifyApplication } from '@nestjs/platform-fa
 import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { request as httpRequest } from 'node:http';
-import { randomBytes } from 'node:crypto';
+import { randomBytes, randomUUID } from 'node:crypto';
 import { AppModule } from '../src/app.module';
 import { PostgresService } from '../src/infra/postgres/postgres.service';
 import { Migrator, loadMigrations } from '../src/infra/postgres/migrator';
 import { AuthService } from '../src/infra/auth/auth.service';
-import { AUTH_CONTEXT_RESOLVER, type AuthContext, type AuthRequestLike } from '../src/ports/auth';
+import { AUTH_CONTEXT_RESOLVER, MEMBERSHIP_STORE, type AuthContext, type AuthRequestLike, type MembershipStore } from '../src/ports/auth';
+import { OIDC_AUTHENTICATOR } from '../src/infra/auth/oidc-auth.module';
+import { OidcAuthenticator, oidcUserId } from '../src/infra/auth/oidc-authenticator';
+import { OidcTokenVerifier } from '../src/infra/auth/oidc-token-verifier';
+import { JwksKeyStore } from '../src/infra/auth/jwks-key-store';
+import { createTestKey, mintToken, testConfig, TEST_AUDIENCE, TEST_ISSUER, type TestSigningKey } from '../src/infra/auth/oidc-test-kit';
 
 // Explicit database opt-in: this suite never falls back to an ambient database.
 const suite = process.env.TEST_DATABASE_URL ? describe : describe.skip;
@@ -61,7 +66,7 @@ suite('synthetic companion upload through real HTTP and PostgreSQL', () => {
   };
   beforeAll(async () => {
     Object.assign(process.env, { DATABASE_URL: process.env.TEST_DATABASE_URL, PILOT_STORE_MODE: 'postgres', DEPLOYMENT_MODE: 'test',
-      AUTH_DEV_UNSIGNED_TOKENS: 'true', DEMO_WORKSPACES: 'false', AIL_RESEARCH_ENABLED: 'true', AIL_ISSUER_SECRET: issuer,
+      AUTH_DEV_UNSIGNED_TOKENS: 'true', DEMO_WORKSPACES: 'false', AIL_RESEARCH_ENABLED: 'true', AIL_ISSUER_SECRET_ENABLED: 'true', AIL_ISSUER_SECRET: issuer,
       AIL_SIGNING_SECRET: 'synthetic-qa-signing-'.repeat(3), AIL_WORKSPACE_ID: scope.workspaceId,
       AIL_CONNECTION_ID: scope.connectionId, AIL_ACCOUNT_ID: scope.accountId, AIL_PAGE_ID: scope.pageId });
     db = new PostgresService({ connectionString: process.env.TEST_DATABASE_URL });
@@ -262,8 +267,108 @@ suite('synthetic companion upload through real HTTP and PostgreSQL', () => {
       expect((await request('/v1/integration/revoke', { enrollmentId: '00000000-0000-4000-8000-000000000000' }, undefined, issuer)).status).toBe(404);
       expect((await request('/v1/integration/enrollments', {}, principal(scope.workspaceId, 'admin'))).status).toBe(201);
     });
-    await withEnv({ ...r2, AIL_ISSUER_SECRET: undefined }, async () => {
-      expect((await request('/v1/integration/enroll', {}, undefined, issuer)).status).toBe(404);
+    await withEnv({ ...r2, AIL_ISSUER_SECRET_ENABLED: 'true', AIL_ISSUER_SECRET: undefined }, async () => {
+      expect((await request('/v1/integration/enroll', {}, undefined, issuer)).status).toBe(503);
     });
+    // A-m6: explicit opt-in — a configured secret alone no longer enables the deprecated path.
+    await withEnv({ AIL_ISSUER_SECRET_ENABLED: undefined }, async () => {
+      expect((await request('/v1/integration/enroll', {}, undefined, issuer)).status).toBe(404);
+      expect((await request('/v1/integration/revoke', { enrollmentId: '00000000-0000-4000-8000-000000000000' }, undefined, issuer)).status).toBe(404);
+    });
+  });
+
+  it('A-m6: issuer-secret revoke is bound to the allowlisted workspace and cannot revoke another workspace', async () => {
+    let foreign = '';
+    await withEnv(r2, async () => {
+      foreign = (await request('/v1/integration/enrollments', {}, principal(other.workspaceId, 'manager'))).body.enrollmentId;
+      // Allowlist spanning two workspaces: the shared secret cannot be bound to one → refused.
+      expect((await request('/v1/integration/revoke', { enrollmentId: foreign }, undefined, issuer))).toMatchObject({ status: 400, body: { code: 'SCOPE_AMBIGUOUS' } });
+    });
+    // Legacy single-scope allowlist (qa-synthetic): the qa-other enrollment looks missing.
+    expect((await request('/v1/integration/revoke', { enrollmentId: foreign }, undefined, issuer)).status).toBe(404);
+    const row = await db.query('SELECT revoked_at FROM integration_enrollment WHERE id=$1', [foreign]);
+    expect(row.rows[0].revoked_at).toBeNull();
+    const own = await enroll();
+    expect((await request('/v1/integration/revoke', { enrollmentId: own.enrollmentId }, undefined, issuer)).status).toBe(201);
+    const audit = await db.query("SELECT actor, workspace_id FROM audit_record WHERE entity_type='integration-enrollment' AND entity_id=$1 AND event_type='integration.enrollment.revoked'", [own.enrollmentId]);
+    expect(audit.rows).toEqual([{ actor: 'issuer-secret', workspace_id: scope.workspaceId }]);
+  });
+});
+
+// A-M5: the real OIDC path (no stand-in resolver) — Fastify hook → PgMembershipStore → AuthService
+// → IntegrationController → PgIntegrationStore. Only the JWKS source is in-memory (runtime keys).
+suite('AUTH_MODE=oidc principal enrollment through real HTTP and PostgreSQL membership', () => {
+  let app: NestFastifyApplication;
+  let db: PostgresService;
+  let key: TestSigningKey;
+  let memberships: MembershipStore;
+  const prior = { ...process.env };
+  const run = randomUUID().slice(0, 8);
+  const workspaceId = `qa-oidc-${run}`;
+  const scope = { workspaceId, connectionId: 'qa-oidc-connection', accountId: 'qa-oidc-account', pageId: 'qa-oidc-page' };
+  const [manager, sales] = [`mgr-${run}`, `sales-${run}`];
+  const inject = async (url: string, body: unknown, headers: Record<string, string>) => {
+    const res = await app.getHttpAdapter().getInstance().inject({ method: 'POST', url, payload: body as object, headers: { 'content-type': 'application/json', ...headers } });
+    return { status: res.statusCode, body: res.json() as any };
+  };
+  const bearer = async (sub: string) => ({ authorization: `Bearer ${await mintToken(key, { sub })}` });
+  const upload = (captureId: string, sequence = 1) => ({ captureId, sequence, pageId: scope.pageId, observation: {
+    captureId, scope: { workspaceId, connectionId: scope.connectionId, accountId: scope.accountId, providerSurface: 'pancake-conversations' },
+    sourceRevision: 'synthetic-v1', externalEventId: null, externalObjectId: null, eventType: 'synthetic-update', method: 'browser-websocket',
+    evidenceType: 'client-observed', authenticity: 'UNKNOWN', completeness: 'UNKNOWN', occurredAt: null, observedAt: '2026-11-18T00:00:00.000Z', payloadHash: 'c'.repeat(64) } });
+
+  beforeAll(async () => {
+    for (const k of ['AIL_WORKSPACE_ID', 'AIL_CONNECTION_ID', 'AIL_ACCOUNT_ID', 'AIL_PAGE_ID', 'AIL_SIGNING_SECRET', 'AIL_ISSUER_SECRET', 'AIL_ISSUER_SECRET_ENABLED',
+      'AUTH_DEV_UNSIGNED_TOKENS', 'BOOTSTRAP_TOKEN', 'DEMO_WORKSPACES', 'NODE_ENV']) delete process.env[k];
+    Object.assign(process.env, { DATABASE_URL: process.env.TEST_DATABASE_URL, PILOT_STORE_MODE: 'postgres', DEPLOYMENT_MODE: 'test',
+      AUTH_MODE: 'oidc', OIDC_ISSUER: TEST_ISSUER, OIDC_AUDIENCE: TEST_AUDIENCE, OIDC_JWKS_URI: 'https://idp.test.invalid/jwks',
+      AIL_RESEARCH_ENABLED: 'true', AIL_SCOPE_ALLOWLIST: JSON.stringify([scope]),
+      AIL_SIGNING_KEYS: JSON.stringify([{ kid: 'oidc-k1', secret: randomBytes(32).toString('base64url'), state: 'active' }]) });
+    db = new PostgresService({ connectionString: process.env.TEST_DATABASE_URL });
+    await new Migrator(db, loadMigrations()).up();
+    await db.query('INSERT INTO workspace(id, name) VALUES ($1, $2)', [workspaceId, 'qa oidc']);
+    key = await createTestKey(`kid-${run}`);
+    const keys = new JwksKeyStore(async () => ({ keys: [key.publicJwk] }), { cacheMaxAgeMs: 600_000, refetchCooldownMs: 30_000 });
+    const module = await Test.createTestingModule({ imports: [AppModule] })
+      .overrideProvider(OIDC_AUTHENTICATOR).useFactory({ inject: [MEMBERSHIP_STORE], factory: (store: MembershipStore) => new OidcAuthenticator(new OidcTokenVerifier(testConfig(), keys), store) })
+      .compile();
+    memberships = module.get<MembershipStore>(MEMBERSHIP_STORE);
+    await memberships.grant({ workspaceId, issuer: TEST_ISSUER, subject: manager, baseRole: 'manager' });
+    await memberships.grant({ workspaceId, issuer: TEST_ISSUER, subject: sales, baseRole: 'sales' });
+    app = module.createNestApplication<NestFastifyApplication>(new FastifyAdapter(), { logger: false });
+    app.setGlobalPrefix('v1', { exclude: ['health', 'health/readiness', 'v1/health', 'v1/health/readiness'] });
+    await app.init();
+    await app.getHttpAdapter().getInstance().ready();
+  });
+  afterAll(async () => {
+    await app?.close();
+    await db?.onModuleDestroy();
+    for (const k of Object.keys(process.env)) if (!(k in prior)) delete process.env[k];
+    Object.assign(process.env, prior);
+  });
+
+  it('manager membership issues and revokes; sales gets 403; membership revocation denies the next request', async () => {
+    expect((await inject('/v1/integration/enrollments', {}, await bearer(sales))).status).toBe(403);
+    expect((await inject('/v1/integration/enrollments', {}, await bearer(`nobody-${run}`))).status).toBe(401);
+    const issued = await inject('/v1/integration/enrollments', {}, await bearer(manager));
+    expect(issued.status).toBe(201);
+    expect(issued.body.scope).toEqual({ ...scope, providerSurface: 'pancake-conversations' });
+    const e = issued.body;
+    expect((await inject('/v1/integration/observations', upload('oidc-1'), { authorization: `Bearer ${e.token}` })).status).toBe(201);
+    const actor = oidcUserId(TEST_ISSUER, manager);
+    const issuedAudit = await db.query("SELECT actor, workspace_id FROM audit_record WHERE entity_type='integration-enrollment' AND entity_id=$1 AND event_type='integration.enrollment.issued'", [e.enrollmentId]);
+    expect(issuedAudit.rows).toEqual([{ actor, workspace_id: workspaceId }]);
+    expect((await inject('/v1/integration/enrollments/revoke', { enrollmentId: e.enrollmentId }, await bearer(sales))).status).toBe(403);
+    expect((await inject('/v1/integration/enrollments/revoke', { enrollmentId: e.enrollmentId }, { ...(await bearer(manager)), 'x-workspace-id': workspaceId })).status).toBe(201);
+    expect((await inject('/v1/integration/observations', upload('oidc-2', 2), { authorization: `Bearer ${e.token}` })).status).toBe(401);
+    const revokedAudit = await db.query("SELECT actor FROM audit_record WHERE entity_type='integration-enrollment' AND entity_id=$1 AND event_type='integration.enrollment.revoked'", [e.enrollmentId]);
+    expect(revokedAudit.rows).toEqual([{ actor }]);
+    // Deprecated issuer-secret path is off by default (A-m6).
+    expect((await inject('/v1/integration/enroll', {}, { 'x-integration-issuer': 'x'.repeat(40) })).status).toBe(404);
+    // Revoking the membership denies the very next enrollment request; history is audited (A-m4).
+    expect(await memberships.revoke({ workspaceId, issuer: TEST_ISSUER, subject: manager })).toBe(true);
+    expect((await inject('/v1/integration/enrollments', {}, await bearer(manager))).status).toBe(401);
+    const history = await db.query("SELECT a.operation FROM membership_audit a JOIN memberships m ON m.id=a.membership_id WHERE m.issuer=$1 AND m.subject=$2 ORDER BY a.id", [TEST_ISSUER, manager]);
+    expect(history.rows.map((r) => r.operation)).toEqual(['grant', 'revoke']);
   });
 });
