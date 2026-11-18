@@ -57,8 +57,11 @@ export class JsonLogger implements LoggerService {
     const context = rest.length && typeof rest[rest.length - 1] === 'string' ? contextName(rest.pop()) : undefined;
     const record: LogRecord = { ...messageFields(message, context) };
     if (errorLike) {
-      const stack = message instanceof Error ? message.stack : rest.find((p) => typeof p === 'string');
-      const frames = stackFrames(stack);
+      // Nest shape: error(message, stack?, context?). Frames come only from the stack text
+      // after the located message; a multi-line message can never be parsed as frames.
+      const frames = message instanceof Error
+        ? stackFrames(message.stack, message.message)
+        : stackFrames(rest.find((p) => typeof p === 'string'), message);
       if (frames) record.stack = frames;
     }
     this.emit(level, record, context);

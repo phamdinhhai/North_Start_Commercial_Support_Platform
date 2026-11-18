@@ -70,7 +70,7 @@ describe('JsonLogger allowlist redaction', () => {
     expect(pickAllowed({ durationMs: 1.23456, requests: { 'GET /v1/x 200': 2, 'a@b.c': 1, 'GET /v1/y 200': -1 } }))
       .toEqual({ durationMs: 1.235, requests: { 'GET /v1/x 200': 2 } });
     expect(pickAllowed(null)).toEqual({});
-    expect(stackFrames(undefined)).toBeUndefined();
+    expect(stackFrames(undefined, 'x')).toBeUndefined();
   });
 
   it('adds requestId and the annotated server-resolved workspaceId inside a request context', () => {

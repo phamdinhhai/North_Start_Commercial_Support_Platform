@@ -83,3 +83,22 @@ Use `product/scripts/restore-rehearsal.mjs` (explicit local `/north_start_ci` ta
 - 409 counts are process-wide only; not attributable per enrollment/tenant without a schema change (out of scope: no migrations).
 - `scope->>'workspaceId'` is not indexed; acceptable at experimental volume.
 - Access logs for routes that do not annotate a workspace omit `workspaceId` by design.
+
+## 7. Review fixes
+
+### R2-I-05 (MINOR, defence in depth): multi-line error messages smuggled into `stack`
+
+Finding: the frame filter accepted any later line shaped like `    at <...>` (character class admitted `@ . -`), so `new Error('x\n    at alice@example.com')` leaked an e-mail via `stack`, both for `Error` objects and for the Nest `ExceptionsHandler` shape `(message, stack, context)`.
+
+Fix (`product/src/infra/observability/redaction.ts`, `json-logger.ts`):
+- `stackFrames(stack, message)` locates the message in the stack **by position and length** and parses frames only from the text after it. If the message cannot be located, no frames are emitted (fail closed). An empty message skips only the header line.
+- `STACK_FRAME` now requires the strict V8 shape `at [async] [new] fn [as alias] (path:line[:col] | native | <anonymous> | index N)` or `at [async] path:line[:col]`. `@` is allowed in a path only directly after a separator (npm scopes such as `node_modules/@nestjs`).
+- Additional per-frame deny filter: address-like `x@y.z`, JWT headers (`eyJ...`), opaque runs of 32+ token characters, 7+ digit (phone-like) runs, and `bearer`.
+- `json-logger.ts` passes the message (Error `.message`, or the first argument in the Nest string shape) into `stackFrames`.
+- Tests: `json-logger.r2-review.spec.ts` QA reproductions flipped from `it.fails` to `it`, plus negative cases (phone, spaced phone, e-mail in path, Bearer token, JWT in path, header text), fail-closed when the message is not in the stack, and positive cases preserving real V8 frames (npm scopes, `node:internal`, `async`, `index N`, Windows and `file://` paths).
+
+Trade-off: genuine frames whose paths contain spaces, very long hashed segments or long digit runs are dropped. Losing diagnostic detail is preferred to leaking PII.
+
+### Startup configuration errors (trade-off reconfirmed)
+
+Startup configuration errors that Nest logs under `ExceptionHandler`, such as a missing `PILOT_STORE_MODE`, still show `msg: "[REDACTED]"` with `errorName` and the stack frames. The first frame, such as `at resolvePilotStoreMode (...postgres.service.js:62:11)`, identifies the failing check. This was re-verified with `node dist/main` on the fix branch. We keep the trade-off because Nest's exception handler also logs arbitrary runtime exception messages, which may contain PII. Operators should diagnose from the frame and the documented environment variables. Do not add `ExceptionHandler`/`ExceptionsHandler` to `TRUSTED_MESSAGE_CONTEXTS`.

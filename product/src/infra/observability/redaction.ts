@@ -23,8 +23,24 @@ const EVENT = /^[a-z][a-z0-9_.]{0,63}$/;
 /** Route templates come from registered routes (`/v1/pilot/leads/:id`), never raw URLs. */
 const ROUTE = /^(?:\/[A-Za-z0-9_.:*-]{0,64}){1,12}$|^\(unmatched\)$/;
 const METRIC_KEY = /^[A-Z]{3,7} (?:\/[A-Za-z0-9_.:*-]{0,64}){1,12} [1-5]\d\d$|^[A-Z]{3,7} \(unmatched\) [1-5]\d\d$|^[a-z0-9_.]{1,64}$/;
-/** Stack frames: "at fn (path:line:col)" — message lines (which may carry PII) are dropped. */
-const STACK_FRAME = /^ {4}at [\w$.<>[\] /\\:()@-]{1,300}$/;
+/**
+ * Strict V8 frame shape: "at [async] [new] fn [as alias] (location)" or "at [async] location",
+ * where location is "path:line[:col]" (incl. file:// and node:internal), "native",
+ * "<anonymous>" or "index N". A path may contain "@" only directly after a separator (npm
+ * scopes such as node_modules/@nestjs), so "user@host" never matches.
+ */
+const FN = '(?:async )?(?:new )?[A-Za-z0-9_$.<>\\[\\]]{1,120}(?: \\[as [A-Za-z0-9_$]{1,64}\\])?';
+const PATH = '(?:file:///?)?(?:[A-Za-z]:)?(?:node:)?(?:[\\\\/]?@?[A-Za-z0-9_.-]{1,128}){1,40}:[0-9]{1,7}(?::[0-9]{1,7})?';
+const LOCATION = `(?:${PATH}|native|<anonymous>|index [0-9]{1,4})`;
+const STACK_FRAME = new RegExp(`^ {4}at (?:${FN} \\(${LOCATION}\\)|(?:async )?${LOCATION})$`);
+/** Defence in depth: frames with address-like, token-like or long digit runs are dropped. */
+const FRAME_DENY: readonly RegExp[] = [
+  /[A-Za-z0-9_.+-]@[A-Za-z0-9-]+\.[A-Za-z]/, // e-mail / user@host
+  /eyJ[A-Za-z0-9_-]{4,}/, // JWT header
+  /[A-Za-z0-9+_-]{32,}/, // long opaque token run
+  /[0-9][0-9 .-]{6,}[0-9]/, // phone-like digit run (7+ digits incl. separators)
+  /bearer/i,
+];
 
 /**
  * Contexts whose free-text messages are reviewed fixed literals (Nest bootstrap/routing and
@@ -105,10 +121,28 @@ export function messageFields(message: unknown, context: string | undefined): Lo
   return {};
 }
 
-/** Keep only well-formed stack frames; the first stack line repeats the (untrusted) message. */
-export function stackFrames(stack: unknown): readonly string[] | undefined {
-  if (typeof stack !== 'string') return undefined;
-  const frames = stack.split('\n').filter((line) => STACK_FRAME.test(line)).slice(0, MAX_STACK_FRAMES).map((line) => line.trim());
+/**
+ * Frames are parsed only from the part of the stack AFTER the error message. The message is
+ * located by position and length (never by line parsing), so a multi-line message whose lines
+ * look like frames cannot leak. If the message cannot be located in the stack, no frames are
+ * returned (fail closed).
+ */
+export function stackFrames(stack: unknown, message: unknown): readonly string[] | undefined {
+  if (typeof stack !== 'string' || typeof message !== 'string') return undefined;
+  let tail: string;
+  if (message.length === 0) {
+    const firstBreak = stack.indexOf('\n');
+    if (firstBreak < 0) return undefined;
+    tail = stack.slice(firstBreak);
+  } else {
+    const at = stack.indexOf(message);
+    if (at < 0) return undefined;
+    tail = stack.slice(at + message.length);
+  }
+  const frames = tail.split('\n')
+    .filter((line) => STACK_FRAME.test(line) && !FRAME_DENY.some((pattern) => pattern.test(line)))
+    .slice(0, MAX_STACK_FRAMES)
+    .map((line) => line.trim());
   return frames.length ? frames : undefined;
 }
 
