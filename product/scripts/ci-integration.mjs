@@ -1,4 +1,4 @@
-import { mkdtempSync, readFileSync, rmSync } from 'node:fs';
+import { mkdtempSync, readFileSync, readdirSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { spawnSync } from 'node:child_process';
@@ -19,9 +19,20 @@ const requiredSuites = [
   'src/infra/postgres/pilot-loop.integration.spec.ts',
   'src/infra/membership/pg-membership.store.integration.spec.ts',
   'src/infra/governed-action/governed-action.integration.spec.ts',
+  'src/infra/governed-action/governed-action.review-fixes.integration.spec.ts',
 ];
 
+/** Every PostgreSQL suite on disk must be required, so a new suite can never be silently skipped. */
+export function unregisteredSuites(root = productRoot, required = requiredSuites) {
+  return readdirSync(join(root, 'src'), { recursive: true })
+    .map((p) => `src/${String(p).replaceAll('\\', '/')}`)
+    .filter((p) => p.endsWith('.integration.spec.ts') && !required.includes(p))
+    .sort();
+}
+
 async function main() {
+  const missing = unregisteredSuites();
+  if (missing.length) throw new Error(`Unregistered PostgreSQL suites: ${missing.join(', ')}`);
   if (process.env.CI !== 'true') throw new Error('This gate requires CI=true');
   if (!process.env.TEST_DATABASE_URL) throw new Error('TEST_DATABASE_URL is required');
   const url = new URL(process.env.TEST_DATABASE_URL);
