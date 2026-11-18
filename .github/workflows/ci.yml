@@ -45,7 +45,9 @@ jobs:
           cache-dependency-path: product/package-lock.json
       - name: Install locked dependencies
         run: npm ci
-      - name: Dependency audit (high and critical)
+      - name: Dependency audit gate tests
+        run: npm run test:security-audit
+      - name: Dependency audit (high and critical; production never waived)
         run: npm run security:audit
       - name: Repository diff and secret-pattern check
         working-directory: .
