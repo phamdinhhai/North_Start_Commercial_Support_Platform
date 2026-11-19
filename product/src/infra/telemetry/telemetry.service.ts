@@ -139,12 +139,13 @@ export class TelemetryService implements TelemetryServicePort {
   }
 
   async recordLearning(input: RecordEventInput): Promise<ProductEvent> {
-    return this.persist(input, LEARNING_EVENT_TYPES);
+    // This internal path receives a server-resolved membership workspace, never a caller-selected tag.
+    return this.persist(input, LEARNING_EVENT_TYPES, /^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$/, 128);
   }
 
-  private async persist(input: RecordEventInput, approvedTypes: ReadonlySet<string>): Promise<ProductEvent> {
+  private async persist(input: RecordEventInput, approvedTypes: ReadonlySet<string>, workspacePattern = WORKSPACE_ID, workspaceBytes = MAX_TAG_BYTES): Promise<ProductEvent> {
     if (!input.workspaceId) throw new Error('workspaceId is required');
-    if (!validTag(input.workspaceId, WORKSPACE_ID, MAX_TAG_BYTES)) throw new Error('workspaceId is invalid');
+    if (!validTag(input.workspaceId, workspacePattern, workspaceBytes)) throw new Error('workspaceId is invalid');
     if (!input.eventType) throw new Error('eventType is required');
     if (!validTag(input.eventType, SAFE_KEY, MAX_TAG_BYTES) || !approvedTypes.has(input.eventType)) {
       throw new Error('eventType is not approved');
