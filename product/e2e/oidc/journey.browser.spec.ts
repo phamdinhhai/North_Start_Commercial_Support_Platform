@@ -1,4 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
+import { Pool } from 'pg';
 
 async function login(page: Page, account: string) {
   page.on('pageerror', error => console.log('BROWSER ERROR', error.message));
@@ -36,11 +37,18 @@ test('real OIDC redirect and UI-only complete commercial journey survives app re
   const cookies = await page.context().cookies();
   expect(cookies.find(c => c.name === 'north_session')).toMatchObject({ httpOnly: true, sameSite: 'Lax' });
   expect(await page.evaluate(() => Object.keys(localStorage).length + Object.keys(sessionStorage).length)).toBe(0);
-  const leadId = await create(page, 'Synthetic full browser journey');
+  await create(page, 'Synthetic excluded learning probe');
   await expect(page.locator('#context')).toContainText('SYNTHETIC');
   await expect(page.locator('#queue .queue-item')).toHaveCount(0); // default real filter
-  await page.locator('#classification').selectOption('synthetic');
-  await page.locator('.queue-item').filter({ hasText: 'Synthetic full browser journey' }).click();
+  const excluded = page.waitForResponse(r => r.url().endsWith('/pilot/learning') && r.request().postDataJSON()?.eventType === 'evidence_viewed');
+  await page.locator('#evidence').click(); await expect(page.locator('#read-view')).toContainText('Fabricated original');
+  expect(await (await excluded).json()).toMatchObject({ recorded: false, reason: 'SYNTHETIC_OR_UNKNOWN_EXCLUDED' });
+  const telemetryDb = new Pool({ connectionString: process.env.QA_DATABASE_URL });
+  try {
+    expect((await telemetryDb.query('SELECT count(*)::int AS n FROM product_event')).rows[0].n).toBe(0);
+  } finally { await telemetryDb.end(); }
+  const leadId = await create(page, 'Fabricated full browser journey', false);
+  await expect(page.locator('#context')).toContainText('REAL');
   await page.locator('#edit-context').click();
   await page.locator('#context-text').fill('Customer needs a callback tomorrow; source preserved'); await reason(page); await record(page);
   await page.locator('#handoff').click();
@@ -51,8 +59,8 @@ test('real OIDC redirect and UI-only complete commercial journey survives app re
   await page.locator('#recipient').selectOption(identity);
   await page.locator('#handoff-context').fill('Call tomorrow: inspect original evidence first');
   await page.locator('#action').fill('Call customer tomorrow'); await reason(page); await record(page);
-  await recipient.locator('#classification').selectOption('synthetic');
-  await recipient.locator('.queue-item').filter({ hasText: 'Synthetic full browser journey' }).click();
+  await recipient.locator('#refresh').click();
+  await recipient.locator('.queue-item').filter({ hasText: 'Fabricated full browser journey' }).click();
   await expect(recipient.locator('#context')).toContainText(leadId);
   await recipient.locator('#evidence').click();
   await expect(recipient.locator('#read-view')).toContainText('Fabricated original: please call tomorrow');
@@ -73,11 +81,20 @@ test('real OIDC redirect and UI-only complete commercial journey survives app re
   await recipient.locator('[id^="correct-"]').last().click(); await recipient.locator('#outcome-value').selectOption('Unknown'); await reason(recipient, 'Correction: payment not verified'); await record(recipient);
   await expect(recipient.locator('#outcomes')).toContainText('Won'); await expect(recipient.locator('#outcomes')).toContainText('Unknown');
   await recipient.locator('#audit').click(); await expect(recipient.locator('#read-view')).toContainText('Correction: payment not verified');
+  const db = new Pool({ connectionString: process.env.QA_DATABASE_URL });
+  try {
+    await expect.poll(async () => (await db.query('SELECT DISTINCT event_type FROM product_event')).rows.map(r => r.event_type))
+      .toEqual(expect.arrayContaining(['evidence_viewed', 'context_edited', 'action_completed', 'outcome_corrected']));
+    const events = (await db.query('SELECT payload,release_version,flag_exposure FROM product_event')).rows;
+    expect(events.length).toBeGreaterThan(0);
+    for (const event of events) { expect(event.payload).toEqual({ safe: 'ok' }); expect(event.release_version).toBe('0.1.0'); expect(event.flag_exposure).toEqual({ pancake_sync: 'off' }); }
+    expect(JSON.stringify(events)).not.toContain(leadId); expect(JSON.stringify(events)).not.toContain('Fabricated original');
+  } finally { await db.end(); }
   const restarted = await request.post('http://127.0.0.1:3412/restart', { headers: { 'x-qa-control': process.env.QA_CONTROL_SECRET! } });
   expect(restarted.ok()).toBe(true);
   await recipient.reload(); await expect(recipient.locator('#signin')).toBeVisible();
-  await login(recipient, 'recipient'); await recipient.locator('#classification').selectOption('synthetic');
-  await recipient.locator('.queue-item').filter({ hasText: 'Synthetic full browser journey' }).click();
+  await login(recipient, 'recipient');
+  await recipient.locator('.queue-item').filter({ hasText: 'Fabricated full browser journey' }).click();
   await expect(recipient.locator('#context')).toContainText(leadId);
   await expect(recipient.locator('#outcomes')).toContainText('Correction: payment not verified');
   await recipientContext.close();
