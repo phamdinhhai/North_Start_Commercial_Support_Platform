@@ -2,10 +2,10 @@ export const OPERATOR_SCRIPT = String.raw`
 (() => {
     'use strict';
     const $ = id => document.getElementById(id), v = id => $(id)?.value.trim() || '', esc = x => String(x ?? 'UNKNOWN').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-    let session = {}, selected = null, epoch = 0, listEpoch = 0, cursor = null, busy = false, command = null;
+    let session = {}, selected = null, epoch = 0, listEpoch = 0, cursor = null, busy = false, command = null, recovery = null, dirty = false;
     const msg = (id, text, error = false) => { $(id).textContent = text; $(id).className = 'notice' + (error ? ' error' : ''); };
     const clear = () => { epoch++; listEpoch++; selected = null; cursor = null; $('context').replaceChildren(); $('queue').replaceChildren(); $('next').hidden = true; if ($('command-dialog').open)
-        $('command-dialog').close(); };
+        $('command-dialog').close(); $('command-fields').replaceChildren(); command = null; dirty = false; };
     const err = e => e.status === 401 ? 'Session expired. Sign in again.' : e.status === 403 ? 'Permission denied for this lead or action.' : e.status === 409 ? 'Conflict (' + (e.body?.code || '409') + '). Reload before retrying.' : (e.body?.code ? e.body.code + ': ' : '') + e.message;
     async function request(url, options = {}) { const headers = { 'content-type': 'application/json' }; if (session.devTokensAllowed && !session.authenticated && v('token'))
         headers.authorization = v('token').startsWith('Bearer ') ? v('token') : 'Bearer ' + v('token'); if (session.authenticated)
@@ -17,16 +17,24 @@ export const OPERATOR_SCRIPT = String.raw`
         e.status = r.status;
         e.body = b;
         if (r.status === 401) {
+            if (command?.id && session.authenticated && dirty) recovery = { command, fields: Array.from($('command-fields').children), context: session.context };
             clear();
+            session.authenticated = false;
+            $('recheck-session').hidden = !recovery;
+            $('signin').target = '_blank';
+            $('signin').rel = 'noopener';
+            msg('dialog-status', '');
             $("identity").textContent = "";
             $("token").value = "";
             $('signin').hidden = !session.loginAvailable;
-            msg('session-status', err(e), true);
+            msg('session-status', err(e) + (recovery ? ' Draft held only in this tab. Sign in in a new tab, then recheck session here.' : ' Re-enter unsaved changes after sign-in.'), true);
         }
+        if (r.status === 403) { recovery = null; clear(); $('recheck-session').hidden = true; msg('context-status', 'Access denied. Lead context and unsaved draft cleared.', true); }
         throw e;
     } return b; }
     async function init() { try {
         session = await request('/v1/auth/session');
+        if (session.syntheticOnly) { $('classification').value = 'synthetic'; msg('practice-status', 'Synthetic practice: invented data only'); }
         $('development').hidden = !session.devTokensAllowed;
         $('signin').hidden = session.authenticated || !session.loginAvailable;
         $('logout').hidden = !session.authenticated;
@@ -95,11 +103,12 @@ export const OPERATOR_SCRIPT = String.raw`
         n.append(o);
     } $('command-fields').append(l, n); }
     function dialog(title, setup, run) { if (busy)
-        return; $('submit-command').dataset.stale = ''; $('submit-command').disabled = false; $('dialog-title').textContent = title; $('command-fields').replaceChildren(); msg('dialog-status', ''); command = { run, epoch, id: selected?.id, version: selected?.version, key: crypto.randomUUID() }; setup(); $('command-dialog').showModal(); $('command-fields').querySelector('input,textarea,select')?.focus(); }
+        return; $('submit-command').dataset.stale = ''; $('submit-command').disabled = false; $('dialog-title').textContent = title; $('command-fields').replaceChildren(); msg('dialog-status', ''); dirty = false; command = { run, epoch, id: selected?.id, version: selected?.version, key: crypto.randomUUID() }; setup(); if (session.syntheticOnly && $('synthetic')) { $('synthetic').checked = true; $('synthetic').disabled = true; } $('command-dialog').showModal(); $('command-fields').querySelector('input,textarea,select')?.focus(); }
     async function submit(e) { e.preventDefault(); if (busy || !command)
         return; const c = command; if (c.epoch !== epoch)
         return; busy = true; document.querySelectorAll('button').forEach(n => n.disabled = true); msg('dialog-status', 'Recording - '); try {
         const result = await c.run({ expectedVersion: c.version, idempotencyKey: c.key });
+        dirty = false;
         $('command-dialog').close();
         busy = false;
         const id = result?.leadId || c.id;
@@ -117,7 +126,15 @@ export const OPERATOR_SCRIPT = String.raw`
             const b = document.createElement('button');
             b.type = 'button';
             b.textContent = 'Reload current lead';
-            b.onclick = () => { $('command-dialog').close(); openLead(c.id); };
+            b.onclick = async () => {
+                busy = false;
+                await openLead(c.id);
+                if (!selected || !command) return;
+                command = { ...c, epoch, version: selected.version, key: crypto.randomUUID() };
+                $('submit-command').dataset.stale = '';
+                $('submit-command').disabled = false;
+                msg('dialog-status', 'Current lead refreshed. Draft retained. Review the current context before explicitly recording again.');
+            };
             $('dialog-status').append(b);
         }
     }
@@ -255,12 +272,36 @@ export const OPERATOR_SCRIPT = String.raw`
     function feedback() { dialog('Feedback', () => { choices('rating', 'Rating', [['1', '1'], ['2', '2'], ['3', '3'], ['4', '4'], ['5', '5']]); field('feedback-body', 'Feedback (optional)', 'textarea', false); }, () => post('feedback', { leadId: selected.id, rating: Number(v('rating')), body: v('feedback-body') })); }
     $('new-lead').onclick = () => dialog('Create lead from original conversation', () => { field('display-name', 'Lead display name'); field('utterance', 'Original utterance', 'textarea'); choices('speaker', 'Speaker', [['customer', 'Customer'], ['staff', 'Staff']]); field('connection', 'Conversation source / connection'); field('external-record', 'Source record ID'); field('occurred', 'Occurred at (optional; otherwise UNKNOWN)', 'datetime-local', false); field('synthetic', 'Synthetic fixture (immutable after creation)', 'checkbox', false); }, () => post('scenarios', { displayName: v('display-name'), utterance: v('utterance'), speaker: v('speaker'), connection: v('connection'), externalRecordId: v('external-record'), occurredAt: v('occurred') ? new Date(v('occurred')).toISOString() : 'unknown', isSynthetic: $('synthetic').checked }));
     $('command-form').onsubmit = submit;
-    $('cancel-command').onclick = () => { if (!busy)
-        $('command-dialog').close(); };
-    $('command-dialog').addEventListener('close', () => { $('submit-command').dataset.stale = ''; $('submit-command').disabled = false; command = null; });
-    $('command-dialog').addEventListener('cancel', e => { if (busy)
+    const discard = () => (!dirty && !recovery) || window.confirm('Discard unsaved changes?');
+    $('command-fields').addEventListener('input', () => { dirty = true; });
+    window.addEventListener('beforeunload', e => { if (dirty || recovery) { e.preventDefault(); e.returnValue = ''; } });
+    $('cancel-command').onclick = () => { if (!busy && discard()) $('command-dialog').close(); };
+    $('command-dialog').addEventListener('close', () => { $('submit-command').dataset.stale = ''; $('submit-command').disabled = false; command = null; dirty = false; $('command-fields').replaceChildren(); });
+    $('command-dialog').addEventListener('cancel', e => { if (busy || !discard())
         e.preventDefault(); });
-    $('logout').onclick = async () => { try {
+    $('recheck-session').onclick = async () => {
+        const held = recovery;
+        if (!held) return;
+        try {
+            const fresh = await request('/v1/auth/session');
+            if (!fresh.authenticated) { msg('session-status', 'Sign in before rechecking.', true); return; }
+            if (fresh.context.userId !== held.context.userId || fresh.context.workspaceId !== held.context.workspaceId) {
+                recovery = null; clear(); session = fresh; $('recheck-session').hidden = true;
+                msg('session-status', 'Identity or workspace changed. Unsaved draft discarded.', true); return;
+            }
+            session = fresh;
+            await openLead(held.command.id);
+            if (!selected || !recovery) return;
+            $('command-fields').replaceChildren(...held.fields);
+            command = { ...held.command, epoch, version: selected.version, key: crypto.randomUUID() };
+            recovery = null; dirty = true; $('recheck-session').hidden = true;
+            $('submit-command').disabled = false; $('submit-command').dataset.stale = '';
+            $('command-dialog').showModal();
+            msg('dialog-status', 'Session restored and lead access checked. Review draft and refreshed context before explicitly recording.');
+            msg('session-status', 'Signed in.'); $('signin').hidden = true;
+        } catch (e) { msg('session-status', err(e), true); }
+    };
+    $('logout').onclick = async () => { if (!discard()) return; recovery = null; clear(); try {
         await request('/v1/auth/logout', { method: 'POST', body: '{}' });
         clear();
         $('token').value = '';
@@ -270,8 +311,8 @@ export const OPERATOR_SCRIPT = String.raw`
     catch (e) {
         msg('session-status', err(e), true);
     } };
-    $('login-workspace').oninput = () => { $('signin').href = '/v1/auth/login' + (v('login-workspace') ? '?workspace=' + encodeURIComponent(v('login-workspace')) : ''); };
-    $('token').oninput = () => { clear(); msg('queue-status', 'Load workspace for this development token.'); };
+    $('login-workspace').oninput = () => { recovery = null; $('recheck-session').hidden = true; $('signin').href = '/v1/auth/login' + (v('login-workspace') ? '?workspace=' + encodeURIComponent(v('login-workspace')) : ''); };
+    $('token').oninput = () => { recovery = null; $('recheck-session').hidden = true; clear(); msg('queue-status', 'Load workspace for this development token.'); };
     for (const id of ['load', 'refresh'])
         $(id).onclick = () => { cursor = null; load(); };
     $('next').onclick = load;
