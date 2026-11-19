@@ -1,4 +1,4 @@
-import { createHash } from 'node:crypto';
+import { validContentDigest, type ContentDigest } from './content-digester';
 
 export interface ObservationScope {
   readonly workspaceId: string;
@@ -7,8 +7,11 @@ export interface ObservationScope {
   readonly providerSurface: 'pancake-conversations' | 'pancake-pos';
 }
 
-/** Research evidence, not a CommercialEvent or an assertion of provider success. */
-export interface Observation {
+/**
+ * Metadata contract shared by the browser companion and the server upload (ADR-009). It carries no
+ * content-derived value: the browser never sends a body digest, and the server cannot recompute one.
+ */
+export interface ObservationMetadata {
   readonly scope: ObservationScope;
   readonly captureId: string;
   readonly sourceRevision: string;
@@ -21,7 +24,22 @@ export interface Observation {
   readonly completeness: 'UNKNOWN';
   readonly occurredAt: null;
   readonly observedAt: string;
-  readonly payloadHash: string;
+}
+
+/** Research evidence, not a CommercialEvent or an assertion of provider success. Server-side observers only. */
+export interface Observation extends ObservationMetadata {
+  /** ADR-009 keyed HMAC of the received frame under the workspace key; comparable only within the same kid. */
+  readonly payloadDigest: ContentDigest;
+}
+
+export const OBSERVATION_METADATA_KEYS: readonly (keyof ObservationMetadata)[] = Object.freeze(['scope', 'captureId', 'sourceRevision',
+  'externalEventId', 'externalObjectId', 'eventType', 'method', 'evidenceType', 'authenticity', 'completeness', 'occurredAt', 'observedAt']);
+
+/** The browser/server parity view of a server-side observation: the keyed digest never leaves the server. */
+export function observationMetadata(observation: Observation): ObservationMetadata {
+  const result: Record<string, unknown> = {};
+  for (const key of OBSERVATION_METADATA_KEYS) result[key] = key === 'scope' ? { ...observation.scope } : observation[key];
+  return result as unknown as ObservationMetadata;
 }
 
 export function validId(value: unknown): value is string {
@@ -42,14 +60,10 @@ export function scopeKey(scope: ObservationScope): string {
   return JSON.stringify([scope.workspaceId, scope.connectionId, scope.accountId, scope.providerSurface]);
 }
 
-export function hashBytes(raw: string): string {
-  return createHash('sha256').update(raw, 'utf8').digest('hex');
-}
-
 export function validateObservation(value: Observation): void {
   validateScope(value.scope);
   if (!validId(value.captureId) || !validId(value.sourceRevision) || !validId(value.eventType) ||
-      !validTime(value.observedAt) || !/^[a-f0-9]{64}$/.test(value.payloadHash) ||
+      !validTime(value.observedAt) || !validContentDigest(value.payloadDigest) ||
       (value.externalEventId !== null && !validId(value.externalEventId)) ||
       (value.externalObjectId !== null && !validId(value.externalObjectId)) ||
       !['browser-websocket', 'pos-webhook-fixture'].includes(value.method) ||

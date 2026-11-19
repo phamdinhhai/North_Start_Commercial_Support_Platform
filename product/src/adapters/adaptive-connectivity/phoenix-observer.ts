@@ -1,4 +1,5 @@
-import { hashBytes, validId, validTime, validateScope, type Observation, type ObservationScope } from './observation';
+import type { ContentDigester } from './content-digester';
+import { validId, validTime, validateScope, type Observation, type ObservationScope } from './observation';
 
 const BUSINESS_EVENTS = new Set(['pages:update_messages', 'pages:update_conversation', 'messages:mark_as_deleted', 'pages:tag_conversations']);
 const CONTROL_EVENTS = new Set(['phx_reply', 'phx_close', 'phx_error', 'phx_join', 'phx_leave', 'heartbeat']);
@@ -10,6 +11,8 @@ export interface CaptureContext {
   readonly sourceRevision: string;
   readonly observedAt: string;
   readonly direction: 'received' | 'sent';
+  /** ADR-009: injected keyed digester; the observer never computes an unkeyed hash over customer content. */
+  readonly digester: ContentDigester;
 }
 
 export type FrameResult =
@@ -24,7 +27,7 @@ export function observePhoenixFrame(raw: string, context: CaptureContext): Frame
   if (context.scope.providerSurface !== 'pancake-conversations' ||
       !validId(context.captureId) || !validId(context.sourceRevision) || !validTime(context.observedAt) ||
       !Array.isArray(context.allowedPageIds) || !context.allowedPageIds.length || !context.allowedPageIds.every(validId) ||
-      !['received', 'sent'].includes(context.direction)) throw new Error('invalid_capture_context');
+      !['received', 'sent'].includes(context.direction) || !context.digester || typeof context.digester.digest !== 'function') throw new Error('invalid_capture_context');
   if (context.direction === 'sent') return { kind: 'ignored', reason: 'outbound_frame' };
   if (typeof raw !== 'string') return { kind: 'rejected', reason: 'malformed_frame' };
   if (Buffer.byteLength(raw, 'utf8') > 262144) return { kind: 'rejected', reason: 'oversized_frame' };
@@ -72,6 +75,6 @@ export function observePhoenixFrame(raw: string, context: CaptureContext): Frame
     externalEventId: null, externalObjectId: validId(objectId) ? objectId : null,
     eventType: event, method: 'browser-websocket', evidenceType: 'client-observed',
     authenticity: 'UNKNOWN', completeness: 'UNKNOWN', occurredAt: null,
-    observedAt: context.observedAt, payloadHash: hashBytes(raw),
+    observedAt: context.observedAt, payloadDigest: context.digester.digest(context.scope.workspaceId, 'frame', raw),
   } };
 }

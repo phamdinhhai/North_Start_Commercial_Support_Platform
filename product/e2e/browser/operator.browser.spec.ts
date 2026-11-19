@@ -21,6 +21,52 @@ async function api(request: APIRequestContext, token: string, method: string, ur
 }
 
 test.describe('operator browser workflow', () => {
+  test('ignores a delayed prior selection and binds commands to the displayed lead', async ({ page, request }) => {
+    const uid = `${Date.now()}-selection`;
+    const workspace = `synthetic-${uid}`;
+    const owner = authToken(workspace, 'owner');
+    const operator = authToken(workspace, 'operator');
+    const leadIds: string[] = [];
+    for (const suffix of ['A', 'B']) {
+      const created = await api(request, owner, 'POST', '/pilot/scenarios', intake(uid + suffix));
+      expect(created.status()).toBe(201);
+      const { leadId } = await created.json();
+      leadIds.push(leadId);
+      expect((await api(request, owner, 'POST', `/pilot/leads/${leadId}/handoff`, {
+        context: `Context ${suffix}`, proposedAction: `Action ${suffix}`, responsibleParty: 'internal',
+        origin: 'explicit-request', recipientUserId: 'operator',
+      })).status()).toBe(201);
+    }
+    let release!: () => void;
+    let captured!: () => void;
+    const delayed = new Promise<void>(resolve => { release = resolve; });
+    const started = new Promise<void>(resolve => { captured = resolve; });
+    await page.route(`**/pilot/leads/${leadIds[0]}`, async route => {
+      captured();
+      await delayed;
+      await route.continue();
+    });
+    await page.goto('operator');
+    await page.locator('#token').fill(operator);
+    await page.locator('#load').click();
+    await page.locator('.queue-item').filter({ hasText: 'Action A' }).click();
+    await started;
+    await page.locator('.queue-item').filter({ hasText: 'Action B' }).click();
+    await expect(page.locator('#context')).toContainText('Context B');
+    const oldResponse = page.waitForResponse(response => response.url().endsWith(leadIds[0]));
+    release();
+    await oldResponse;
+    await expect(page.locator('#context')).toContainText('Context B');
+    const accepted = page.waitForResponse(response => response.url().endsWith(`/leads/${leadIds[1]}/accept`));
+    await page.locator('#accept').click();
+    expect((await accepted).status()).toBe(201);
+    expect((await (await api(request, operator, 'GET', `/pilot/leads/${leadIds[1]}`)).json()).lead.owner).toBe('operator');
+    expect((await (await api(request, owner, 'GET', `/pilot/leads/${leadIds[0]}`)).json()).lead.owner).toBe('owner');
+    await page.locator('#token').fill(authToken('different-workspace'));
+    await expect(page.locator('#context')).toBeEmpty();
+    await expect(page.locator('.queue-item')).toHaveCount(0);
+  });
+
   test('enforces observed vs declared vs inferred boundaries, explicit human declaration, outcome and audit', async ({ page, request }) => {
     const uid = `${Date.now()}-flow`;
     const workspaceId = `synthetic-browser-${uid}`;
@@ -88,9 +134,23 @@ test.describe('operator browser workflow', () => {
     await page.locator('#complete').click();
     await expect(page.locator('#action-status')).toContainText('Action recorded');
 
+    // Observe each actual response, not a success message left by an earlier mutation.
+    for (const [button, stage] of [['contacting', 'Contacting'], ['follow-up', 'Follow-up']]) {
+      const responsePromise = page.waitForResponse((response) => response.url().endsWith('/advance') && response.request().method() === 'POST');
+      await page.locator('#' + button).click();
+      const response = await responsePromise;
+      expect(response.status()).toBe(200);
+      expect(await response.json()).toMatchObject({ leadStatus: stage });
+      await expect(page.locator('#queue-status')).toHaveText('Queue loaded.');
+    }
+    const outcomeResponse = page.waitForResponse((response) => response.url().endsWith('/outcome') && response.request().method() === 'POST');
     page.once('dialog', async (dialog) => await dialog.accept('Won'));
     await page.locator('#outcome').click();
+    expect((await outcomeResponse).status()).toBe(201);
     await expect(page.locator('#action-status')).toContainText('Action recorded');
+    const persisted = await (await api(request, operatorToken, 'GET', `/pilot/leads/${leadId}`)).json();
+    expect(persisted.lead.status).toBe('Won');
+    expect(persisted.outcomes).toEqual(expect.arrayContaining([expect.objectContaining({ value: 'Won', assertionStatus: 'claimed' })]));
 
     await page.locator('#audit').click();
     await expect(page.locator('#action-status')).toContainText('Audit records:');

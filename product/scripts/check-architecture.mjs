@@ -27,6 +27,7 @@ const RULES = Object.freeze({
 });
 
 const normalizedPath = (path) => path.split(sep).join('/');
+const SOURCE_EXTENSIONS = new Set(['.ts', '.mts', '.cts', '.js', '.mjs', '.cjs']);
 function layerFor(sourceRoot, file) {
   const path = normalizedPath(relative(sourceRoot, file));
   return COMPOSITION_ROOTS.has(path) ? 'composition-root' : OWNERSHIP[path.split('/')[0]] ?? null;
@@ -37,7 +38,8 @@ async function filesUnder(directory) {
   for (const entry of await readdir(directory, { withFileTypes: true })) {
     const path = resolve(directory, entry.name);
     if (entry.isDirectory()) files.push(...await filesUnder(path));
-    else if (entry.isFile() && extname(entry.name) === '.ts' && !entry.name.endsWith('.spec.ts')) files.push(path);
+    else if (entry.isFile() && SOURCE_EXTENSIONS.has(extname(entry.name)) &&
+      !/\.(?:spec|test)\.[cm]?[jt]s$/.test(entry.name)) files.push(path);
   }
   return files.sort();
 }
@@ -64,7 +66,7 @@ function importTarget(sourceRoot, file, specifier) {
   const target = specifier.startsWith('.') ? resolve(dirname(file), specifier)
     : specifier.startsWith('@/') ? resolve(sourceRoot, specifier.slice(2)) : null;
   if (!target) return { layer: null };
-  const withoutExtension = target.replace(/\.(?:ts|js)$/, '');
+  const withoutExtension = target.replace(/\.[cm]?[jt]s$/, '');
   return { layer: layerFor(sourceRoot, `${withoutExtension}.ts`) ?? 'unowned', path: withoutExtension };
 }
 

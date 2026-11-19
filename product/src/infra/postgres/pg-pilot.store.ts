@@ -59,7 +59,7 @@ export class PgPilotStore implements PilotLoopStore {
       ),
       this.db.query<WorkDbRow>(
         `SELECT id, lead_id, workspace_id, action, responsible_party, origin, status, completion_evidence,
-                occurred_at, due_at, evidence_ref, recorded_at, supersedes_work_id, actor, reason
+                occurred_at, due_at, evidence_ref, recorded_at, supersedes_work_id, actor, reason, declaration, confirmed
            FROM pilot_work_item WHERE lead_id = $1 ORDER BY recorded_at`,
         [leadId],
       ),
@@ -95,7 +95,12 @@ export class PgPilotStore implements PilotLoopStore {
     const where = ['w.workspace_id = $1'];
     if (query.actorRole !== 'admin' && query.actorRole !== 'manager') {
       params.push(query.actorId);
-      where.push(`(l.owner_user_id = $${params.length} OR w.actor = $${params.length})`);
+      // Same lead-wide active assignment rule as the memory store and read policy (I-09).
+      where.push(`(l.owner_user_id = $${params.length} OR EXISTS (
+        SELECT 1 FROM pilot_work_item accessible
+        WHERE accessible.lead_id = l.id AND accessible.workspace_id = $1
+          AND accessible.actor = $${params.length}
+          AND accessible.status IN ('proposed','accepted','open','awaiting-external')))`);
     }
     if (query.status) { params.push(query.status); where.push(`w.status = $${params.length}`); }
     if (query.ownerUserId) { params.push(query.ownerUserId); where.push(`l.owner_user_id = $${params.length}`); }
@@ -287,8 +292,8 @@ export class PgPilotStore implements PilotLoopStore {
         await tx.query(
           `INSERT INTO pilot_work_item (id, lead_id, workspace_id, action, responsible_party, origin, status,
                                          completion_evidence, occurred_at, due_at, evidence_ref, recorded_at,
-                                         supersedes_work_id, actor, reason)
-           VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15)
+                                         supersedes_work_id, actor, reason, declaration, confirmed)
+           VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17)
            ON CONFLICT (id) DO UPDATE
               SET status = EXCLUDED.status,
                   completion_evidence = EXCLUDED.completion_evidence,
@@ -296,7 +301,9 @@ export class PgPilotStore implements PilotLoopStore {
                   due_at = EXCLUDED.due_at,
                   evidence_ref = EXCLUDED.evidence_ref,
                   actor = EXCLUDED.actor,
-                  reason = EXCLUDED.reason`,
+                  reason = EXCLUDED.reason,
+                  declaration = EXCLUDED.declaration,
+                  confirmed = EXCLUDED.confirmed`,
           [
             w.id,
             w.leadId,
@@ -313,6 +320,8 @@ export class PgPilotStore implements PilotLoopStore {
             w.supersedesWorkId ?? null,
             w.actor,
             w.reason ?? null,
+            w.declaration ?? null,
+            w.confirmed ?? null,
           ],
         );
       }
@@ -378,10 +387,15 @@ function toQueueItem(row: WorkDbRow & { lead_status: string; display_name: strin
 }
 
 async function insertEnvelope(tx: SqlExecutor, env: CommercialEnvelope, options: { readonly checkSourceCapturedAt?: boolean }): Promise<string> {
+  // Shared adapters reuse the same envelope UUID. Serialize the scoped source key
+  // before INSERT so competing unique indexes cannot race on that UUID. Hash
+  // collisions only serialize unrelated requests; equality still uses full keys.
+  await tx.query('SELECT pg_advisory_xact_lock(hashtextextended($1, 0))', [
+    JSON.stringify([env.workspaceId, env.connection, env.externalRecordId]),
+  ]);
   // P1-1: idempotency scope = (workspace_id, connection, external_record_id) — R-06
-  // within I-09. DO UPDATE (no-op) makes PG RETURN the id of the winning row whether
-  // it was just inserted or already existed from a previous process — the lead FK must
-  // reference THAT id. Different workspaces NEVER share a row.
+  // within I-09. Read back and verify the winning immutable row when it already
+  // exists. The lead FK must reference THAT id; workspaces never share a row.
   const res = await tx.query<{ id: string }>(
     `INSERT INTO commercial_envelope (id, schema_version, workspace_id, connection, external_record_id, external_event_type,
                                       source_captured_at, ingested_at, raw_payload, raw_payload_hash,

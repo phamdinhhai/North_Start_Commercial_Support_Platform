@@ -8,12 +8,13 @@ import { PilotCommandContext } from './pilot-command-context';
 export class IngestScenarioCommand {
   constructor(private readonly context: PilotCommandContext) {}
 
-  async execute(input: ScenarioInput): Promise<PilotLoopState> {
+  async execute(input: ScenarioInput, authorize?: (state: PilotLoopState) => void): Promise<PilotLoopState> {
     if (!input.workspaceId) throw new PilotDomainError('INPUT_REQUIRED', 400, 'workspaceId is required');
     if (!input.utterance) throw new PilotDomainError('INPUT_REQUIRED', 400, 'utterance is required');
     const key = { workspaceId: input.workspaceId, connection: input.connection, externalRecordId: input.externalRecordId };
     const existing = await this.context.store.loadIngest(key);
     if (existing) {
+      authorize?.(existing);
       this.context.assertIngestMatch(existing, input);
       return existing;
     }
@@ -38,6 +39,7 @@ export class IngestScenarioCommand {
       if (PilotCommandContext.isIdempotencyConflict(error)) {
         const winner = await this.context.store.loadIngest(key);
         if (winner) {
+          authorize?.(winner);
           this.context.assertIngestMatch(winner, input);
           return winner;
         }
@@ -75,6 +77,7 @@ export class IngestScenarioCommand {
       if (PilotCommandContext.isIdempotencyConflict(error)) {
         const winner = await this.context.store.loadIngest(key);
         if (winner) {
+          authorize?.(winner);
           this.context.assertIngestMatch(winner, input);
           return winner;
         }
@@ -84,6 +87,7 @@ export class IngestScenarioCommand {
       }
       throw error;
     }
+    authorize?.(persistedState);
     this.context.assertIngestMatch(persistedState, input);
     return persistedState;
   }

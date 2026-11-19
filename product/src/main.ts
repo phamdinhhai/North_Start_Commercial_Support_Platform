@@ -4,12 +4,15 @@ import {
   NestFastifyApplication,
 } from '@nestjs/platform-fastify';
 import { AppModule } from './app.module';
+import { JsonLogger } from './infra/observability/json-logger';
 
 async function bootstrap() {
+  // Structured, allowlist-redacted JSON lines (LOG_LEVEL selects the threshold).
+  const logger = new JsonLogger();
   const app = await NestFactory.create<NestFastifyApplication>(
     AppModule,
     new FastifyAdapter(),
-    { logger: ['error', 'warn', 'log'] },
+    { logger },
   );
 
   app.enableShutdownHooks();
@@ -18,7 +21,7 @@ async function bootstrap() {
   const port = parseInt(process.env.PORT ?? '3000', 10);
   await app.listen(port, '0.0.0.0');
 
-  console.log(`[NOSC] listening on :${port}`);
+  logger.log(`[NOSC] listening on :${port}`, 'Bootstrap');
 }
 
 bootstrap();

@@ -17,6 +17,7 @@
     "test:watch": "vitest",
     "test:ail": "vitest run src/adapters/adaptive-connectivity src/adapters/browser-companion",
     "test:companion": "node scripts/ail/companion-browser-smoke.mjs",
+    "companion:package": "node scripts/companion-package.mjs",
     "test:cov": "vitest run --coverage",
     "test:e2e": "vitest run --config vitest.config.e2e.ts",
     "test:browser": "playwright test --config playwright.config.ts",
@@ -30,12 +31,13 @@
     "migrate:down": "npm run build && node dist/scripts/migrate.js down",
     "db:up": "docker compose up -d postgres",
     "lint": "eslint \"src/**/*.ts\" \"e2e/**/*.ts\"",
-    "security:audit": "npm audit --audit-level=high",
+    "security:audit": "node scripts/security-audit.mjs",
+    "test:security-audit": "node --test scripts/security-audit.test.mjs",
     "registry:validate": "node scripts/registry-validation.mjs",
     "test:registry": "node --test scripts/registry-validation.test.mjs",
     "architecture:check": "node scripts/check-architecture.mjs --report",
     "architecture:check:strict": "node scripts/check-architecture.mjs",
-    "test:ail:research": "node --test scripts/ail/facebook-research-summary.test.mjs scripts/ail/facebook-tag-research-policy.test.mjs scripts/ail/websocket-fault-probe.test.mjs"
+    "test:ail:research": "node --test scripts/ail/facebook-research-summary.test.mjs scripts/ail/facebook-tag-research-policy.test.mjs scripts/ail/websocket-fault-probe.test.mjs scripts/ail/research-capture-gate.test.mjs"
   },
   "dependencies": {
     "@nestjs/common": "^11.0.0",
@@ -43,6 +45,7 @@
     "@nestjs/platform-fastify": "^11.0.0",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.0",
+    "jose": "6.2.17",
     "pg": "^8.23.1",
     "reflect-metadata": "^0.2.0",
     "rxjs": "^7.8.0"
@@ -50,8 +53,8 @@
   "devDependencies": {
     "@nestjs/cli": "^11.0.0",
     "@nestjs/schematics": "^11.0.0",
-    "@playwright/test": "^1.56.1",
     "@nestjs/testing": "11.2.5",
+    "@playwright/test": "^1.56.1",
     "@types/node": "^22.0.0",
     "@types/pg": "^8.23.1",
     "@typescript-eslint/parser": "8.72.2",

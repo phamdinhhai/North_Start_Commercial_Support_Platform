@@ -45,7 +45,9 @@ jobs:
           cache-dependency-path: product/package-lock.json
       - name: Install locked dependencies
         run: npm ci
-      - name: Dependency audit (high and critical)
+      - name: Dependency audit gate tests
+        run: npm run test:security-audit
+      - name: Dependency audit (high and critical; production never waived)
         run: npm run security:audit
       - name: Repository diff and secret-pattern check
         working-directory: .
@@ -84,6 +86,12 @@ jobs:
         run: npm run lint
       - name: Architecture checker tests
         run: npm run test:architecture
+      - name: Companion packaging tests
+        run: node --test scripts/companion-package.test.mjs
+      - name: Install Chromium for AIL research guards
+        run: npx playwright install --with-deps chromium
+      - name: AIL research guard tests
+        run: npm run test:ail:research
       - name: Strict architecture check
         run: npm run architecture:check:strict
       - name: Unit and domain tests
@@ -94,6 +102,8 @@ jobs:
         run: npm run test:cov -- --no-file-parallelism
       - name: Build
         run: npm run build
+      - name: Disposable PostgreSQL backup and restore rehearsal
+        run: node scripts/restore-rehearsal.mjs
       - name: E2E HTTP smoke
         run: npm run test:e2e
 
@@ -135,6 +145,8 @@ jobs:
         run: npm run test:browser
         env:
           PLAYWRIGHT_HTML_OUTPUT_DIR: playwright-report
+      - name: Chromium MV3 synthetic capture and restart
+        run: npm run test:companion
       - name: Upload Playwright report
         if: always()
         uses: actions/upload-artifact@v4

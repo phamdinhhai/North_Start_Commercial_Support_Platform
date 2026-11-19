@@ -46,6 +46,8 @@ export interface OutcomeDbRow extends QueryResultRow {
 }
 
 export interface WorkDbRow extends QueryResultRow {
+  declaration: string | null;
+  confirmed: boolean | null;
   id: string;
   lead_id: string;
   workspace_id: string;
@@ -140,6 +142,8 @@ export function toOutcome(r: OutcomeDbRow): Outcome {
 
 export function toWork(r: WorkDbRow): WorkItem {
   return {
+    ...(r.declaration != null && { declaration: r.declaration }),
+    ...(r.confirmed != null && { confirmed: r.confirmed }),
     id: r.id,
     leadId: r.lead_id as LeadId,
     workspaceId: r.workspace_id,

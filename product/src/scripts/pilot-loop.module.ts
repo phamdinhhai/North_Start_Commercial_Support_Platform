@@ -58,5 +58,8 @@ import { DURABILITY } from '../ports/durability';
       useFactory: (store: PilotLoopStore, adapter: ManualAdapter) => new PilotLoopService(store, adapter),
     },
   ],
+  // Shared with the integration controller so enrollment issuance uses the same resolver
+  // (whatever AuthContextResolver this module binds, e.g. a future OIDC resolver).
+  exports: [AUTH_CONTEXT_RESOLVER],
 })
 export class PilotLoopModule {}

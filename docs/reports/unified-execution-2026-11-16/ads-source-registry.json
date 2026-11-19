@@ -1,0 +1,193 @@
+{
+  "as_of": "2026-11-17",
+  "status": "working_non_canonical",
+  "live_calls": false,
+  "repositories": [
+    {
+      "repo": "facebook/facebook-python-business-sdk",
+      "sha": "b08e5c1d36a2adad3c4ede6578654c8eaca5f225",
+      "archived": false,
+      "pushed_at": "2026-11-05T19:19:02Z",
+      "license": {
+        "key": "other",
+        "name": "Other",
+        "spdx_id": "NOASSERTION",
+        "url": null,
+        "node_id": "MDc6TGljZW5zZTA="
+      },
+      "inspected_files": [
+        {
+          "path": "LICENSE",
+          "url": "https://github.com/facebook/facebook-python-business-sdk/blob/b08e5c1d36a2adad3c4ede6578654c8eaca5f225/LICENSE",
+          "sha256": "48d97b3c936203a750a3288c2b924327769d62327383a1060244b3d3c05ad01f",
+          "functions": "",
+          "evidence": "SOURCE_INSPECTED"
+        },
+        {
+          "path": "facebook_business/adobjects/adaccount.py",
+          "url": "https://github.com/facebook/facebook-python-business-sdk/blob/b08e5c1d36a2adad3c4ede6578654c8eaca5f225/facebook_business/adobjects/adaccount.py",
+          "sha256": "a8692f8f9d7b1a6eb01616cfdbc46383b514f4a25951ad002263e3d0f5e1076a",
+          "functions": "__init__; get_endpoint; api_get; api_update; get_account_controls; create_account_control; get_activities; get_ad_place_page_sets; create_ad_place_page_set; create_ad_place_page_sets_async; get_ad_saved_keywords; get_ad_studies; get_ad_cloud_playables; get_ad_creatives; create_ad_creative; get_ad_creatives_by_labels; delete_ad_images; get_ad_images; create_ad_image; get_ad_labels; create_ad_label; get_ad_playables; create_ad_playable; get_ad_rules_history; get_ad_rules_library; create_ad_rules_library; get_ads; create_ad; get_ads_reporting_mmm_reports; get_ads_reporting_mmm_schedulers; get_ads_volume; get_ads_by_labels; get_ad_sets; create_ad_set; get_ad_sets_by_labels; get_ads_pixels; create_ads_pixel; get_advertisable_applications; delete_ad_videos; get_ad_videos; create_ad_video; get_affected_ad_sets; delete_agencies; get_agencies; create_agency; get_applications; delete_assigned_users; get_assigned_users; create_assigned_user; create_async_batch_request; get_async_requests; get_async_ad_creatives; create_async_ad_creative; get_async_ad_request_sets; create_async_ad_request_set; get_audience_funnel; create_block_list_draft; create_brand_safety_content_filter_level; get_broad_targeting_categories; get_business_projects; delete_campaigns; get_campaigns; create_campaign; get_campaigns_by_labels; get_connected_instagram_accounts",
+          "evidence": "SOURCE_INSPECTED"
+        },
+        {
+          "path": "facebook_business/api.py",
+          "url": "https://github.com/facebook/facebook-python-business-sdk/blob/b08e5c1d36a2adad3c4ede6578654c8eaca5f225/facebook_business/api.py",
+          "sha256": "2f2e537354859758faba0d89a910b2212b478e0b2aaee771bb1c239abf4c2c72",
+          "functions": "__init__; body; json; headers; etag; status; is_success; is_failure; error; __init__; get_num_requests_attempted; get_num_requests_succeeded; init; set_default_api; get_default_api; set_default_account_id; get_default_account_id; call; new_batch; __init__; __len__; add; add_request; execute; __init__; add_file; add_files; add_field; add_fields; add_param; add_params; get_fields; get_params; execute; add_to_batch; _extract_value; __init__; __repr__; __len__; __iter__; __next__; __getitem__; headers; total; summary; load_next_page; get_one; build_objects_from_response; open_files; _top_level_param_json_encode",
+          "evidence": "SOURCE_INSPECTED"
+        },
+        {
+          "path": "facebook_business/test/integration_adaccount.py",
+          "url": "https://github.com/facebook/facebook-python-business-sdk/blob/b08e5c1d36a2adad3c4ede6578654c8eaca5f225/facebook_business/test/integration_adaccount.py",
+          "sha256": "00be5856902aeea61ad893c3253ef45e7aaad4f1f918e5a7fd97d33f74d03e0e",
+          "functions": "test_get_adaccount; test_get_adaccount_with_wrong_fields; test_create_adaccount; test_create_adaccount_with_wrong_params; test_get_insights; test_get_insights_with_wrong_fields_and_params; test_get_ad_creatives; test_get_ad_creatives_with_wrong_fields; test_get_campaigns; test_get_campaigns_with_wrong_fields_and_params; test_get_ads; test_get_ads_with_wrong_fields_and_param",
+          "evidence": "SOURCE_INSPECTED"
+        }
+      ]
+    },
+    {
+      "repo": "tiktok/tiktok-business-api-sdk",
+      "sha": "f809c396520df2d7b201a9ccc5378d822b728ed3",
+      "archived": false,
+      "pushed_at": "2026-03-09T06:18:55Z",
+      "license": {
+        "key": "mit",
+        "name": "MIT License",
+        "spdx_id": "MIT",
+        "url": "https://api.github.com/licenses/mit",
+        "node_id": "MDc6TGljZW5zZTEz"
+      },
+      "inspected_files": [
+        {
+          "path": "LICENSE.md",
+          "url": "https://github.com/tiktok/tiktok-business-api-sdk/blob/f809c396520df2d7b201a9ccc5378d822b728ed3/LICENSE.md",
+          "sha256": "991c218ea2332d85698a9f2bae9e15a035492db91e7b4b2ffba18c8c8863ca03",
+          "functions": "",
+          "evidence": "SOURCE_INSPECTED"
+        },
+        {
+          "path": "python_sdk/business_api_client/api/reporting_api.py",
+          "url": "https://github.com/tiktok/tiktok-business-api-sdk/blob/f809c396520df2d7b201a9ccc5378d822b728ed3/python_sdk/business_api_client/api/reporting_api.py",
+          "sha256": "0cd64c4250a11d1d8ff6c5be9126e96403cb43b46ed0d179b31bf64549d24d6c",
+          "functions": "__init__; gmv_max_report_get; gmv_max_report_get_with_http_info; report_integrated_get; report_integrated_get_with_http_info; report_task_cancel; report_task_cancel_with_http_info; report_task_check; report_task_check_with_http_info; report_task_create; report_task_create_with_http_info; smart_plus_material_report_breakdown; smart_plus_material_report_breakdown_with_http_info; smart_plus_material_report_overview; smart_plus_material_report_overview_with_http_info",
+          "evidence": "SOURCE_INSPECTED"
+        },
+        {
+          "path": "python_sdk/business_api_client/api/authentication_api.py",
+          "url": "https://github.com/tiktok/tiktok-business-api-sdk/blob/f809c396520df2d7b201a9ccc5378d822b728ed3/python_sdk/business_api_client/api/authentication_api.py",
+          "sha256": "bd12cca9f8534f9d8cce7e6ebcaa0b1bfba0732a9995464716ec7bc451e996d0",
+          "functions": "__init__; oauth2_access_token; oauth2_access_token_with_http_info; oauth2_advertiser_get; oauth2_advertiser_get_with_http_info",
+          "evidence": "SOURCE_INSPECTED"
+        },
+        {
+          "path": "python_sdk/business_api_client/api/campaign_creation_api.py",
+          "url": "https://github.com/tiktok/tiktok-business-api-sdk/blob/f809c396520df2d7b201a9ccc5378d822b728ed3/python_sdk/business_api_client/api/campaign_creation_api.py",
+          "sha256": "04d03a9f45806188a6c53e875031a53e54c62f36c6689a9c0ab25d602d9e4690",
+          "functions": "__init__; campaign_create; campaign_create_with_http_info; campaign_get; campaign_get_with_http_info; campaign_gmv_max_create; campaign_gmv_max_create_with_http_info; campaign_gmv_max_info; campaign_gmv_max_info_with_http_info; campaign_gmv_max_session_create; campaign_gmv_max_session_create_with_http_info; campaign_gmv_max_session_delete; campaign_gmv_max_session_delete_with_http_info; campaign_gmv_max_session_get; campaign_gmv_max_session_get_with_http_info; campaign_gmv_max_session_list; campaign_gmv_max_session_list_with_http_info; campaign_gmv_max_session_update; campaign_gmv_max_session_update_with_http_info; campaign_gmv_max_update; campaign_gmv_max_update_with_http_info; campaign_status_update; campaign_status_update_with_http_info; campaign_update; campaign_update_with_http_info; gmv_max_bid_recommend; gmv_max_bid_recommend_with_http_info; gmv_max_custom_anchor_video_list_get; gmv_max_custom_anchor_video_list_get_with_http_info; gmv_max_occupied_custom_shop_ads_list; gmv_max_occupied_custom_shop_ads_list_with_http_info; smart_plus_campaign_create; smart_plus_campaign_create_with_http_info; smart_plus_campaign_get; smart_plus_campaign_get_with_http_info; smart_plus_campaign_status_update; smart_plus_campaign_status_update_with_http_info; smart_plus_campaign_update; smart_plus_campaign_update_with_http_info",
+          "evidence": "SOURCE_INSPECTED"
+        }
+      ]
+    },
+    {
+      "repo": "googleads/google-ads-python",
+      "sha": "f253b400dc5924b731fcb42dbcd99e485200581e",
+      "archived": false,
+      "pushed_at": "2026-11-11T23:18:08Z",
+      "license": {
+        "key": "apache-2.0",
+        "name": "Apache License 2.0",
+        "spdx_id": "Apache-2.0",
+        "url": "https://api.github.com/licenses/apache-2.0",
+        "node_id": "MDc6TGljZW5zZTI="
+      },
+      "inspected_files": [
+        {
+          "path": "LICENSE",
+          "url": "https://github.com/googleads/google-ads-python/blob/f253b400dc5924b731fcb42dbcd99e485200581e/LICENSE",
+          "sha256": "c62a1cc62e85e51a18ddd590970e03ffe47017653033cc515781fdb445a7aa5e",
+          "functions": "",
+          "evidence": "SOURCE_INSPECTED"
+        },
+        {
+          "path": "google/ads/googleads/client.py",
+          "url": "https://github.com/googleads/google-ads-python/blob/f253b400dc5924b731fcb42dbcd99e485200581e/google/ads/googleads/client.py",
+          "sha256": "098573dd3c8b6b2d2794d8557ab6d6d41544b85bb81f5666a848eac88083a144",
+          "functions": "_augment_rest_metadata; __init__; _get; __getattr__; close; __init__; _get; __getattr__; close; __init__; __dir__; __getattr__; __getstate__; __setstate__; copy_from; _get_client_kwargs; _get_api_services_by_version; load_from_env; load_from_string; load_from_dict; load_from_storage; __init__; get_service; _configure_resumable_upload_transport; _make_rest_transport; pre_create_you_tube_video_upload; _configure_async_resumable_upload_transport; _make_async_rest_transport; pre_create_you_tube_video_upload; get_type",
+          "evidence": "SOURCE_INSPECTED"
+        },
+        {
+          "path": "tests/client_test.py",
+          "url": "https://github.com/googleads/google-ads-python/blob/f253b400dc5924b731fcb42dbcd99e485200581e/tests/client_test.py",
+          "sha256": "a15d4236cc362f76233a43c4bf340febb36bebf8130f508f8ed424ff12057576",
+          "functions": "_create_test_client; setUp; test_get_client_kwargs_login_customer_id; test_get_client_kwargs_login_customer_id_as_None; test_get_client_kwargs_linked_customer_id; test_get_client_kwargs_linked_customer_id_as_none; test_get_client_kwargs; test_get_client_kwargs_custom_endpoint; test_load_from_env; test_load_from_env_versioned; test_load_from_dict; test_load_from_dict_versioned; test_load_from_dict_login_customer_id_explicit_none; test_load_from_string; test_load_from_string_versioned; test_get_service; test_get_async_service; test_get_service_custom_endpoint; test_get_service_not_found; test_get_service_invalid_version; test_get_service_with_version; test_get_type; test_get_type_not_found; test_get_type_invalid_version; test_get_type_proto_plus_proto; test_get_type_protobuf_proto; test_init_no_logging_config; test_init_with_logging_config; test_client_dot_enums_hasattr; test_client_dot_enums_only_enums; test_client_dot_enums_property; test_client_dot_enums_use_proto_plus; test_client_dot_enums_protobuf_protos; test_client_copy_from_both_proto_plus; test_client_copy_from_both_protobuf; test_client_copy_from_protobuf_origin; test_client_copy_from_protobuf_destination; test_client_copy_from_different_types_proto_plus; test_client_copy_from_different_types_protobuf; test_client_copy_from_different_types_protobuf_origin; test_client_copy_from_different_types_protobuf_destination; test_client_copy_from_non_proto_message; test_client_is_picklable; test_http_proxy; test_load_http_proxy_from_env; test_load_http_proxy_from_dict; test_load_http_proxy_from_string; test_client_info_package_not_found; test_youtube_video_upload_service_sync_resumable_session; test_youtube_video_upload_service_sync_protobuf_request; test_youtube_video_upload_service_legacy_signature; __init__; get_transport_class; _fake_import; setUp; test_load_http_proxy_from_storage; test_load_from_storage; test_load_from_storage_versioned; test_load_from_storage_login_cid_int; test_load_from_storage_custom_path; test_load_from_storage_file_not_found; test_load_from_storage_required_config_missing; test_load_from_storage_service_account_config; setUp; tearDownClass",
+          "evidence": "SOURCE_INSPECTED"
+        },
+        {
+          "path": "examples/basic_operations/get_campaigns.py",
+          "url": "https://github.com/googleads/google-ads-python/blob/f253b400dc5924b731fcb42dbcd99e485200581e/examples/basic_operations/get_campaigns.py",
+          "sha256": "ea20950e6db706b8217e645a0377d8a16cad0fe231a14bbd2caf39b56df1ea15",
+          "functions": "main",
+          "evidence": "SOURCE_INSPECTED"
+        }
+      ]
+    },
+    {
+      "repo": "googleads/google-ads-mcp",
+      "sha": "b2b5d54616e4fbb410df9b4116319e1ef22f75fa",
+      "archived": false,
+      "pushed_at": "2026-11-16T16:49:26Z",
+      "license": {
+        "key": "apache-2.0",
+        "name": "Apache License 2.0",
+        "spdx_id": "Apache-2.0",
+        "url": "https://api.github.com/licenses/apache-2.0",
+        "node_id": "MDc6TGljZW5zZTI="
+      },
+      "inspected_files": [
+        {
+          "path": "LICENSE",
+          "url": "https://github.com/googleads/google-ads-mcp/blob/b2b5d54616e4fbb410df9b4116319e1ef22f75fa/LICENSE",
+          "sha256": "c62a1cc62e85e51a18ddd590970e03ffe47017653033cc515781fdb445a7aa5e",
+          "functions": "",
+          "evidence": "SOURCE_INSPECTED"
+        },
+        {
+          "path": "ads_mcp/propose_and_confirm.py",
+          "url": "https://github.com/googleads/google-ads-mcp/blob/b2b5d54616e4fbb410df9b4116319e1ef22f75fa/ads_mcp/propose_and_confirm.py",
+          "sha256": "ab20fbeaef3d733492c52682a8722788c1a0898b5c09186c1e1eeba45cb512fc",
+          "evidence": "SOURCE_INSPECTED",
+          "functions": "to_dict; _format_readable_value; build_change_items; _normalize_for_checksum; _serialize_operation_for_checksum; _update_length_prefixed; compute_checksum; verify_checksum; format_proposal_response; _format_exception; propose_and_confirm"
+        },
+        {
+          "path": "ads_mcp/audit.py",
+          "url": "https://github.com/googleads/google-ads-mcp/blob/b2b5d54616e4fbb410df9b4116319e1ef22f75fa/ads_mcp/audit.py",
+          "sha256": "e131f98a2c4c63548288e9bec8b26a78ccc1e8964845a457dbbeb12889ca5545",
+          "evidence": "SOURCE_INSPECTED",
+          "functions": "_normalize_key; _is_email_local_char; _redact_emails; _truncate_and_redact_string; _is_sensitive_path; redact_gaql_text; _redact_value; redact_arguments; _sanitize_checksum; _extract_issued_checksum; _call_id; _schema_hash; _extract_actor; _resolve_tool; _is_read_only_tool; _coerce_validate_only; _phase_for_tool; _resolve_login_customer_id; _classify_exception; _is_empty_result; __init__; instrument_server; _wrap_task_function_tool; _run_audited_in_worker; on_call_tool; emit"
+        },
+        {
+          "path": "ads_mcp/tools/core.py",
+          "url": "https://github.com/googleads/google-ads-mcp/blob/b2b5d54616e4fbb410df9b4116319e1ef22f75fa/ads_mcp/tools/core.py",
+          "sha256": "6d31b84e77726cf38216b6babe8a0d6b56db622427193574dacb5737589cb398",
+          "evidence": "SOURCE_INSPECTED",
+          "functions": "list_accessible_customers"
+        },
+        {
+          "path": "ads_mcp/tools/search.py",
+          "url": "https://github.com/googleads/google-ads-mcp/blob/b2b5d54616e4fbb410df9b4116319e1ef22f75fa/ads_mcp/tools/search.py",
+          "sha256": "69084c87e057f566a5eba87797b8b9d90782353a38abfb0be5f53e80350fb872",
+          "evidence": "SOURCE_INSPECTED",
+          "functions": "search; _search_tool_description"
+        },
+        {
+          "path": "tests/propose_and_confirm_test.py",
+          "url": "https://github.com/googleads/google-ads-mcp/blob/b2b5d54616e4fbb410df9b4116319e1ef22f75fa/tests/propose_and_confirm_test.py",
+          "sha256": "bd2f347dbdb35e4be3b6f9d854c51e82a836b8ca4be9baa7ce10269c5ff4536a",
+          "evidence": "SOURCE_INSPECTED",
+          "functions": "test_build_change_items_skips_none_and_formats_values; test_compute_checksum_deterministic_across_dict_key_order; test_compute_checksum_with_proto_messages_and_framing; test_propose_and_confirm_round_trip; test_propose_and_confirm_rejects_missing_or_mismatched_checksum; test_propose_and_confirm_handles_validation_and_commit_errors; test_propose_and_confirm_formats_google_ads_exception"
+        }
+      ]
+    }
+  ]
+}

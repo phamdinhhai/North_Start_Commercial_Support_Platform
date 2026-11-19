@@ -3,11 +3,11 @@ import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
-import { createHash } from 'node:crypto';
 import { chromium } from '@playwright/test';
 import { conversationSnapshotFingerprint, summarizeFacebookCapture } from './facebook-research-summary.mjs';
 import { allowsTagMutation, allowsConversationTag, tagExperimentActions } from './facebook-tag-research-policy.mjs';
 import { installWebSocketFaultProbe } from './websocket-fault-probe.mjs';
+import { ephemeralFrameDigester, researchCaptureGate } from './research-capture-gate.mjs';
 
 // Local research runner. REA performs declared actions; this process restricts scope
 // and retains private evidence locally without printing response or credential values.
@@ -18,6 +18,9 @@ const port = (await readFile(resolve(privateRoot, 'pancake-research-profile/DevT
 const endpoint = `http://127.0.0.1:${port}`;
 const spec = JSON.parse(await readFile(resolve(process.argv[2]), 'utf8'));
 if (!/^[a-z0-9-]{1,80}$/.test(spec.runId)) throw new Error('invalid_run_id');
+// ADR-009 §3: this runner retains raw research evidence; refuse unless explicitly flagged, workspace-bound and <= 7 days.
+const researchCapture = researchCaptureGate(process.env, spec);
+const frameDigest = ephemeralFrameDigester();
 const facebookId = session.facebook.pageId;
 const tagUi = spec.uiMode === 'tag-settings';
 const tagMutation = ['create', 'delete'].includes(spec.tagOperation);
@@ -357,7 +360,7 @@ cdp.on('Network.webSocketFrameReceived', ({ requestId, response }) => {
     const tuple = JSON.parse(raw);
     if (tuple?.[2] === `pages:${facebookId}` && ['pages:tag_conversation', 'pages:tag_conversations', 'pages:update_conversation', 'pages:update_messages'].includes(tuple?.[3])) {
       transport.conversationEvents.push({ observedAt: new Date().toISOString(), phase: probe.phase, event: tuple[3],
-        frameSha256: createHash('sha256').update(raw).digest('hex'), knownPayloadKeys: Object.keys(tuple[4] ?? {}),
+        frameDigest: frameDigest(raw), knownPayloadKeys: Object.keys(tuple[4] ?? {}),
         matchesSelectedConversation: !!selectedConversation && (tuple[4]?.conversation_id === selectedConversation.id ||
           tuple[4]?.conversation?.id === selectedConversation.id || !!tuple[4]?.conversations_updated?.some((item) => item.id === selectedConversation.id)) });
     }
@@ -371,7 +374,7 @@ cdp.on('Network.webSocketFrameReceived', ({ requestId, response }) => {
       topicFamily: typeof tuple[2] === 'string' ? tuple[2].split(':')[0] : 'UNKNOWN',
       facebookReference: tuple[2] === `pages:${facebookId}` || payload?.page_id === facebookId || payload?.pageId === facebookId,
       containsSyntheticMarker: !!spec.tagName && raw.includes(spec.tagName),
-      frameSha256: createHash('sha256').update(raw).digest('hex'),
+      frameDigest: frameDigest(raw),
       knownPayloadKeys: ['page_id', 'pageId', 'settings', 'change_settings', 'tags', 'current_settings_key'].filter((key) => payload && Object.hasOwn(payload, key)) });
   } catch { /* Other frames are not interpreted as settings evidence. */ }
 });
@@ -385,7 +388,7 @@ try {
   await mkdir(dir, { recursive: true });
   await writeFile(resolve(dir, `${spec.runId}.json`), JSON.stringify(evidence));
   if (actorTask) await actorTask.catch(() => {});
-  const summary = { ...summarizeFacebookCapture(evidence, spec, facebookId), blockedTikTokWrites, writeAudit, transport };
+  const summary = { ...summarizeFacebookCapture(evidence, spec, facebookId), blockedTikTokWrites, writeAudit, transport, researchCapture };
   if (connectivityProbe) {
     summary.connectivityProbe = probe;
     if (socketInterruption) summary.socketFaultAudit = socketFault.audit;
@@ -423,7 +426,7 @@ try {
   const diagnostic = String(error.stdout ?? '') + String(error.stderr ?? '');
   const failure = { runId: spec.runId, result: 'failed',
     reasonCodes: [...new Set(diagnostic.match(/ERR_[A-Z_]+/g) ?? [])], blockedTikTokWrites,
-    recordedAt: new Date().toISOString(), actionsCompleted: 'UNKNOWN' };
+    recordedAt: new Date().toISOString(), actionsCompleted: 'UNKNOWN', researchCapture };
   const dir = resolve(privateRoot, 'research-2026-11-15');
   await mkdir(dir, { recursive: true });
   await writeFile(resolve(dir, `${spec.runId}-private-diagnostic.txt`), String(error.message) + '\n' + diagnostic);

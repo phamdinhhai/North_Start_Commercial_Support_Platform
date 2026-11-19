@@ -42,14 +42,14 @@ integration('migration lifecycle — upgrade, rollback, and reapply on a disposa
     await db.query('INSERT INTO workspace(id, name) VALUES ($1, $2)', [probeId, 'lifecycle probe']);
     expect((await db.query('SELECT id FROM workspace WHERE id = $1', [probeId])).rows).toEqual([{ id: probeId }]);
 
-    expect(await migrator.down(2)).toEqual(['007_evidence_acquisition', '006_pilot_ingest_command']);
+    expect(await migrator.down(2)).toEqual(migrationVersions.slice(-2).reverse());
     expect(await migrator.applied()).toEqual(migrationVersions.slice(0, -2));
     // Rollback is metadata/schema-only for these migrations; the parent row remains intact.
     expect((await db.query('SELECT id, name FROM workspace WHERE id = $1', [probeId])).rows).toEqual([
       { id: probeId, name: 'lifecycle probe' },
     ]);
 
-    expect(await migrator.up()).toEqual(['006_pilot_ingest_command', '007_evidence_acquisition']);
+    expect(await migrator.up()).toEqual(migrationVersions.slice(-2));
     expect(await migrator.applied()).toEqual(migrationVersions);
     expect((await db.query('SELECT id FROM workspace WHERE id = $1', [probeId])).rows).toEqual([{ id: probeId }]);
     await db.query('DELETE FROM workspace WHERE id = $1', [probeId]);

@@ -9,7 +9,11 @@ export function validScope(scope) {
   return scope && ['workspaceId', 'connectionId', 'accountId', 'pageId'].every((key) => id(scope[key]));
 }
 
-/** Value allowlist: message bodies, join credentials and unknown frame types never leave this function. */
+/**
+ * Value allowlist: message bodies, join credentials and unknown frame types never leave this function.
+ * ADR-009: no digest of the frame or body is computed here; only filtered metadata leaves the browser.
+ * Content digests are keyed server-side (HMAC per workspace); the upload contract rejects any body-digest field.
+ */
 export async function summarizeFrame(raw, scope, observedAt, captureId) {
   if (!validScope(scope) || typeof raw !== 'string' || raw.length > 262144) return null;
   const bytes = new TextEncoder().encode(raw);
@@ -37,13 +41,11 @@ export async function summarizeFrame(raw, scope, observedAt, captureId) {
   const objectId = event === 'pages:tag_conversations' ? null : event === 'pages:update_conversation' ? payload.conversation?.id
     : event === 'messages:mark_as_deleted' ? payload.message?.conversation_id ?? payload.conversation_id : payload.conversation_id;
   if (objectId != null && !id(objectId)) return null;
-  const digest = await crypto.subtle.digest('SHA-256', bytes);
   return {
     scope: { workspaceId: scope.workspaceId, connectionId: scope.connectionId, accountId: scope.accountId, providerSurface: 'pancake-conversations' },
-    captureId, sourceRevision: 'north-star-companion/0.1.2', externalEventId: null,
+    captureId, sourceRevision: 'north-star-companion/0.3.0', externalEventId: null,
     externalObjectId: objectId ?? null, eventType: event, method: 'browser-websocket',
     evidenceType: 'client-observed', authenticity: 'UNKNOWN', completeness: 'UNKNOWN',
     occurredAt: null, observedAt,
-    payloadHash: Array.from(new Uint8Array(digest), (value) => value.toString(16).padStart(2, '0')).join(''),
   };
 }

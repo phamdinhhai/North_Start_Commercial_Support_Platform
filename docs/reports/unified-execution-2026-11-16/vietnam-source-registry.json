@@ -1,0 +1,184 @@
+{
+  "status": "non-canonical research; recommendations only; no dependencies adopted",
+  "method": "GitHub REST metadata + shallow read-only clones pinned to local HEAD; current official web retrieval; no installs, tests or live credentials",
+  "sources": [
+    {
+      "id": "aiecos",
+      "repository": "aiecosvietnam/aiecos-social-crm",
+      "sha": "dba1bdb09dd8b65618fe1ce86153b371075099bb",
+      "owner": "aiecosvietnam",
+      "license": "MIT",
+      "origin": "Vietnam-focused; owner branding Vietnam, legal origin UNKNOWN",
+      "paths": [
+        "chrome-extension/content.js",
+        "chrome-extension/background.js",
+        "chrome-extension/manifest.json",
+        ".github/workflows/ci.yml"
+      ],
+      "symbols": [
+        "msgHash",
+        "alreadySent",
+        "markSent",
+        "handleSyncMessage"
+      ],
+      "verdict": "REFERENCE patterns; REJECT production browser scraping adoption",
+      "unknowns": [
+        "provider extraction permission",
+        "lead-scoped tenant enforcement",
+        "durable exactly-once delivery"
+      ],
+      "archived": false,
+      "verification": "SOURCE_INSPECTED_NOT_EXECUTED",
+      "inspected_at": "2026-11-17",
+      "live_verified": false,
+      "links": [
+        "https://github.com/aiecosvietnam/aiecos-social-crm/blob/dba1bdb09dd8b65618fe1ce86153b371075099bb/chrome-extension/content.js",
+        "https://github.com/aiecosvietnam/aiecos-social-crm/blob/dba1bdb09dd8b65618fe1ce86153b371075099bb/chrome-extension/background.js",
+        "https://github.com/aiecosvietnam/aiecos-social-crm/blob/dba1bdb09dd8b65618fe1ce86153b371075099bb/chrome-extension/manifest.json",
+        "https://github.com/aiecosvietnam/aiecos-social-crm/blob/dba1bdb09dd8b65618fe1ce86153b371075099bb/.github/workflows/ci.yml"
+      ]
+    },
+    {
+      "id": "sapo-mcp",
+      "repository": "nguyennguyenit/Sapo-MCP",
+      "sha": "65a7af8c3b1d5fd2702d834d17fb848a9e239da5",
+      "owner": "nguyennguyenit",
+      "license": "MIT",
+      "origin": "Vietnam-focused Sapo integration; author legal origin UNKNOWN",
+      "paths": [
+        "src/guards.ts",
+        "src/client/http.ts",
+        "tests/guards.test.ts",
+        "tests/client/http.test.ts",
+        ".github/workflows/test.yml"
+      ],
+      "symbols": [
+        "registerIfAllowed",
+        "SapoClient.request"
+      ],
+      "verdict": "ADAPT guard and read-client patterns",
+      "unknowns": [
+        "multi-shop SaaS OAuth",
+        "per-lead RBAC",
+        "provider idempotency guarantee for retried POST"
+      ],
+      "archived": false,
+      "verification": "SOURCE_INSPECTED_NOT_EXECUTED",
+      "inspected_at": "2026-11-17",
+      "live_verified": false,
+      "links": [
+        "https://github.com/nguyennguyenit/Sapo-MCP/blob/65a7af8c3b1d5fd2702d834d17fb848a9e239da5/src/guards.ts",
+        "https://github.com/nguyennguyenit/Sapo-MCP/blob/65a7af8c3b1d5fd2702d834d17fb848a9e239da5/src/client/http.ts",
+        "https://github.com/nguyennguyenit/Sapo-MCP/blob/65a7af8c3b1d5fd2702d834d17fb848a9e239da5/tests/guards.test.ts",
+        "https://github.com/nguyennguyenit/Sapo-MCP/blob/65a7af8c3b1d5fd2702d834d17fb848a9e239da5/tests/client/http.test.ts",
+        "https://github.com/nguyennguyenit/Sapo-MCP/blob/65a7af8c3b1d5fd2702d834d17fb848a9e239da5/.github/workflows/test.yml"
+      ]
+    },
+    {
+      "id": "zca-bridge",
+      "repository": "diendh/zca-bridge",
+      "sha": "1d7fd5946711ab44ef4427561c872ae0ae7e2248",
+      "owner": "diendh",
+      "license": "Apache-2.0",
+      "origin": "Vietnam-focused Zalo integration; author legal origin UNKNOWN",
+      "paths": [
+        "src/zalo-oa/verify.ts",
+        "src/zalo-oa/webhookRoute.ts",
+        "src/zalo-oa/tokenRefresher.ts",
+        "src/store/jobQueueRepo.ts",
+        "src/crypto/credentials.ts",
+        "test/zalo-oa/verify.test.ts",
+        ".github/workflows/ci.yml"
+      ],
+      "symbols": [
+        "verifyMac",
+        "registerOaWebhookRoute",
+        "refreshDueTokens",
+        "JobQueueRepo.enqueue",
+        "encryptCredentials"
+      ],
+      "verdict": "ADAPT isolated OA/queue patterns; REJECT personal zca-js route",
+      "unknowns": [
+        "replay timestamp freshness",
+        "tenant-scoped dedup key enforcement",
+        "official permission/partner status"
+      ],
+      "archived": false,
+      "verification": "SOURCE_INSPECTED_NOT_EXECUTED",
+      "inspected_at": "2026-11-17",
+      "live_verified": false,
+      "links": [
+        "https://github.com/diendh/zca-bridge/blob/1d7fd5946711ab44ef4427561c872ae0ae7e2248/src/zalo-oa/verify.ts",
+        "https://github.com/diendh/zca-bridge/blob/1d7fd5946711ab44ef4427561c872ae0ae7e2248/src/zalo-oa/webhookRoute.ts",
+        "https://github.com/diendh/zca-bridge/blob/1d7fd5946711ab44ef4427561c872ae0ae7e2248/src/zalo-oa/tokenRefresher.ts",
+        "https://github.com/diendh/zca-bridge/blob/1d7fd5946711ab44ef4427561c872ae0ae7e2248/src/store/jobQueueRepo.ts",
+        "https://github.com/diendh/zca-bridge/blob/1d7fd5946711ab44ef4427561c872ae0ae7e2248/src/crypto/credentials.ts",
+        "https://github.com/diendh/zca-bridge/blob/1d7fd5946711ab44ef4427561c872ae0ae7e2248/test/zalo-oa/verify.test.ts",
+        "https://github.com/diendh/zca-bridge/blob/1d7fd5946711ab44ef4427561c872ae0ae7e2248/.github/workflows/ci.yml"
+      ]
+    },
+    {
+      "id": "chatbotx",
+      "repository": "ChatbotXIO/ChatbotX",
+      "sha": "3e2b02e1c74ca57fe00c851296e70fdf0605706c",
+      "owner": "ChatbotXIO",
+      "license": "MIT outside enterprise; enterprise Commercial License; GitHub NOASSERTION",
+      "origin": "Vietnam-focused Zalo capability; legal Vietnam origin UNKNOWN",
+      "paths": [
+        "LICENSE",
+        "apps/builder/src/enterprise/LICENSE",
+        "integrations/zalo/src/handlers/webhook.ts",
+        "integrations/zalo/src/lib/http-client.ts",
+        "integrations/zalo/__tests__/webhook-routing.test.ts",
+        ".github/workflows/ci.yml"
+      ],
+      "symbols": [
+        "parseZaloFollowEvent",
+        "verifyRawWebhookSignature",
+        "handleWebhookEvent",
+        "ZaloHttpClient"
+      ],
+      "verdict": "REFERENCE schemas/tests; REJECT unmodified webhook authentication",
+      "unknowns": [
+        "all-message signature enforcement",
+        "enterprise reuse permissions",
+        "official partner certification",
+        "tenant and idempotency end-to-end audit"
+      ],
+      "archived": false,
+      "verification": "SOURCE_INSPECTED_NOT_EXECUTED",
+      "inspected_at": "2026-11-17",
+      "live_verified": false,
+      "links": [
+        "https://github.com/ChatbotXIO/ChatbotX/blob/3e2b02e1c74ca57fe00c851296e70fdf0605706c/LICENSE",
+        "https://github.com/ChatbotXIO/ChatbotX/blob/3e2b02e1c74ca57fe00c851296e70fdf0605706c/apps/builder/src/enterprise/LICENSE",
+        "https://github.com/ChatbotXIO/ChatbotX/blob/3e2b02e1c74ca57fe00c851296e70fdf0605706c/integrations/zalo/src/handlers/webhook.ts",
+        "https://github.com/ChatbotXIO/ChatbotX/blob/3e2b02e1c74ca57fe00c851296e70fdf0605706c/integrations/zalo/src/lib/http-client.ts",
+        "https://github.com/ChatbotXIO/ChatbotX/blob/3e2b02e1c74ca57fe00c851296e70fdf0605706c/integrations/zalo/__tests__/webhook-routing.test.ts",
+        "https://github.com/ChatbotXIO/ChatbotX/blob/3e2b02e1c74ca57fe00c851296e70fdf0605706c/.github/workflows/ci.yml"
+      ]
+    }
+  ],
+  "official_sources": [
+    {
+      "url": "https://help.sapo.vn/ung-dung-rieng-private-apps",
+      "status": "DOCUMENTED_READABLE",
+      "finding": "Private app Basic Authentication with resource-level none/read/read-write permissions; not proof of multi-tenant SaaS authorization"
+    },
+    {
+      "url": "https://developers.sapo.vn/",
+      "status": "AUTH_REDIRECT",
+      "finding": "Redirect to partner login; API details inaccessible publicly in this check"
+    },
+    {
+      "url": "https://developers.zalo.me/docs/official-account/bat-dau/xac-thuc-va-uy-quyen-cho-ung-dung-new",
+      "status": "PUBLIC_SHELL_NO_READABLE_BODY",
+      "finding": "No current detailed OAuth policy verified"
+    },
+    {
+      "url": "https://developers.zalo.me/docs/",
+      "status": "SEARCH_INDEX_ONLY_BODY_EMPTY",
+      "finding": "Index distinguishes OA and ZBS Template Message; historical ZNS naming must be rechecked"
+    }
+  ]
+}

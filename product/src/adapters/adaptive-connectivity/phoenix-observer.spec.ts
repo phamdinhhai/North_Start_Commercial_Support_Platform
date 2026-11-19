@@ -1,11 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import { observePhoenixFrame, type CaptureContext } from './phoenix-observer';
 import { advanceContinuity, initialContinuity, restoreContinuity } from './continuity';
+import { testDigester } from './digest-test-support';
 
 const scope = { workspaceId: 'test-workspace', connectionId: 'test-connection', accountId: 'test-account', providerSurface: 'pancake-conversations' as const };
 const context: CaptureContext = {
   scope, allowedPageIds: ['test-page'], captureId: 'capture-1', sourceRevision: 'fixture-v1',
-  observedAt: '2026-11-14T00:00:00.000Z', direction: 'received',
+  observedAt: '2026-11-14T00:00:00.000Z', direction: 'received', digester: testDigester(),
 };
 const frame = (payload: unknown = { conversation: { id: 'test-conversation', message_count: 1 } }, event = 'pages:update_conversation', topic = 'pages:test-page') =>
   JSON.stringify([null, null, topic, event, payload]);
@@ -22,7 +23,8 @@ describe('experimental Phoenix observation boundary', () => {
     const value = observation('capture-1', raw);
     expect(value).toMatchObject({ externalEventId: null, externalObjectId: 'test-conversation', occurredAt: null, completeness: 'UNKNOWN', authenticity: 'UNKNOWN', evidenceType: 'client-observed' });
     expect(JSON.stringify(value)).not.toMatch(/synthetic-private-message|synthetic-secret|accessToken/);
-    expect(value.payloadHash).toHaveLength(64);
+    expect(value.payloadDigest).toMatchObject({ alg: 'HMAC-SHA256', kid: expect.any(String) });
+    expect(value.payloadDigest.value).toHaveLength(64);
   });
 
   it('retains a batch tag observation without assigning one conversation or interpreting provider timestamp', () => {
