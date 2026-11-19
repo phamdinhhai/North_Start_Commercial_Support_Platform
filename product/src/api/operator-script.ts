@@ -2,9 +2,9 @@ export const OPERATOR_SCRIPT = String.raw`
 (() => {
     'use strict';
     const $ = id => document.getElementById(id), v = id => $(id)?.value.trim() || '', esc = x => String(x ?? 'UNKNOWN').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-    let session = {}, selected = null, epoch = 0, listEpoch = 0, cursor = null, busy = false, command = null, recovery = null, dirty = false;
+    let session = {}, selected = null, epoch = 0, listEpoch = 0, cursor = null, busy = false, command = null, recovery = null, dirty = false, managerCleanup = null;
     const msg = (id, text, error = false) => { $(id).textContent = text; $(id).className = 'notice' + (error ? ' error' : ''); };
-    const clear = () => { epoch++; listEpoch++; selected = null; cursor = null; $('context').replaceChildren(); $('queue').replaceChildren(); $('next').hidden = true; if ($('command-dialog').open)
+    const clear = () => { managerCleanup?.(); managerCleanup = null; $('manager-exceptions').hidden = true; epoch++; listEpoch++; selected = null; cursor = null; $('context').replaceChildren(); $('queue').replaceChildren(); $('next').hidden = true; if ($('command-dialog').open)
         $('command-dialog').close(); $('command-fields').replaceChildren(); command = null; dirty = false; };
     const err = e => e.status === 401 ? 'Session expired. Sign in again.' : e.status === 403 ? 'Permission denied for this lead or action.' : e.status === 409 ? 'Conflict (' + (e.body?.code || '409') + '). Reload before retrying.' : (e.body?.code ? e.body.code + ': ' : '') + e.message;
     async function request(url, options = {}) { const headers = { 'content-type': 'application/json' }; if (session.devTokensAllowed && !session.authenticated && v('token'))
@@ -42,10 +42,18 @@ export const OPERATOR_SCRIPT = String.raw`
         msg('session-status', session.authenticated ? 'Signed in.' : session.loginAvailable ? 'Sign in to open your workspace.' : session.devTokensAllowed ? 'Development access enabled.' : 'Browser sign-in unavailable.');
         if (session.authenticated)
             await load();
+        mountManager();
     }
     catch (e) {
         msg('session-status', err(e), true);
     } }
+    function mountManager() {
+        managerCleanup?.(); managerCleanup = null;
+        const root = $('manager-exceptions');
+        root.hidden = !(session.authenticated && ['manager', 'admin'].includes(session.context?.role));
+        if (!root.hidden && window.mountManagerExceptions) managerCleanup = window.mountManagerExceptions({ container: root, request, openLead,
+            classification: session.syntheticOnly ? 'synthetic' : 'real' });
+    }
     async function telemetry(eventType, id) { if (!eventType || !id)
         return; try {
         await post('learning', { leadId: id, eventType, releaseVersion: '0.1.0' });
@@ -299,6 +307,7 @@ export const OPERATOR_SCRIPT = String.raw`
             $('command-dialog').showModal();
             msg('dialog-status', 'Session restored and lead access checked. Review draft and refreshed context before explicitly recording.');
             msg('session-status', 'Signed in.'); $('signin').hidden = true;
+            mountManager();
         } catch (e) { msg('session-status', err(e), true); }
     };
     $('logout').onclick = async () => { if (!discard()) return; recovery = null; clear(); try {
@@ -317,7 +326,7 @@ export const OPERATOR_SCRIPT = String.raw`
         $(id).onclick = () => { cursor = null; load(); };
     $('next').onclick = load;
     for (const id of ['classification', 'view'])
-        $(id).onchange = () => { clear(); load(); };
+        $(id).onchange = () => { clear(); load(); mountManager(); };
     init();
 })();
 `;

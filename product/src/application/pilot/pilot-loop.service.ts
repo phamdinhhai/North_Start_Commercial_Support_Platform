@@ -49,9 +49,9 @@ export { activeWorkRecipients } from '../../application/pilot/work-mutation-poli
 export class PilotLoopService {
   private readonly context: PilotCommandContext;
   private readonly ingestCommand: IngestScenarioCommand;
-  constructor(private readonly store: PilotLoopStore, private readonly adapter: ManualIngestPort) {
+  constructor(private readonly store: PilotLoopStore, private readonly adapter: ManualIngestPort, syntheticOnly = false) {
     this.context = new PilotCommandContext(store, adapter);
-    this.ingestCommand = new IngestScenarioCommand(this.context);
+    this.ingestCommand = new IngestScenarioCommand(this.context, syntheticOnly);
   }
   /** CE-1 boundary violation is a business refusal (422), never a raw 500. */
   private ce1Transition(lead: Parameters<PilotCommandContext['transition']>[0], input: Parameters<PilotCommandContext['transition']>[1]) {

@@ -1,12 +1,14 @@
-import { Controller, Get, Headers, HttpException, Inject, Post, Query, Res } from '@nestjs/common';
+import { Controller, Get, Headers, HttpException, Inject, Optional, Post, Query, Res } from '@nestjs/common';
 import { BROWSER_SESSION, BrowserSessionError, type BrowserSessionPort } from '../ports/browser-session';
 import { AUTH_CONTEXT_RESOLVER, type AuthContextResolver } from '../ports/auth';
+import { SYNTHETIC_PILOT_MODE } from '../ports/pilot-mode';
 
 interface SessionReply { header(name: string, value: string | readonly string[]): SessionReply; code(status: number): SessionReply; send(body?: unknown): unknown }
 @Controller('auth')
 export class BrowserSessionController {
   constructor(@Inject(BROWSER_SESSION) private readonly sessions: BrowserSessionPort,
-    @Inject(AUTH_CONTEXT_RESOLVER) private readonly auth: AuthContextResolver) {}
+    @Inject(AUTH_CONTEXT_RESOLVER) private readonly auth: AuthContextResolver,
+    @Optional() @Inject(SYNTHETIC_PILOT_MODE) private readonly syntheticOnly = false) {}
 
   @Get('login')
   login(@Query('workspace') workspace: string | undefined, @Res() reply: SessionReply) {
@@ -18,7 +20,7 @@ export class BrowserSessionController {
   }
   @Get('session')
   session(@Headers() headers: Record<string, string | undefined>, @Res() reply: SessionReply) {
-    return reply.header('Cache-Control', 'no-store').send(this.sessions.view(headers, this.auth.resolve({ headers })));
+    return reply.header('Cache-Control', 'no-store').send({ ...this.sessions.view(headers, this.auth.resolve({ headers })), syntheticOnly: this.syntheticOnly });
   }
   @Post('logout')
   logout(@Headers() headers: Record<string, string | undefined>, @Res() reply: SessionReply) {

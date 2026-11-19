@@ -39,6 +39,12 @@ import { InMemoryContactAttemptStore } from '../infra/pilot/in-memory-contact-at
 import { AssertionDeliveryController } from '../api/assertion-delivery.controller';
 import { AssertionDeliveryOps } from '../infra/governed-action/assertion-delivery.ops';
 import { ASSERTION_DELIVERY_OPS } from '../ports/assertion-delivery-ops';
+import { ManagerExceptionsController } from '../api/manager-exceptions.controller';
+import { ManagerExceptionsService } from '../application/pilot/manager-exceptions.service';
+import { PgManagerExceptionsReader } from '../infra/postgres/pg-manager-exceptions';
+import { ManagerExceptionsUnavailable } from '../ports/manager-exceptions';
+import { SYNTHETIC_PILOT_MODE } from '../ports/pilot-mode';
+import { syntheticPilotOnly } from '../infra/pilot/synthetic-pilot-mode';
 
 /**
  * P0 pilot loop module (PH3 T3-03/T3-04 wiring + education B2C candidate flow).
@@ -49,8 +55,13 @@ import { ASSERTION_DELIVERY_OPS } from '../ports/assertion-delivery-ops';
  */
 @Module({
   imports: [PostgresModule],
-  controllers: [PilotLoopController, PilotClosureController, FeedbackTelemetryController, LearningController, LeadExportController, DataLifecycleController, ContactAttemptController, AssertionDeliveryController],
+  controllers: [PilotLoopController, PilotClosureController, FeedbackTelemetryController, LearningController, LeadExportController, DataLifecycleController, ContactAttemptController, AssertionDeliveryController, ManagerExceptionsController],
   providers: [
+    { provide: SYNTHETIC_PILOT_MODE, useFactory: () => syntheticPilotOnly() },
+    { provide: ManagerExceptionsService, inject: [PostgresService], useFactory: (db: PostgresService) =>
+      new ManagerExceptionsService(resolvePilotStoreMode() === 'postgres' ? new PgManagerExceptionsReader(db) : {
+        scan: async () => { throw new ManagerExceptionsUnavailable(); },
+      }) },
     AssertionDeliveryOps,
     { provide: ASSERTION_DELIVERY_OPS, useExisting: AssertionDeliveryOps },
     { provide: CONTACT_ATTEMPT_STORE, inject: [PostgresService, PILOT_STORE],
@@ -98,8 +109,8 @@ import { ASSERTION_DELIVERY_OPS } from '../ports/assertion-delivery-ops';
     InMemoryPilotStore,
     {
       provide: PilotLoopService,
-      inject: [PILOT_STORE, ManualAdapter],
-      useFactory: (store: PilotLoopStore, adapter: ManualAdapter) => new PilotLoopService(store, adapter),
+      inject: [PILOT_STORE, ManualAdapter, SYNTHETIC_PILOT_MODE],
+      useFactory: (store: PilotLoopStore, adapter: ManualAdapter, syntheticOnly: boolean) => new PilotLoopService(store, adapter, syntheticOnly),
     },
     { provide: PilotClosureService, inject: [PILOT_STORE, LEAD_ACCESS_POLICY, PILOT_ASSIGNEE_DIRECTORY],
       useFactory: (store: PilotLoopStore, policy: LeadAccessPolicy, directory: PilotAssigneeDirectory) =>
@@ -107,6 +118,6 @@ import { ASSERTION_DELIVERY_OPS } from '../ports/assertion-delivery-ops';
   ],
   // Shared with the integration controller so enrollment issuance uses the same resolver
   // (whatever AuthContextResolver this module binds, e.g. a future OIDC resolver).
-  exports: [AUTH_CONTEXT_RESOLVER],
+  exports: [AUTH_CONTEXT_RESOLVER, SYNTHETIC_PILOT_MODE],
 })
 export class PilotLoopModule {}

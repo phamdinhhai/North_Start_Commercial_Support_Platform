@@ -6,9 +6,12 @@ import { PilotCommandContext } from './pilot-command-context';
 
 /** Intake orchestration: immutable envelope first, then a lead aggregate. */
 export class IngestScenarioCommand {
-  constructor(private readonly context: PilotCommandContext) {}
+  constructor(private readonly context: PilotCommandContext, private readonly syntheticOnly = false) {}
 
   async execute(input: ScenarioInput, authorize?: (state: PilotLoopState) => void): Promise<PilotLoopState> {
+    if (this.syntheticOnly && input.isSynthetic === false) {
+      throw new PilotDomainError('INPUT_INVALID', 400, 'Synthetic practice accepts invented synthetic data only.');
+    }
     if (!input.workspaceId) throw new PilotDomainError('INPUT_REQUIRED', 400, 'workspaceId is required');
     if (!input.utterance) throw new PilotDomainError('INPUT_REQUIRED', 400, 'utterance is required');
     const key = { workspaceId: input.workspaceId, connection: input.connection, externalRecordId: input.externalRecordId };
