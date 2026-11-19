@@ -40,11 +40,11 @@ import type { PilotQueueQuery, WorkStatus } from '../ports/pilot-loop.types';
  * - Auth (R-02): MỌI route yêu cầu resolve ctx; unauthenticated non-demo → 401.
  *   Demo (`x-demo-workspace`) là DEMO-ONLY route: demo identity là `demo`/viewer, KHÔNG được
  *   dùng để chọn workspace thật (P1 review) — workspace demo tách biệt, không đọc case thật.
- *   KHÔNG endpoint nào phát token từ email/workspaceId trong body (QA-28; credential model chờ RFC PM-1).
+ *   KHÔNG endpoint nào phát token từ email/workspaceId trong body (QA-28; ADR-006).
  * - RBAC (I-09, deny-by-default): workspace mismatch → 404 (invisible, QA-32/AC-03);
  *   lead không assigned cho sales → 403. "Assigned" = owner hiện tại HOẶC người
  *   được bàn giao (recipient) — B xem/nhận gói addressed to them mà KHÔNG cần mở
- *   rộng quyền manager/admin (PM-1 vẫn OPEN, không tự nới ở đây).
+ *   rộng quyền manager/admin (ADR-006 giữ nguyên owner/recipient mutation policy).
  * - Input (P1-4): MỌI body được validate tại boundary TRƯỚC khi chạm domain → 400
  *   INPUT_INVALID + danh sách field issues (không enum tuỳ tiện, không thiếu field,
  *   không date sai định dạng xuống DB, không raw 500).
@@ -105,7 +105,7 @@ export class PilotLoopController {
     @Body() body: Omit<ScenarioInput, 'workspaceId' | 'ownerUserId'>,
   ) {
     try {
-      const ctx = this.authCtx(headers);
+      const ctx = this.mutationCtx(headers);
       check(validateIntakeBody(body), body);
       // Server-derived workspace — body không tự chọn workspace (QA-32, I-09).
       const input: ScenarioInput = {
@@ -177,7 +177,7 @@ export class PilotLoopController {
     },
   ) {
     try {
-      const ctx = this.authCtx(headers);
+      const ctx = this.mutationCtx(headers);
       check(validateHandoffBody(body), body);
       this.checkLeadId(leadId);
       await this.authorizedView(ctx, leadId); // 404/403 trước khi mutate
@@ -195,7 +195,7 @@ export class PilotLoopController {
     @Body() body: { workId: string; reason: string },
   ) {
     try {
-      const ctx = this.authCtx(headers);
+      const ctx = this.mutationCtx(headers);
       check(validateAcceptBody(body), body);
       this.checkLeadId(leadId);
       await this.authorizedView(ctx, leadId);
@@ -214,7 +214,7 @@ export class PilotLoopController {
     @Body() body: { to: 'Contacting' | 'Follow-up'; reason: string },
   ) {
     try {
-      const ctx = this.authCtx(headers);
+      const ctx = this.mutationCtx(headers);
       check(validateAdvanceBody(body), body);
       this.checkLeadId(leadId);
       await this.authorizedView(ctx, leadId);
@@ -233,7 +233,7 @@ export class PilotLoopController {
     @Body() body: { workId: string; evidence: 'observed' | 'declared' | 'inferred' | 'absent' | 'conflicted'; evidenceRef?: string; occurredAt?: string; reason?: string; declaration?: string; confirmed?: boolean },
   ) {
     try {
-      const ctx = this.authCtx(headers);
+      const ctx = this.mutationCtx(headers);
       check(validateCompleteBody(body), body);
       this.checkLeadId(leadId);
       await this.authorizedView(ctx, leadId);
@@ -253,7 +253,7 @@ export class PilotLoopController {
     @Body() body: { workId: string; newDueAt: string; reason: string },
   ) {
     try {
-      const ctx = this.authCtx(headers);
+      const ctx = this.mutationCtx(headers);
       check(validateRescheduleBody(body), body);
       this.checkLeadId(leadId);
       await this.authorizedView(ctx, leadId);
@@ -284,7 +284,7 @@ export class PilotLoopController {
     @Body() body: { workId: string },
   ) {
     try {
-      const ctx = this.authCtx(headers);
+      const ctx = this.mutationCtx(headers);
       check(validateUnobservedBody(body), body);
       this.checkLeadId(leadId);
       await this.authorizedView(ctx, leadId);
@@ -303,7 +303,7 @@ export class PilotLoopController {
     @Body() body: { value: 'Won' | 'Lost' | 'Unknown'; reason?: string },
   ) {
     try {
-      const ctx = this.authCtx(headers);
+      const ctx = this.mutationCtx(headers);
       check(validateOutcomeBody(body), body);
       this.checkLeadId(leadId);
       await this.authorizedView(ctx, leadId);
@@ -344,6 +344,15 @@ export class PilotLoopController {
     }
   }
 
+  /** ADR-006: viewer/demo are read-only; capability never overrides lead scope or work policy. */
+  private mutationCtx(headers: Record<string, string | undefined>): AuthContext {
+    const ctx = this.authCtx(headers);
+    if (ctx.isDemo || !['admin', 'manager', 'sales'].includes(ctx.role)) {
+      throw new ForbiddenException('forbidden');
+    }
+    return ctx;
+  }
+
   /** R-02: reject unauthenticated non-demo; demo header = demo route pass. */
   private authCtx(headers: Record<string, string | undefined>): AuthContext {
     const ctx = this.auth.resolve(toRequestLike(headers));
@@ -354,7 +363,7 @@ export class PilotLoopController {
   /**
    * I-09/R-03 + QA-32/AC-03: cross-workspace → 404 (invisible);
    * right workspace but neither owner NOR handoff recipient → 403.
-   * Recipient access là lead-scoped cho đúng gói được bàn giao tới họ (PM-1 vẫn OPEN).
+   * Recipient access là lead-scoped cho đúng gói được bàn giao tới họ (ADR-006).
    */
   private async authorizedView(ctx: AuthContext, leadId: string) {
     const state = await this.loop.get(leadId as LeadId);

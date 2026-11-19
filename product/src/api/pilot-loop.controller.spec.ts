@@ -138,11 +138,10 @@ describe('PilotLoopController — auth & RBAC wiring (T3-03/T3-04 unit-level; LI
     expect(accepted.leadStatus).toBe('Accepted');
   });
 
-  it('demo workspace passes without token (R-02 AC)', async () => {
-    const res = await ctrl.intake(demoHeaders, { displayName: 'd', utterance: 'u', speaker: 'customer', connection: 'c', externalRecordId: 'r' });
-    expect(res.status).toBe('New');
-    const view = await ctrl.getLead(demoHeaders, res.leadId);
-    expect(view.lead.workspaceId).toBe('demo:ws-demo'); // sandboxed, never the raw header value
+  it('demo workspace permits reads without token but cannot create leads (ADR-006)', async () => {
+    expect((await ctrl.queue(demoHeaders, {})).items).toEqual([]);
+    await expect(ctrl.intake(demoHeaders, { displayName: 'd', utterance: 'u', speaker: 'customer', connection: 'c', externalRecordId: 'r' })).rejects.toThrow(ForbiddenException);
+    expect((await ctrl.queue(demoHeaders, {})).items).toEqual([]);
   });
 
   it('runs the loop end-to-end over the controller surface', async () => {
@@ -446,9 +445,8 @@ describe('P1-4 + demo isolation at the controller', () => {
     const demo = { 'x-demo-workspace': 'ws-a' };
     await expect(ctrl.getLead(demo, real.leadId)).rejects.toMatchObject({ status: 404 });
 
-    const d = await ctrl.intake(demo, { displayName: 'd', utterance: 'u', speaker: 'customer', connection: 'c', externalRecordId: 'r-demo-iso' });
-    const dv = await ctrl.getLead(demo, d.leadId);
-    expect(dv.lead.workspaceId).toBe('demo:ws-a'); // sandbox, never the real tenant id
+    await expect(ctrl.intake(demo, { displayName: 'd', utterance: 'u', speaker: 'customer', connection: 'c', externalRecordId: 'r-demo-iso' })).rejects.toThrow(ForbiddenException);
+    expect((await ctrl.queue(demo, {})).items).toEqual([]);
   });
 
   it('demo mode is opt-in: without DEMO_WORKSPACES the header grants nothing', async () => {
