@@ -147,7 +147,9 @@ export class TelemetryService implements TelemetryServicePort {
     if (!input.workspaceId) throw new Error('workspaceId is required');
     if (!validTag(input.workspaceId, workspacePattern, workspaceBytes)) throw new Error('workspaceId is invalid');
     if (!input.eventType) throw new Error('eventType is required');
-    if (!validTag(input.eventType, SAFE_KEY, MAX_TAG_BYTES) || !approvedTypes.has(input.eventType)) {
+    // Exact reviewed vocabulary authorizes event names such as evidence_viewed; the sensitive-key
+    // filter applies to payloads and arbitrary tags, not these fixed identifiers.
+    if (!SAFE_KEY.test(input.eventType) || !approvedTypes.has(input.eventType)) {
       throw new Error('eventType is not approved');
     }
     const releaseVersion = input.releaseVersion ?? process.env.npm_package_version ?? '0.1.0';
