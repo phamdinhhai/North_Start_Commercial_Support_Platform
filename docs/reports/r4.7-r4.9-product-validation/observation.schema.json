@@ -3,8 +3,11 @@
   "title": "Anonymous synthetic rehearsal attempt; empty preparation only",
   "type": "object",
   "additionalProperties": false,
-  "required": ["participant", "scenario", "attempt", "result", "unaidedSeconds", "assistedSeconds", "outageSeconds", "navigationInterventions", "conceptInterventions", "recoveryInterventions", "environmentInterventions", "comprehension", "trust", "error", "stopReason"],
+  "required": ["schemaVersion", "participant", "scenario", "attempt", "result", "unaidedSeconds", "assistedSeconds", "outageSeconds", "comprehensionSeconds", "usefulness", "navigationInterventions", "conceptInterventions", "recoveryInterventions", "environmentInterventions", "comprehension", "trust", "error", "stopReason"],
   "properties": {
+    "schemaVersion": { "enum": [1] },
+    "comprehensionSeconds": { "type": ["number", "null"], "minimum": 0, "maximum": 86400 },
+    "usefulness": { "enum": ["useful", "partly-useful", "not-useful", "not-assessed"] },
     "participant": { "enum": ["P01", "P02", "P03", "P04", "P05"] },
     "scenario": { "enum": ["S01", "S02", "S03", "S04", "S05", "S06", "S07"] },
     "attempt": { "type": "integer", "minimum": 1, "maximum": 20 },

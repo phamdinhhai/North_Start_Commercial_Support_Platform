@@ -88,6 +88,8 @@ jobs:
         run: npm run test:architecture
       - name: Companion packaging tests
         run: node --test scripts/companion-package.test.mjs
+      - name: Synthetic pilot safety and anonymous research format tests
+        run: node --test scripts/pilot/safety.test.mjs scripts/research/validate-observation.test.mjs
       - name: Install Chromium for AIL research guards
         run: npx playwright install --with-deps chromium
       - name: AIL research guard tests
@@ -160,7 +162,7 @@ jobs:
         env:
           PLAYWRIGHT_HTML_OUTPUT_DIR: playwright-report
       - name: Operator component regressions
-        run: npx playwright test --config playwright.operator-component.config.ts
+        run: npx playwright test --config playwright.operator-recovery.config.ts
       - name: Lifecycle refuses non-durable storage
         run: npx playwright test --config playwright.lifecycle.config.ts
       - name: OIDC and PostgreSQL UI-only LVP journey

@@ -1,4 +1,4 @@
-﻿# Human validation protocol (proposal; NOT RUN)
+# Human validation protocol (proposal; NOT RUN)
 
 Research preparation only, 2026-11-19. The user has confirmed acting as the local operator; organizational pilot approval remains pending. No participant account, invitation, consent, attendance, response or business result is implied. Do not begin recruitment or sessions until the organization approves the synthetic rehearsal, participants and observation owner.
 
@@ -17,4 +17,7 @@ After the task, ask whether the participant would need to check original evidenc
 Local observation files use observation.schema.json; one row per anonymous participant code and scenario attempt. Allowed codes P01–P05 are study-local and must have no identity mapping in the repository. Store completed files only in the approved private local location; never commit them. The organization must approve observation retention/deletion and access before sessions; there is no default retention period here. Delete through that approved process. Empty templates and validation rules are preparation, not collected research.
 
 Stop the session on accidental real data, unexplained access, account mixing, participant withdrawal or blocked consent/organizational authorization. The operator records only stop categories, follows the approved incident process and does not copy the sensitive content. Business value, adoption, conversion and revenue claims remain NOT VALIDATED even after a synthetic usability study.
-`nValidate a private completed file locally with `node product/scripts/research/validate-observation.mjs <private-file.json>`. The validator reads only, prints no values, rejects extra fields/arbitrary text and rejects an unaided-completion row with recorded interventions. It is a format guard, not de-identification proof or an approved storage/retention service.
+
+Validate a private completed file locally with `node product/scripts/research/validate-observation.mjs <private-file.json>`. The validator reads only, prints no values, rejects extra fields/arbitrary text and rejects an unaided-completion row with recorded interventions. It is a format guard, not de-identification proof or an approved storage/retention service.
+
+Observation schema version 1 includes comprehensionSeconds (null when not assessed) and categorical perceived usefulness. Record human measurements only; no automated durations or invented thresholds. These observations are research records, never commercial evidence or outcome confirmation.
