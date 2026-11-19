@@ -29,3 +29,7 @@ Executed 2026-11-19 in each owning worktree, without modifying source:
 | `ns-r4-gaps` at root cutoff patch | `npm test -- src/infra/auth/jwks-staleness.spec.ts src/infra/auth/oidc-config.spec.ts src/infra/auth/oidc-token-verifier.spec.ts` | 3 files, 41 passed |
 
 These commands intentionally selected non-PG suites: zero skips, zero failures. PostgreSQL concurrency, rollback, foreign-key/trigger immutability, cross-operation receipt collisions, final cursor correction and migration lifecycle remain the integration owner's disposable synthetic PG gate. No security coverage percentage, full browser/IdP acceptance or blanket pilot readiness is asserted.
+
+## Root remediation checkpoint
+
+Integrated e1dd9ab adds statement-level BEFORE TRUNCATE guards to015/016, refuses nonempty016 downgrade, chronological scoped contact cursors and reverse/concurrent cross-operation key regressions. The new PG integration gate20suites/95tests passed; exact final SHA verification is in test-verification.json. This is root's remediation/validation record, distinct from the independent reviewer execution above.

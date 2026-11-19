@@ -1,4 +1,4 @@
-# REL-01 reliability assessment — 2026-11-19
+# REL-01 reliability assessment â€” 2026-11-19
 
 Scope: internal assertion outbox/inbox foundation only. ADR-005/006/007/009 apply. Delivery remains opt-in and restricted to local/test PostgreSQL; no external sink, Commercial State mutation, staging/pilot/production enablement or new commercial authority.
 
@@ -20,3 +20,7 @@ Delivery guarantee is at-least-once with consumer deduplication, not exactly-onc
 Reviewed DATA worktree commit f276715 source/store/service/synthetic vault and assessment (root integrated b1841d0). No additional P0/P1 reliability defect identified within its explicitly planning-only scope. PostgreSQL policy revision CAS is serialized with transaction advisory locks; preview uses repeatable-read server transaction time and count-only results. Both operations append audit in their mutation transaction, so audit failure cannot return partial successful durable state. Canonical evidence is not rewritten. Root identified and is separately closing migration015/016 TRUNCATE bypass with statement guards; row-only immutable triggers are insufficient.
 
 Synthetic vault operations serialize through a promise queue that recovers after rejection. Expired reads are blocked before decryption; an audit failure retains ciphertext for retry, and successful purge zeroes its stored buffer. These are process-local fixture properties only. There is no durable purge worker/checkpoint, scheduler, post-restart recovery, backup expiry or production key lifecycle to review. DATA-01 remains OPEN for real-data admission; policy/preview plus a synthetic buffer deletion do not establish production retention or erasure. No speculative schedule or job was added by this review.
+
+## Root integration closure
+
+Delivery API now consumes a typed port rather than importing infra; composition/readiness and017 are registered. Global enablement also rejects NODE_ENV=production despite conflicting test/local selection. Full local17-lane run at659ca46 PASS including20PGsuites/95tests and119coveragefiles/1177tests, no skips. Baseline starvation did not recur. Root did not repeat the worker's physical PG restart; it remains separately attributed worker evidence. Hosted R4.6 remains unverified.

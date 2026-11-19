@@ -35,3 +35,7 @@ Unit/HTTP-boundary tests verify all existing non-admin roles/demo denial, strict
 Commands (from product): `npm ci --ignore-scripts`; `npm run typecheck`; `npm run lint`; `npm run architecture:check:strict`; `npm run build`; `$env:TEST_DATABASE_URL='postgresql://postgres@127.0.0.1:55486/postgres'; npx vitest run src/application/data-lifecycle src/infra/data-lifecycle src/api/data-lifecycle.controller.spec.ts --no-file-parallelism`. All passed; focused suite 4 files / 27 tests, including 4 PostgreSQL tests, 2026-11-19. Typecheck repeated after final test additions; passed. Existing npm install reports five moderate dependency advisories; no lockfile changes or unreviewed dependency upgrades made.
 
 Cluster shutdown: `pg_ctl -D <this-worktree>/product/.pg-data-lifecycle stop`. Never run this command against a shared database directory. Do not commit the untracked cluster. No production operation, customer deletion, deployment or push performed.
+
+## Integrated verification
+
+Root composes the admin policy/preview APIs in the existing pilot module; memory storage fails with typed503. Independent signed HTTP verifies admin configure/preview and sales denial. Root added statement TRUNCATE guards to015/016 and nonempty016 downgrade refusal; PG negatives pass. Final integrated659ca46 verification includes95PG tests and all17 local lanes PASS; see test-verification.json. This closes the integration/test gaps described at the worker checkpoint, without expanding erasure authority or claiming durable raw retention.

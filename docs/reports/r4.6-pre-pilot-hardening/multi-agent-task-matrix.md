@@ -1,6 +1,6 @@
 # R4.6 multi-agent execution and ownership
 
-Base: cd842c4. Three-child runtime concurrency limit: six actual specialist agents run in waves. Each writer uses a dedicated worktree/branch; root is sole writer of integration. A later review may be read-only against integration. All tasks require implementation reference, actual test commands/revision, review result and explicit remaining issues. No push, merge main, production deploy or real data operations.
+Base: cd842c4. Initial plan states below are preserved; the final status table supersedes them. Three-child runtime concurrency limit: six actual specialist agents run in waves. Each writer uses a dedicated worktree/branch; root is sole writer of integration. A later review may be read-only against integration. All tasks require implementation reference, actual test commands/revision, review result and explicit remaining issues. No push, merge main, production deploy or real data operations.
 
 | ID | Owner / priority | Scope / owned modules | Dependency | Acceptance / tests | Risk | Status / evidence |
 |---|---|---|---|---|---|---|
@@ -23,3 +23,17 @@ Base: cd842c4. Three-child runtime concurrency limit: six actual specialist agen
 ## Scope decisions
 
 No framework rewrite, new roles, production integrations, autonomous AI, attribution engine, canonical edits or audit/raw rewrite. Legal hold semantics require confirmed business/legal policy; absence remains explicit. Approval-reference strings are planning metadata, never automatic authorization to erase real evidence. Root may add privacy-safe synthetic pilot telemetry separate from production learning; synthetic events never relabelled real.
+
+## Final implementation / cross-review checkpoint
+
+| Task | Status | Implementation reference | Test reference | Review result / remaining issues |
+|---|---|---|---|---|
+| CI-01 | IMPLEMENTED / locally TESTED |351241a ->0e9b1ca; fixture/workflow + staging runbook | Old adapter red/fixed2PASS; MV3/migrations/restore; full integrated lanes | Root reviewed actual hosted logs; exact R4.6 hosted result remains UNVERIFIED until push authorized |
+| SEC-01 | IMPLEMENTED / TESTED |1095906 ->6793aa8; root0a17bd1 absolute age;02239ce ->ee7b9e5 cross-review | Focused192pass/2PGnotrun worker; integrated PG required; root47auth tests | DATA/commercial review found TRUNCATE bypass fixed by root; matrix deliberately finite, no production IdP or100%coverage claim |
+| DATA-01 | IMPLEMENTED planning / TESTED |f276715 ->b1841d0, wiringffee29b;015 guards e1dd9ab |27focused incl4PG, independent DATA8PG/vault and signed HTTP; final95PG includes new negatives | Security/QA/Reliability cross-review; accepted-evidence erasure/anonymization/retention/holds NOT IMPLEMENTED |
+| REL-01 | IMPLEMENTED / TESTED |b4688a7 ->cbf49ad; b5639c3 ->756ff33 lifecycle review;017 |20focused incl8PG, actual private PG restart; failure/lease/replay suite | QA/Security source review; root fixed API-to-infra import via port, production env guard; local/test only, no exactly-once |
+| COM-01 | IMPLEMENTED / TESTED / UI VERIFIED in fixture |59d803c ->7855999, composition62a3db5, root immutable/cursor/concurrency e1dd9ab |13focused incl4PG; expanded PG7, UI contact/source/feedback/restart | Security/QA independent review; no implicit outcomes; manager exceptions/contact correction deferred |
+| QA-01 | TESTED / VERIFIED in fixture |ed487c8 ->a36a3fb; root659ca46 config-worker credential fix |3OIDC/4legacy/1memory/3component lanes +21focused independent | No API business seed for full UI journey; no human Sales pilot/experiment exposure claim |
+| INT-01 | IMPLEMENTED / local TESTED at659ca46 | Module/readiness001-017,20suite CI registry, port boundaries, review fixes | test-verification.json: all17lanes PASS,1177tests/95PG/91.93%lines | Root reviewed each changed module; original migrations001-014/canonical unchanged; hosted result is separate gate |
+
+No worker changed another worker's worktree. Read-only review reports and original worker evidence are retained; passing earlier checks does not transfer automatically to later revisions. No push authorization is inferred from the previous R4 push.

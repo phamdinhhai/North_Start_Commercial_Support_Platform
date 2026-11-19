@@ -1,0 +1,362 @@
+{
+  "date": "2026-11-19",
+  "branch": "feat/r4-lvp-closure",
+  "baseline_sha": "cd842c4851c7ec10792f9d05c39d62392b871f8c",
+  "validated_source_sha": "659ca46b13a2950b7ccc3e5fdebc8e9700646770",
+  "scope": "All17 local lanes executed on this committed source SHA. Later documentation-only commits do not change tested source. Hosted results are separate.",
+  "environment": {
+    "os": "Windows PowerShell",
+    "node": "22.21.0",
+    "npm": "10.9.0",
+    "postgres": "17.11 private loopback temporary cluster",
+    "CI": "true",
+    "NODE_ENV": "test",
+    "DEPLOYMENT_MODE": "test",
+    "PILOT_STORE_MODE": "memory for root default, postgres within PG/OIDC lanes",
+    "database_targets": "Fresh north_start_ci gate + unique per-suite databases; qa_browser_r46 for UI; no customer/shared database",
+    "locked_install": "npm ci PASS at baseline,421 packages, unchanged lockfile",
+    "postgres_shutdown": "STOPPED after verification"
+  },
+  "lanes": [
+    {
+      "name": "typecheck",
+      "command": "[\"C:\\\\Program Files\\\\nodejs\\\\node.exe\", \"C:/Program Files/nodejs/node_modules/npm/bin/npm-cli.js\", \"run\", \"typecheck\"]",
+      "exit_code": 0,
+      "seconds": 5,
+      "summary": [],
+      "log": "C:\\Users\\admin\\AppData\\Local\\Temp\\north-r46-accepted-iNXYq5\\typecheck.log",
+      "sha256": "09b9a49f6769e2371ae5cfedc320845c173fe8c1356b69e516cecf3df4a23c7a"
+    },
+    {
+      "name": "lint",
+      "command": "[\"C:\\\\Program Files\\\\nodejs\\\\node.exe\", \"C:/Program Files/nodejs/node_modules/npm/bin/npm-cli.js\", \"run\", \"lint\"]",
+      "exit_code": 0,
+      "seconds": 4,
+      "summary": [],
+      "log": "C:\\Users\\admin\\AppData\\Local\\Temp\\north-r46-accepted-iNXYq5\\lint.log",
+      "sha256": "ad43281dbc673e71b219a3b5f8bb1351cdbf31f778553f420b51e951f5ce0a46"
+    },
+    {
+      "name": "architecture",
+      "command": "[\"C:\\\\Program Files\\\\nodejs\\\\node.exe\", \"C:/Program Files/nodejs/node_modules/npm/bin/npm-cli.js\", \"run\", \"architecture:check:strict\"]",
+      "exit_code": 0,
+      "seconds": 1,
+      "summary": [
+        "Architecture check: PASS (0 findings)"
+      ],
+      "log": "C:\\Users\\admin\\AppData\\Local\\Temp\\north-r46-accepted-iNXYq5\\architecture.log",
+      "sha256": "d77621a86ab9943075df85f3191a1cb7bb1df838338d769fe581a2ff13a87c50"
+    },
+    {
+      "name": "registry",
+      "command": "[\"C:\\\\Program Files\\\\nodejs\\\\node.exe\", \"C:/Program Files/nodejs/node_modules/npm/bin/npm-cli.js\", \"run\", \"registry:validate\"]",
+      "exit_code": 0,
+      "seconds": 0,
+      "summary": [],
+      "log": "C:\\Users\\admin\\AppData\\Local\\Temp\\north-r46-accepted-iNXYq5\\registry.log",
+      "sha256": "9ba0b062f4ecd65b28129862b0b83b76af3684de213382c0d20ffa086be3ab85"
+    },
+    {
+      "name": "integration-ci",
+      "command": "[\"C:\\\\Program Files\\\\nodejs\\\\node.exe\", \"C:/Program Files/nodejs/node_modules/npm/bin/npm-cli.js\", \"run\", \"test:integration:ci\"]",
+      "exit_code": 0,
+      "seconds": 38,
+      "suites": 20,
+      "tests": 95,
+      "skipped": 0,
+      "included_in_coverage_total": true,
+      "summary": [
+        " Test Files  1 passed (1)",
+        "      Tests  8 passed (8)",
+        "Integration gate: 20 suites, 95 tests passed without skips"
+      ],
+      "log": "C:\\Users\\admin\\AppData\\Local\\Temp\\north-r46-accepted-iNXYq5\\integration-ci.log",
+      "sha256": "871aab21a620de79b94b193ce90b09ba0df1a86bda455cba2549269249301c1d"
+    },
+    {
+      "name": "coverage",
+      "command": "[\"C:\\\\Program Files\\\\nodejs\\\\node.exe\", \"C:/Program Files/nodejs/node_modules/npm/bin/npm-cli.js\", \"run\", \"test:cov\", \"--\", \"--no-file-parallelism\"]",
+      "exit_code": 0,
+      "seconds": 76,
+      "files": 119,
+      "tests": 1177,
+      "skipped": 0,
+      "summary": [
+        " Test Files  119 passed (119)",
+        "      Tests  1177 passed (1177)"
+      ],
+      "log": "C:\\Users\\admin\\AppData\\Local\\Temp\\north-r46-accepted-iNXYq5\\coverage.log",
+      "sha256": "529ca8b04f00099eb2d78046f82723ea4c942e7fa0633f16236812062ded29ae"
+    },
+    {
+      "name": "build",
+      "command": "[\"C:\\\\Program Files\\\\nodejs\\\\node.exe\", \"C:/Program Files/nodejs/node_modules/npm/bin/npm-cli.js\", \"run\", \"build\"]",
+      "exit_code": 0,
+      "seconds": 8,
+      "summary": [],
+      "log": "C:\\Users\\admin\\AppData\\Local\\Temp\\north-r46-accepted-iNXYq5\\build.log",
+      "sha256": "4bc24afec50c327cef250b332ffda2df07d6c6766d549f4ee6b27ea4aaaebc3a"
+    },
+    {
+      "name": "http-e2e",
+      "command": "[\"C:\\\\Program Files\\\\nodejs\\\\node.exe\", \"C:/Program Files/nodejs/node_modules/npm/bin/npm-cli.js\", \"run\", \"test:e2e\"]",
+      "exit_code": 0,
+      "seconds": 6,
+      "files": 3,
+      "tests": 22,
+      "summary": [
+        " Test Files  3 passed (3)",
+        "      Tests  22 passed (22)"
+      ],
+      "log": "C:\\Users\\admin\\AppData\\Local\\Temp\\north-r46-accepted-iNXYq5\\http-e2e.log",
+      "sha256": "42d681b01de2c548b5d7f9a028549d8adec97cc0216415545bc47a7431a4cb79"
+    },
+    {
+      "name": "browser",
+      "command": "[\"C:\\\\Program Files\\\\nodejs\\\\node.exe\", \"C:/Program Files/nodejs/node_modules/npm/bin/npm-cli.js\", \"run\", \"test:browser\"]",
+      "exit_code": 0,
+      "seconds": 16,
+      "tests": 4,
+      "summary": [
+        "  4 passed (15.6s)"
+      ],
+      "log": "C:\\Users\\admin\\AppData\\Local\\Temp\\north-r46-accepted-iNXYq5\\browser.log",
+      "sha256": "6036f9b2abb8e08d3fd8ea303d1a4baa9e2867510c57706eb698ab7ca2c34aa4"
+    },
+    {
+      "name": "component",
+      "command": "[\"C:\\\\Program Files\\\\nodejs\\\\node.exe\", \"node_modules/@playwright/test/cli.js\", \"test\", \"--config\", \"playwright.operator-component.config.ts\"]",
+      "exit_code": 0,
+      "seconds": 3,
+      "tests": 3,
+      "summary": [
+        "  3 passed (2.5s)"
+      ],
+      "log": "C:\\Users\\admin\\AppData\\Local\\Temp\\north-r46-accepted-iNXYq5\\component.log",
+      "sha256": "faa3e56b22416a61d89cc5b097ca23edaa81e11783a734af689811ba3266318a"
+    },
+    {
+      "name": "lifecycle-memory",
+      "command": "[\"C:\\\\Program Files\\\\nodejs\\\\node.exe\", \"node_modules/@playwright/test/cli.js\", \"test\", \"--config\", \"playwright.lifecycle.config.ts\"]",
+      "exit_code": 0,
+      "seconds": 11,
+      "tests": 1,
+      "kind": "Actual HTTP via Playwright request fixture, no browser journey claim",
+      "summary": [
+        "  1 passed (10.7s)"
+      ],
+      "log": "C:\\Users\\admin\\AppData\\Local\\Temp\\north-r46-accepted-iNXYq5\\lifecycle-memory.log",
+      "sha256": "4a1ad5eead78fb43264403e03c05bda18a897c2e4f73b519bd4f9348e8b1e2e9"
+    },
+    {
+      "name": "oidc-ui",
+      "command": "[\"C:\\\\Program Files\\\\nodejs\\\\node.exe\", \"node_modules/@playwright/test/cli.js\", \"test\", \"--config\", \"playwright.oidc.config.ts\"]",
+      "exit_code": 0,
+      "seconds": 19,
+      "tests": 3,
+      "kind": "Two browser acceptance scenarios and one signed lifecycle HTTP scenario",
+      "summary": [
+        "  3 passed (18.5s)"
+      ],
+      "log": "C:\\Users\\admin\\AppData\\Local\\Temp\\north-r46-accepted-iNXYq5\\oidc-ui.log",
+      "sha256": "7c31357eb986baa6e6989c6b642a069c94756e8a2165858140ee97bfbc912509"
+    },
+    {
+      "name": "companion",
+      "command": "[\"C:\\\\Program Files\\\\nodejs\\\\node.exe\", \"C:/Program Files/nodejs/node_modules/npm/bin/npm-cli.js\", \"run\", \"test:companion\"]",
+      "exit_code": 0,
+      "seconds": 4,
+      "summary": [],
+      "log": "C:\\Users\\admin\\AppData\\Local\\Temp\\north-r46-accepted-iNXYq5\\companion.log",
+      "sha256": "e641f14df592ca1b949a99ffec918a83d6130ece576a436bc83181c84c44696a"
+    },
+    {
+      "name": "guardrails",
+      "command": "[\"C:\\\\Program Files\\\\nodejs\\\\node.exe\", \"--test\", \"scripts/check-architecture.test.mjs\", \"scripts/registry-validation.test.mjs\", \"scripts/security-audit.test.mjs\", \"scripts/backup-verify.test.mjs\"]",
+      "exit_code": 0,
+      "seconds": 1,
+      "tests": 44,
+      "skipped": 0,
+      "summary": [
+        "# pass 44",
+        "# fail 0",
+        "# skipped 0"
+      ],
+      "log": "C:\\Users\\admin\\AppData\\Local\\Temp\\north-r46-accepted-iNXYq5\\guardrails.log",
+      "sha256": "518ba9c6df705f110513838da2c20f6f2f479c05bf78f3f9ee30429ea025c14a"
+    },
+    {
+      "name": "ail-research",
+      "command": "[\"C:\\\\Program Files\\\\nodejs\\\\node.exe\", \"C:/Program Files/nodejs/node_modules/npm/bin/npm-cli.js\", \"run\", \"test:ail:research\"]",
+      "exit_code": 0,
+      "seconds": 1,
+      "tests": 14,
+      "skipped": 0,
+      "summary": [
+        "# pass 14",
+        "# fail 0",
+        "# skipped 0"
+      ],
+      "log": "C:\\Users\\admin\\AppData\\Local\\Temp\\north-r46-accepted-iNXYq5\\ail-research.log",
+      "sha256": "3b0d0973dcd6e4954b6fdb1bfd97ca4ff99bc3a20332f8fce4b484fb6b140ddc"
+    },
+    {
+      "name": "restore",
+      "command": "[\"C:\\\\Program Files\\\\nodejs\\\\node.exe\", \"scripts/restore-rehearsal.mjs\"]",
+      "exit_code": 0,
+      "seconds": 2,
+      "summary": [],
+      "log": "C:\\Users\\admin\\AppData\\Local\\Temp\\north-r46-accepted-iNXYq5\\restore.log",
+      "sha256": "4b1acc43dd7b0d288897824b16029adf8f7ff843c4e7267c2dc98d4c70cc1819"
+    },
+    {
+      "name": "audit",
+      "command": "[\"C:\\\\Program Files\\\\nodejs\\\\node.exe\", \"C:/Program Files/nodejs/node_modules/npm/bin/npm-cli.js\", \"run\", \"security:audit\"]",
+      "exit_code": 0,
+      "seconds": 3,
+      "summary": [
+        "Dependency audit: PASS (production clean; 0 dev-only waiver(s) applied)"
+      ],
+      "log": "C:\\Users\\admin\\AppData\\Local\\Temp\\north-r46-accepted-iNXYq5\\audit.log",
+      "sha256": "57e8b10012c380383e853728fe570a8746171dc602003a7af2be5786773033e3"
+    }
+  ],
+  "coverage": {
+    "lines": {
+      "percent": 91.93,
+      "hit": 4367,
+      "found": 4750
+    },
+    "statements": {
+      "percent": 87.88,
+      "hit": 5381,
+      "found": 6123
+    },
+    "branches": {
+      "percent": 85.44,
+      "hit": 5008,
+      "found": 5861
+    },
+    "functions": {
+      "percent": 90.4,
+      "hit": 1244,
+      "found": 1376
+    },
+    "r4_reference_lines_percent": 91.57,
+    "line_delta_percentage_points": 0.36,
+    "test_delta_vs_r4_reference": 75,
+    "focused_lines": {
+      "infra/auth": {
+        "hit": 419,
+        "found": 425,
+        "percent": 98.59
+      },
+      "infra/crypto": {
+        "hit": 27,
+        "found": 27,
+        "percent": 100.0
+      },
+      "application/pilot/contact-attempt": {
+        "hit": 21,
+        "found": 21,
+        "percent": 100.0
+      },
+      "infra/data-lifecycle": {
+        "hit": 62,
+        "found": 62,
+        "percent": 100.0
+      },
+      "infra/governed-action/pg-assertion": {
+        "hit": 23,
+        "found": 24,
+        "percent": 95.83
+      },
+      "infra/governed-action/assertion-delivery.ops": {
+        "hit": 18,
+        "found": 18,
+        "percent": 100.0
+      }
+    },
+    "security_critical_100_percent": "NOT_ESTABLISHED; finite behavior matrix with explicit gaps"
+  },
+  "failed_attempts": [
+    {
+      "revision": "cd842c4",
+      "scope": "Fresh local baseline",
+      "failure": "coverage1101pass/1fail; global outbox backlog starved own test batch",
+      "result_file": "C:/Users/admin/AppData/Local/Temp/north-r46-baseline-lzNPAP/results.json",
+      "remediation": "Reliability test owns private schema; production global batch behavior retained. Final95PG/1177tests PASS."
+    },
+    {
+      "revision": "e1dd9ab",
+      "scope": "First integrated17lane run",
+      "failure": "Memory lifecycle expected503 received401: config regenerated ephemeral bootstrap credential in each Playwright worker",
+      "result_file": "C:/Users/admin/AppData/Local/Temp/north-r46-final-2SsL9H/results.json",
+      "remediation": "659ca46 shares dedicated ephemeral fixture token across config re-execution; preserves expected503 and runtime auth. Direct1test PASS, full17lane recheck PASS."
+    }
+  ],
+  "hosted_ci": {
+    "run": 44490070582,
+    "url": "https://github.com/phamdinhhai/North_Start_Commercial_Support_Platform/actions/runs/44490070582",
+    "sha": "cd842c4851c7ec10792f9d05c39d62392b871f8c",
+    "status": "completed",
+    "conclusion": "failure",
+    "product": "success, including80PG/1102coverage/22HTTP/restore/audit",
+    "browser": "failure; operator/component PASS, OIDC1pass1timeout at app.close restart, MV3 skipped",
+    "r46_result": "UNVERIFIED_NOT_PUSHED",
+    "reason": "Latest R4.6 instruction requires explicit permission before push. Local deterministic red/green fixes old fixture failure but is not hosted evidence."
+  },
+  "restore": {
+    "result": "PASS",
+    "migrations": 17,
+    "synthetic_tables_compared": 5,
+    "receipt_uniqueness": true,
+    "limits": [
+      "Not PITR",
+      "Not all-table proof",
+      "No RPO/RTO SLA"
+    ]
+  },
+  "independent_recovery_evidence": {
+    "worker_commit": "b4688a7",
+    "postgres_restart": "Actual owned private PostgreSQL17 cluster restart between outbox commit and delivery;20focused tests including8PG passed",
+    "crash_after_inbox_commit": "STATE_SIMULATION",
+    "os_worker_crash_or_power_loss": "NOT_RUN"
+  },
+  "dependencies": {
+    "production_npm_audit_omit_dev": "PASS zero vulnerabilities (additional direct check at659ca46)",
+    "audit_gate": "PASS zero high/critical and zero waivers",
+    "install_moderate_advisories": 5,
+    "lockfile_changed": false
+  },
+  "gates": {
+    "A": "BLOCKED_EXACT_REVISION_HOSTED_CI",
+    "B": "PREPARATION_IMPLEMENTED_ACCEPTANCE_BLOCKED_BY_A",
+    "C": "NOT READY FOR REAL CUSTOMER DATA"
+  },
+  "not_verified_or_implemented": [
+    "Human Sales pilot NOT_RUN",
+    "Deployed production IdP NOT_VERIFIED",
+    "Accepted evidence deletion/anonymization and actual retention enforcement NOT_IMPLEMENTED",
+    "Approved retention schedule/legal hold applicability not decided",
+    "Durable raw research storage/encryption/automatic expiry NOT_IMPLEMENTED; fixture only",
+    "Full security-critical behavior/branch coverage NOT_ESTABLISHED",
+    "Full per-session experiment exposure/recovery instrumentation NOT_VERIFIED",
+    "Manager exceptions/Data Health and contact supersession DEFERRED"
+  ],
+  "side_effects": {
+    "r46_pushed": false,
+    "main_merged": false,
+    "production_deployed": false,
+    "real_customer_data_used_or_erased": false,
+    "outbound_provider_contacted": false
+  },
+  "artifacts": {
+    "results": "C:\\Users\\admin\\AppData\\Local\\Temp\\north-r46-accepted-iNXYq5\\results.json",
+    "results_sha256": "7fa9cd581553d4d3bba92c4a9152a273373e353425a4b36592ef2ace6972d31f",
+    "runner": "C:/Users/admin/AppData/Local/Temp/north-r46-verify.mjs",
+    "runner_sha256": "4d8769626ac3ab81c58fbed3d9df1985781d0ee199472d9d948edace5d72f204",
+    "note": "Local logs are referenced and hashed; raw browser credentials/traces are not published."
+  },
+  "reproducible_build": "build-reproducibility.json:842 dist files byte-identical across consecutive builds of659ca46 on same Windows toolchain; not cross-platform attestation"
+}
