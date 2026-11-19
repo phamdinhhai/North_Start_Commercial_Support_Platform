@@ -57,6 +57,9 @@ export class BrowserSessionService implements BrowserSessionPort {
     if (this.sessions.size >= 1000) throw new BrowserSessionError('LOGIN_BUSY', 429);
     const expires = Math.min(tokens.expiresAt, this.now() + 900_000);
     if (expires <= this.now()) throw new BrowserSessionError('LOGIN_EXPIRED', 401);
+    // Retire this browser's previous session only after a fully verified replacement exists.
+    const previousId = cookieValue(headers, SESSION_COOKIE);
+    if (previousId) this.sessions.delete(digestOpaque(previousId));
     const id = opaque();
     this.sessions.set(digestOpaque(id), { token: tokens.accessToken, csrf: opaque(), expires, workspace: decision.context.workspaceId });
     return { location: `${config.origin}/v1/operator`, cookies: [this.cookie(LOGIN_COOKIE, '', 0),

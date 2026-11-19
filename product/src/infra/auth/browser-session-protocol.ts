@@ -4,6 +4,7 @@ import { BrowserSessionError } from '../../ports/browser-session';
 import type { BrowserSessionConfig } from './browser-session-config';
 import { httpJwksFetcher, JwksKeyStore } from './jwks-key-store';
 import { OidcTokenVerifier } from './oidc-token-verifier';
+import { boundedResponseText } from './bounded-response';
 
 export interface BrowserTokenSet { readonly accessToken: string; readonly subject: string; readonly expiresAt: number }
 export interface BrowserCodeExchange { (code: string, verifier: string, nonce: string): Promise<BrowserTokenSet> }
@@ -21,10 +22,14 @@ export function codeExchange(config: BrowserSessionConfig): BrowserCodeExchange 
       headers: { 'content-type': 'application/x-www-form-urlencoded', accept: 'application/json' },
       body: new URLSearchParams({ grant_type: 'authorization_code', client_id: config.clientId, redirect_uri: config.redirectUri,
         code, code_verifier: verifier }) });
-    const body = await response.text();
-    if (response.status !== 200 || body.length > 32768) throw new BrowserSessionError('LOGIN_EXCHANGE_FAILED', 401);
+    if (response.status !== 200) {
+      await response.body?.cancel().catch(() => undefined);
+      throw new BrowserSessionError('LOGIN_EXCHANGE_FAILED', 401);
+    }
+    const body = await boundedResponseText(response, 32768);
     let parsed: Record<string, unknown>;
     try { parsed = JSON.parse(body) as Record<string, unknown>; } catch { throw new BrowserSessionError('LOGIN_EXCHANGE_FAILED', 401); }
+    if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) throw new BrowserSessionError('LOGIN_TOKEN_INVALID', 401);
     if (parsed.token_type !== 'Bearer' || typeof parsed.access_token !== 'string' || parsed.access_token.length > 8192 ||
         typeof parsed.id_token !== 'string' || parsed.id_token.length > 8192 || !Number.isInteger(parsed.expires_in) ||
         Number(parsed.expires_in) < 1 || Number(parsed.expires_in) > 900) throw new BrowserSessionError('LOGIN_TOKEN_INVALID', 401);

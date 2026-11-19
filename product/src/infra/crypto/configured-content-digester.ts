@@ -16,7 +16,8 @@ export function configuredContentDigester(env: NodeJS.ProcessEnv): ContentDigest
   const encoded = env.CONTENT_DIGEST_KEYS_JSON;
   if (!encoded) {
     const mode = (env.DEPLOYMENT_MODE ?? env.APP_MODE ?? env.NODE_ENV ?? '').toLowerCase();
-    if (mode === 'test' || (['local', 'development', 'dev', 'demo'].includes(mode) && env.CONTENT_DIGEST_EPHEMERAL === 'true')) {
+    if (env.NODE_ENV !== 'production' && (mode === 'test' ||
+        (['local', 'development', 'dev', 'demo'].includes(mode) && env.CONTENT_DIGEST_EPHEMERAL === 'true'))) {
       return createHmacContentDigester(new EphemeralKeyring());
     }
     throw new Error('content_digest_keys_required');

@@ -30,6 +30,45 @@ async function fixture() {
   return { service, auth, members, exchange, begin, result, cookie, ctx, advance: () => { now += 301_000; } };
 }
 describe('R4 browser sessions', () => {
+  it('rotates session and CSRF credentials on reauthentication and refuses the previous session', async () => {
+    const f = await fixture();
+    const oldCsrf = f.service.view({ cookie: f.cookie }, f.ctx).csrfToken;
+    const begin = f.service.begin();
+    const replacement = await f.service.complete({ state: new URL(begin.location).searchParams.get('state')!, code: 'fresh-code' },
+      { cookie: `${pair(begin.cookies[0])}; ${f.cookie}` });
+    const newCookie = pair(replacement.cookies[1]);
+    expect(newCookie).not.toBe(f.cookie);
+    expect(f.service.prepare({ cookie: f.cookie }, 'GET')).toMatchObject({ code: 'SESSION_EXPIRED' });
+    expect(f.service.view({ cookie: newCookie }, f.ctx).csrfToken).not.toBe(oldCsrf);
+    expect(f.service.prepare({ cookie: newCookie, origin: config.origin, 'x-csrf-token': oldCsrf }, 'POST'))
+      .toMatchObject({ code: 'CSRF_REQUIRED' });
+  });
+  it('preserves the old session after failed reauthentication and consumes the failed transaction', async () => {
+    const f = await fixture(); const begin = f.service.begin();
+    const query = { state: new URL(begin.location).searchParams.get('state')!, code: 'fresh-code' };
+    f.exchange.mockRejectedValueOnce(new Error('fixture exchange failure'));
+    const headers = { cookie: `${pair(begin.cookies[0])}; ${f.cookie}` };
+    await expect(f.service.complete(query, headers)).rejects.toMatchObject({ code: 'LOGIN_EXCHANGE_FAILED' });
+    expect(f.service.prepare({ cookie: f.cookie }, 'GET')).toEqual({ kind: 'session' });
+    await expect(f.service.complete(query, headers)).rejects.toMatchObject({ code: 'LOGIN_STATE_INVALID' });
+  });
+  it('bounds pending login transactions and releases capacity after expiry', async () => {
+    const f = await fixture();
+    for (let i = 0; i < 200; i++) f.service.begin();
+    expect(() => f.service.begin()).toThrow('LOGIN_BUSY');
+    f.advance();
+    expect(() => f.service.begin()).not.toThrow();
+  });
+  it('rejects expired and duplicate-cookie login bindings before exchange', async () => {
+    const f = await fixture(); const begin = f.service.begin();
+    const query = { state: new URL(begin.location).searchParams.get('state')!, code: 'fresh-code' };
+    await expect(f.service.complete(query, { cookie: `${pair(begin.cookies[0])}; ${pair(begin.cookies[0])}` }))
+      .rejects.toMatchObject({ code: 'LOGIN_STATE_INVALID' });
+    const another = f.service.begin(); f.advance();
+    await expect(f.service.complete({ ...query, state: new URL(another.location).searchParams.get('state')! },
+      { cookie: pair(another.cookies[0]) })).rejects.toMatchObject({ code: 'LOGIN_STATE_INVALID' });
+    expect(f.exchange).toHaveBeenCalledOnce();
+  });
   it('binds OIDC state/nonce and PKCE, stores tokens only on the server, uses HttpOnly cookies', async () => {
     const f = await fixture(); const url = new URL(f.begin.location);
     expect(url.searchParams.get('response_type')).toBe('code');

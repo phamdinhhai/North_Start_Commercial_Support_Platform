@@ -1,4 +1,5 @@
 import { Logger } from '@nestjs/common';
+import { boundedResponseText } from './bounded-response';
 import { createLocalJWKSet, errors, type JSONWebKeySet, type JWK, type JWSHeaderParameters, type FlattenedJWSInput } from 'jose';
 
 /**
@@ -63,9 +64,11 @@ export function httpJwksFetcher(uri: string, timeoutMs = 5_000): JwksFetcher {
       signal: AbortSignal.timeout(timeoutMs),
       headers: { accept: 'application/jwk-set+json, application/json' },
     });
-    if (response.status !== 200) throw new JwksUnavailableError(`JWKS endpoint returned ${response.status}`);
-    const body = await response.text();
-    if (body.length > MAX_JWKS_BYTES) throw new JwksUnavailableError('JWKS document too large');
+    if (response.status !== 200) {
+      await response.body?.cancel().catch(() => undefined);
+      throw new JwksUnavailableError(`JWKS endpoint returned ${response.status}`);
+    }
+    const body = await boundedResponseText(response, MAX_JWKS_BYTES);
     return JSON.parse(body) as unknown;
   };
 }

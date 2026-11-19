@@ -1,0 +1,39 @@
+# R4.6 SEC-01 security assessment
+
+Assessed baseline `cd842c4`, isolated branch `work/r46-security`, 2026-11-19. Governing sources: canonical I-03/I-05/I-09/I-12, ADR-006 and ADR-009; R4 security and auth-learning checkpoints. The auth-implementation-patterns skill informed this review. No grants, canonical documents, real data, outbound capabilities or migrations changed.
+
+## Confirmed findings and corrections
+
+1. JWKS and authorization-code exchange previously called `response.text()` before checking length. That check did not bound allocation or decoded response bytes. Both now read incrementally, stop/cancel beyond 64 KiB JWKS or 32 KiB tokens, and cancel non-200 bodies. Tests exercise endless streams, UTF-8 multibyte content, absent/trustless Content-Length and body cancellation. Fetch still uses a five-second abort signal and redirect rejection. A transport may allocate one incoming chunk before the reader can reject it; this is an application retention bound, not a guarantee on transport internals.
+2. Successful browser reauthentication generated fresh credentials but left the supplied prior session active. It now retires that browser session after verification and membership success, before installing the replacement. Old cookie and old CSRF fail. Failed exchange preserves the old session and consumes the attempted transaction. Logout after membership revocation remains available with valid Origin/CSRF.
+3. `NODE_ENV=production` could receive ephemeral HMAC keys if an inconsistent deployment mode selected test/local/demo. Ephemeral keys now fail closed whenever NODE_ENV is production, even with explicit ephemeral opt-in. Explicit server-held key configuration remains supported.
+4. Null/array/scalar token JSON now receives an explicit token-validation rejection instead of relying on a downstream property-access exception.
+
+## Security-Critical Behavior Matrix
+
+Evidence below is behavior-specific. This is **not** a claim of 100% branch coverage or a complete penetration test. Test paths are relative to `product/src/`; most evidence predates R4.6 and was rerun against these corrections.
+
+| Boundary | Exercised behavior / evidence | Remaining limit or gap |
+|---|---|---|
+| JWT signature and claims | `infra/auth/oidc-token-verifier.spec.ts`: asymmetric allowlist, none/HS confusion denied before key lookup, tampered payload/key, exact issuer/audience, exp/nbf/skew, 15-minute lifetime, subject, typ, required kid | Deployed provider compatibility and real issuer acceptance remain unverified |
+| JWKS trust/rotation/outage | Same verifier suite and `oidc-adversarial.r2-review.spec.ts`: sanitized public keys, poisoning refusal, cold concurrent random-kid flood, rotation cooldown and outages | Existing implementation retains last known JWKS during outage without an absolute stale-key cutoff; emergency removed-key response needs an explicit operational decision |
+| Network response bounds | `response-resource-boundary.spec.ts`, `jwks-fetch.boundary.spec.ts`: byte limits while streaming, immediate cancellation, rejected-status bodies, malformed JSON, redirect/error options | No live slow-stream transport/abort integration was run; first incoming chunk size is controlled by transport |
+| State / binding / nonce / PKCE | `browser-session.service.spec.ts`: random state, S256 challenge, single-use binding, failed attempt consumption, duplicate/missing/expired bindings, transaction cap and expiry; `browser-session.protocol.spec.ts`: signed nonce and access/ID subject pairing | Full provider browser flow belongs to independent AuthN acceptance; ID-token azp/audience/signature negative combinations are not exhaustively enumerated by the protocol suite |
+| Session credentials / fixation | Service tests: opaque server-only access token, HttpOnly/SameSite cookies, fresh session and CSRF, old-cookie refusal on relogin, failed relogin preserves prior session | Process-local bounded sessions deliberately sign out on restart; no shared multi-instance session store |
+| Cookie mutations / CSRF | Service and `browser-session.http.spec.ts`: Origin plus matching CSRF, duplicate/malformed cookie refusal, ambiguous bearer/workspace rejection, actual HTTP mutation refusal | No exhaustive browser cookie tossing/subdomain integration; secure transport enforced by pilot config |
+| Logout / expiry / revocation | Same service/HTTP suites: logout deletes server session, expiry denies, next request reads current membership, revoked member may destroy session with CSRF | IdP-side disabling remains bounded by access token validity; no IdP backchannel logout implementation |
+| Identity / workspace authority | `oidc-authenticator.spec.ts`, adversarial suite, `oidc-http.spec.ts`: internal UUID lookup, no login provisioning, membership-only role/workspace, foreign/revoked/demo workspace rejection, token claims do not grant roles | PostgreSQL principal/membership suites not run in this worktree; root integrated PG gate required |
+| Lead / action authorization | `application/pilot/work-mutation-policy.spec.ts`, `application/governed-action/governed-action.authorization.spec.ts`, `infra/governed-action/capability-matrix.policy.spec.ts`: role/scope, owner/recipient, high-risk admin policy and deny paths | These focused policy suites do not prove all endpoints against every role/resource pair; commercial cross-review is pending |
+| Membership administration | `application/membership/*`, `api/membership.controller.spec.ts`: admin-only operations, request validation, audited lifecycle, refusal paths | Database immutability/tenancy deferred to integrated PG execution |
+| HMAC privacy / compatibility | `infra/crypto/configured-content-digester.spec.ts`: workspace separation, production fail-closed, no config values in errors, active/retired keys, immutable retries, changed content refusal, legacy verification, foreign workspace refusal; `adapters/browser-companion/adr009-no-body-digest.spec.ts`: browser digest refusal | Key backup/distribution/rotation are operator secret-management duties; no KMS; retired-key loss cannot be repaired by rewriting evidence |
+| Legacy / synthetic paths | `infra/auth/auth.service.spec.ts`, `auth.service.oidc.spec.ts`, `oidc-enrollment-http.spec.ts`, `jwks-fetch.boundary.spec.ts`: opt-in development tokens restricted to nonproduction, OIDC ignores legacy credentials, sandbox separation, admin enrollment boundary | Synthetic classification and learning/report filtering need integrated commercial/data review; no live data exercised |
+
+## Executed verification
+
+`npm ci --ignore-scripts` completed. npm reported five moderate dependency advisories; dependency remediation is outside this patch and is not claimed complete.
+
+Focused run: `npm test -- src/infra/auth src/infra/crypto src/application/pilot/work-mutation-policy.spec.ts src/application/governed-action/governed-action.authorization.spec.ts src/infra/governed-action/capability-matrix.policy.spec.ts src/application/membership src/api/membership.controller.spec.ts src/adapters/browser-companion/adr009-no-body-digest.spec.ts --reporter=json --outputFile=../docs/reports/r4.6-pre-pilot-hardening/security-tests.json`
+
+Result: **192 passed, 2 skipped, zero failed**. Raw Vitest evidence: `security-tests.json`. Skips are both tests in `infra/crypto/content-digest.integration.spec.ts`: database metadata/legacy immutability and rollback refusal with keyed evidence. TEST_DATABASE_URL was absent. Those are explicitly **unexecuted here**, pending the root's disposable synthetic PostgreSQL gate.
+
+`npm run typecheck`, `npm run lint`, `npm run architecture:check:strict` (zero findings), and `npm run build` all passed after the final changes. No coverage instrumentation was run; no numeric security-coverage percentage is asserted. No pilot release approval is implied. Data/commercial cross-review and independent browser acceptance remain separate gates.
