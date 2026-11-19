@@ -6,7 +6,7 @@ export function deliveryEnabled(env: NodeJS.ProcessEnv = process.env): boolean {
   const raw = env.ASSERTION_DELIVERY_ENABLED ?? '';
   if (!['', 'false', 'true'].includes(raw)) throw new Error('INVALID_ASSERTION_DELIVERY_ENABLED');
   if (raw !== 'true') return false;
-  if (!['local', 'test'].includes(resolveDeploymentMode(env)) || resolvePilotStoreMode(env) !== 'postgres') {
+  if (env.NODE_ENV === 'production' || !['local', 'test'].includes(resolveDeploymentMode(env)) || resolvePilotStoreMode(env) !== 'postgres') {
     throw new Error('ASSERTION_DELIVERY_RESEARCH_ONLY');
   }
   return true;

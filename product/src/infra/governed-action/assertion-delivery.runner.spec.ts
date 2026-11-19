@@ -8,5 +8,6 @@ describe('assertion delivery foundation switch', () => {
     for (const mode of ['production', 'pilot']) expect(() => deliveryEnabled({ ASSERTION_DELIVERY_ENABLED: 'true', DEPLOYMENT_MODE: mode })).toThrow('RESEARCH_ONLY');
     expect(() => deliveryEnabled({ ASSERTION_DELIVERY_ENABLED: 'true', DEPLOYMENT_MODE: 'test', PILOT_STORE_MODE: 'memory' })).toThrow('RESEARCH_ONLY');
     expect(deliveryEnabled({ ASSERTION_DELIVERY_ENABLED: 'true', DEPLOYMENT_MODE: 'test', PILOT_STORE_MODE: 'postgres', DATABASE_URL: 'postgresql://127.0.0.1/disposable' })).toBe(true);
+    expect(() => deliveryEnabled({ ASSERTION_DELIVERY_ENABLED: 'true', NODE_ENV: 'production', DEPLOYMENT_MODE: 'test', PILOT_STORE_MODE: 'postgres', DATABASE_URL: 'postgresql://127.0.0.1/disposable' })).toThrow('RESEARCH_ONLY');
   });
 });

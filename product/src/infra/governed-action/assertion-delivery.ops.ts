@@ -3,12 +3,11 @@ import type { AuthContext } from '../../ports/auth';
 import { PostgresService } from '../postgres/postgres.service';
 import { deliveryEnabled } from './assertion-delivery.runner';
 import { PgAssertionDelivery, PgAssertionInbox } from './pg-assertion-delivery';
-export class AssertionOpsError extends Error {
-  constructor(readonly code: string, readonly status: number) { super(code); }
-}
+import { AssertionOpsError, type AssertionDeliveryOperations } from '../../ports/assertion-delivery-ops';
+export { AssertionOpsError } from '../../ports/assertion-delivery-ops';
 /** ADR-006 admin only; ADR-007 research-only; responses contain no evidence. */
 @Injectable()
-export class AssertionDeliveryOps {
+export class AssertionDeliveryOps implements AssertionDeliveryOperations {
   constructor(@Inject(PostgresService) private readonly db: PostgresService) {}
   authorize(ctx: AuthContext | null): AuthContext {
     if (!deliveryEnabled()) throw new AssertionOpsError('ASSERTION_DELIVERY_DISABLED',404);

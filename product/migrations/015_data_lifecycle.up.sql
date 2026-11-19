@@ -26,3 +26,7 @@ CREATE TRIGGER immutable_lifecycle_policy BEFORE UPDATE OR DELETE ON data_lifecy
   FOR EACH ROW EXECUTE FUNCTION protect_data_lifecycle_history();
 CREATE TRIGGER immutable_lifecycle_preview BEFORE UPDATE OR DELETE ON data_lifecycle_preview
   FOR EACH ROW EXECUTE FUNCTION protect_data_lifecycle_history();
+CREATE TRIGGER no_truncate_lifecycle_policy BEFORE TRUNCATE ON data_lifecycle_policy
+  FOR EACH STATEMENT EXECUTE FUNCTION protect_data_lifecycle_history();
+CREATE TRIGGER no_truncate_lifecycle_preview BEFORE TRUNCATE ON data_lifecycle_preview
+  FOR EACH STATEMENT EXECUTE FUNCTION protect_data_lifecycle_history();

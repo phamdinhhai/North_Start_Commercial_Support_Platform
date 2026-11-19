@@ -1,9 +1,9 @@
 import { Controller, Get, Headers, Header, HttpException, Inject, Param, Post, HttpCode } from '@nestjs/common';
 import { AUTH_CONTEXT_RESOLVER, type AuthContextResolver } from '../ports/auth';
-import { AssertionDeliveryOps, AssertionOpsError } from '../infra/governed-action/assertion-delivery.ops';
+import { ASSERTION_DELIVERY_OPS, AssertionOpsError, type AssertionDeliveryOperations } from '../ports/assertion-delivery-ops';
 @Controller('internal/assertion-delivery')
 export class AssertionDeliveryController {
-  constructor(@Inject(AssertionDeliveryOps) private readonly ops: AssertionDeliveryOps,
+  constructor(@Inject(ASSERTION_DELIVERY_OPS) private readonly ops: AssertionDeliveryOperations,
     @Inject(AUTH_CONTEXT_RESOLVER) private readonly auth: AuthContextResolver) {}
   @Get()
   @Header('cache-control','no-store')

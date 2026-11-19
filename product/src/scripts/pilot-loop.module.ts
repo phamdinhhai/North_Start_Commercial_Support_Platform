@@ -36,6 +36,9 @@ import { ContactAttemptService } from '../application/pilot/contact-attempt.serv
 import { CONTACT_ATTEMPT_STORE, type ContactAttemptStore } from '../ports/contact-attempt';
 import { PgContactAttemptStore } from '../infra/postgres/pg-contact-attempt.store';
 import { InMemoryContactAttemptStore } from '../infra/pilot/in-memory-contact-attempt.store';
+import { AssertionDeliveryController } from '../api/assertion-delivery.controller';
+import { AssertionDeliveryOps } from '../infra/governed-action/assertion-delivery.ops';
+import { ASSERTION_DELIVERY_OPS } from '../ports/assertion-delivery-ops';
 
 /**
  * P0 pilot loop module (PH3 T3-03/T3-04 wiring + education B2C candidate flow).
@@ -46,8 +49,10 @@ import { InMemoryContactAttemptStore } from '../infra/pilot/in-memory-contact-at
  */
 @Module({
   imports: [PostgresModule],
-  controllers: [PilotLoopController, PilotClosureController, FeedbackTelemetryController, LearningController, LeadExportController, DataLifecycleController, ContactAttemptController],
+  controllers: [PilotLoopController, PilotClosureController, FeedbackTelemetryController, LearningController, LeadExportController, DataLifecycleController, ContactAttemptController, AssertionDeliveryController],
   providers: [
+    AssertionDeliveryOps,
+    { provide: ASSERTION_DELIVERY_OPS, useExisting: AssertionDeliveryOps },
     { provide: CONTACT_ATTEMPT_STORE, inject: [PostgresService, PILOT_STORE],
       useFactory: (db: PostgresService, store: PilotLoopStore): ContactAttemptStore =>
         resolvePilotStoreMode() === 'postgres' ? new PgContactAttemptStore(db) : new InMemoryContactAttemptStore(store) },

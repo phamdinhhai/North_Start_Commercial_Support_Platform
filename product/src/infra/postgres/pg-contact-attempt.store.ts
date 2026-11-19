@@ -7,7 +7,9 @@ export class PgContactAttemptStore implements ContactAttemptStore {
  constructor(private readonly db:TransactionRunner&SqlExecutor){}
  async list(workspaceId:string,leadId:string,limit:number,after?:string){
   const r=await this.db.query<{record:ContactAttempt}>(`SELECT jsonb_build_object('id',id,'leadId',lead_id,'workspaceId',workspace_id,'actor',actor,'recordedAt',recorded_at,'occurredAt',occurred_at,'channel',channel,'claimedResult',claimed_result,'evidenceRef',evidence_ref,'followUpImplication',follow_up_implication,'reason',reason,'acquisitionMode',acquisition_mode,'assertionStatus',assertion_status) AS record
-  FROM pilot_contact_attempt WHERE workspace_id=$1 AND lead_id=$2 AND ($3::uuid IS NULL OR id>$3::uuid) ORDER BY id LIMIT $4`,[workspaceId,leadId,after??null,limit]);return r.rows.map(x=>x.record);
+  FROM pilot_contact_attempt WHERE workspace_id=$1 AND lead_id=$2 AND ($3::uuid IS NULL OR (recorded_at,id)>
+    (SELECT recorded_at,id FROM pilot_contact_attempt WHERE workspace_id=$1 AND lead_id=$2 AND id=$3::uuid))
+  ORDER BY recorded_at,id LIMIT $4`,[workspaceId,leadId,after??null,limit]);return r.rows.map(x=>x.record);
  }
  async receipt(workspaceId:string,leadId:string,key:string){
   const r=await this.db.query<{actor:string;digest:ContentDigest;result:{attemptId:string;version:number}}>(`SELECT actor,digest,result FROM pilot_closure_command WHERE workspace_id=$1 AND lead_id=$2 AND idempotency_key=$3 AND operation='contact-attempt'`,[workspaceId,leadId,key]);const row=r.rows[0];return row?{actor:row.actor,digest:row.digest,...row.result}:undefined;

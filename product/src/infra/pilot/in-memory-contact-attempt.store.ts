@@ -9,7 +9,12 @@ export class InMemoryContactAttemptStore implements ContactAttemptStore {
  constructor(private readonly store:PilotLoopStore){}
  private key(w:string,l:string,k:string){return JSON.stringify([w,l,k]);}
  async receipt(w:string,l:string,k:string){return this.receipts.get(this.key(w,l,k));}
- async list(w:string,l:string,limit:number,after?:string){return this.attempts.filter(a=>a.workspaceId===w&&a.leadId===l&&(!after||a.id>after)).sort((a,b)=>a.id.localeCompare(b.id)).slice(0,limit);}
+ async list(w:string,l:string,limit:number,after?:string){
+ const rows=this.attempts.filter(a=>a.workspaceId===w&&a.leadId===l)
+  .sort((a,b)=>a.recordedAt.localeCompare(b.recordedAt)||a.id.localeCompare(b.id));
+ const start=after?rows.findIndex(a=>a.id===after):-1;
+ return after&&start<0?[]:rows.slice(start+1,start+1+limit);
+ }
  async append(a:ContactAttempt,i:ContactAttemptInput,d:ContentDigest){
  const s=await this.store.load(a.leadId);if(!s||s.lead.workspaceId!==a.workspaceId)throw new PilotDomainError('LEAD_NOT_FOUND',404,'lead not found');
  if(s.ownerUserId!==a.actor)throw new PilotDomainError('NOT_OWNER',403,'only owner may record contact');

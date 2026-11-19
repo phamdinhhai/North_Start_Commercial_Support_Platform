@@ -47,6 +47,8 @@ suite('data lifecycle metadata planning PostgreSQL', () => {
     expect(await store.preview(ws, 'actor', 'accepted_evidence')).toMatchObject({ policyRevision: 3 });
   });
   it('protects planning history and refuses destructive downgrade', async () => {
+    await expect(db.withTransaction(tx => tx.query('TRUNCATE data_lifecycle_policy CASCADE'))).rejects.toThrow('append-only');
+    await expect(db.withTransaction(tx => tx.query('TRUNCATE data_lifecycle_preview'))).rejects.toThrow('append-only');
     await expect(db.query('DELETE FROM data_lifecycle_policy WHERE workspace_id=$1', [ws])).rejects.toThrow('append-only');
     await expect(db.query('UPDATE data_lifecycle_preview SET eligible_count=0 WHERE workspace_id=$1', [ws])).rejects.toThrow('append-only');
     const down = loadMigrations().find(m => m.version === '015_data_lifecycle')!.down;

@@ -13,3 +13,4 @@ CREATE TABLE pilot_contact_attempt (
 );
 CREATE INDEX pilot_contact_attempt_lead ON pilot_contact_attempt(workspace_id,lead_id,id);
 CREATE TRIGGER pilot_contact_attempt_immutable BEFORE UPDATE OR DELETE ON pilot_contact_attempt FOR EACH ROW EXECUTE FUNCTION reject_pilot_closure_rewrite();
+CREATE TRIGGER pilot_contact_attempt_no_truncate BEFORE TRUNCATE ON pilot_contact_attempt FOR EACH STATEMENT EXECUTE FUNCTION reject_pilot_closure_rewrite();
