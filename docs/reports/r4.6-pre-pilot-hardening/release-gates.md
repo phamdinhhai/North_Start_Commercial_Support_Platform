@@ -4,13 +4,15 @@ Date2026-11-19. These gates describe evidence and authorization separately. Fina
 
 | Gate | Verdict at this checkpoint | Evidence / missing condition |
 |---|---|---|
-| A Technical LVP | BLOCKED pending exact-revision hosted CI | R4 hosted run69 at cd842c4 FAILED browser restart; product passed. Fixture cause fixed locally with deterministic preconnect regression. R4.6 integrated local17-lane validation PASS at659ca46; even a local pass cannot satisfy the hosted requirement. No blanket absence-of-security-defects claim. |
-| B Synthetic Sales Pilot | PREPARATION IMPLEMENTED; acceptance BLOCKED by A | Fabricated UI-only journey, separate source truth/contact claims, classification/exclusion, signed fixture IdP, pilot observation worksheet, role scopes, rollback/recovery runbooks. Isolated deployment and actual operator configuration/review remain necessary. No Sales participant has run the pilot. |
-| C Real-customer Pilot | NOT READY FOR REAL CUSTOMER DATA | Retention enforcement, accepted-evidence deletion/anonymization, applicable legal-hold decision, durable research encryption/expiry, real IdP acceptance, full security-critical verification, approved data basis and accountable operations owner are not established. Never auto-approved. |
+| A Technical LVP | PASS at ce01a59 | Local17lanes PASS and hosted71/44499176438 product+browserSUCCESS on exact same revision.119files/1177tests,20PGsuites95tests,22HTTP; local lines91.93%, hosted91.95%. Reviewed P0 findings fixed; finite security behavior coverage, no blanket absence-of-defects assertion. |
+| B Synthetic Sales Pilot | CONDITIONAL: technical preparation ready; deployment acceptance pending | Classification/segregation, synthetic scenarios, observer worksheet, UI-only journey, error/feedback tests and recovery runbooks implemented. Dedicated test environment is isolated, but an actual pilot deployment/HTTPS/identity configuration and accountable operating/observation owners are not yet verified. No human Sales pilot has run. |
+| C Real-customer Pilot | NOT READY FOR REAL CUSTOMER DATA | Actual retention/deletion/anonymization, hold applicability/policy, durable raw research controls, deployed IdP/session acceptance, full security-critical coverage, approved real-data use and accountable operations remain open. Never auto-approved. |
+
+Hosted evidence: [run71](https://github.com/phamdinhhai/North_Start_Commercial_Support_Platform/actions/runs/44499176438), hosted-ci-verification.json. Earlier run69/70 failures are preserved, not retrospectively relabeled. Later report-only commits do not change source/test/CI files validated at ce01a59.
 
 ## Before a synthetic rehearsal
 
-1. Obtain exact-revision hosted product/browser success; retain run URL/SHA and actual job conclusions. Push needs explicit user authorization for this R4.6 work.
+1. Exact implementation-revision hosted product/browser success is recorded at ce01a59/run71. Keep release SHA and result linked; any source/test/CI change needs a new run. The user authorized R4.6 push/monitoring; production deployment and main merge remain prohibited.
 2. Use a dedicated environment/database and fabricated synthetic records only. Use approved internal memberships, HTTPS and configured server HMAC keys for a deployed pilot; ephemeral fixture IdP/keys are automated test infrastructure, not deployed identity acceptance.
 3. Review ci-assessment.md staging/rollback procedure and assertion-delivery-runbook.md. Leave AI execution, provider writes, Pancake research capture and assertion delivery runner off. Delivery ops are research-only and unavailable in pilot/production by design.
 4. Perform scenarios in pilot-scenarios.md with representative Sales; record unaided/assisted task completion, time, errors, interventions and unknown evidence. Keep the worksheet separate from business telemetry; synthetic behavior must not become real commercial learning.

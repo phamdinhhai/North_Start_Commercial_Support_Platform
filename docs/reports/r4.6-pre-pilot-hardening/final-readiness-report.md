@@ -1,12 +1,12 @@
 # R4.6 pre-pilot hardening and business validation
 
-2026-11-19. Target branch: feat/r4-lvp-closure. Worktree: D:/AI-for-Enterprise/ns-r4-gaps. Starting revision: cd842c4851c7ec10792f9d05c39d62392b871f8c. Validated source revision:659ca46b13a2950b7ccc3e5fdebc8e9700646770; all17 local validation lanes PASS. Report-only follow-up commits will be distinguished from tested source.
+2026-11-19. Target branch: feat/r4-lvp-closure. Worktree: D:/AI-for-Enterprise/ns-r4-gaps. Starting revision: cd842c4851c7ec10792f9d05c39d62392b871f8c. Validated corrective source revision:ce01a59da3e8f23559d5e3109c2e8e2138b79751; all17 local validation lanes PASS after hosted70 membership-isolation correction. Report-only follow-up commits will be distinguished from tested source.
 
 ## Executive assessment
 
 The manual Sales journey has been extended with a separate audited contact-claim history and explicit conversation source, acquisition lineage and UNKNOWN attribution reasons. Security and recovery boundaries are stronger and implemented. This remains a synthetic pilot candidate, not a real-customer release. No employee has participated in a Sales pilot during this execution.
 
-Gate A/B cannot be declared passed from local tests alone. Hosted run69 at R4 cd842c4 completed FAILURE (product success, browser failure at restart); its failure was diagnosed and locally reproduced/fixed, but R4.6 needs its own hosted result. R4.6 has not been pushed or deployed. Gate C: **NOT READY FOR REAL CUSTOMER DATA**.
+Gate A PASS at ce01a59: local17lanes and hosted71 product+browser SUCCESS on the same revision. Gate B is CONDITIONAL: code/scenarios/recovery ready, while an actual isolated pilot deployment and operating/observation owner acceptance remain unverified. No human Sales pilot has run. User authorized push and CI monitoring; no deployment occurred. Gate C: **NOT READY FOR REAL CUSTOMER DATA**. Earlier hosted69/70 failures are retained with root cause and corrective evidence.
 
 ## Six actual specialists and integration
 
@@ -14,7 +14,7 @@ Three children can run concurrently. Six specialists executed in two overlapping
 
 | Owner / task | IMPLEMENTED | TESTED / review evidence | Remaining limit |
 |---|---|---|---|
-| r46_ci / CI-01 | Close requestless TCP sockets in OIDC restart fixture; deterministic regression; independent MV3 CI step; staging/rollback checklist |351241a; old fixture fails/fixed2PASS; migration/restore/MV3 checks; ci-assessment.md | No hosted R4.6 result without authorized push |
+| r46_ci / CI-01 | Close requestless TCP sockets in OIDC restart fixture; deterministic regression; independent MV3 CI step; staging/rollback checklist |351241a; old fixture fails/fixed2PASS; migration/restore/MV3 checks; ci-assessment.md | Hosted71SUCCESS at ce01a59; initial failures retained |
 | r46_security / SEC-01 | Streamed byte bounds/cancel JWKS and token responses; retired prior browser session on successful relogin; production ephemeral-HMAC refusal; token shape checks |1095906; behavior matrix, focused tests;02239ce independent DATA/commercial/root review | Actual deployed issuer and complete security-critical coverage not established |
 | r46_data / DATA-01 | Migration015; admin-only retention policy revisions and metadata preview; audit atomicity/CAS; isolated synthetic encrypted-expiry fixture |f276715;27tests incl4PG; independent Security/QA/Reliability review | Planning is not erasure enforcement; no real schedules/holds/durable raw store |
 | r46_reliability / REL-01 | Poison/tenant validation, bounded retry/timeout/conflict states, consumer collision detection, OIDC-admin audited replay/stop,017, test schema isolation |b4688a7+b5639c3;20tests incl8PG and actual private PG restart; QA/Security source review | Default-off local/test runner; no exactly-once or OS-worker crash claim |
@@ -52,7 +52,7 @@ New events remain fixed categorical behavioral reports; synthetic/unknown exclud
 
 Exact commands, log paths/hashes, environment and revision are recorded in test-verification.json. Local environment: Windows, Node22.21.0, npm10.9.0, PostgreSQL17.11 private loopback cluster, fabricated data, unchanged locked dependencies. All owned validation clusters stopped.
 
-| Final lane at659ca46 | Result |
+| Final lane atce01a59 | Result |
 |---|---|
 | Coverage unit/integration |119files /1,177tests PASS, no skips |
 | PostgreSQL isolated gate |20suites /95tests PASS, no skips; already included in1,177 |
@@ -67,13 +67,13 @@ Exact commands, log paths/hashes, environment and revision are recorded in test-
 | Consecutive reproducible build |PASS,842dist files identical; build-reproducibility.json; same Windows checkout/toolchain only |
 | Backup/restore rehearsal |PASS,17migrations and five synthetic table comparisons/receipt uniqueness; no SLA |
 
-Line coverage91.93% (4367/4750), +0.36percentage points over R4 reference91.57%; +75tests. Statements87.88%, branches85.44%, functions90.40%. Focused line measurements: auth98.59% (419/425), crypto27/27, contact service21/21, data lifecycle62/62, delivery ops18/18, PG delivery23/24. A measured100%line subset does not establish all security-critical branches/behaviors; that release condition remains explicit. Fresh baseline was not assumed green:15of16lanes passed; coverage had a global outbox backlog test starvation failure (1101pass/1fail). Private-schema test isolation fixes this without filtering the production worker. Hosted fixture failure was distinct from that local baseline failure.
+Line coverage91.93% (4367/4750), +0.36percentage points over R4 reference91.57%; +75tests. Statements87.81%, branches85.39%, functions90.40%. Focused line measurements: auth98.59% (419/425), crypto27/27, contact service21/21, data lifecycle62/62, delivery ops18/18, PG delivery23/24. A measured100%line subset does not establish all security-critical branches/behaviors; that release condition remains explicit. Fresh baseline was not assumed green:15of16lanes passed; coverage had a global outbox backlog test starvation failure (1101pass/1fail). Private-schema test isolation fixes this without filtering the production worker. Hosted fixture failure was distinct from that local baseline failure.
 
 First integrated run at e1dd9ab:119files/1177tests PASS,20PGsuites95tests PASS, line coverage91.93%; HTTP/browser/component/OIDC/MV3/restore/audit passed. The new memory lane failed401 because config re-execution regenerated a runner credential in Playwright workers. Test assertion503 was retained; dedicated ephemeral fixture credential is now shared across runner/workers, independent of operator secrets. Direct memory rerun1PASS. Full suite at659ca46 PASS across all17 lanes; failed attempts remain recorded in test-verification.json.
 
 ## Remaining work and decisions
 
-1. Authorize push only after reviewing the concrete tested revision; verify hosted product/browser jobs on that exact SHA before Gate A/B.
+1. Implemented/reviewed revision ce01a59 is pushed and hosted71SUCCESS. Preserve that SHA evidence; later documentation-only commits are distinct from implementation revision. No main merge/deployment authorized.
 2. Provision/review isolated synthetic pilot environment and named operating/observation owners; execute representative Sales scenarios and retain unaided/assisted time/error/intervention evidence.
 3. Complete approved class-specific retention/erasure/backup/hold design and implementation before any real-data trial; fixture planning is insufficient.
 4. Accept actual deployment IdP/HTTPS/session/revocation and operational recovery; close remaining security behavior gaps before Gate C review.
@@ -82,3 +82,11 @@ First integrated run at e1dd9ab:119files/1177tests PASS,20PGsuites95tests PASS, 
 No autonomous/background work continues after final handover. No real-data Gate C approval is inferred from commits or tests.
 
 Operational cleanup note: automatic approval review rejected the commercial agent's recursive deletion of its stopped synthetic .contact-pg directory (policy rejection, no more detailed reason supplied). The directory is retained untracked in that agent worktree; no DB artifact was committed. No further deletion attempt was made.
+
+## Hosted70 corrective checkpoint
+
+Hosted70 at eaca10c: browserSUCCESS, productcoverageFAILURE1176pass/1fail (membership010 rollback shared-schema dependency on017). CI specialist reproduced old test red, isolated suite001-010 and separately verified latest001-017 FK/principal/history intact; QA independently reviewed. Source correction ce01a59 changes test isolation only; no production SQL, constraints or grants changed. Full local17lanes at ce01a59 PASS (same1177/95PG counts and91.93%line coverage). User-authorized push triggered hosted71/44499176438 at ce01a59: browserSUCCESS and productSUCCESS. hosted-ci-verification.json contains actual logs/hashes, commands and job results; it supersedes earlier pending statements. Hosted1177coveragetests/95PG/22HTTP, line91.95%; local91.93% is reported separately.
+
+## Final hosted acceptance
+
+Run71/44499176438 completed SUCCESS at ce01a59da3e8f23559d5e3109c2e8e2138b79751. Product job135474090953: typecheck/lint/architecture/registry/security gates,119files/1177coveragetests,20PGsuites95tests(no skips), build/restore/22HTTP PASS. Browser job135474090734: legacy4/component3/memory1/OIDC3/MV3 PASS; providerContacted=false. Hosted lines91.95%, statements87.89%, branches85.46%, functions90.40%; local lines91.93% remains distinct. See hosted-ci-verification.json and original run links for evidence. This accepts the implementation revision for Gate A, not real-data admission or human business validation.

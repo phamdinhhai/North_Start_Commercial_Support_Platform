@@ -20,3 +20,5 @@ Normative sources, frozen invariants and accepted ADRs retain authority. This de
 | R-28 | Immutable classification and explicit synthetic/all/unknown paths retained | UI filtering and business-learning exclusion; synthetic automation timings recorded separately |
 
 Synthetic usability scenarios and anonymous measurement worksheet are authored but NOT RUN by Sales participants. No observed adoption/value or real-customer approval follows from browser automation.
+
+Final exact implementation revision ce01a59: all17 local lanes PASS and hosted71 product/browserSUCCESS. Gate A passed in tested scope; Gate B actual pilot environment/operator acceptance still conditional, Gate C NOT READY FOR REAL CUSTOMER DATA. Human Sales worksheet remains NOT RUN.
