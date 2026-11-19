@@ -1,4 +1,4 @@
-﻿# Independent QA and research preparation
+# Independent QA and research preparation
 
 2026-11-19. Independent worktree ns-r47-qa began at 08bdefa. Reviewed original ENV 5acbb9f, UX f427c822 and COM 3b3857e, R4/R4.6 reports and governing canonical/ADR boundaries. Tested integrated root composition 29d61e0 (equivalent local cc3d682 after cherry-picks) plus the additive QA specs/fixture in this commit. No production files, migrations, canonical documents, provider/customer data or participant accounts changed by QA.
 

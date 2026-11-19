@@ -1,4 +1,4 @@
-﻿# Synthetic pilot scenarios (proposal; human NOT RUN)
+# Synthetic pilot scenarios (proposal; human NOT RUN)
 
 Read human-validation-protocol.md before use. Proposed 3–5 people; no recruitment or accounts created. All tasks use invented content, synthetic classification and actual separately authenticated roles. Observer task cards describe goals, not button sequences. Do not convert synthetic observations into business telemetry.
 

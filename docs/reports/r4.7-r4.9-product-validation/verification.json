@@ -1,0 +1,477 @@
+{
+  "schemaVersion": 1,
+  "phase": "R4.7-R4.9",
+  "recordedOn": "2026-11-19",
+  "branch": "feat/r4-lvp-closure",
+  "baselineSha": "08bdefaca792e34a2142a575db198e0ee5c8f45f",
+  "implementationSha": "73840fe407b891f606a1222dd0fb261d1fc9190a",
+  "documentationHead": "Resolve git rev-parse HEAD at handover; this report is committed after tested implementation, documentation only.",
+  "environment": {
+    "os": "Windows",
+    "node": "22.21.0",
+    "npm": "10.9.0",
+    "postgres": "17 private disposable loopback cluster",
+    "browser": "Playwright Chromium",
+    "testData": "invented fixtures only"
+  },
+  "baseline": {
+    "lanes": 17,
+    "allPassed": true,
+    "vitestTests": 1178,
+    "postgresTests": 96,
+    "lineCoverage": 91.93,
+    "artifactDirectory": "C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-baseline-gAPEL0",
+    "resultsSha256": "f4831f51af14006fc71682d4198dc992ab7d49ccb15f60e1b657e0350beddb23"
+  },
+  "final": {
+    "lanes": 18,
+    "allPassed": true,
+    "vitestFiles": 125,
+    "vitestTests": 1209,
+    "postgresSuites": 22,
+    "postgresTests": 112,
+    "httpTests": 22,
+    "legacyBrowserTests": 4,
+    "componentRecoveryTests": 10,
+    "oidcUiTests": 6,
+    "memoryLifecycleTests": 1,
+    "pilotResearchSafetyNodeTests": 7,
+    "guardrailNodeTests": 44,
+    "skipped": 0,
+    "lineCoverage": 91.98,
+    "statements": 87.96,
+    "branches": 85.56,
+    "functions": 90.44,
+    "coverageDeltaPercentagePoints": 0.05,
+    "results": [
+      {
+        "name": "pilot-research-safety",
+        "command": [
+          "C:\\Program Files\\nodejs\\node.exe",
+          "--test",
+          "scripts/pilot/safety.test.mjs",
+          "scripts/research/validate-observation.test.mjs"
+        ],
+        "exit_code": 0,
+        "seconds": 0,
+        "log": "C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-release-uE8TfM\\pilot-research-safety.log",
+        "log_sha256": "be32b707565e5634b69790d6ebcc1601f88c8356c18d0d6bfba0a8ba7d9db3e0",
+        "working_directory": "D:\\AI-for-Enterprise\\ns-r4-gaps\\product",
+        "status": "PASS",
+        "display_command": "node --test scripts/pilot/safety.test.mjs scripts/research/validate-observation.test.mjs"
+      },
+      {
+        "name": "typecheck",
+        "command": [
+          "C:\\Program Files\\nodejs\\node.exe",
+          "C:/Program Files/nodejs/node_modules/npm/bin/npm-cli.js",
+          "run",
+          "typecheck"
+        ],
+        "exit_code": 0,
+        "seconds": 6,
+        "log": "C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-release-uE8TfM\\typecheck.log",
+        "log_sha256": "09b9a49f6769e2371ae5cfedc320845c173fe8c1356b69e516cecf3df4a23c7a",
+        "working_directory": "D:\\AI-for-Enterprise\\ns-r4-gaps\\product",
+        "status": "PASS",
+        "display_command": "npm run typecheck"
+      },
+      {
+        "name": "lint",
+        "command": [
+          "C:\\Program Files\\nodejs\\node.exe",
+          "C:/Program Files/nodejs/node_modules/npm/bin/npm-cli.js",
+          "run",
+          "lint"
+        ],
+        "exit_code": 0,
+        "seconds": 5,
+        "log": "C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-release-uE8TfM\\lint.log",
+        "log_sha256": "ad43281dbc673e71b219a3b5f8bb1351cdbf31f778553f420b51e951f5ce0a46",
+        "working_directory": "D:\\AI-for-Enterprise\\ns-r4-gaps\\product",
+        "status": "PASS",
+        "display_command": "npm run lint"
+      },
+      {
+        "name": "architecture",
+        "command": [
+          "C:\\Program Files\\nodejs\\node.exe",
+          "C:/Program Files/nodejs/node_modules/npm/bin/npm-cli.js",
+          "run",
+          "architecture:check:strict"
+        ],
+        "exit_code": 0,
+        "seconds": 1,
+        "log": "C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-release-uE8TfM\\architecture.log",
+        "log_sha256": "d77621a86ab9943075df85f3191a1cb7bb1df838338d769fe581a2ff13a87c50",
+        "working_directory": "D:\\AI-for-Enterprise\\ns-r4-gaps\\product",
+        "status": "PASS",
+        "display_command": "npm run architecture:check:strict"
+      },
+      {
+        "name": "registry",
+        "command": [
+          "C:\\Program Files\\nodejs\\node.exe",
+          "C:/Program Files/nodejs/node_modules/npm/bin/npm-cli.js",
+          "run",
+          "registry:validate"
+        ],
+        "exit_code": 0,
+        "seconds": 0,
+        "log": "C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-release-uE8TfM\\registry.log",
+        "log_sha256": "9ba0b062f4ecd65b28129862b0b83b76af3684de213382c0d20ffa086be3ab85",
+        "working_directory": "D:\\AI-for-Enterprise\\ns-r4-gaps\\product",
+        "status": "PASS",
+        "display_command": "npm run registry:validate"
+      },
+      {
+        "name": "integration-ci",
+        "command": [
+          "C:\\Program Files\\nodejs\\node.exe",
+          "C:/Program Files/nodejs/node_modules/npm/bin/npm-cli.js",
+          "run",
+          "test:integration:ci"
+        ],
+        "exit_code": 0,
+        "seconds": 52,
+        "log": "C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-release-uE8TfM\\integration-ci.log",
+        "log_sha256": "2a9c09a3e3e2421b44e5cfcc69c3bfecbb064a6d249f791b4c1e58abd845e7c2",
+        "working_directory": "D:\\AI-for-Enterprise\\ns-r4-gaps\\product",
+        "status": "PASS",
+        "display_command": "npm run test:integration:ci"
+      },
+      {
+        "name": "coverage",
+        "command": [
+          "C:\\Program Files\\nodejs\\node.exe",
+          "C:/Program Files/nodejs/node_modules/npm/bin/npm-cli.js",
+          "run",
+          "test:cov",
+          "--",
+          "--no-file-parallelism"
+        ],
+        "exit_code": 0,
+        "seconds": 108,
+        "log": "C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-release-uE8TfM\\coverage.log",
+        "log_sha256": "5157a12929560522f4a0e03ca6e59179108cc45148379aefc2ad47e3d40f6150",
+        "working_directory": "D:\\AI-for-Enterprise\\ns-r4-gaps\\product",
+        "status": "PASS",
+        "display_command": "npm run test:cov -- --no-file-parallelism"
+      },
+      {
+        "name": "build",
+        "command": [
+          "C:\\Program Files\\nodejs\\node.exe",
+          "C:/Program Files/nodejs/node_modules/npm/bin/npm-cli.js",
+          "run",
+          "build"
+        ],
+        "exit_code": 0,
+        "seconds": 11,
+        "log": "C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-release-uE8TfM\\build.log",
+        "log_sha256": "4bc24afec50c327cef250b332ffda2df07d6c6766d549f4ee6b27ea4aaaebc3a",
+        "working_directory": "D:\\AI-for-Enterprise\\ns-r4-gaps\\product",
+        "status": "PASS",
+        "display_command": "npm run build"
+      },
+      {
+        "name": "http-e2e",
+        "command": [
+          "C:\\Program Files\\nodejs\\node.exe",
+          "C:/Program Files/nodejs/node_modules/npm/bin/npm-cli.js",
+          "run",
+          "test:e2e"
+        ],
+        "exit_code": 0,
+        "seconds": 8,
+        "log": "C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-release-uE8TfM\\http-e2e.log",
+        "log_sha256": "f36160d85e3bf5f6ce18df9496d5637feec0b18b155b3740ce98b151ea9927dc",
+        "working_directory": "D:\\AI-for-Enterprise\\ns-r4-gaps\\product",
+        "status": "PASS",
+        "display_command": "npm run test:e2e"
+      },
+      {
+        "name": "browser",
+        "command": [
+          "C:\\Program Files\\nodejs\\node.exe",
+          "C:/Program Files/nodejs/node_modules/npm/bin/npm-cli.js",
+          "run",
+          "test:browser"
+        ],
+        "exit_code": 0,
+        "seconds": 21,
+        "log": "C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-release-uE8TfM\\browser.log",
+        "log_sha256": "7f6a0a7e540054258ce2585920b05a93358c83a44aaf6910db3cac1d3fbb6c01",
+        "working_directory": "D:\\AI-for-Enterprise\\ns-r4-gaps\\product",
+        "status": "PASS",
+        "display_command": "npm run test:browser"
+      },
+      {
+        "name": "component",
+        "command": [
+          "C:\\Program Files\\nodejs\\node.exe",
+          "node_modules/@playwright/test/cli.js",
+          "test",
+          "--config",
+          "playwright.operator-recovery.config.ts"
+        ],
+        "exit_code": 0,
+        "seconds": 6,
+        "log": "C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-release-uE8TfM\\component.log",
+        "log_sha256": "5cda0e327f616cc022f04af644c8675be772020c2a3bb1890a9ad5f7892c386e",
+        "working_directory": "D:\\AI-for-Enterprise\\ns-r4-gaps\\product",
+        "status": "PASS",
+        "display_command": "node node_modules/@playwright/test/cli.js test --config playwright.operator-recovery.config.ts"
+      },
+      {
+        "name": "lifecycle-memory",
+        "command": [
+          "C:\\Program Files\\nodejs\\node.exe",
+          "node_modules/@playwright/test/cli.js",
+          "test",
+          "--config",
+          "playwright.lifecycle.config.ts"
+        ],
+        "exit_code": 0,
+        "seconds": 17,
+        "log": "C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-release-uE8TfM\\lifecycle-memory.log",
+        "log_sha256": "8c8d034fc8686a68e1602f00410a8a57d60bf3af4e234879a2b8f46f716961a9",
+        "working_directory": "D:\\AI-for-Enterprise\\ns-r4-gaps\\product",
+        "status": "PASS",
+        "display_command": "node node_modules/@playwright/test/cli.js test --config playwright.lifecycle.config.ts"
+      },
+      {
+        "name": "oidc-ui",
+        "command": [
+          "C:\\Program Files\\nodejs\\node.exe",
+          "node_modules/@playwright/test/cli.js",
+          "test",
+          "--config",
+          "playwright.oidc.config.ts"
+        ],
+        "exit_code": 0,
+        "seconds": 28,
+        "log": "C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-release-uE8TfM\\oidc-ui.log",
+        "log_sha256": "cc1dde0b716fbcf2d8dbda53a28ffd01c0d02cb72ca0d9bdc120848c2c4fe5c7",
+        "working_directory": "D:\\AI-for-Enterprise\\ns-r4-gaps\\product",
+        "status": "PASS",
+        "display_command": "node node_modules/@playwright/test/cli.js test --config playwright.oidc.config.ts"
+      },
+      {
+        "name": "companion",
+        "command": [
+          "C:\\Program Files\\nodejs\\node.exe",
+          "C:/Program Files/nodejs/node_modules/npm/bin/npm-cli.js",
+          "run",
+          "test:companion"
+        ],
+        "exit_code": 0,
+        "seconds": 5,
+        "log": "C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-release-uE8TfM\\companion.log",
+        "log_sha256": "e641f14df592ca1b949a99ffec918a83d6130ece576a436bc83181c84c44696a",
+        "working_directory": "D:\\AI-for-Enterprise\\ns-r4-gaps\\product",
+        "status": "PASS",
+        "display_command": "npm run test:companion"
+      },
+      {
+        "name": "guardrails",
+        "command": [
+          "C:\\Program Files\\nodejs\\node.exe",
+          "--test",
+          "scripts/check-architecture.test.mjs",
+          "scripts/registry-validation.test.mjs",
+          "scripts/security-audit.test.mjs",
+          "scripts/backup-verify.test.mjs"
+        ],
+        "exit_code": 0,
+        "seconds": 1,
+        "log": "C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-release-uE8TfM\\guardrails.log",
+        "log_sha256": "ea6e8c4296c82a65305025bedda5a8e1a1ea58d17c71759b58451fafd187954c",
+        "working_directory": "D:\\AI-for-Enterprise\\ns-r4-gaps\\product",
+        "status": "PASS",
+        "display_command": "node --test scripts/check-architecture.test.mjs scripts/registry-validation.test.mjs scripts/security-audit.test.mjs scripts/backup-verify.test.mjs"
+      },
+      {
+        "name": "ail-research",
+        "command": [
+          "C:\\Program Files\\nodejs\\node.exe",
+          "C:/Program Files/nodejs/node_modules/npm/bin/npm-cli.js",
+          "run",
+          "test:ail:research"
+        ],
+        "exit_code": 0,
+        "seconds": 2,
+        "log": "C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-release-uE8TfM\\ail-research.log",
+        "log_sha256": "1ecd16bdd1097845a0c6cf66b619a1ad4fddc8f2b1ad672e2329a14368c2694e",
+        "working_directory": "D:\\AI-for-Enterprise\\ns-r4-gaps\\product",
+        "status": "PASS",
+        "display_command": "npm run test:ail:research"
+      },
+      {
+        "name": "restore",
+        "command": [
+          "C:\\Program Files\\nodejs\\node.exe",
+          "scripts/restore-rehearsal.mjs"
+        ],
+        "exit_code": 0,
+        "seconds": 3,
+        "log": "C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-release-uE8TfM\\restore.log",
+        "log_sha256": "d92e619acd271c59eca54bb5cc8bb03c6970656acc0ba8331a27fbe5e1b39958",
+        "working_directory": "D:\\AI-for-Enterprise\\ns-r4-gaps\\product",
+        "status": "PASS",
+        "display_command": "node scripts/restore-rehearsal.mjs"
+      },
+      {
+        "name": "audit",
+        "command": [
+          "C:\\Program Files\\nodejs\\node.exe",
+          "C:/Program Files/nodejs/node_modules/npm/bin/npm-cli.js",
+          "run",
+          "security:audit"
+        ],
+        "exit_code": 0,
+        "seconds": 4,
+        "log": "C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-release-uE8TfM\\audit.log",
+        "log_sha256": "57e8b10012c380383e853728fe570a8746171dc602003a7af2be5786773033e3",
+        "working_directory": "D:\\AI-for-Enterprise\\ns-r4-gaps\\product",
+        "status": "PASS",
+        "display_command": "npm run security:audit"
+      }
+    ]
+  },
+  "additionalChecks": [
+    {
+      "command": "node --test scripts/companion-package.test.mjs",
+      "revision": "f825fba29f2560a039c6c2cbca655d0a60d7bcf6",
+      "result": "PASS",
+      "passed": 7,
+      "skipped": 0,
+      "scope": "unchanged scripts/package source at final revision"
+    },
+    {
+      "command": "git diff --check 08bdefa",
+      "revision": "73840fe407b891f606a1222dd0fb261d1fc9190a",
+      "result": "PASS",
+      "scope": "Source trailing blank lines corrected in73840fe; report trailing blank line fixed in documentation worktree before final commit"
+    }
+  ],
+  "hostedCi": {
+    "baseline": {
+      "conclusion": "success",
+      "headSha": "08bdefaca792e34a2142a575db198e0ee5c8f45f",
+      "jobs": [
+        {
+          "conclusion": "success",
+          "name": "Browser operator workflow",
+          "status": "completed"
+        },
+        {
+          "conclusion": "success",
+          "name": "product",
+          "status": "completed"
+        }
+      ],
+      "status": "completed",
+      "url": "https://github.com/phamdinhhai/North_Start_Commercial_Support_Platform/actions/runs/44503219532"
+    },
+    "currentImplementation": "NOT VERIFIED",
+    "reason": "New phase not pushed; explicit permission required. Old CI success is not inherited."
+  },
+  "localPilot": {
+    "applicationRevision": "e93db4cf23eb6e5d31f3d3998753071e07ef39c5",
+    "relationshipToFinal": "Subsequent changes only legacy test and whitespace; launcher/application behavior unchanged. Full suite separately verifies final revision.",
+    "privateManifest": "C:/Users/admin/AppData/Local/Temp/north-synthetic-pilot-0f859388a029c8fb369952bac575fcae/manifest.json",
+    "manifestContents": "PRIVATE; never included",
+    "commands": [
+      "node scripts/pilot/local.mjs init",
+      "node scripts/pilot/local.mjs stop <private-manifest>",
+      "node scripts/pilot/local.mjs start <private-manifest>",
+      "node scripts/pilot/verify.mjs <private-manifest>",
+      "LOCAL_PILOT_ORIGIN=http://127.0.0.1:<owned-port> npx playwright test --config playwright.local-practice.config.ts",
+      "node scripts/pilot/local.mjs backup <private-manifest>",
+      "node scripts/pilot/local.mjs restore <private-manifest>",
+      "node scripts/pilot/local.mjs status <private-manifest>",
+      "node <private-external-admission-probe> <private-manifest>",
+      "node scripts/pilot/rehearsal.mjs <private-manifest>",
+      "node scripts/pilot/local.mjs stop <private-manifest>"
+    ],
+    "verified": [
+      "UI synthetic intake",
+      "independent owner/foreign browser contexts",
+      "four roles/six memberships",
+      "nonprivileged cluster role",
+      "application restart persistence",
+      "dump/restore into new database",
+      "two leads/two envelopes/six membership audits/17 migrations restored",
+      "signed CSRF-protected false intake400 with lead/envelope count invariance",
+      "actual PostgreSQL fast-stop closes app on lock loss",
+      "manual full start preserves history",
+      "false-classified invented envelope refuses startup before app bind and remains unchanged",
+      "new database reset; previous histories retained",
+      "owned services stopped"
+    ],
+    "localPracticeBrowser": {
+      "passed": 1,
+      "skipped": 0
+    },
+    "admissionProbe": {
+      "sourceRevision": "e93db4c",
+      "restoreLeadCount": 2,
+      "migrations": 17,
+      "rejectedClassificationHTTP": 400,
+      "leadEnvelopeCountsUnchanged": true,
+      "counts": {
+        "leads": 2,
+        "envelopes": 2,
+        "membership_audits": 6,
+        "migrations": 17
+      }
+    },
+    "operator": "requesting user explicitly confirmed",
+    "organizationalPilotApproval": "PENDING",
+    "humanParticipants": 0
+  },
+  "failureHistory": [
+    {
+      "revision": "e93db4c",
+      "artifactDirectory": "C:/Users/admin/AppData/Local/Temp/north-r47-final-IIRujx",
+      "result": "17 lanes pass, legacy browser lane failed",
+      "cause": "Outdated expectation that conflict reload closes dialog. Updated to assert retained draft/current version/no automatic write and explicit discard; f825fba and final rerun pass."
+    },
+    {
+      "scope": "external root SQL probe",
+      "result": "initial42P01",
+      "cause": "Probe used migrations rather than schema_migrations; probe corrected, no source/database mutation."
+    }
+  ],
+  "releaseGates": {
+    "A": "BASELINE PASS; NEW REVISION LOCAL PASS / HOSTED NOT VERIFIED",
+    "B": "CONDITIONAL",
+    "C": "NOT READY FOR REAL CUSTOMER DATA"
+  },
+  "humanValidation": {
+    "preparation": "READY FOR HUMAN VALIDATION",
+    "study": "NOT RUN",
+    "businessValidation": "NOT VALIDATED",
+    "noInventedObservations": true
+  },
+  "knownLimitations": [
+    "local fixture identity only; no real IdP/TLS acceptance",
+    "original-tab memory-only drafts lost on tab close after warning",
+    "no full retention/erasure/hold/backups/downstream enforcement",
+    "no production KMS or least-privilege schema separation certification",
+    "manual recovery after database lock loss; no HA/PITR/exactly-once claim",
+    "synthetic excluded from business learning; separate categorical research requires approved handling",
+    "session-level experiment exposure and separate product-event schema version remain incomplete",
+    "no human usability or commercial value observations"
+  ],
+  "repositorySafety": {
+    "canonicalChanged": false,
+    "migrationsChanged": false,
+    "dependencyLockChanged": false,
+    "originalResearchUntouched": true,
+    "productionDeploy": false,
+    "pushed": false,
+    "mainMerged": false
+  }
+}

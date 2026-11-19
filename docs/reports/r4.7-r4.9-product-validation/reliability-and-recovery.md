@@ -1,4 +1,4 @@
-# R4.7 reliability and recovery — 2026-11-19
+# R4.7 reliability and recovery â€” 2026-11-19
 
 Scope: REL-01 P0/P1 bounded fabricated-data validation. ADR-005/006/007/009 apply; no new commercial transitions, outbound enablement, raw rewrite or retention promise. User acts as self-operator; organization approval and human-participant validation remain pending. No participants invited, deployment, shared database or real data used.
 
@@ -33,3 +33,9 @@ R4.6 outbox failure/restart tests were reviewed and not duplicated. Existing at-
 From product: `npm ci --ignore-scripts`; `npm run typecheck`; `npm run build`; targeted ESLint for postgres.service.ts and pilot-resilience.integration.spec.ts; all passed. Focused `npx vitest run src/infra/postgres/pilot-resilience.integration.spec.ts src/infra/postgres/postgres.service.spec.ts --no-file-parallelism --reporter=default --reporter=json --outputFile.json=C:/Users/admin/AppData/Local/Temp/north-r47-reliability-tests.json`: two files/nine tests PASS, zero skips/unhandled errors. TEST_DATABASE_URL was constructed in memory from the owned manifest for a separate `north_rel_r47` database on that cluster, never printed. Root owns CI registry addition for the new suite and full integrated gate. Existing install reports five moderate dependency advisories; no dependency changes made.
 
 Local logs: JSON report above; private `application.log`/`postgres.log` in owned home. Early failing runs exposed REL-F01 and corrected fixture construction; final green report is authoritative. This local evidence does not establish user validation, organizational approval, hosted reliability or a production SLO.
+
+## Integrated root rehearsal
+
+On application source e93db4c, root created a new private launcher fixture, ran UI-only synthetic intake and independent browser-context identity checks, restarted app, dumped/restored to a fresh generated database, then directly verified two leads, two accepted envelopes, six membership audits and17 applied migrations. A signed+CSRF forgedfalse intake returned400; lead/envelope counts were identical before and after. The first external SQL probe used a nonexistent migrations table name; corrected to schema_migrations and reran successfully (test probe mistake, no source change).
+
+Root then ran the owned rehearsal: actual PostgreSQL fast-stop closed the app on singleton-lock loss; explicit full start recovered two leads/six membership audits unchanged. A deliberately false-classified invented envelope prevented startup before app bind and remained unchanged in the old database. Reset selected a fresh DB, and final stop confirmed owned app/IdP/PG stopped. No shared-resource or actual customer drill. f825fba changes only a legacy browser assertion versus e93db4c; application and launcher source are identical. Logs/manifests are private OS-temp resources, not committed secrets.
