@@ -30,7 +30,7 @@ export class PilotCommandContext {
     if (record.workspaceId !== state.lead.workspaceId) {
       throw new PilotDomainError('EVIDENCE_OUT_OF_SCOPE', 403, `evidence ${pointer} belongs to another workspace — it cannot evidence this case (I-09)`);
     }
-    if ((record.isSynthetic ?? false) !== (state.envelope?.isSynthetic ?? false)) throw new PilotDomainError('EVIDENCE_OUT_OF_SCOPE',403,'synthetic and real evidence cannot be mixed');
+    if (typeof record.isSynthetic !== 'boolean' || typeof state.envelope?.isSynthetic !== 'boolean' || record.isSynthetic !== state.envelope.isSynthetic) throw new PilotDomainError('EVIDENCE_OUT_OF_SCOPE',403,'evidence classification must be established and match the lead');
     const related = pointer === state.sourceEnvelopeId || state.handoff?.evidenceRefs.some((r) => r.envelopeId === pointer) === true || state.workItems.some((w) => w.evidenceRef === pointer);
     if (requireRelation && !related) {
       throw new PilotDomainError('EVIDENCE_NOT_RELATED', 422, `evidence ${pointer} exists in this workspace but is not referenced by this lead, its handoff or its work items — it cannot evidence ${action}`);

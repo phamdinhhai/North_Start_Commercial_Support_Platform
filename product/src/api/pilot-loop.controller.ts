@@ -373,7 +373,7 @@ export class PilotLoopController {
     if (!canViewPilotLead(ctx, state, this.rbac)) throw new ForbiddenException('forbidden');
     return {
       version: state.version,
-      isSynthetic: state.envelope?.isSynthetic ?? false,
+      isSynthetic: state.envelope?.isSynthetic ?? null,
       currentContext: state.contextRevisions?.at(-1)?.text ?? state.handoff?.context ?? null,
       lead: { id: state.lead.id, status: state.lead.status, workspaceId: state.lead.workspaceId, displayName: state.lead.displayName, owner: state.ownerUserId, handoffRecipient: state.handoffRecipient },
       handoff: state.handoff ? { id: state.handoff.id, context: state.handoff.context, evidenceRefs: state.handoff.evidenceRefs } : undefined,
@@ -388,9 +388,9 @@ export class PilotLoopController {
         dueAt: w.dueAt,
         actor: w.actor,
         recordedAt: w.recordedAt, supersedesWorkId: w.supersedesWorkId, evidenceRef:w.evidenceRef, declaration:w.declaration, confirmed:w.confirmed, reason:w.reason,
-        isSynthetic: state.envelope?.isSynthetic ?? false,
+        isSynthetic: state.envelope?.isSynthetic ?? null,
       })),
-      outcomes: state.outcomes.map((o) => ({ id: o.id, value: o.value, assertionStatus: o.assertionStatus, acquisitionMode:o.acquisitionMode, actor:o.actor, timestamp:o.timestamp, reason:o.reason, supersedesOutcomeId:o.supersedesOutcomeId, isSynthetic:state.envelope?.isSynthetic ?? false })),
+      outcomes: state.outcomes.map((o) => ({ id: o.id, value: o.value, assertionStatus: o.assertionStatus, acquisitionMode:o.acquisitionMode, actor:o.actor, timestamp:o.timestamp, reason:o.reason, supersedesOutcomeId:o.supersedesOutcomeId, isSynthetic:state.envelope?.isSynthetic ?? null })),
     };
   }
 }

@@ -39,7 +39,7 @@ export class PgPilotStore implements PilotLoopStore {
 
   async leads(query: PilotLeadQuery) {
     const ids = await this.db.query<{id:string}>(`SELECT l.id FROM lead l LEFT JOIN commercial_envelope e ON e.id=l.source_envelope_id
-      WHERE l.workspace_id=$1 AND ($2='all' OR COALESCE(e.is_synthetic,false)=($2='synthetic'))
+      WHERE l.workspace_id=$1 AND ($2='all' OR e.is_synthetic=($2='synthetic'))
       AND ($3::uuid IS NULL OR l.id>$3::uuid)
       AND ($4 IN ('admin','manager') OR l.owner_user_id=$5 OR EXISTS(SELECT 1 FROM pilot_work_item w WHERE w.lead_id=l.id AND w.actor=$5 AND w.status IN ('proposed','accepted','open','awaiting-external')))
       ORDER BY l.id LIMIT $6`,[query.workspaceId,query.classification ?? 'real',query.after ?? null,query.actorRole,query.actorId,(query.limit ?? 50)+1]);
@@ -113,7 +113,7 @@ export class PgPilotStore implements PilotLoopStore {
     const cursor = decodePilotQueueCursor(query, query.cursor);
     const params: unknown[] = [query.workspaceId];
     const where = ['w.workspace_id = $1'];
-    if (query.classification !== 'all') {params.push(query.classification === 'synthetic');where.push(`COALESCE(e.is_synthetic,false) = $${params.length}`);}
+    if (query.classification !== 'all') {params.push(query.classification === 'synthetic');where.push(`e.is_synthetic = $${params.length}`);}
     if (query.actorRole !== 'admin' && query.actorRole !== 'manager') {
       params.push(query.actorId);
       // Same lead-wide active assignment rule as the memory store and read policy (I-09).
@@ -140,9 +140,9 @@ export class PgPilotStore implements PilotLoopStore {
       }
     }
     params.push(limit + 1);
-    const result = await this.db.query<WorkDbRow & { lead_status: string; display_name: string; handoff_recipient: string | null; is_synthetic?: boolean }>(
+    const result = await this.db.query<WorkDbRow & { lead_status: string; display_name: string; handoff_recipient: string | null; is_synthetic?: boolean | null }>(
       `SELECT w.id,w.lead_id,w.workspace_id,w.action,w.responsible_party,w.origin,w.status,w.completion_evidence,w.occurred_at,w.due_at,w.evidence_ref,w.recorded_at,w.supersedes_work_id,w.actor,w.reason,
-              l.status AS lead_status,l.display_name,COALESCE(e.is_synthetic,false) AS is_synthetic,
+              l.status AS lead_status,l.display_name,e.is_synthetic AS is_synthetic,
               (SELECT h.recipient_user_id FROM handoff h WHERE h.lead_id = l.id ORDER BY h.created_at DESC LIMIT 1) AS handoff_recipient
          FROM pilot_work_item w JOIN lead l ON l.id = w.lead_id LEFT JOIN commercial_envelope e ON e.id=l.source_envelope_id
         WHERE ${where.join(' AND ')}
@@ -406,9 +406,9 @@ export class PgPilotStore implements PilotLoopStore {
   }
 }
 
-function toQueueItem(row: WorkDbRow & { lead_status: string; display_name: string; handoff_recipient: string | null; is_synthetic?: boolean }): PilotQueueItem {
+function toQueueItem(row: WorkDbRow & { lead_status: string; display_name: string; handoff_recipient: string | null; is_synthetic?: boolean | null }): PilotQueueItem {
   return {
-    isSynthetic: row.is_synthetic ?? false, id: row.id, leadId: row.lead_id as PilotQueueItem['leadId'], workspaceId: row.workspace_id, action: row.action,
+    isSynthetic: row.is_synthetic ?? null, id: row.id, leadId: row.lead_id as PilotQueueItem['leadId'], workspaceId: row.workspace_id, action: row.action,
     responsibleParty: row.responsible_party as PilotQueueItem['responsibleParty'], origin: row.origin as PilotQueueItem['origin'],
     status: row.status as PilotQueueItem['status'], completionEvidence: row.completion_evidence as PilotQueueItem['completionEvidence'],
     occurredAt: row.occurred_at, ...(row.due_at !== null && { dueAt: iso(row.due_at) }), recordedAt: iso(row.recorded_at),

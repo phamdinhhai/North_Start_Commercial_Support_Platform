@@ -1,3 +1,5 @@
+import { createLead } from '../../domain/lead/lead';
+import { PilotCommandContext } from './pilot-command-context';
 import { describe, expect, it } from 'vitest';
 import { InMemoryPilotStore } from '../../infra/pilot/in-memory-pilot.store';
 import { AuditStore } from '../../infra/audit/audit-store';
@@ -27,5 +29,15 @@ describe('R4 closure owner workflow',()=>{
  it('retains idempotency verification across key rotation',async()=>{const f=await fixture();const b={expectedVersion:1,idempotencyKey:'same',text:'context',reason:'update'};const a=await f.closure.execute(actor,f.state.lead.id,'context',b);f.keys.rotate(actor.workspaceId,'new',new Uint8Array(32).fill(4));expect(await f.closure.execute(actor,f.state.lead.id,'context',b)).toEqual(a);});
  it('lists only eligible workspace assignees, blocks readonly directory access',async()=>{const f=await fixture();expect((await f.closure.assignees(actor)).items).toEqual([{userId:'sales-a',role:'sales'}]);await expect(f.closure.assignees({...actor,role:'viewer'})).rejects.toMatchObject({status:403});});
  it('refuses intake reclassification and immutable source rewrites in memory store',async()=>{const f=await fixture(true);await expect(f.store.save({...f.state,envelope:{...f.state.envelope!,isSynthetic:false}},[])).rejects.toMatchObject({conflicts:['isSynthetic']});expect((await f.store.load(f.state.lead.id))?.envelope?.isSynthetic).toBe(true);});
+
+ it('keeps missing source classification unknown, visible only with all and denies evidence association',async()=>{
+  const f=await fixture(false);const lead=createLead({workspaceId:actor.workspaceId,displayName:'Legacy source unknown'});
+  const bare=await f.store.save({lead,ownerUserId:actor.userId,workItems:[{id:'legacy-work',leadId:lead.id,workspaceId:actor.workspaceId,action:'Legacy follow-up',responsibleParty:'internal',origin:'explicit-request',status:'open',completionEvidence:'absent',occurredAt:'unknown',recordedAt:new Date().toISOString(),actor:actor.userId}],outcomes:[]},[]);
+  for(const classification of ['real','synthetic'] as const){expect((await f.closure.leads(actor,{classification})).items.some(x=>x.leadId===lead.id)).toBe(false);expect((await f.store.queue({...actor,actorId:actor.userId,actorRole:actor.role,classification})).items.some(x=>x.leadId===lead.id)).toBe(false);}
+  expect((await f.closure.leads(actor,{classification:'all'})).items.find(x=>x.leadId===lead.id)?.isSynthetic).toBeNull();
+  expect((await f.store.queue({...actor,actorId:actor.userId,actorRole:actor.role,classification:'all'})).items.find(x=>x.leadId===lead.id)?.isSynthetic).toBeNull();
+  expect((await f.closure.context(actor,lead.id)).isSynthetic).toBeNull();expect((await f.closure.evidence(actor,lead.id)).isSynthetic).toBeNull();
+  await expect(new PilotCommandContext(f.store,new ManualAdapter()).evidence(bare,f.state.sourceEnvelopeId!,'associate',false)).rejects.toMatchObject({code:'EVIDENCE_OUT_OF_SCOPE'});
+ });
 
 });

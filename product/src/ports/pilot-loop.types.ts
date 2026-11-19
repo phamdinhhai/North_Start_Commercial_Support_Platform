@@ -64,7 +64,7 @@ export interface PilotQueueQuery {
 
 /** Redacted operator projection: no raw payloads, evidence contents, or evidence pointers. */
 export interface PilotQueueItem {
-  readonly isSynthetic?: boolean;
+  readonly isSynthetic?: boolean | null;
   readonly id: string;
   readonly leadId: LeadId;
   readonly workspaceId: string;
