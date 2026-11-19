@@ -39,6 +39,24 @@ function authorized(): ActionProposal {
 }
 const throwsCode = (fn: () => unknown, code: string) => expect(fn).toThrow(expect.objectContaining({ code }));
 
+describe('R4 reviewed preview integrity', () => {
+  it('refuses edited preview content with an unchanged digest at authorize and execute', () => {
+    const p = preview(proposed(), { actor: { kind: 'human', id: 'alice' }, beforeState: observed('100') }, NOW).proposal;
+    const tampered = { ...p, preview: { ...p.preview!, changes: [{ path: 'dailyBudget', before: null, beforeKnown: false, after: money('999999') }] } };
+    throwsCode(() => authorize(tampered, { approver: { kind: 'human', id: 'bob' }, reviewedArgumentDigest: p.argumentDigest,
+      reviewedPreviewDigest: p.preview!.previewDigest, reason: 'review', facts }, NOW), 'DIGEST_MISMATCH');
+    const ready = authorized();
+    throwsCode(() => beginExecution({ ...ready, preview: { ...ready.preview!, beforeState: observed('999') } },
+      { actor: { kind: 'human', id: 'bob' }, facts: execFacts }, NOW), 'DIGEST_MISMATCH');
+  });
+  it('refuses preview evidence substitution even though the proposal arguments are intact', () => {
+    const p = preview(proposed(), { actor: { kind: 'human', id: 'alice' }, beforeState: observed('100') }, NOW).proposal;
+    throwsCode(() => authorize({ ...p, preview: { ...p.preview!, evidence: { evidenceRefs: ['fabricated'] } } },
+      { approver: { kind: 'human', id: 'bob' }, reviewedArgumentDigest: p.argumentDigest,
+        reviewedPreviewDigest: p.preview!.previewDigest, reason: 'review', facts }, NOW), 'DIGEST_MISMATCH');
+  });
+});
+
 describe('canonical JSON + digest', () => {
   it('is key-order independent, array-order sensitive and stable', () => {
     expect(canonicalJson({ b: 1, a: { d: [2, 1], c: 'x' } })).toBe('{"a":{"c":"x","d":[2,1]},"b":1}');

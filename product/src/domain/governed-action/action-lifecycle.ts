@@ -104,6 +104,14 @@ function requireNotExpired(p: ActionProposal, now: Date): void {
 
 function requireIntact(p: ActionProposal): void {
   if (!argumentsIntact(p)) fail('DIGEST_MISMATCH', 'stored arguments no longer match the frozen digest');
+  if (p.preview) {
+    try {
+      const expected = previewDigestOf(p.argumentDigest, p.preview.beforeState, p.preview.changes,
+        p.preview.evidence, p.workspaceId, p.preview.previewDigest);
+      if (expected !== p.preview.previewDigest || canonicalJson(p.preview.changes) !== canonicalJson(deriveChanges(p.arguments, p.preview.beforeState)) ||
+          canonicalJson(p.preview.evidence ?? null) !== canonicalJson(proposalEvidence(p) ?? null)) throw new Error('preview changed');
+    } catch { fail('DIGEST_MISMATCH', 'stored preview no longer matches reviewed content'); }
+  }
 }
 
 function requireGates(facts: PolicyFacts): void {
