@@ -112,3 +112,5 @@ success or staging readiness is claimed.
 ## Hosted follow-up
 
 User authorized R4.6 push and CI monitoring. Run70/44496978136 at eaca10c: browserSUCCESS (4legacy/3component/1memory/3OIDC/MV3), productFAILURE at coverage1176pass/1fail. Migration010 rollback incorrectly used shared tables with new017 platform_user FK present; it was a test isolation defect hidden by local suite order. ce01a59 fixes only the membership spec, uses schema001-010 and separately verifies latest001-017 FK/principal preservation; no migration/constraint or production behavior weakened. Red/green8tests and independent QA review recorded in ci-followup.md. Run71/44499176438 at ce01a59 completedSUCCESS for both product and browser; final exact-SHA logs/hashes/counts in hosted-ci-verification.json.
+
+Final corrective6e6cd79/run73SUCCESS: both product and browser. Hosted119files1178coverage/20PGsuites96/22HTTP, browser4/component3/memory1/OIDC3/MV3PASS; coverage lines91.93%. Run72 failure/unknown root cause and bounded lifecycle follow-up are retained in ci-timeout-followup.md and hosted-run72.json. Latest exact source evidence hosted-ci-verification.json supersedes earlier checkpoints.

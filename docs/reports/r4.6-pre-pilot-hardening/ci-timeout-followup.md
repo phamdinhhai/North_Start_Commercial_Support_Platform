@@ -8,7 +8,7 @@ Browser job succeeded. Prior run71 atce01a59 passed the same source, including
 this targeted fix is a claim that latest hosted HEAD is green.
 
 PostgreSQL logged an unexpected EOF with an open transaction when the failed
-runner exited. The later forced checkpoint09:54:30.351–35.685 took5.334s total,
+runner exited. The later forced checkpoint09:54:30.351â€“35.685 took5.334s total,
 with0.507s write and0.015s sync. No lifecycle deadlock, lock-timeout or SQL
 cancellation diagnostic identifies the blocked statement. Scheduler/storage
 delay is consistent with the evidence; its exact cause is **unproven**. Logs did
@@ -28,8 +28,11 @@ limit (55P03), rolls back and proves pool queries recover. These shorter local
 limits exercise the same server mechanisms without adding long test delays.
 
 Cleanup starts pool.end before concurrently dropping only its generated owned
-database with FORCE, so checked-out clients cannot keep teardown waiting behind
-an interrupted test. All cleanup outcomes are collected; errors produce an
+database with FORCE to interrupt outstanding SQL during cleanup. This is bounded
+SQL cleanup plus a hook budget, not universal recovery from an arbitrary leaked
+JavaScript client: pool.end still depends on client.release, and a hook timeout
+does not cancel an arbitrary callback. Current migrator callbacks release clients
+in finally. All cleanup outcomes are collected; errors produce an
 AggregateError rather than being swallowed. Fixed categorical phase markers
 include elapsed milliseconds for create, full apply, rollback, reapply and drop;
 they never emit SQL bodies or connection credentials.

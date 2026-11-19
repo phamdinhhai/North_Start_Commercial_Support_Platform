@@ -22,3 +22,5 @@ Normative sources, frozen invariants and accepted ADRs retain authority. This de
 Synthetic usability scenarios and anonymous measurement worksheet are authored but NOT RUN by Sales participants. No observed adoption/value or real-customer approval follows from browser automation.
 
 Final exact implementation revision ce01a59: all17 local lanes PASS and hosted71 product/browserSUCCESS. Gate A passed in tested scope; Gate B actual pilot environment/operator acceptance still conditional, Gate C NOT READY FOR REAL CUSTOMER DATA. Human Sales worksheet remains NOT RUN.
+
+Final corrective acceptance supersedes71 checkpoint:6e6cd79, hosted73product/browserSUCCESS and17local lanesPASS,1178tests/96PG. Local line91.95%, hosted91.93%. New lifecycle cancellation/lock/pool recovery evidence supplements R-18; all actual pilot/data constraints remain unchanged.
