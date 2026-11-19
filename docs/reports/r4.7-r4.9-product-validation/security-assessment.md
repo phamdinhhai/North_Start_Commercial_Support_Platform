@@ -19,3 +19,13 @@ ENV draft reviewed 2026-11-19: app, control and test issuer bind loopback; runti
 Root's synthetic-only guard must reject false/missing classification on every enabled intake route and fail startup against existing false/unknown accepted evidence. UI checkbox restrictions are insufficient. A loopback fixture is authorized only for invented data and the confirmed operator; organization pilot approval, real participants and actual provider identity remain gated.
 
 Governance proposal: `data-governance-design.md` covers immutable metadata versus encrypted payload, legacy compatibility, key custody, retention/erasure/holds/backup/downstream and explicit owner gates. It introduces no legal duration or production erasure promise.
+
+## Integrated root review (`29d61e0`)
+
+Independently executed in root integration worktree: `npm test -- src/infra/pilot/synthetic-pilot-mode.spec.ts src/api/manager-exceptions.http.spec.ts src/application/pilot/manager-exceptions.service.spec.ts`: 3 files / 12 passed, zero skipped. No PostgreSQL or browser tests are included in that count.
+
+Synthetic admission is fixed at composition, enabled only with exact `true`, local/test deployment and OIDC, with explicit production NODE_ENV denial. Scenario HTTP boundary validates types and translates omitted classification to false, which the command rejects before lookup/adapter/storage in this mode. Internal omitted classification defaults synthetic. The mode flag returned by session view is nonsecret metadata and does not grant authority. This is a classification guard, not content inspection: invented-data operator discipline remains necessary.
+
+Manager wiring uses durable reader only in PostgreSQL mode and otherwise fails with explicit503. Controller uses verified request context and no-store; service independently denies non-manager/admin and demo before scan. Mount cleanup invalidates asynchronous results on context clear,401,403 and logout; rendering uses textContent. Fresh recovery identity/workspace comparison and lead reload precede restoring a held draft. No draft storage or role authority moved to browser in root integration.
+
+Limit: the synthetic mode does not globally disable other privileged APIs or research observation intake. The local launcher must keep research disabled through its explicit environment allowlist and verify stored evidence classification before admitting the application. API authorization continues to depend on ADR-006 membership on each request, not this flag. Startup inspection and cluster-binding fixes remain separate ENV review evidence. No organizational real-data pilot approval is implied.
