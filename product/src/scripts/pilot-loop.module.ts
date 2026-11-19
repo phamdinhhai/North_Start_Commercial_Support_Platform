@@ -16,7 +16,8 @@ import { FeedbackTelemetryController } from '../api/feedback-telemetry.controlle
 import { FeedbackService } from '../infra/feedback/feedback.service';
 import { TelemetryService } from '../infra/telemetry/telemetry.service';
 import { FEEDBACK_SERVICE } from '../ports/feedback';
-import { TELEMETRY_SERVICE } from '../ports/telemetry';
+import { TELEMETRY_SERVICE, LEARNING_TELEMETRY_SERVICE } from '../ports/telemetry';
+import { LearningController } from '../api/learning.controller';
 import { DURABILITY } from '../ports/durability';
 
 /**
@@ -28,12 +29,13 @@ import { DURABILITY } from '../ports/durability';
  */
 @Module({
   imports: [PostgresModule],
-  controllers: [PilotLoopController, FeedbackTelemetryController],
+  controllers: [PilotLoopController, FeedbackTelemetryController, LearningController],
   providers: [
     FeedbackService,
     TelemetryService,
     { provide: FEEDBACK_SERVICE, useExisting: FeedbackService },
     { provide: TELEMETRY_SERVICE, useExisting: TelemetryService },
+    { provide: LEARNING_TELEMETRY_SERVICE, useExisting: TelemetryService },
     {
       provide: DURABILITY,
       useFactory: () => ({ durable: resolvePilotStoreMode() === 'postgres' }),

@@ -1,0 +1,13 @@
+# AUTH-01 / LEARN-01 implementation checkpoint
+
+Implemented: opt-in OIDC browser authorization-code flow with PKCE, state/nonce and single-use cookie-bound transactions; existing asymmetric access verifier and server membership retained. Opaque HttpOnly SameSite cookies; pilot HTTPS; no browser token storage or production token paste. CSRF+Origin required on cookie mutations; ambiguous/malformed credentials denied. Logout/expiry and next-request membership revocation tested; public operator shell/login remains reachable after restart. Sessions are bounded process-local and expire within access-token lifetime/15 minutes; restart signs out. Real IdP deployment and full browser journey are not yet verified.
+
+Implemented learning surface POST /v1/pilot/learning: exact event vocabulary, lead access checked, immutable server envelope classification resolved, synthetic/unknown excluded. Persists only fixed categorical metadata without content or lead/customer IDs. Legacy telemetry endpoint remains restricted to lead_viewed. UI instrumentation and PG end-to-end learning verification pending UX/integration.
+
+Executed before crypto/backend integration: 81 non-PG suites/987 tests pass; auth/learning targeted 19 tests pass; typecheck/lint/strict architecture pass. Earlier targeted OIDC/config suites also passed. Token exchange protocol test uses runtime-generated signed JWTs and a mocked fetch; HTTP composition uses the real verifier/membership/controller with an explicit exchange fixture. These do not substitute for the independent loopback IdP browser acceptance journey.
+
+Early independent QA found expired-cookie shell lockout and malformed/duplicate-cookie fallback; both corrected and HTTP regressed. Revoked membership still permits CSRF-protected destruction of an existing session. No membership grants or canonical changes were introduced. API client provides workspace selection only as a request bound to verified membership.
+
+Configuration: AUTH_MODE=oidc, OIDC_BROWSER_ENABLED=true, existing OIDC_ISSUER/OIDC_AUDIENCE/OIDC_JWKS_URI, OIDC_BROWSER_ORIGIN, OIDC_AUTHORIZATION_ENDPOINT, OIDC_TOKEN_ENDPOINT, OIDC_CLIENT_ID. Exact callback is origin + /v1/auth/callback. Configure provider public client for PKCE; no client secret/refresh token stored. The implementation requires signed JWT access tokens accepted by the current verifier. A deployed provider compatibility review remains necessary.
+
+Outstanding security verification: complete branch coverage/new negative combinations and resource bounds, independent protocol review, real IdP acceptance. No 100% security-critical coverage or pilot release approval claimed by this checkpoint.

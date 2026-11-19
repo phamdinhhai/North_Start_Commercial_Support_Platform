@@ -22,3 +22,5 @@ export interface TelemetryServicePort {
 }
 
 export const TELEMETRY_SERVICE = Symbol('TELEMETRY_SERVICE');
+export interface LearningTelemetryPort { recordLearning(input: RecordEventInput): Promise<ProductEvent> }
+export const LEARNING_TELEMETRY_SERVICE = Symbol('LEARNING_TELEMETRY_SERVICE');

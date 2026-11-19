@@ -34,6 +34,9 @@ const SAFE_KEY = /^[a-z][a-z0-9_]{0,63}$/i;
 const PAYLOAD_KEYS = new Set(['nested', 'safe', 'details']);
 // Known product event/flag identifiers only. New identifiers require an explicit privacy review.
 const EVENT_TYPES = new Set(['lead_viewed']);
+// Internal learning surface only; direct legacy telemetry accepts lead_viewed alone.
+const LEARNING_EVENT_TYPES = new Set(['lead_opened', 'evidence_viewed', 'context_edited', 'handoff_created', 'handoff_accepted',
+  'action_created', 'action_completed', 'action_rescheduled', 'action_reopened', 'outcome_recorded', 'outcome_corrected']);
 const FLAG_VARIANTS: Readonly<Record<string, ReadonlySet<string>>> = {
   pancake_sync: new Set(['on', 'off']),
 };
@@ -132,10 +135,18 @@ export class TelemetryService implements TelemetryServicePort {
   constructor(private readonly db: PostgresService) {}
 
   async record(input: RecordEventInput): Promise<ProductEvent> {
+    return this.persist(input, EVENT_TYPES);
+  }
+
+  async recordLearning(input: RecordEventInput): Promise<ProductEvent> {
+    return this.persist(input, LEARNING_EVENT_TYPES);
+  }
+
+  private async persist(input: RecordEventInput, approvedTypes: ReadonlySet<string>): Promise<ProductEvent> {
     if (!input.workspaceId) throw new Error('workspaceId is required');
     if (!validTag(input.workspaceId, WORKSPACE_ID, MAX_TAG_BYTES)) throw new Error('workspaceId is invalid');
     if (!input.eventType) throw new Error('eventType is required');
-    if (!validTag(input.eventType, SAFE_KEY, MAX_TAG_BYTES) || !EVENT_TYPES.has(input.eventType)) {
+    if (!validTag(input.eventType, SAFE_KEY, MAX_TAG_BYTES) || !approvedTypes.has(input.eventType)) {
       throw new Error('eventType is not approved');
     }
     const releaseVersion = input.releaseVersion ?? process.env.npm_package_version ?? '0.1.0';

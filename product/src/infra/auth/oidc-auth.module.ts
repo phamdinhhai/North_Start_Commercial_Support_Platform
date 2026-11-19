@@ -10,6 +10,9 @@ import { OidcAuthenticator, type OidcDecision } from './oidc-authenticator';
 import { loadOidcConfig, resolveAuthMode } from './oidc-config';
 import { OidcTokenVerifier } from './oidc-token-verifier';
 import { VerifiedContextRegistry } from './verified-context-registry';
+import { BROWSER_SESSION, type BrowserSessionPort } from '../../ports/browser-session';
+import { BrowserSessionService } from './browser-session.service';
+import { loadBrowserSessionConfig } from './browser-session-config';
 
 /**
  * OIDC wiring (AUTH_MODE=oidc; default legacy = no behaviour change).
@@ -70,8 +73,10 @@ export function earlyReply(decision: OidcDecision): { status: number; body: Reco
       inject: [MEMBERSHIP_STORE],
       useFactory: (store: MembershipStore) => createOidcAuthenticator(store),
     },
+    { provide: BROWSER_SESSION, inject: [OIDC_AUTHENTICATOR], useFactory: (auth: OidcAuthenticator | null) =>
+      new BrowserSessionService(loadBrowserSessionConfig(), auth) },
   ],
-  exports: [VERIFIED_CONTEXT_LOOKUP, MEMBERSHIP_STORE, MEMBERSHIP_ADMIN_CONFIG],
+  exports: [VERIFIED_CONTEXT_LOOKUP, MEMBERSHIP_STORE, MEMBERSHIP_ADMIN_CONFIG, BROWSER_SESSION],
 })
 export class OidcAuthModule implements NestModule {
   private readonly logger = new Logger(OidcAuthModule.name);
@@ -80,12 +85,25 @@ export class OidcAuthModule implements NestModule {
     @Inject(HttpAdapterHost) private readonly adapterHost: HttpAdapterHost<FastifyAdapter>,
     @Inject(OIDC_AUTHENTICATOR) private readonly authenticator: OidcAuthenticator | null,
     @Inject(VerifiedContextRegistry) private readonly registry: VerifiedContextRegistry,
+    @Inject(BROWSER_SESSION) private readonly sessions: BrowserSessionPort,
   ) {}
 
   configure(): void {
     const authenticator = this.authenticator;
     if (!authenticator) return; // legacy mode: no hook, no behaviour change
     this.adapterHost.httpAdapter.getInstance().addHook('onRequest', async (request, reply) => {
+      // Login must remain reachable when the browser has an expired session cookie.
+      const loginRoute = ['/v1/auth/login', '/v1/auth/callback', '/auth/login', '/auth/callback', '/v1/operator', '/operator']
+        .includes(request.url.split('?')[0]);
+      const prepared = loginRoute ? { kind: 'none' as const } : this.sessions.prepare(request.raw.headers, request.method);
+      const sessionRead = request.method === 'GET' && ['/v1/auth/session', '/auth/session'].includes(request.url.split('?')[0]);
+      if (prepared.kind === 'rejected') {
+        if (sessionRead) return reply.header('Cache-Control', 'no-store').send({ authenticated: false, loginAvailable: this.sessions.enabled });
+        return reply.code(prepared.status).send({ code: prepared.code, message: 'Session request refused.' });
+      }
+      // A revoked membership must not prevent destruction of a valid CSRF-protected browser session.
+      if (prepared.kind === 'session' && request.method === 'POST' &&
+          ['/v1/auth/logout', '/auth/logout'].includes(request.url.split('?')[0])) return;
       let decision: OidcDecision;
       try {
         decision = await authenticator.authenticate(request.raw.headers);
