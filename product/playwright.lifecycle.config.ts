@@ -1,6 +1,8 @@
 import { defineConfig } from '@playwright/test';
 import { randomBytes } from 'node:crypto';
-process.env.BOOTSTRAP_TOKEN = randomBytes(32).toString('hex');
+// Playwright loads config in workers too; reuse the runner's ephemeral fixture key.
+process.env.QA_LIFECYCLE_BOOTSTRAP_TOKEN ??= randomBytes(32).toString('hex');
+process.env.BOOTSTRAP_TOKEN = process.env.QA_LIFECYCLE_BOOTSTRAP_TOKEN;
 export default defineConfig({
   testDir: './e2e/lifecycle',
   testMatch: 'lifecycle.browser.spec.ts',
