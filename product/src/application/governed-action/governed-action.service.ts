@@ -141,7 +141,7 @@ export class GovernedActionService {
     const result = await this.deps.store.create(t);
     if (!result.created) {
       const existing = result.proposal;
-      if (existing.argumentDigest !== t.proposal.argumentDigest || existing.capabilityId !== capability.id ||
+      if (existing.canonicalArguments !== t.proposal.canonicalArguments || existing.capabilityId !== capability.id ||
           !sameTarget(existing.target, t.proposal.target) || existing.leadId !== t.proposal.leadId ||
           existing.commercialEventRef !== t.proposal.commercialEventRef ||
           JSON.stringify(existing.evidenceRefs ?? []) !== JSON.stringify(t.proposal.evidenceRefs)) {

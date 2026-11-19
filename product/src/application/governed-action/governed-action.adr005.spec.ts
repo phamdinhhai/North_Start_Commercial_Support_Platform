@@ -118,7 +118,7 @@ describe('ADR-005 R2-P-01 — AI proposals must cite a draft inferred Commercial
     expect(previewed.preview?.evidence).toEqual({ commercialEventRef: CE, evidenceRefs: ['crm:note-12'] });
     const ev = (await h.service.history(bob, cited.id)).find((e) => e.type === 'PREVIEWED')!;
     expect(ev.data.evidence).toEqual({ commercialEventRef: CE, evidenceRefs: ['crm:note-12'] });
-    const unbound = previewDigestOf(cited.argumentDigest, ev.data.beforeState as unknown as ObservedState, ev.data.changes as unknown as PreviewChange[]);
+    const unbound = previewDigestOf(cited.argumentDigest, ev.data.beforeState as unknown as ObservedState, ev.data.changes as unknown as PreviewChange[], undefined, WS);
     expect(previewed.preview?.previewDigest).not.toBe(unbound);
   });
 
@@ -145,7 +145,7 @@ describe('ADR-005 R2-P-02 — a verified outcome emits an observed AssertionEnve
       workspaceId: WS, subjectType: 'lead', subjectId: LEAD, eventType: 'ACTION_OUTCOME_OBSERVED', value: 'EXECUTED',
       acquisitionMode: 'observed', assertionStatus: 'claimed', sourceSystem: 'synthetic-ads', sourceRecordId: 'synthetic-op-1',
       capturedAt: done.outcome!.verification!.observedAt, rawEvidencePointer: `governed_action_event:${p.id}#5`,
-      rawPayloadHash: expect.stringMatching(/^[0-9a-f]{64}$/), schemaVersion: 1,
+      rawPayloadHash: expect.stringMatching(/^hmac-sha256-v1:/), schemaVersion: 1,
       evidenceSummary: expect.objectContaining({ proposalId: p.id, capabilityId: CAP, attempt: 1, outcome: 'SUCCEEDED_VERIFIED',
         observation: 'EXECUTED', executorStatus: 'APPLIED', commercialEventRef: CE }),
     });

@@ -52,7 +52,7 @@ export function replayLifecycle(events: readonly ActionEvent[]): LifecycleProjec
         const changes = d.changes as unknown as PreviewChange[];
         if (!beforeState || !Array.isArray(changes)) corrupt(e, 'preview content missing');
         const evidence = evidenceOf(d);
-        if (previewDigestOf(str(d, 'argumentDigest'), beforeState, changes, evidence) !== str(d, 'previewDigest')) corrupt(e, 'preview digest mismatch');
+        if (previewDigestOf(str(d, 'argumentDigest'), beforeState, changes, evidence, e.workspaceId, str(d, 'previewDigest')) !== str(d, 'previewDigest')) corrupt(e, 'preview digest mismatch');
         s = { ...s, approval: undefined,
           preview: { beforeState, changes, previewDigest: str(d, 'previewDigest'), previewedAt: e.at, previewedBy: e.actor,
             ...(evidence ? { evidence } : {}) } };

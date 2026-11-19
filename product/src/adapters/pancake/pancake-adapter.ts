@@ -1,7 +1,7 @@
 import {
   createEnvelope,
   EnvelopeIdempotencyConflictError,
-  hashRawPayload,
+  canonicalizePayload,
   idempotencyKey,
   type CommercialEnvelope,
 } from '../../domain/envelope/envelope';
@@ -157,7 +157,7 @@ export class PancakeReadAdapter implements PancakeReadPort {
     const key = idempotencyKey({ workspaceId: connection.workspaceId, connection: connection.connectionId, externalRecordId: record.id });
     const existing = this.envelopes.get(key);
     if (existing) {
-      if (existing.rawPayloadHash !== hashRawPayload(rawPayload)) return { kind: 'quarantine', item: { reason: 'changed_payload_conflict', raw: record, detail: 'IDEMPOTENCY_CONFLICT', pageIndex, externalRecordId: record.id } };
+      if (canonicalizePayload(existing.rawPayload) !== canonicalizePayload(rawPayload)) return { kind: 'quarantine', item: { reason: 'changed_payload_conflict', raw: record, detail: 'IDEMPOTENCY_CONFLICT', pageIndex, externalRecordId: record.id } };
       return { kind: 'duplicate', item: { externalRecordId: record.id, pageIndex, envelopeId: existing.envelopeId }, capturedAt };
     }
     let envelope: CommercialEnvelope;

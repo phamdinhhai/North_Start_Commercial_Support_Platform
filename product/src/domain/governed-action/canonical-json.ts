@@ -1,3 +1,5 @@
+import { contentDigester } from '../content-digest/content-digester-runtime';
+import { decodeDigest, digestAsContent, encodeDigest, versionedDigest } from '../content-digest/versioned-content-digest';
 import { createHash } from 'node:crypto';
 import { GovernedActionError, type JsonValue } from './governed-action.types';
 
@@ -74,19 +76,19 @@ export function deepFreeze<T>(value: T): T {
 }
 
 /** Canonicalize + digest; also returns a frozen copy detached from caller references. */
-export function freezeArguments(value: unknown): { arguments: JsonValue; canonical: string; digest: string } {
+export function freezeArguments(value: unknown, workspaceId?: string): { arguments: JsonValue; canonical: string; digest: string } {
   const canonical = canonicalJson(value);
-  return { arguments: parseCanonical(canonical), canonical, digest: sha256Hex(canonical) };
+  return { arguments: parseCanonical(canonical), canonical, digest: workspaceId ? encodeDigest(versionedDigest(contentDigester(), workspaceId, 'action-arguments', canonical)) : sha256Hex(canonical) };
 }
 
 /**
  * Integrity check used at authorize and execute time: the stored arguments must still
  * serialize to the stored canonical form, and that form must still hash to the frozen digest.
  */
-export function argumentsIntact(input: { arguments: JsonValue; canonicalArguments: string; argumentDigest: string }): boolean {
+export function argumentsIntact(input: { arguments: JsonValue; canonicalArguments: string; argumentDigest: string; workspaceId?: string }): boolean {
   try {
     return canonicalJson(input.arguments) === input.canonicalArguments &&
-      sha256Hex(input.canonicalArguments) === input.argumentDigest;
+      (decodeDigest(input.argumentDigest) ? !!input.workspaceId && contentDigester().matches(input.workspaceId, 'action-arguments', input.canonicalArguments, digestAsContent(decodeDigest(input.argumentDigest)!)) === true : sha256Hex(input.canonicalArguments) === input.argumentDigest);
   } catch {
     return false;
   }

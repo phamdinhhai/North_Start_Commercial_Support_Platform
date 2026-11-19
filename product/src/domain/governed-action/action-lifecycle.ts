@@ -1,3 +1,5 @@
+import { contentDigester } from '../content-digest/content-digester-runtime';
+import { decodeDigest, digestAsContent, encodeDigest, versionedDigest } from '../content-digest/versioned-content-digest';
 import { hasEvidence, resolveProposalEvidence, type CommercialEventLookupResult } from './action-evidence';
 import { argumentsIntact, canonicalJson, deepFreeze, freezeArguments, sha256Hex } from './canonical-json';
 import { validateArguments, type CapabilityDefinition } from './capability-catalog';
@@ -150,7 +152,7 @@ export function propose(input: ProposeInput, now: Date): Transition {
     ...(input.commercialEventRef !== undefined ? { commercialEventRef: input.commercialEventRef } : {}),
     evidenceRefs: input.evidenceRefs, commercialEvent: input.commercialEvent,
   });
-  const frozen = freezeArguments(input.arguments);
+  const frozen = freezeArguments(input.arguments, input.workspaceId);
   const violations = validateArguments(input.capability, frozen.arguments);
   if (violations.length > 0) fail('INVALID_ARGUMENTS', 'arguments do not match capability schema', violations);
   if (input.constraintViolations.length > 0) fail('CONSTRAINT_VIOLATION', 'constraints violated', input.constraintViolations);
@@ -196,10 +198,17 @@ export function deriveChanges(args: JsonValue, before: ObservedState): PreviewCh
  * and — when the proposal cites any — the evidence shown to the approver (ADR-005).
  */
 export function previewDigestOf(
-  argumentDigest: string, beforeState: ObservedState, changes: readonly PreviewChange[], evidence?: ProposalEvidence,
+  argumentDigest: string, beforeState: ObservedState, changes: readonly PreviewChange[], evidence?: ProposalEvidence, workspaceId?: string, storedDigest?: string,
 ): string {
-  if (!hasEvidence(evidence)) return sha256Hex(canonicalJson({ argumentDigest, beforeState, changes }));
-  return sha256Hex(canonicalJson({ argumentDigest, beforeState, changes, evidence: evidenceJson(evidence) }));
+  const canonical = canonicalJson({ argumentDigest, beforeState, changes, ...(hasEvidence(evidence) ? { evidence: evidenceJson(evidence!) } : {}) });
+  if (!decodeDigest(argumentDigest)) return sha256Hex(canonical);
+  if (!workspaceId) throw new Error('preview_workspace_required');
+  if (storedDigest) {
+    const decoded = decodeDigest(storedDigest);
+    if (decoded && contentDigester().matches(workspaceId, 'action-preview', canonical, digestAsContent(decoded)) === true) return storedDigest;
+    throw new GovernedActionError('INVALID_INPUT', 'preview digest mismatch');
+  }
+  return encodeDigest(versionedDigest(contentDigester(), workspaceId, 'action-preview', canonical));
 }
 
 /** Evidence as plain JSON (stable shape for digests and event data). */
@@ -219,7 +228,7 @@ export function preview(p: ActionProposal, input: { actor: ActorRef; beforeState
   requireIntact(p);
   const changes = deriveChanges(p.arguments, input.beforeState);
   const evidence = proposalEvidence(p);
-  const previewDigest = previewDigestOf(p.argumentDigest, input.beforeState, changes, evidence);
+  const previewDigest = previewDigestOf(p.argumentDigest, input.beforeState, changes, evidence, p.workspaceId);
   // A-M1: the event carries the full reviewed content, so the digest can be re-derived from history.
   // ADR-005: cited evidence is part of what the approver reviews.
   return transition(p, {

@@ -1,3 +1,5 @@
+import { contentDigester } from '../content-digest/content-digester-runtime';
+import { encodeDigest, versionedDigest } from '../content-digest/versioned-content-digest';
 import { createAssertion, type AssertionEnvelope, type AssertionId } from '../commercial-event/commercial-event';
 import { canonicalJson, sha256Hex } from './canonical-json';
 import type { ActionEvent, ActionProposal, Verification } from './governed-action.types';
@@ -62,7 +64,7 @@ export function observedOutcomeAssertion(proposal: ActionProposal, event: Action
     capturedAt: verification.observedAt,
     ingestedAt: now.toISOString(),
     rawEvidencePointer: `governed_action_event:${proposal.id}#${event.sequence}`,
-    rawPayloadHash: sha256Hex(canonicalJson(verification.evidence ?? null)),
+    rawPayloadHash: encodeDigest(versionedDigest(contentDigester(), proposal.workspaceId, 'readback', canonicalJson(verification.evidence ?? null))),
     evidenceSummary: {
       proposalId: proposal.id, capabilityId: proposal.capabilityId, attempt: proposal.attempts, outcome: event.toState,
       observation: verification.observation, reason: verification.reason.slice(0, 256), observedAt: verification.observedAt,

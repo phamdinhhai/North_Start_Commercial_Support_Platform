@@ -13,6 +13,7 @@ export default defineConfig({
   },
   test: {
     globals: true,
+    setupFiles: ['./vitest.crypto-setup.ts'],
     environment: 'node',
     include: ['e2e/**/*.e2e-spec.ts'],
     fileParallelism: false,

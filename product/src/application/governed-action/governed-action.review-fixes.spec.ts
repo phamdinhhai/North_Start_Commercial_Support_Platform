@@ -65,7 +65,7 @@ describe('A-M1 — history alone reconstructs every preview and every attempt (I
     const previews = events.filter((e) => e.type === 'PREVIEWED');
     expect(previews.map((e) => (e.data.beforeState as { value: unknown }).value)).toEqual([budget('100000'), budget('105000')]);
     for (const e of previews) {
-      const recomputed = previewDigestOf(e.data.argumentDigest as string, e.data.beforeState as unknown as ObservedState, e.data.changes as unknown as PreviewChange[]);
+      const recomputed = previewDigestOf(e.data.argumentDigest as string, e.data.beforeState as unknown as ObservedState, e.data.changes as unknown as PreviewChange[], undefined, e.workspaceId);
       expect(recomputed).toBe(e.data.previewDigest);
     }
     expect(events.filter((e) => e.type === 'AUTHORIZED').map((e) => e.data.previewDigest)).toEqual(previews.map((e) => e.data.previewDigest));

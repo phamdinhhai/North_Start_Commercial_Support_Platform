@@ -15,6 +15,7 @@ export default defineConfig({
   },
   test: {
     globals: true,
+    setupFiles: ['./vitest.crypto-setup.ts'],
     environment: 'node',
     include: ['src/**/*.spec.ts'],
     coverage: {

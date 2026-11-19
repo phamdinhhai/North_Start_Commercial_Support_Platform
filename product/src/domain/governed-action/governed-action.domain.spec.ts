@@ -111,7 +111,7 @@ describe('constraints', () => {
 describe('lifecycle state machine', () => {
   it('freezes arguments and digest at proposal and starts at version 1', () => {
     const p = proposed();
-    expect(p).toMatchObject({ state: 'PROPOSED', version: 1, attempts: 0, idempotencyKey: 'ga-p-1', argumentDigest: sha256Hex(p.canonicalArguments) });
+    expect(p).toMatchObject({ state: 'PROPOSED', version: 1, attempts: 0, idempotencyKey: 'ga-p-1', argumentDigest: expect.stringMatching(/^hmac-sha256-v1:/) });
     expect(Object.isFrozen(p)).toBe(true);
     throwsCode(() => propose({ ...{ id: 'p', workspaceId: 'ws', requestKey: 'r', capability: budgetCap, target: { ...target, resourceType: 'order' },
       arguments: { dailyBudget: money('1') }, proposer: { kind: 'human', id: 'a' }, rationale: 'x', constraints, constraintViolations: [], ttlMs: 60_000 } }, NOW), 'INVALID_INPUT');

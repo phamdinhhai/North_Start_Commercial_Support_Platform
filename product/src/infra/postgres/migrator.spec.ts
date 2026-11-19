@@ -61,6 +61,7 @@ describe('Migrator — PH3 T3-08', () => {
       '009_work_completion_provenance',
       '010_workspace_membership',
       '011_governed_actions',
+      '012_content_digest',
     ]);
     expect(files.every((m) => m.up.length > 0 && m.down.length > 0)).toBe(true);
 

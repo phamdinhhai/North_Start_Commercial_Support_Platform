@@ -55,11 +55,12 @@ suite('governed actions on PostgreSQL (migration 011)', () => {
     const exists = async () => (await db.query<{ p: string | null; e: string | null }>(
       "SELECT to_regclass('governed_action_proposal')::text AS p, to_regclass('governed_action_event')::text AS e")).rows[0];
     expect(await exists()).toEqual({ p: 'governed_action_proposal', e: 'governed_action_event' });
-    await db.withTransaction(async (tx) => { await tx.query(migration.down); });
+    const digestMigration = loadMigrations().find((m) => m.version === '012_content_digest')!;
+    await db.withTransaction(async (tx) => { await tx.query(digestMigration.down); await tx.query(migration.down); });
     expect(await exists()).toEqual({ p: null, e: null });
     const fns = await db.query("SELECT proname FROM pg_proc WHERE proname LIKE 'governed_action_%'");
     expect(fns.rows).toHaveLength(0);
-    await db.withTransaction(async (tx) => { await tx.query(migration.up); });
+    await db.withTransaction(async (tx) => { await tx.query(migration.up); await tx.query(digestMigration.up); });
     expect(await exists()).toEqual({ p: 'governed_action_proposal', e: 'governed_action_event' });
   });
 
