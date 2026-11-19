@@ -6,7 +6,7 @@ import { fileURLToPath } from 'node:url';
 import { spawn, spawnSync } from 'node:child_process';
 import { createServer } from 'node:net';
 import pg from 'pg';
-import { pgBin, validateManifest, connection, cleanEnvironment } from './safety.mjs';
+import { pgBin, validateManifest, connection, cleanEnvironment, assertClusterFiles, assertOwnedServer } from './safety.mjs';
 const product = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
 const opaque = () => randomBytes(32).toString('hex');
 function tool(name, args, env = {}) {
@@ -20,15 +20,17 @@ async function freePort() {
 }
 async function withDb(m, admin, database, fn) {
   const client = new pg.Client({ connectionString: connection(m, admin, database), connectionTimeoutMillis: 5000 });
-  await client.connect(); try { return await fn(client); } finally { await client.end(); }
+  await client.connect(); try { if (admin) await assertOwnedServer(client, m); return await fn(client); } finally { await client.end(); }
 }
 async function control(m, command) {
   const r = await fetch(`http://127.0.0.1:${m.controlPort}/${command}`, { method: 'POST', headers: { 'x-pilot-control': m.control }, signal: AbortSignal.timeout(20000) });
   if (!r.ok) throw new Error('Control rejected'); return r.text();
 }
 async function startPg(m) {
+  assertClusterFiles(m);
   const status = spawnSync(join(pgBin, 'pg_ctl.exe'), ['-D', m.data, 'status'], { windowsHide: true, stdio: 'ignore' });
   if (status.status !== 0) tool('pg_ctl', ['-D', m.data, '-l', join(m.home, 'postgres.log'), '-w', 'start']);
+  await withDb(m, true, 'postgres', async () => {});
 }
 async function start(m) {
   await startPg(m);
@@ -45,6 +47,8 @@ async function start(m) {
   throw new Error('App did not become ready; inspect private application.log');
 }
 async function stop(m) {
+  const running = spawnSync(join(pgBin, 'pg_ctl.exe'), ['-D', m.data, 'status'], { windowsHide: true, stdio: 'ignore' });
+  if (running.status === 0) await withDb(m, true, 'postgres', async () => {});
   try { await control(m, 'stop'); await new Promise(r => setTimeout(r, 1500)); }
   catch (e) {
     // Do not stop a database beneath a responding app or unidentified port owner.
@@ -93,6 +97,7 @@ try {
     else if (command === 'stop') await stop(m);
     else if (command === 'restart') console.log(await control(m, 'restart'));
     else if (command === 'status') {
+      await withDb(m, true, 'postgres', async () => {});
       const r = await fetch(`http://127.0.0.1:${m.appPort}/v1/health/readiness`, { signal: AbortSignal.timeout(5000) });
       console.log(`syntheticOnly=true readinessHTTP=${r.status} database=${m.database}`);
     } else if (command === 'backup') {

@@ -32,9 +32,11 @@ try {
   assert(Object.values(roles).every(v => v === false));
   const own = await page.evaluate(async () => (await (await fetch('/v1/auth/session')).json()).context.workspaceId);
   assert.equal(own, m.workspace);
-  const foreign = await browser.newPage(); await foreign.goto(`http://127.0.0.1:${m.appPort}/v1/operator`);
+  const foreignContext = await browser.newContext(); const foreign = await foreignContext.newPage(); await foreign.goto(`http://127.0.0.1:${m.appPort}/v1/operator`);
   await foreign.locator('#signin').click(); await foreign.getByLabel('Account').selectOption('foreign'); await foreign.getByRole('button', { name: 'Continue' }).click();
   const foreignWorkspace = await foreign.evaluate(async () => (await (await fetch('/v1/auth/session')).json()).context.workspaceId);
   assert.equal(foreignWorkspace, `${m.workspace}-foreign`);
+  assert.equal(await page.evaluate(async () => (await (await fetch('/v1/auth/session')).json()).context.workspaceId), m.workspace);
+  await foreignContext.close();
   console.log(JSON.stringify({ uiSyntheticLead: true, appRestartDurable: true, leads: before, memberships: 6, roles: 4, restrictedDbRole: true, separateWorkspace: true }));
 } finally { await browser.close(); await db.end(); }
