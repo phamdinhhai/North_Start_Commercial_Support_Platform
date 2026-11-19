@@ -14,12 +14,12 @@ export class PgManagerExceptionsReader implements ManagerExceptionsReader {
     CASE WHEN pending.value THEN to_char(h.created_at AT TIME ZONE 'UTC','YYYY-MM-DD"T"HH24:MI:SS.MS"Z"') ELSE NULL END AS "awaitingSince",
     CASE WHEN NOT pending.value THEN NULL WHEN EXISTS(SELECT 1 FROM memberships m JOIN platform_user u ON u.id=m.user_id WHERE m.workspace_id=$1 AND m.user_id::text=h.recipient_user_id AND m.status='active' AND u.status='active' AND m.base_role IN ('admin','manager','sales')) THEN 'active'
      WHEN EXISTS(SELECT 1 FROM memberships m JOIN platform_user u ON u.id=m.user_id WHERE m.workspace_id=$1 AND m.user_id::text=h.recipient_user_id AND (m.status='revoked' OR u.status='disabled' OR m.base_role='viewer')) THEN 'inactive' ELSE 'unknown' END AS "recipientState",
-    EXISTS(SELECT 1 FROM pilot_work_item w WHERE w.lead_id=l.id AND w.workspace_id=$1 AND w.status IN ('proposed','accepted','open','awaiting-external') AND w.due_at < statement_timestamp() AND NOT EXISTS(SELECT 1 FROM pilot_work_item s WHERE s.workspace_id=$1 AND s.lead_id=l.id AND s.supersedes_work_id=w.id)) AS overdue,
+    EXISTS(SELECT 1 FROM pilot_work_item w WHERE w.lead_id=l.id AND w.workspace_id=$1 AND w.status IN ('proposed','accepted','open','awaiting-external') AND w.responsible_party='internal' AND w.due_at < statement_timestamp() AND NOT EXISTS(SELECT 1 FROM pilot_work_item s WHERE s.workspace_id=$1 AND s.lead_id=l.id AND s.supersedes_work_id=w.id)) AS overdue,
     EXISTS(SELECT 1 FROM outcome o WHERE o.lead_id=l.id AND o.workspace_id=$1 AND o.assertion_status='claimed' AND NOT EXISTS(SELECT 1 FROM outcome s WHERE s.workspace_id=$1 AND s.lead_id=l.id AND s.supersedes_outcome_id=o.id))
      AND EXISTS(SELECT 1 FROM pilot_work_item w WHERE w.lead_id=l.id AND w.workspace_id=$1 AND w.status IN ('proposed','accepted','open','awaiting-external') AND NOT EXISTS(SELECT 1 FROM pilot_work_item s WHERE s.workspace_id=$1 AND s.lead_id=l.id AND s.supersedes_work_id=w.id)) AS "claimedWithOpen",
     NOT EXISTS(SELECT 1 FROM commercial_envelope e WHERE e.id=l.source_envelope_id AND e.workspace_id=$1) AS "evidenceMissing",
-    (COALESCE(c.text,h.context,'unknown') IN ('','unknown')) AS "contextUnknown",
-    (COALESCE(l.conversation_source,'unknown') IN ('','unknown')) AS "sourceUnknown"
+    (lower(btrim(COALESCE(c.text,h.context,'unknown'))) IN ('','unknown','not_applicable','not_observed','not_requested','redacted')) AS "contextUnknown",
+    (lower(btrim(COALESCE(l.conversation_source,'unknown'))) IN ('','unknown','not_applicable','not_observed','not_requested','redacted')) AS "sourceUnknown"
    FROM page l
    LEFT JOIN LATERAL(SELECT * FROM handoff WHERE lead_id=l.id AND workspace_id=$1 ORDER BY created_at DESC,id DESC LIMIT 1) h ON true
    LEFT JOIN LATERAL(SELECT text FROM pilot_context_revision WHERE lead_id=l.id AND workspace_id=$1 ORDER BY recorded_at DESC,id DESC LIMIT 1) c ON true
@@ -28,4 +28,5 @@ export class PgManagerExceptionsReader implements ManagerExceptionsReader {
   return result.rows;
  }
 }
+
 
