@@ -42,7 +42,7 @@ integration('migration 005 — parent/child workspace consistency', () => {
     dbUrl = targetUrl(`/${dbName}`);
     db = new PostgresService({ connectionString: dbUrl, max: 2 });
     const migrations = loadMigrations();
-    await new Migrator(db, migrations.filter((m) => m.version !== '005_workspace_consistency')).up();
+    await new Migrator(db, migrations.filter((m) => m.version < '005_workspace_consistency')).up();
   });
 
   afterAll(async () => {
@@ -94,6 +94,8 @@ integration('migration 005 — parent/child workspace consistency', () => {
     const migration = loadMigrations().find((m) => m.version === '005_workspace_consistency');
     if (!migration) throw new Error('005 migration file not found');
     expect(await new Migrator(db, [migration]).up()).toEqual(['005_workspace_consistency']);
+    // Later migrations may depend on the composite lead key created by 005.
+    await new Migrator(db,loadMigrations()).up();
 
     const quarantined = await db.query<{
       source_table: string; source_id: string; row_data: { workspace_id: string; lead_id?: string; entity_id?: string };

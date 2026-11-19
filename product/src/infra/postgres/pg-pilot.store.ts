@@ -230,6 +230,10 @@ export class PgPilotStore implements PilotLoopStore {
         `pilot-${state.lead.workspaceId}`,
       ]);
 
+      if(state.version !== undefined && state.envelope) {
+        const original=await tx.query<EnvelopeDbRow>('SELECT e.* FROM commercial_envelope e JOIN lead l ON l.source_envelope_id=e.id WHERE l.id=$1',[state.lead.id]);
+        if(original.rows[0]) assertSameEnvelope(toEnvelope(original.rows[0]),state.envelope);
+      }
       const persistedEnvelopeId = state.envelope && state.version === undefined
         ? await insertEnvelope(tx, state.envelope, options)
         : state.sourceEnvelopeId ?? null;

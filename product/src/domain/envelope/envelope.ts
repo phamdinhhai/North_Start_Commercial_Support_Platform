@@ -85,7 +85,7 @@ export function hashRawPayload(rawPayload: unknown): string {
   return createHash('sha256').update(canonicalizePayload(rawPayload)).digest('hex');
 }
 
-export type ImmutableEnvelopeField = 'rawPayloadHash' | 'externalEventType' | 'sourceCapturedAt';
+export type ImmutableEnvelopeField = 'isSynthetic' | 'rawPayloadHash' | 'externalEventType' | 'sourceCapturedAt';
 
 /** Stable, machine-readable refusal for a reused key with changed immutable evidence. */
 export class EnvelopeIdempotencyConflictError extends Error {

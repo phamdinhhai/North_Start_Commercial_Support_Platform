@@ -33,7 +33,7 @@ export function assertSameEnvelope(
 ): void {
   const conflicts = [
     ...(canonicalizePayload(existing.rawPayload) !== canonicalizePayload(incoming.rawPayload) ? ['rawPayloadHash' as const] : []),
-    ...(existing.isSynthetic !== incoming.isSynthetic ? ['externalEventType' as const] : []),
+    ...(existing.isSynthetic !== incoming.isSynthetic ? ['isSynthetic' as const] : []),
     ...(existing.externalEventType !== incoming.externalEventType ? ['externalEventType' as const] : []),
     ...(options.checkSourceCapturedAt !== false && existing.sourceCapturedAt !== incoming.sourceCapturedAt ? ['sourceCapturedAt' as const] : []),
   ];

@@ -80,6 +80,7 @@ export class InMemoryPilotStore implements PilotLoopStore {
 
   async save(state: PilotLoopState, audits: readonly Omit<AuditRecord, 'id' | 'timestamp'>[], options: { readonly checkSourceCapturedAt?: boolean } = {}): Promise<PilotLoopState> {
     const current = this.cases.get(state.lead.id);
+    if(current?.envelope && state.envelope) assertSameEnvelope(current.envelope,state.envelope);
     const ingestKey = state.version === undefined && state.envelope ? idempotencyKey(state.envelope) : undefined;
     if (ingestKey) {
       const existingId = this.ingestCommands.get(ingestKey);
