@@ -166,6 +166,8 @@ jobs:
         env:
           QA_DATABASE_URL: postgresql://north_browser:browser_ci_only@127.0.0.1:5432/qa_browser_ci
       - name: Chromium MV3 synthetic capture and restart
+        # Keep this independent acceptance signal even when an earlier suite fails.
+        if: ${{ !cancelled() }}
         run: npm run test:companion
       - name: Upload Playwright report
         if: always()

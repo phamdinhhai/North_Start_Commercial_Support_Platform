@@ -1,5 +1,6 @@
 import { expect, test, type Page } from '@playwright/test';
 import { Pool } from 'pg';
+import { connect } from 'node:net';
 
 async function login(page: Page, account: string) {
   page.on('pageerror', error => console.log('BROWSER ERROR', error.message));
@@ -90,8 +91,17 @@ test('real OIDC redirect and UI-only complete commercial journey survives app re
     for (const event of events) { expect(event.payload).toEqual({ safe: 'ok' }); expect(event.release_version).toBe('0.1.0'); expect(event.flag_exposure).toEqual({ pancake_sync: 'off' }); }
     expect(JSON.stringify(events)).not.toContain(leadId); expect(JSON.stringify(events)).not.toContain('Fabricated original');
   } finally { await db.end(); }
-  const restarted = await request.post('http://127.0.0.1:3412/restart', { headers: { 'x-qa-control': process.env.QA_CONTROL_SECRET! } });
-  expect(restarted.ok()).toBe(true);
+  // Chromium can leave requestless preconnect sockets open. A process restart
+  // must close them too; graceful HTTP idle shutdown alone waits indefinitely.
+  const preconnect = connect(3410, '127.0.0.1');
+  preconnect.on('error', () => undefined); // A forced server restart may reset it.
+  try {
+    await new Promise<void>((resolve, reject) => { preconnect.once('connect', resolve); preconnect.once('error', reject); });
+    const restarted = await request.post('http://127.0.0.1:3412/restart', {
+      headers: { 'x-qa-control': process.env.QA_CONTROL_SECRET! }, timeout: 10000,
+    });
+    expect(restarted.ok()).toBe(true);
+  } finally { preconnect.destroy(); }
   await recipient.reload(); await expect(recipient.locator('#signin')).toBeVisible();
   await login(recipient, 'recipient');
   await recipient.locator('.queue-item').filter({ hasText: 'Fabricated full browser journey' }).click();

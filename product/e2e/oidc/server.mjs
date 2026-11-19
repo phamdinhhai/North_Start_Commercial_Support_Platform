@@ -34,7 +34,9 @@ for (const workspace of ['qa-browser-a', 'qa-browser-b'])
 const idp = await startIdp(3411, origin);
 let app;
 async function start() {
-  app = await NestFactory.create(AppModule, new FastifyAdapter(), { logger: false });
+  // A restart models process termination, including Chromium's requestless TCP
+  // preconnect sockets. Node's idle HTTP shutdown does not close those sockets.
+  app = await NestFactory.create(AppModule, new FastifyAdapter({ forceCloseConnections: true }), { logger: false });
   app.setGlobalPrefix('v1'); await app.listen(3410, '127.0.0.1');
 }
 await start();
