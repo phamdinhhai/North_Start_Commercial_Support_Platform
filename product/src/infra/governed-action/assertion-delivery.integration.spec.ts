@@ -63,7 +63,13 @@ suite('durable assertion delivery PostgreSQL',()=>{
   expect((await new PgAssertionDelivery(db,new PgAssertionInbox(db),opts).inspect(ws)).some(r=>r.status==='LEASED')).toBe(false);
   await expect(db.query("UPDATE assertion_outbox SET envelope='{}' WHERE workspace_id=$1",[ws])).rejects.toThrow('immutable');
   const migration=loadMigrations().find(m=>m.version==='014_assertion_delivery')!;
-  await db.withTransaction(async tx=>{await tx.query(migration.down);await tx.query(migration.up);});
+  await db.withTransaction(async tx=>{
+   const schema=`delivery_rollback_${randomUUID().replaceAll('-','')}`;
+   await tx.query(`CREATE SCHEMA ${schema}`);await tx.query(`SET LOCAL search_path TO ${schema}`);
+   for(const m of loadMigrations())await tx.query(m.up);
+   await tx.query(migration.down);await tx.query(migration.up);
+   await tx.query('SET LOCAL search_path TO public');await tx.query(`DROP SCHEMA ${schema} CASCADE`);
+  });
  });
 });
 
