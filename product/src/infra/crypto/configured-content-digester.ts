@@ -15,7 +15,8 @@ class EphemeralKeyring extends InMemoryWorkspaceKeyring {
 export function configuredContentDigester(env: NodeJS.ProcessEnv): ContentDigester {
   const encoded = env.CONTENT_DIGEST_KEYS_JSON;
   if (!encoded) {
-    if (env.NODE_ENV === 'test' || (env.NODE_ENV === 'development' && env.CONTENT_DIGEST_EPHEMERAL === 'true')) {
+    const mode = (env.DEPLOYMENT_MODE ?? env.APP_MODE ?? env.NODE_ENV ?? '').toLowerCase();
+    if (mode === 'test' || (['local', 'development', 'dev', 'demo'].includes(mode) && env.CONTENT_DIGEST_EPHEMERAL === 'true')) {
       return createHmacContentDigester(new EphemeralKeyring());
     }
     throw new Error('content_digest_keys_required');

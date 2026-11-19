@@ -13,7 +13,7 @@ const input = { workspaceId: 'ws', connection: 'manual', externalRecordId: '1', 
 
 describe('R4 server-held digest configuration', () => {
   it('fails closed in production/pilot and never prints secrets on malformed config', () => {
-    for (const env of [{ NODE_ENV: 'production' }, { NODE_ENV: 'pilot', CONTENT_DIGEST_EPHEMERAL: 'true' }, {}]) {
+    for (const env of [{ NODE_ENV: 'production' }, { DEPLOYMENT_MODE: 'production', NODE_ENV: 'test' }, { DEPLOYMENT_MODE: 'pilot', NODE_ENV: 'test' }, { NODE_ENV: 'pilot', CONTENT_DIGEST_EPHEMERAL: 'true' }, {}]) {
       expect(() => configuredContentDigester(env)).toThrow('content_digest_keys_required');
     }
     expect(() => configuredContentDigester({ CONTENT_DIGEST_KEYS_JSON: 'secret-not-json' })).toThrow('invalid_content_digest_key_configuration');
