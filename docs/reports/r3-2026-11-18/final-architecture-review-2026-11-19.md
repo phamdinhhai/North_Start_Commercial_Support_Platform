@@ -1,4 +1,4 @@
-﻿# R3 independent final architecture review — 2026-11-19
+# R3 independent final architecture review — 2026-11-19
 
 Review base: `a386da9583ff3d6d203a551868116aaa287c787e` (`work/r3-final-a-20261119`). Production source was read-only throughout this review. This is an independent source review and targeted local verification, not a provider feasibility verdict or commercial-readiness certification.
 
@@ -50,7 +50,6 @@ Baseline verdict at a386da9: **request changes for A-01**. After independently v
 
 ## Remediation follow-up
 
-Independently reviewed the uncommitted remediation in `ns-r3-viewer-fix-20261119` on 2026-11-19: all eight POST handlers use a shared role gate before validation/service access; GET handlers and existing work policies remain unchanged. Ran new `pilot-viewer-permissions.spec.ts` plus existing `pilot-loop.controller.spec.ts`: 114 passed, two existing demo-intake expectations failed because demo writes are now refused. Root is reconciling those obsolete write expectations against the ADR-006 read-only rule. This review does not claim final remediation acceptance until the committed fix and passing follow-up checks are recorded.
+Final independent follow-up: reviewed committed fix `d1e99d3656559fda985499a5abbf162e6cb48595` directly in `ns-r3-viewer-fix-20261119`, without changing production code. All eight pilot POST handlers now use a shared mutation role gate before validation or service access; non-demo admin/manager/sales continue through existing lead/work authorization, while viewer, demo and unknown roles are refused. GET handlers retain read access. The two obsolete demo-write tests now assert read-only demo behavior and retain cross-workspace 404 coverage. Independently reran `npm test -- src/api/pilot-viewer-permissions.spec.ts src/api/pilot-loop.controller.spec.ts` at that exact commit: **2 files / 116 tests passed** on 2026-11-19 at 09:40 local time. **A-01 is accepted as remediated by this fix**, conditional on its integration into the release baseline. A-02 through A-04 remain capability-enablement gaps. Root separately reports full 968-unit-test, typecheck, lint and build passes; those broader checks were not rerun by this reviewer.
 
 Independent telemetry follow-up: traced product/src/api/feedback-telemetry.controller.ts through infra/telemetry/telemetry.service.ts persistence and read projection. Although telemetry listing is workspace-wide, the write service only accepts lead_viewed, a narrow flag vocabulary, fixed payload keys and categorical values; arbitrary free text and lead/customer identifiers are redacted before INSERT. No additional lead-scoped disclosure defect was established from the current implementation. Any expansion of this allowlist requires a fresh privacy/access review.
-
