@@ -23,6 +23,10 @@ import { PilotClosureService } from '../application/pilot/pilot-closure.service'
 import { MEMBERSHIP_STORE, type MembershipStore } from '../ports/auth';
 import { PILOT_ASSIGNEE_DIRECTORY, type PilotAssigneeDirectory } from '../ports/pilot-closure';
 import { contentDigester } from '../ports/content-digester-runtime';
+import { LeadExportController } from '../api/lead-export.controller';
+import { LEAD_EXPORT_STORE, LeadExportError, type LeadExportStore } from '../ports/lead-export';
+import { PgLeadExportStore } from '../infra/postgres/pg-lead-export.store';
+import { PostgresService } from '../infra/postgres/postgres.service';
 import { DURABILITY } from '../ports/durability';
 
 /**
@@ -34,13 +38,17 @@ import { DURABILITY } from '../ports/durability';
  */
 @Module({
   imports: [PostgresModule],
-  controllers: [PilotLoopController, PilotClosureController, FeedbackTelemetryController, LearningController],
+  controllers: [PilotLoopController, PilotClosureController, FeedbackTelemetryController, LearningController, LeadExportController],
   providers: [
     FeedbackService,
     TelemetryService,
     { provide: FEEDBACK_SERVICE, useExisting: FeedbackService },
     { provide: TELEMETRY_SERVICE, useExisting: TelemetryService },
     { provide: LEARNING_TELEMETRY_SERVICE, useExisting: TelemetryService },
+    { provide: LEAD_EXPORT_STORE, inject: [PostgresService], useFactory: (db: PostgresService): LeadExportStore =>
+      resolvePilotStoreMode() === 'postgres' ? new PgLeadExportStore(db) : {
+        exportLead: async () => { throw new LeadExportError('DURABLE_STORAGE_REQUIRED', 503); },
+      } },
     {
       provide: DURABILITY,
       useFactory: () => ({ durable: resolvePilotStoreMode() === 'postgres' }),

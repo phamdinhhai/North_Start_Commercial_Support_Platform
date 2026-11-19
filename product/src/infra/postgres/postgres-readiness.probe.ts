@@ -10,6 +10,13 @@ const REQUIRED_MIGRATIONS = [
   '005_workspace_consistency',
   '006_pilot_ingest_command',
   '007_evidence_acquisition',
+  '008_integration_receipts',
+  '009_work_completion_provenance',
+  '010_workspace_membership',
+  '011_governed_actions',
+  '012_content_digest',
+  '013_pilot_closure',
+  '014_assertion_delivery',
 ] as const;
 
 @Injectable()

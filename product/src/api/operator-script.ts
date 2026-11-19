@@ -59,7 +59,7 @@ export const OPERATOR_SCRIPT = String.raw`
             const b = document.createElement('button');
             b.className = 'queue-item';
             b.dataset.workId = i.id || '';
-            b.textContent = (i.isSynthetic ? '[SYNTHETIC] ' : '') + (i.displayName || i.lead?.displayName || 'UNKNOWN') + '  -  ' + i.status + (i.action ? '  -  ' + i.action : '');
+            b.textContent = (i.isSynthetic === true ? '[SYNTHETIC] ' : i.isSynthetic === false ? '[REAL] ' : '[CLASSIFICATION UNKNOWN] ') + (i.displayName || i.lead?.displayName || 'UNKNOWN') + '  -  ' + i.status + (i.action ? '  -  ' + i.action : '');
             b.onclick = () => openLead(i.leadId || i.id);
             $('queue').append(b);
         }
@@ -136,6 +136,17 @@ export const OPERATOR_SCRIPT = String.raw`
         button(a, 'edit-context', 'Edit context', () => basic('Append context revision', '/context', 'context_edited', [['context-text', 'Context', 'textarea', true, d.currentContext?.text || ''], ['reason', 'Reason', 'textarea']], () => ({ text: v('context-text'), reason: v('reason') })));
         button(a, 'evidence', 'View original evidence', () => read('evidence', 'evidence_viewed'));
         button(a, 'audit', 'View detailed audit', () => read('timeline'));
+        if (session.context?.role === 'admin') button(a, 'export-lead', 'Export lead data', async () => {
+            const id = selected.id, generation = epoch;
+            try {
+                const data = await request('/v1/pilot/lifecycle/leads/' + encodeURIComponent(id) + '/export');
+                if (generation !== epoch) return;
+                const url = URL.createObjectURL(new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' }));
+                const link = document.createElement('a'); link.href = url; link.download = 'lead-export.json'; link.click();
+                setTimeout(() => URL.revokeObjectURL(url), 0);
+                msg('context-status', 'Audited export downloaded. This does not delete retained data.');
+            } catch (error) { if (generation === epoch) msg('context-status', err(error), true); }
+        });
         button(a, 'handoff', 'Handoff to Sales', handoff);
         button(a, 'create-action', 'Create next action', () => basic('Create independent action', '/next-actions', 'action_created', [['action', 'Action', 'textarea'], ['due', 'Due time', 'datetime-local', false], ['reason', 'Reason', 'textarea']], () => ({ action: v('action'), reason: v('reason'), ...due('due') })));
         for (const stage of ['Contacting', 'Follow-up'])

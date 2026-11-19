@@ -18,6 +18,7 @@ export class PgLeadExportStore implements LeadExportStore {
       const audits=await tx.query<Record<string,unknown>>(`SELECT * FROM audit_record WHERE workspace_id=$1 AND
         ((entity_type='lead' AND entity_id=$2) OR (entity_type='handoff' AND entity_id IN (SELECT id::text FROM handoff WHERE workspace_id=$1 AND lead_id=$2::uuid))
         OR (entity_type='outcome' AND entity_id IN (SELECT id::text FROM outcome WHERE workspace_id=$1 AND lead_id=$2::uuid))
+        OR (entity_id IN (SELECT id::text FROM pilot_work_item WHERE workspace_id=$1 AND lead_id=$2::uuid))
         OR (entity_type='commercial-event' AND entity_id IN (SELECT id::text FROM commercial_event WHERE workspace_id=$1 AND lead_id=$2::uuid))) LIMIT 1001`,[workspaceId,leadId]);
       records.audit_record=audits.rows;
       const evidence=await tx.query<Record<string,unknown>>(`SELECT e.* FROM commercial_envelope e JOIN pilot_ingest_command c ON c.envelope_id=e.id

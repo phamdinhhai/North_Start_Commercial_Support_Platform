@@ -11,8 +11,12 @@ suite('audited single-lead PostgreSQL export',()=>{
   await db.query('INSERT INTO workspace(id,name) VALUES ($1,$1),($2,$2)',[ws,other]);await db.query("INSERT INTO lead(id,workspace_id,display_name) VALUES ($1,$2,'private lead')",[lead,ws]);});
  afterAll(async()=>{await db?.onModuleDestroy();});
  it('exports consistent lead scope and appends payload-free export audit',async()=>{
+  const work=randomUUID();
+  await db.query("INSERT INTO pilot_work_item(id,lead_id,workspace_id,action,responsible_party,origin,status,completion_evidence,actor) VALUES ($1,$2,$3,'fixture action','internal','explicit-request','open','absent','admin')",[work,lead,ws]);
+  await db.query("INSERT INTO audit_record(entity_type,entity_id,workspace_id,actor,event_type,new_value) VALUES ('commercial-event',$1,$2,'admin','work_created','{}'::jsonb)",[work,ws]);
   expect(await store.exportLead(other,lead,'admin')).toBeUndefined();
   const artifact=await store.exportLead(ws,lead,'admin');expect(artifact?.records.lead[0].display_name).toBe('private lead');expect(artifact?.synthetic).toBe('unknown');
+  expect(artifact?.records.audit_record.some(row=>row.event_type==='work_created'&&row.entity_id===work)).toBe(true);
   const audit=(await db.query<{new_value:unknown}>("SELECT new_value FROM audit_record WHERE workspace_id=$1 AND event_type='LEAD_DATA_EXPORTED'",[ws])).rows;
   expect(audit).toHaveLength(1);expect(JSON.stringify(audit)).not.toContain('private lead');
  });

@@ -17,6 +17,13 @@ const db = {
       { version: '005_workspace_consistency' },
       { version: '006_pilot_ingest_command' },
       { version: '007_evidence_acquisition' },
+      { version: '008_integration_receipts' },
+      { version: '009_work_completion_provenance' },
+      { version: '010_workspace_membership' },
+      { version: '011_governed_actions' },
+      { version: '012_content_digest' },
+      { version: '013_pilot_closure' },
+      { version: '014_assertion_delivery' },
   ] })),
 };
 const controller = new HealthController(new PostgresReadinessProbe(db as never));
@@ -51,7 +58,7 @@ describe('HealthController', () => {
     expect(db.healthCheck).not.toHaveBeenCalled();
   });
 
-  it('checks PostgreSQL connectivity and all seven required migration versions', async () => {
+  it('checks PostgreSQL connectivity and every migration required by the current application', async () => {
     process.env = { DEPLOYMENT_MODE: 'pilot', DATABASE_URL: 'postgres://local/db' };
     const ready = await controller.readiness();
     expect(ready.checks).toEqual({
@@ -65,6 +72,8 @@ describe('HealthController', () => {
         '001_domain', '002_telemetry_feedback', '003_pilot_loop',
         '004_envelope_workspace_scope', '005_workspace_consistency',
         '006_pilot_ingest_command', '007_evidence_acquisition',
+        '008_integration_receipts', '009_work_completion_provenance', '010_workspace_membership',
+        '011_governed_actions', '012_content_digest', '013_pilot_closure', '014_assertion_delivery',
       ]],
     );
   });

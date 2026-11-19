@@ -90,8 +90,10 @@ describe('HTTP compatibility smoke suite', () => {
     expect(response.statusCode).toBe(200);
     expect(response.headers['content-type']).toMatch(/text\/html/);
     expect(response.body).toContain('North Star Operator');
-    expect(response.body).toContain('/v1/pilot/queue');
-    expect(response.body).not.toContain('rawPayload');
+    expect(response.body).toContain('id="new-lead"');
+    expect(response.body).toContain('href="/v1/auth/login"');
+    expect(response.body).not.toContain('Please follow up');
+    expect(response.body).not.toContain('wiring-case');
   });
 
   it('serves the queue projection through authenticated HTTP with redaction and pagination', async () => {
@@ -106,9 +108,11 @@ describe('HTTP compatibility smoke suite', () => {
       method: 'POST', url: `/v1/pilot/leads/${leadId}/handoff`, headers: { authorization: token('queue-e2e') },
       payload: { context: 'redacted context', proposedAction: 'Call back', responsibleParty: 'internal', origin: 'explicit-request', recipientUserId: 'operator' },
     });
-    const page = await server.inject({ method: 'GET', url: '/v1/pilot/queue?limit=1', headers: { authorization: token('queue-e2e') } });
+    const defaultPage = await server.inject({ method: 'GET', url: '/v1/pilot/queue?limit=1', headers: { authorization: token('queue-e2e') } });
+    expect(defaultPage.json().items).toEqual([]);
+    const page = await server.inject({ method: 'GET', url: '/v1/pilot/queue?limit=1&classification=synthetic', headers: { authorization: token('queue-e2e') } });
     expect(page.statusCode).toBe(200);
-    expect(page.json().items[0]).toMatchObject({ leadId, action: 'Call back', status: 'proposed' });
+    expect(page.json().items[0]).toMatchObject({ leadId, action: 'Call back', status: 'proposed', isSynthetic: true });
     expect(JSON.stringify(page.json())).not.toContain('rawPayload');
     expect(JSON.stringify(page.json())).not.toContain('redacted context');
   });

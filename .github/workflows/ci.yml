@@ -111,6 +111,20 @@ jobs:
     name: Browser operator workflow
     runs-on: ubuntu-24.04
     timeout-minutes: 30
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: north_browser
+          POSTGRES_PASSWORD: browser_ci_only
+          POSTGRES_DB: qa_browser_ci
+        ports:
+          - 127.0.0.1:5432:5432
+        options: >-
+          --health-cmd "pg_isready -U north_browser -d qa_browser_ci"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
     defaults:
       run:
         working-directory: product
@@ -145,6 +159,12 @@ jobs:
         run: npm run test:browser
         env:
           PLAYWRIGHT_HTML_OUTPUT_DIR: playwright-report
+      - name: Operator component regressions
+        run: npx playwright test --config playwright.operator-component.config.ts
+      - name: OIDC and PostgreSQL UI-only LVP journey
+        run: npx playwright test --config playwright.oidc.config.ts
+        env:
+          QA_DATABASE_URL: postgresql://north_browser:browser_ci_only@127.0.0.1:5432/qa_browser_ci
       - name: Chromium MV3 synthetic capture and restart
         run: npm run test:companion
       - name: Upload Playwright report

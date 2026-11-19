@@ -18,6 +18,7 @@ test.describe('operator session and command UI', () => {
       });
       await page.goto('http://localhost:47819/v1/operator');
       await page.locator('.queue-item').waitFor();
+      await expect(page.locator('.queue-item')).toContainText('[CLASSIFICATION UNKNOWN]');
       expect(await page.locator('#development').isVisible()).toBe(false);
       expect(await page.locator('#classification').inputValue()).toBe('real');
       await page.locator('.queue-item').click();

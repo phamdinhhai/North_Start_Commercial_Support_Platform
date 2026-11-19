@@ -2,7 +2,7 @@ import { LeadExportService } from '../application/pilot/lead-export.service';
 import { Controller,Get,Headers,Param,Inject,HttpException,UnauthorizedException,Header } from '@nestjs/common';
 import { AUTH_CONTEXT_RESOLVER,type AuthContextResolver } from '../ports/auth';
 import { LEAD_EXPORT_STORE,type LeadExportStore,LeadExportError } from '../ports/lead-export';
-@Controller('v1/pilot/lifecycle')
+@Controller('pilot/lifecycle')
 export class LeadExportController {
  private readonly service:LeadExportService;
  constructor(@Inject(AUTH_CONTEXT_RESOLVER) private readonly auth:AuthContextResolver,@Inject(LEAD_EXPORT_STORE) store:LeadExportStore){this.service=new LeadExportService(store);}

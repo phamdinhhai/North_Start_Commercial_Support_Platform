@@ -7,5 +7,5 @@ export interface LeadExport {
 export interface LeadExportStore { exportLead(workspaceId: string, leadId: string, actorId: string): Promise<LeadExport | undefined> }
 export const LEAD_EXPORT_STORE=Symbol('LEAD_EXPORT_STORE');
 export class LeadExportError extends Error {
-  constructor(readonly code:'FORBIDDEN'|'INVALID_INPUT'|'NOT_FOUND'|'EXPORT_TOO_LARGE',readonly status:number){super(code);}
+  constructor(readonly code:'FORBIDDEN'|'INVALID_INPUT'|'NOT_FOUND'|'EXPORT_TOO_LARGE'|'DURABLE_STORAGE_REQUIRED',readonly status:number){super(code);}
 }

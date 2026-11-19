@@ -6,8 +6,10 @@ import { NestFactory } from '@nestjs/core';
 import { FastifyAdapter } from '@nestjs/platform-fastify';
 import { startIdp } from './fixture-idp.mjs';
 
-if (!process.env.QA_DATABASE_URL?.match(/^postgres(?:ql)?:\/\/[^/]+@127\.0\.0\.1:54401\/qa_browser_[a-z0-9_]+$/))
-  throw new Error('QA_DATABASE_URL must name disposable qa_browser_* database on private loopback port 54401');
+const databaseTarget = new URL(process.env.QA_DATABASE_URL || 'invalid:');
+if (!['postgres:', 'postgresql:'].includes(databaseTarget.protocol) || databaseTarget.hostname !== '127.0.0.1' ||
+    !/^\/qa_browser_[a-z0-9_]+$/.test(databaseTarget.pathname) || databaseTarget.search || databaseTarget.hash || !databaseTarget.port)
+  throw new Error('QA_DATABASE_URL must name a fresh disposable qa_browser_* database on an explicit loopback port');
 if (!/^[a-f0-9]{64}$/.test(process.env.QA_CONTROL_SECRET || '')) throw new Error('Test runner control secret required');
 const require = createRequire(import.meta.url);
 const origin = 'http://127.0.0.1:3410', issuer = 'http://127.0.0.1:3411';

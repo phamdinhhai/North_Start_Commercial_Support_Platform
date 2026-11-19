@@ -17,11 +17,15 @@ const requiredSuites = [
   'src/infra/postgres/migration-005.integration.spec.ts',
   'src/infra/postgres/migration-lifecycle.integration.spec.ts',
   'src/infra/postgres/pilot-loop.integration.spec.ts',
+  'src/infra/postgres/pilot-closure.integration.spec.ts',
+  'src/infra/postgres/lead-export.integration.spec.ts',
+  'src/infra/crypto/content-digest.integration.spec.ts',
   'src/infra/membership/pg-membership.store.integration.spec.ts',
   'src/infra/membership/pg-membership.tenancy.integration.spec.ts',
   'src/infra/governed-action/governed-action.integration.spec.ts',
   'src/infra/governed-action/governed-action.review-fixes.integration.spec.ts',
   'src/infra/governed-action/governed-action.adr005.integration.spec.ts',
+  'src/infra/governed-action/assertion-delivery.integration.spec.ts',
 ];
 
 /** Every PostgreSQL suite on disk must be required, so a new suite can never be silently skipped. */
