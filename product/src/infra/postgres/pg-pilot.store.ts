@@ -1,3 +1,4 @@
+import { leadPage, type ContextRevision, type ClosureCommandRecord, type PilotLeadQuery } from '../../ports/pilot-closure';
 import { Inject, Injectable } from '@nestjs/common';
 import { PostgresService, type SqlExecutor } from '../../infra/postgres/postgres.service';
 import type { AuditRecord } from '../../ports/audit';
@@ -36,6 +37,19 @@ import type { EvidenceRefRecord, PilotLoopStore } from '../../ports/pilot-loop.s
 export class PgPilotStore implements PilotLoopStore {
   constructor(@Inject(PostgresService) private readonly db: PostgresService) {}
 
+  async leads(query: PilotLeadQuery) {
+    const ids = await this.db.query<{id:string}>(`SELECT l.id FROM lead l LEFT JOIN commercial_envelope e ON e.id=l.source_envelope_id
+      WHERE l.workspace_id=$1 AND ($2='all' OR COALESCE(e.is_synthetic,false)=($2='synthetic'))
+      AND ($3::uuid IS NULL OR l.id>$3::uuid)
+      AND ($4 IN ('admin','manager') OR l.owner_user_id=$5 OR EXISTS(SELECT 1 FROM pilot_work_item w WHERE w.lead_id=l.id AND w.actor=$5 AND w.status IN ('proposed','accepted','open','awaiting-external')))
+      ORDER BY l.id LIMIT $6`,[query.workspaceId,query.classification ?? 'real',query.after ?? null,query.actorRole,query.actorId,(query.limit ?? 50)+1]);
+    const states = await Promise.all(ids.rows.map(r=>this.load(r.id)));
+    return leadPage(states.filter((s):s is PilotLoopState=>!!s),query);
+  }
+  async appendAccess(leadId: string, actor: string): Promise<void> {
+    await this.db.query(`INSERT INTO audit_record(entity_type,entity_id,workspace_id,actor,event_type,new_value)
+      SELECT 'lead',id::text,workspace_id,$2,'evidence_accessed','"accepted_source_evidence"'::jsonb FROM lead WHERE id=$1`,[leadId,actor]);
+  }
   async load(leadId: string): Promise<PilotLoopState | undefined> {
     const leadRes = await this.db.query<LeadDbRow>(
       `SELECT id, workspace_id, customer_id, conversation_source, acquisition_lineage,
@@ -65,7 +79,7 @@ export class PgPilotStore implements PilotLoopStore {
       ),
       leadRow.source_envelope_id
         ? this.db.query<EnvelopeDbRow>(
-            `SELECT id, workspace_id, raw_payload, raw_payload_hash, source_captured_at, ingested_at, connection,
+            `SELECT id, workspace_id, raw_payload, raw_payload_hash, raw_payload_digest, source_captured_at, ingested_at, connection,
                     external_record_id, external_event_type, mapping_status, mapping_error, canonical_projection, is_synthetic,
                     acquisition_mode, acquisition_source
                FROM commercial_envelope WHERE id = $1`,
@@ -74,8 +88,14 @@ export class PgPilotStore implements PilotLoopStore {
         : Promise.resolve({ rows: [] as EnvelopeDbRow[] }),
     ]);
 
+    const [contexts,commands] = await Promise.all([
+      this.db.query<{id:string;text:string;actor:string;recorded_at:Date|string;reason:string}>('SELECT id,text,actor,recorded_at,reason FROM pilot_context_revision WHERE lead_id=$1 ORDER BY recorded_at,id',[leadId]),
+      this.db.query<{idempotency_key:string;actor:string;operation:string;digest:ClosureCommandRecord['digest'];result:Record<string,unknown>}>('SELECT idempotency_key,actor,operation,digest,result FROM pilot_closure_command WHERE lead_id=$1',[leadId]),
+    ]);
     const latestHandoff = handoffs.rows.at(-1);
     return {
+      contextRevisions: contexts.rows.map(r=>({id:r.id,text:r.text,actor:r.actor,recordedAt:iso(r.recorded_at),reason:r.reason} satisfies ContextRevision)),
+      closureCommands: commands.rows.map(r=>({idempotencyKey:r.idempotency_key,actor:r.actor,operation:r.operation,digest:r.digest,result:r.result})),
       lead: toLead(leadRow),
       handoff: latestHandoff ? toHandoff(latestHandoff) : undefined,
       workItems: works.rows.map(toWork),
@@ -93,6 +113,7 @@ export class PgPilotStore implements PilotLoopStore {
     const cursor = decodePilotQueueCursor(query, query.cursor);
     const params: unknown[] = [query.workspaceId];
     const where = ['w.workspace_id = $1'];
+    if (query.classification !== 'all') {params.push(query.classification === 'synthetic');where.push(`COALESCE(e.is_synthetic,false) = $${params.length}`);}
     if (query.actorRole !== 'admin' && query.actorRole !== 'manager') {
       params.push(query.actorId);
       // Same lead-wide active assignment rule as the memory store and read policy (I-09).
@@ -119,11 +140,11 @@ export class PgPilotStore implements PilotLoopStore {
       }
     }
     params.push(limit + 1);
-    const result = await this.db.query<WorkDbRow & { lead_status: string; display_name: string; handoff_recipient: string | null }>(
+    const result = await this.db.query<WorkDbRow & { lead_status: string; display_name: string; handoff_recipient: string | null; is_synthetic?: boolean }>(
       `SELECT w.id,w.lead_id,w.workspace_id,w.action,w.responsible_party,w.origin,w.status,w.completion_evidence,w.occurred_at,w.due_at,w.evidence_ref,w.recorded_at,w.supersedes_work_id,w.actor,w.reason,
-              l.status AS lead_status,l.display_name,
+              l.status AS lead_status,l.display_name,COALESCE(e.is_synthetic,false) AS is_synthetic,
               (SELECT h.recipient_user_id FROM handoff h WHERE h.lead_id = l.id ORDER BY h.created_at DESC LIMIT 1) AS handoff_recipient
-         FROM pilot_work_item w JOIN lead l ON l.id = w.lead_id
+         FROM pilot_work_item w JOIN lead l ON l.id = w.lead_id LEFT JOIN commercial_envelope e ON e.id=l.source_envelope_id
         WHERE ${where.join(' AND ')}
         ORDER BY w.due_at NULLS LAST,w.recorded_at,w.id LIMIT $${params.length}`,
       params,
@@ -150,13 +171,14 @@ export class PgPilotStore implements PilotLoopStore {
    */
   async loadEvidence(envelopeId: string): Promise<EvidenceRefRecord | undefined> {
     if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(envelopeId)) return undefined;
-    const res = await this.db.query<{ workspace_id: string; raw_payload_hash: string; source_captured_at: Date | string; acquisition_mode: string; acquisition_source: string; speaker: string | null }>(
-      "SELECT workspace_id, raw_payload_hash, source_captured_at, acquisition_mode, acquisition_source, raw_payload->>'speaker' AS speaker FROM commercial_envelope WHERE id = $1",
+    const res = await this.db.query<{ workspace_id: string; raw_payload_hash: string; source_captured_at: Date | string; acquisition_mode: string; acquisition_source: string; speaker: string | null; is_synthetic: boolean; raw_payload_digest?: CommercialEnvelope['rawPayloadDigest'] }>(
+      "SELECT workspace_id, raw_payload_hash, raw_payload_digest, source_captured_at, acquisition_mode, acquisition_source, is_synthetic, raw_payload->>'speaker' AS speaker FROM commercial_envelope WHERE id = $1",
       [envelopeId],
     );
     const row = res.rows[0];
     if (!row) return undefined;
     return {
+      isSynthetic: row.is_synthetic, rawPayloadDigest:row.raw_payload_digest,
       envelopeId,
       workspaceId: row.workspace_id,
       rawPayloadHash: row.raw_payload_hash,
@@ -267,6 +289,12 @@ export class PgPilotStore implements PilotLoopStore {
           ? { envelope: { ...state.envelope, envelopeId: persistedEnvelopeId as CommercialEnvelope['envelopeId'] } }
           : {}), version: leadMutation.rows[0].version };
 
+      for (const r of state.contextRevisions ?? []) await tx.query(
+        `INSERT INTO pilot_context_revision(id,lead_id,workspace_id,text,actor,recorded_at,reason) VALUES($1,$2,$3,$4,$5,$6,$7) ON CONFLICT(id) DO NOTHING`,
+        [r.id,state.lead.id,state.lead.workspaceId,r.text,r.actor,r.recordedAt,r.reason]);
+      for (const c of state.closureCommands ?? []) await tx.query(
+        `INSERT INTO pilot_closure_command(workspace_id,lead_id,idempotency_key,actor,operation,digest,result) VALUES($1,$2,$3,$4,$5,$6::jsonb,$7::jsonb) ON CONFLICT DO NOTHING`,
+        [state.lead.workspaceId,state.lead.id,c.idempotencyKey,c.actor,c.operation,JSON.stringify(c.digest),JSON.stringify(c.result)]);
       if (state.handoff) {
         await tx.query(
           `INSERT INTO handoff (id, lead_id, workspace_id, context, evidence_refs, proposed_next_action, created_at, recipient_user_id)
@@ -374,9 +402,9 @@ export class PgPilotStore implements PilotLoopStore {
   }
 }
 
-function toQueueItem(row: WorkDbRow & { lead_status: string; display_name: string; handoff_recipient: string | null }): PilotQueueItem {
+function toQueueItem(row: WorkDbRow & { lead_status: string; display_name: string; handoff_recipient: string | null; is_synthetic?: boolean }): PilotQueueItem {
   return {
-    id: row.id, leadId: row.lead_id as PilotQueueItem['leadId'], workspaceId: row.workspace_id, action: row.action,
+    isSynthetic: row.is_synthetic ?? false, id: row.id, leadId: row.lead_id as PilotQueueItem['leadId'], workspaceId: row.workspace_id, action: row.action,
     responsibleParty: row.responsible_party as PilotQueueItem['responsibleParty'], origin: row.origin as PilotQueueItem['origin'],
     status: row.status as PilotQueueItem['status'], completionEvidence: row.completion_evidence as PilotQueueItem['completionEvidence'],
     occurredAt: row.occurred_at, ...(row.due_at !== null && { dueAt: iso(row.due_at) }), recordedAt: iso(row.recorded_at),
@@ -400,8 +428,8 @@ async function insertEnvelope(tx: SqlExecutor, env: CommercialEnvelope, options:
     `INSERT INTO commercial_envelope (id, schema_version, workspace_id, connection, external_record_id, external_event_type,
                                       source_captured_at, ingested_at, raw_payload, raw_payload_hash,
                                       mapping_status, mapping_error, canonical_projection, is_synthetic,
-                                      acquisition_mode, acquisition_source)
-     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9::jsonb,$10,$11,$12,$13,$14,$15,$16)
+                                      acquisition_mode, acquisition_source, raw_payload_digest)
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9::jsonb,$10,$11,$12,$13,$14,$15,$16,$17::jsonb)
      ON CONFLICT (workspace_id, connection, external_record_id) DO NOTHING
      RETURNING id`,
     [
@@ -421,12 +449,13 @@ async function insertEnvelope(tx: SqlExecutor, env: CommercialEnvelope, options:
       env.isSynthetic,
       env.acquisitionMode,
       env.acquisitionSource,
+      env.rawPayloadDigest ? JSON.stringify(env.rawPayloadDigest) : null,
     ],
   );
   if (res.rows[0]) return res.rows[0].id;
 
   const existing = await tx.query<EnvelopeDbRow>(
-    `SELECT id, workspace_id, raw_payload, raw_payload_hash, source_captured_at, ingested_at, connection,
+    `SELECT id, workspace_id, raw_payload, raw_payload_hash, raw_payload_digest, source_captured_at, ingested_at, connection,
             external_record_id, external_event_type, mapping_status, mapping_error, canonical_projection, is_synthetic,
             acquisition_mode, acquisition_source
        FROM commercial_envelope

@@ -1,3 +1,4 @@
+import type { ClosureState, PilotClassification } from './pilot-closure';
 /**
  * Pilot-loop types — shared by service, repository and API.
  *
@@ -47,6 +48,7 @@ export interface WorkItem {
 }
 
 export interface PilotQueueQuery {
+  readonly classification?: PilotClassification;
   readonly workspaceId: string;
   readonly actorId: string;
   readonly actorRole: 'admin' | 'manager' | 'sales' | 'viewer';
@@ -62,6 +64,7 @@ export interface PilotQueueQuery {
 
 /** Redacted operator projection: no raw payloads, evidence contents, or evidence pointers. */
 export interface PilotQueueItem {
+  readonly isSynthetic?: boolean;
   readonly id: string;
   readonly leadId: LeadId;
   readonly workspaceId: string;
@@ -102,6 +105,7 @@ export function queueCursorScope(query: PilotQueueQuery): string {
     query.dueAfter ?? null,
     query.ownerUserId ?? null,
     query.recipientUserId ?? null,
+    query.classification ?? 'real',
   ]);
 }
 
@@ -144,7 +148,7 @@ export function compareQueueDue(left: string | null, right: string | null): numb
   return left.localeCompare(right);
 }
 
-export interface PilotLoopState {
+export interface PilotLoopState extends ClosureState {
   readonly lead: Lead;
   /** Optimistic-concurrency revision. Undefined only for a brand-new aggregate. */
   readonly version?: number;

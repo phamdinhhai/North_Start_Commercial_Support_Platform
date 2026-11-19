@@ -21,23 +21,20 @@ integration('completion provenance PostgreSQL migration and restart', () => {
   const legacyWorkId = randomUUID();
   const migrations = loadMigrations();
   const migration = migrations.find((m) => m.version === '009_work_completion_provenance')!;
-  // Pin to <= 009 so later, unrelated migrations do not change what `down()` reverts.
-  const through009 = migrations.filter((m) => m.version <= migration.version);
 
   beforeAll(async () => {
     const admin = new PostgresService({ connectionString: databaseUrl, max: 1 });
     try { await admin.query(`CREATE SCHEMA ${schema}`); } finally { await admin.onModuleDestroy(); }
     db = new PostgresService(config);
     await new Migrator(db, migrations.filter((m) => m.version < migration.version)).up();
-    const service = new PilotLoopService(new PgPilotStore(db), new ManualAdapter());
-    const legacy = await service.ingestScenario({ workspaceId, displayName: 'legacy', utterance: 'request',
-      speaker: 'customer', connection: 'test', externalRecordId: randomUUID(), ownerUserId: 'marketing' });
-    legacyLeadId = legacy.lead.id;
+    legacyLeadId = randomUUID() as LeadId;
+    await db.query('INSERT INTO workspace(id,name) VALUES($1,$2)',[workspaceId,'legacy fixture']);
+    await db.query("INSERT INTO lead(id,workspace_id,status,display_name,owner_user_id) VALUES($1,$2,'New','legacy','marketing')",[legacyLeadId,workspaceId]);
     await db.query(`INSERT INTO pilot_work_item
       (id,lead_id,workspace_id,action,responsible_party,origin,status,completion_evidence,actor,reason)
       VALUES ($1,$2,$3,'call','internal','explicit-request','completed','declared','sales','legacy reason')`,
     [legacyWorkId, legacyLeadId, workspaceId]);
-    await new Migrator(db, through009).up();
+    await new Migrator(db, migrations).up();
   });
 
   afterAll(async () => {
@@ -104,9 +101,8 @@ integration('completion provenance PostgreSQL migration and restart', () => {
     }
     const original = completed[0];
     const historyBefore = await store.history(original.lead.id);
-    const migrator = new Migrator(db, through009);
-    expect(await migrator.down()).toEqual([migration.version]);
-    expect(await migrator.up()).toEqual([migration.version]);
+    // Exercise only 009 on this disposable schema while retaining later prerequisites.
+    await db.withTransaction(async tx=>{await tx.query(migration.down);await tx.query(migration.up);});
     const after = (await store.load(original.lead.id))!.workItems[0];
     expect(after).not.toHaveProperty('declaration');
     expect(after).not.toHaveProperty('confirmed');

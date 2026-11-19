@@ -1,3 +1,4 @@
+import { classificationMatches, isSynthetic, leadPage, type PilotLeadQuery } from '../../ports/pilot-closure';
 import { Inject, Injectable } from '@nestjs/common';
 import { AuditStore, compareAuditRecords, rollbackAuditAppend } from '../audit/audit-store';
 import type { AuditRecord } from '../../ports/audit';
@@ -8,6 +9,7 @@ import { assertSameEnvelope, type EvidenceRefRecord, type PilotLoopStore } from 
 function evidenceRecordOf(env: CommercialEnvelope): EvidenceRefRecord {
   const sp = typeof env.rawPayload === 'object' && env.rawPayload !== null ? (env.rawPayload as { speaker?: unknown }).speaker : undefined;
   return {
+    isSynthetic: env.isSynthetic, rawPayloadDigest:env.rawPayloadDigest,
     envelopeId: env.envelopeId,
     workspaceId: env.workspaceId,
     rawPayloadHash: env.rawPayloadHash,
@@ -27,6 +29,12 @@ export class InMemoryPilotStore implements PilotLoopStore {
 
   constructor(@Inject(AuditStore) private readonly audit: AuditStore) {}
 
+  async leads(query: PilotLeadQuery) { return leadPage([...this.cases.values()],query); }
+  async appendAccess(leadId: string, actor: string): Promise<void> {
+    const state = this.cases.get(leadId);
+    if (!state) return;
+    this.audit.append({entityType:'lead',entityId:leadId,workspaceId:state.lead.workspaceId,actor,eventType:'evidence_accessed',newValue:'accepted_source_evidence'});
+  }
   async load(leadId: string): Promise<PilotLoopState | undefined> { return this.cases.get(leadId); }
   async loadEvidence(envelopeId: string): Promise<EvidenceRefRecord | undefined> { return this.evidence.get(envelopeId); }
 
@@ -36,7 +44,7 @@ export class InMemoryPilotStore implements PilotLoopStore {
     const rows: PilotQueueItem[] = [];
     for (const state of this.cases.values()) {
       if (state.lead.workspaceId !== query.workspaceId) continue;
-      if (!canQueueActor(state, query)) continue;
+      if (!canQueueActor(state, query) || !classificationMatches(isSynthetic(state),query.classification)) continue;
       for (const work of state.workItems) {
         if (query.status && work.status !== query.status) continue;
         if (query.ownerUserId && state.ownerUserId !== query.ownerUserId) continue;
@@ -136,7 +144,7 @@ function canQueueActor(state: PilotLoopState, query: PilotQueueQuery): boolean {
 
 function toQueueItem(state: PilotLoopState, work: PilotLoopState['workItems'][number]): PilotQueueItem {
   return {
-    id: work.id, leadId: work.leadId, workspaceId: work.workspaceId, action: work.action,
+    isSynthetic: isSynthetic(state), id: work.id, leadId: work.leadId, workspaceId: work.workspaceId, action: work.action,
     responsibleParty: work.responsibleParty, origin: work.origin, status: work.status,
     completionEvidence: work.completionEvidence, occurredAt: work.occurredAt, dueAt: work.dueAt,
     recordedAt: work.recordedAt, supersedesWorkId: work.supersedesWorkId, actor: work.actor,

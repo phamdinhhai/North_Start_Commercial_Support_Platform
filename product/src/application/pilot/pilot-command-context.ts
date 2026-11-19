@@ -1,4 +1,4 @@
-import { hashRawPayload, idempotencyKey, EnvelopeIdempotencyConflictError } from '../../domain/envelope/envelope';
+import { canonicalizePayload, idempotencyKey, EnvelopeIdempotencyConflictError } from '../../domain/envelope/envelope';
 import { transitionLead } from '../../domain/lead/lead-state';
 import type { Lead, LeadId } from '../../domain/lead/lead';
 import type { ManualIngestPort } from '../../ports/manual-ingest.port';
@@ -30,6 +30,7 @@ export class PilotCommandContext {
     if (record.workspaceId !== state.lead.workspaceId) {
       throw new PilotDomainError('EVIDENCE_OUT_OF_SCOPE', 403, `evidence ${pointer} belongs to another workspace — it cannot evidence this case (I-09)`);
     }
+    if ((record.isSynthetic ?? false) !== (state.envelope?.isSynthetic ?? false)) throw new PilotDomainError('EVIDENCE_OUT_OF_SCOPE',403,'synthetic and real evidence cannot be mixed');
     const related = pointer === state.sourceEnvelopeId || state.handoff?.evidenceRefs.some((r) => r.envelopeId === pointer) === true || state.workItems.some((w) => w.evidenceRef === pointer);
     if (requireRelation && !related) {
       throw new PilotDomainError('EVIDENCE_NOT_RELATED', 422, `evidence ${pointer} exists in this workspace but is not referenced by this lead, its handoff or its work items — it cannot evidence ${action}`);
@@ -52,10 +53,11 @@ export class PilotCommandContext {
   assertIngestMatch(state: PilotLoopState, input: ScenarioInput): void {
     const env = state.envelope;
     if (!env) throw new Error('pilot ingest command has no persisted envelope');
-    const incomingHash = hashRawPayload({ utterance: input.utterance, speaker: input.speaker,
+    const incomingPayload = ({ utterance: input.utterance, speaker: input.speaker,
       ...(input.occurredAt === 'unknown' ? { occurredAt: 'unknown' } : {}) });
     const conflicts = [
-      ...(env.rawPayloadHash !== incomingHash ? ['rawPayloadHash'] : []),
+      ...(canonicalizePayload(env.rawPayload) !== canonicalizePayload(incomingPayload) ? ['rawPayloadHash'] : []),
+      ...(env.isSynthetic !== (input.isSynthetic ?? true) ? ['isSynthetic'] : []),
       ...(env.externalEventType !== 'message' ? ['externalEventType'] : []),
       ...(input.occurredAt !== undefined && input.occurredAt !== 'unknown' && env.sourceCapturedAt !== input.occurredAt &&
         (!Number.isFinite(Date.parse(env.sourceCapturedAt)) || !Number.isFinite(Date.parse(input.occurredAt)) ||
@@ -66,7 +68,7 @@ export class PilotCommandContext {
         `idempotency key already exists with different immutable fields: ${conflicts.join(',')}`,
         { key: idempotencyKey(env), conflicts,
           existing: { rawPayloadHash: env.rawPayloadHash, externalEventType: env.externalEventType, sourceCapturedAt: env.sourceCapturedAt },
-          incoming: { rawPayloadHash: incomingHash, externalEventType: 'message', sourceCapturedAt: input.occurredAt ?? env.sourceCapturedAt } });
+          incoming: {  externalEventType: 'message', sourceCapturedAt: input.occurredAt ?? env.sourceCapturedAt } });
     }
   }
 

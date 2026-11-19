@@ -124,7 +124,7 @@ export class PilotLoopController {
   @Get('queue')
   async queue(
     @Headers() headers: Record<string, string | undefined>,
-    @Query() query: { status?: string; dueBefore?: string; dueAfter?: string; ownerUserId?: string; recipientUserId?: string; cursor?: string; limit?: string },
+    @Query() query: { status?: string; dueBefore?: string; dueAfter?: string; ownerUserId?: string; recipientUserId?: string; cursor?: string; limit?: string; classification?: string },
   ) {
     try {
       const ctx = this.authCtx(headers);
@@ -136,7 +136,9 @@ export class PilotLoopController {
       if (query.status !== undefined && !statuses.includes(query.status as WorkStatus)) {
         throw new HttpException({ code: 'INPUT_INVALID', message: 'status is invalid' }, 400);
       }
+      if(query.classification !== undefined && !['real','synthetic','all'].includes(query.classification)) throw new HttpException({code:'INPUT_INVALID',message:'classification is invalid'},400);
       const page = await this.loop.queue({
+        classification: query.classification as 'real'|'synthetic'|'all'|undefined,
         workspaceId: ctx.workspaceId, actorId: ctx.userId, actorRole: ctx.role,
         ...(query.status !== undefined && { status: query.status as WorkStatus }),
         ...(query.dueBefore !== undefined && { dueBefore: query.dueBefore }),
@@ -370,6 +372,9 @@ export class PilotLoopController {
     if (!state || state.lead.workspaceId !== ctx.workspaceId) throw new NotFoundException('lead not found');
     if (!canViewPilotLead(ctx, state, this.rbac)) throw new ForbiddenException('forbidden');
     return {
+      version: state.version,
+      isSynthetic: state.envelope?.isSynthetic ?? false,
+      currentContext: state.contextRevisions?.at(-1)?.text ?? state.handoff?.context ?? null,
       lead: { id: state.lead.id, status: state.lead.status, workspaceId: state.lead.workspaceId, displayName: state.lead.displayName, owner: state.ownerUserId, handoffRecipient: state.handoffRecipient },
       handoff: state.handoff ? { id: state.handoff.id, context: state.handoff.context, evidenceRefs: state.handoff.evidenceRefs } : undefined,
       workItems: state.workItems.map((w) => ({
@@ -382,8 +387,10 @@ export class PilotLoopController {
         occurredAt: w.occurredAt,
         dueAt: w.dueAt,
         actor: w.actor,
+        recordedAt: w.recordedAt, supersedesWorkId: w.supersedesWorkId, evidenceRef:w.evidenceRef, declaration:w.declaration, confirmed:w.confirmed, reason:w.reason,
+        isSynthetic: state.envelope?.isSynthetic ?? false,
       })),
-      outcomes: state.outcomes.map((o) => ({ id: o.id, value: o.value, assertionStatus: o.assertionStatus })),
+      outcomes: state.outcomes.map((o) => ({ id: o.id, value: o.value, assertionStatus: o.assertionStatus, acquisitionMode:o.acquisitionMode, actor:o.actor, timestamp:o.timestamp, reason:o.reason, supersedesOutcomeId:o.supersedesOutcomeId, isSynthetic:state.envelope?.isSynthetic ?? false })),
     };
   }
 }

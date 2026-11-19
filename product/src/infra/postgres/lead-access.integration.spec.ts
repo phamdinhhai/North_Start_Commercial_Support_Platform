@@ -52,7 +52,7 @@ integration('I-09 real PG lead access parity and replay refusal', () => {
     for (const actorId of ['owner', 'recipient', 'other', 'unassigned']) {
       for (const actorRole of ['sales', 'viewer', 'manager', 'admin'] as const) {
         for (const status of [undefined, ...statuses]) {
-          const query = { workspaceId, actorId, actorRole, status, limit: 100 };
+          const query = { workspaceId, actorId, actorRole, status, classification: 'all' as const, limit: 100 };
           const actual = await pg.queue(query);
           const expected = await memory.queue(query);
           expect(actual.items.map(w => w.id)).toEqual(expected.items.map(w => w.id));
@@ -61,7 +61,7 @@ integration('I-09 real PG lead access parity and replay refusal', () => {
         }
       }
     }
-    const query = { workspaceId, actorId: 'recipient', actorRole: 'sales' as const, limit: 2 };
+    const query = { workspaceId, actorId: 'recipient', actorRole: 'sales' as const, classification: 'all' as const, limit: 2 };
     const first = await pg.queue(query);
     expect(first.nextCursor).toBeDefined();
     expect((await pg.queue({ ...query, cursor: first.nextCursor })).items.map(w => w.id))

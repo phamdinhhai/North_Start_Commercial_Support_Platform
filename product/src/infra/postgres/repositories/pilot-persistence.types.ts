@@ -66,6 +66,7 @@ export interface WorkDbRow extends QueryResultRow {
 }
 
 export interface EnvelopeDbRow extends QueryResultRow {
+  raw_payload_digest?: CommercialEnvelope['rawPayloadDigest'];
   id: string;
   workspace_id: string;
   raw_payload: unknown;
@@ -174,6 +175,7 @@ export function toEnvelope(r: EnvelopeDbRow): CommercialEnvelope {
     ingestedAt: iso(r.ingested_at),
     rawPayload: r.raw_payload,
     rawPayloadHash: r.raw_payload_hash,
+    ...(r.raw_payload_digest ? {rawPayloadDigest:r.raw_payload_digest} : {}),
     mappingStatus: r.mapping_status as CommercialEnvelope['mappingStatus'],
     ...(r.mapping_error !== null && { mappingError: r.mapping_error }),
     ...(r.canonical_projection !== null && { canonicalProjection: r.canonical_projection }),
