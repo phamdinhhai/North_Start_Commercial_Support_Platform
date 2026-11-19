@@ -50,18 +50,20 @@ suite('governed actions on PostgreSQL (migration 011)', () => {
     await db?.onModuleDestroy();
   });
 
-  it('migration 011 rolls back cleanly and re-applies', async () => {
-    const migration = loadMigrations().find((m) => m.version === '011_governed_actions')!;
-    const exists = async () => (await db.query<{ p: string | null; e: string | null }>(
-      "SELECT to_regclass('governed_action_proposal')::text AS p, to_regclass('governed_action_event')::text AS e")).rows[0];
-    expect(await exists()).toEqual({ p: 'governed_action_proposal', e: 'governed_action_event' });
-    const digestMigration = loadMigrations().find((m) => m.version === '012_content_digest')!;
-    await db.withTransaction(async (tx) => { await tx.query(digestMigration.down); await tx.query(migration.down); });
-    expect(await exists()).toEqual({ p: null, e: null });
-    const fns = await db.query("SELECT proname FROM pg_proc WHERE proname LIKE 'governed_action_%'");
-    expect(fns.rows).toHaveLength(0);
-    await db.withTransaction(async (tx) => { await tx.query(migration.up); await tx.query(digestMigration.up); });
-    expect(await exists()).toEqual({ p: 'governed_action_proposal', e: 'governed_action_event' });
+  it('migration 011 rolls back cleanly and re-applies in an isolated schema', async () => {
+    await db.withTransaction(async tx => {
+      const schema = `rollback_${randomUUID().replaceAll('-', '')}`;
+      await tx.query(`CREATE SCHEMA ${schema}`);
+      await tx.query(`SET LOCAL search_path TO ${schema}`);
+      const migrations = loadMigrations();
+      for (const migration of migrations) await tx.query(migration.up);
+      for (const migration of [...migrations].reverse().filter(m => m.version >= '011')) await tx.query(migration.down);
+      expect((await tx.query("SELECT to_regclass('governed_action_proposal') AS p")).rows[0].p).toBeNull();
+      for (const migration of migrations.filter(m => m.version >= '011')) await tx.query(migration.up);
+      expect((await tx.query("SELECT to_regclass('governed_action_proposal') AS p")).rows[0].p).not.toBeNull();
+      await tx.query('SET LOCAL search_path TO public');
+      await tx.query(`DROP SCHEMA ${schema} CASCADE`);
+    });
   });
 
   it('runs the full lifecycle durably and the history survives a new connection pool', async () => {

@@ -172,9 +172,11 @@ export interface CreateResult {
  * version (A-m1). All reads are workspace scoped; a foreign workspace sees nothing (I-09).
  */
 export interface ActionStore {
+  /** True only when assertions are atomically queued with transitions. */
+  readonly durableAssertions?: boolean;
   create(transition: Transition): Promise<CreateResult>;
   get(workspaceId: string, proposalId: string): Promise<ActionProposal | undefined>;
-  transition(expectedVersion: number, transition: Transition): Promise<void>;
+  transition(expectedVersion: number, transition: Transition, assertion?: AssertionEnvelope): Promise<void>;
   events(workspaceId: string, proposalId: string): Promise<ActionEvent[]>;
   appendRefusal(refusal: ActionRefusal): Promise<void>;
   refusals(workspaceId: string, proposalId: string): Promise<ActionRefusal[]>;

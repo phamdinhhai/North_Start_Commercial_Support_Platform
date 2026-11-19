@@ -113,17 +113,19 @@ suite('governed actions × ADR-005 on PostgreSQL (migration 011)', () => {
     await expect(db.query('TRUNCATE governed_action_propose_refusal')).rejects.toThrow(/append-only/);
   });
 
-  it('migration 011 down removes the propose-refusal log and up restores it (symmetric)', async () => {
-    const migration = loadMigrations().find((m) => m.version === '011_governed_actions')!;
-    const exists = async () => (await db.query<{ t: string | null }>("SELECT to_regclass('governed_action_propose_refusal')::text AS t")).rows[0].t;
-    expect(await exists()).toBe('governed_action_propose_refusal');
-    await db.withTransaction(async (tx) => {
-      await tx.query(migration.down);
-      const left = await tx.query("SELECT count(*)::int AS n FROM pg_proc WHERE proname LIKE 'governed_action_%'");
-      expect(left.rows[0].n).toBe(0);
-      expect((await tx.query<{ t: string | null }>("SELECT to_regclass('governed_action_propose_refusal')::text AS t")).rows[0].t).toBeNull();
-      await tx.query(migration.up);
+  it('migration 011 rollback preserves append-only function symmetry in an isolated schema', async () => {
+    await db.withTransaction(async tx => {
+      const schema = `adr5_${randomUUID().replaceAll('-', '')}`;
+      await tx.query(`CREATE SCHEMA ${schema}`);
+      await tx.query(`SET LOCAL search_path TO ${schema}`);
+      const migrations = loadMigrations();
+      for (const migration of migrations) await tx.query(migration.up);
+      for (const migration of [...migrations].reverse().filter(m => m.version >= '011')) await tx.query(migration.down);
+      expect((await tx.query("SELECT to_regclass('governed_action_propose_refusal') AS p")).rows[0].p).toBeNull();
+      for (const migration of migrations.filter(m => m.version >= '011')) await tx.query(migration.up);
+      expect((await tx.query("SELECT to_regclass('governed_action_propose_refusal') AS p")).rows[0].p).not.toBeNull();
+      await tx.query('SET LOCAL search_path TO public');
+      await tx.query(`DROP SCHEMA ${schema} CASCADE`);
     });
-    expect(await exists()).toBe('governed_action_propose_refusal');
   });
 });

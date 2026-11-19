@@ -1,3 +1,4 @@
+import type { AssertionEnvelope } from '../../domain/commercial-event/commercial-event';
 import { deepFreeze, parseCanonical } from '../../domain/governed-action/canonical-json';
 import {
   GovernedActionError, type ActionConstraints, type ActionEvent, type ActionProposal, type ActionRefusal, type ActorKind,
@@ -43,6 +44,7 @@ const PROPOSAL_COLUMNS = `id, workspace_id, request_key, capability_id, risk_cla
  * Refusals are a separate table and never take part in the proposal CAS (A-m1).
  */
 export class PgActionStore implements ActionStore {
+  readonly durableAssertions = true;
   constructor(private readonly db: TransactionRunner & SqlExecutor) {}
 
   async create(t: Transition): Promise<CreateResult> {
@@ -80,7 +82,7 @@ export class PgActionStore implements ActionStore {
     return result.rows[0] ? toProposal(result.rows[0]) : undefined;
   }
 
-  async transition(expectedVersion: number, t: Transition): Promise<void> {
+  async transition(expectedVersion: number, t: Transition, assertion?: AssertionEnvelope): Promise<void> {
     const p = t.proposal;
     if (p.version !== expectedVersion + 1 || t.event.sequence !== p.version) {
       throw new GovernedActionError('CONCURRENT_MODIFICATION', 'transition version is not contiguous');
@@ -95,6 +97,12 @@ export class PgActionStore implements ActionStore {
       );
       if (updated.rowCount !== 1) throw new GovernedActionError('CONCURRENT_MODIFICATION', 'proposal was modified concurrently');
       await insertEvent(tx, t.event);
+      if (assertion) {
+        if (assertion.workspaceId !== p.workspaceId) throw new Error('ASSERTION_WORKSPACE_MISMATCH');
+        await tx.query(`INSERT INTO assertion_outbox (workspace_id, assertion_id, proposal_id, event_sequence, envelope)
+          VALUES ($1,$2,$3,$4,$5::jsonb)`,
+        [p.workspaceId, assertion.assertionId, p.id, t.event.sequence, JSON.stringify(assertion)]);
+      }
     });
   }
 

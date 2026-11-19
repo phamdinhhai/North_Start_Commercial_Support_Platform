@@ -236,7 +236,7 @@ export class GovernedActionService {
       executorStatus: result.status, reason: result.reason ?? result.status, verification, dispatched,
       ...(result.status === 'APPLIED' && result.providerReference ? { providerReference: result.providerReference } : {}),
     }, this.clock.now());
-    await this.deps.store.transition(running.version, done);
+    await this.persistTransition(running.version, done);
     await this.emitObservedOutcome(done);
     return done.proposal;
   }
@@ -373,7 +373,7 @@ export class GovernedActionService {
     } catch (error) {
       throw await this.audited(p, actor, command, error);
     }
-    await this.deps.store.transition(p.version, t);
+    await this.persistTransition(p.version, t);
     return t;
   }
 
@@ -389,10 +389,16 @@ export class GovernedActionService {
   /**
    * ADR-005 R2-P-02: a provider-observed verified outcome becomes an `observed` AssertionEnvelope.
    * OPEN: CE-1 — evidence only; no Commercial State / Outcome transition is ever invoked here.
-   * Best effort after the outcome is durable: a sink failure never undoes it, and the assertion id
+   * Test-only memory delivery is best effort after the outcome is durable: a sink failure never undoes it, and the assertion id
    * is derived from the outcome event, so a later re-emission from history is idempotent.
    */
+  private async persistTransition(version: number, t: Transition): Promise<void> {
+    const assertion = this.deps.store.durableAssertions ? observedOutcomeAssertion(t.proposal, t.event, this.clock.now()) : undefined;
+    await this.deps.store.transition(version, t, assertion);
+  }
+
   private async emitObservedOutcome(t: Transition): Promise<void> {
+    if (this.deps.store.durableAssertions) return; // PostgreSQL worker owns durable delivery.
     const envelope = observedOutcomeAssertion(t.proposal, t.event, this.clock.now());
     if (envelope) await this.deps.assertions.emit(envelope).catch(() => undefined);
   }
