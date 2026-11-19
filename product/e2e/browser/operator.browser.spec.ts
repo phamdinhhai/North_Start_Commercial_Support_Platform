@@ -55,10 +55,27 @@ test('reschedules in UI and rejects concurrent stale work without overwriting hi
     for (const p of [a, b]) { await load(p, credential); await p.locator('.queue-item').first().click(); await expect(p.locator('#context')).toContainText('Action Stale'); }
     await b.locator(`#complete-${workId}`).click(); await b.locator('#declaration-input').fill('Stale completion'); await b.locator('#declaration-confirm').check();
     await a.locator(`#reschedule-${workId}`).click(); await a.locator('#due').fill('2030-01-05T10:00'); await a.locator('#reason').fill('Move to Friday'); await record(a);
+    let completionWrites = 0;
+    b.on('request', r => { if (r.method() === 'POST' && new URL(r.url()).pathname.endsWith('/complete')) completionWrites++; });
     await b.locator('#submit-command').click(); await expect(b.locator('#dialog-status')).toContainText(/STALE_VERSION|WORK_SUPERSEDED/); await expect(b.locator('#submit-command')).toBeDisabled();
+    expect(completionWrites).toBe(1);
+    const refreshed = await (await api(request, credential, 'GET', 'pilot/leads/' + leadId)).json();
     await b.getByRole('button', { name: 'Reload current lead' }).click(); await expect(b.locator('#context')).toContainText('Move to Friday');
+    await expect(b.locator('#context')).toContainText('Version: ' + refreshed.version);
+    await expect(b.locator('#command-dialog')).toBeVisible();
+    await expect(b.locator('#declaration-input')).toHaveValue('Stale completion');
+    await expect(b.locator('#declaration-confirm')).toBeChecked();
+    await expect(b.locator('#submit-command')).toBeEnabled();
+    expect(completionWrites).toBe(1);
+    const discard = b.waitForEvent('dialog');
+    const cancel = b.locator('#cancel-command').click();
+    const confirmation = await discard; expect(confirmation.message()).toBe('Discard unsaved changes?');
+    await confirmation.accept(); await cancel;
+    await expect(b.locator('#command-dialog')).not.toBeVisible();
+    expect(completionWrites).toBe(1);
     const replacement = b.locator('#work-items section').filter({ hasText: '"status": "open"' }).last();
     await replacement.getByRole('button', { name: 'Complete action', exact: true }).click(); await b.locator('#declaration-input').fill('Completed replacement'); await b.locator('#declaration-confirm').check(); await record(b);
+    expect(completionWrites).toBe(2);
     const detail = await (await api(request, credential, 'GET', `pilot/leads/${leadId}`)).json(); expect(detail.workItems.find((w: { id: string }) => w.id === workId).status).toBe('rescheduled');
   } finally { await ca.close(); await cb.close(); }
 });
