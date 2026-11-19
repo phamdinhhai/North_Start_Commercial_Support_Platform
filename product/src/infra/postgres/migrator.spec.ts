@@ -64,6 +64,7 @@ describe('Migrator — PH3 T3-08', () => {
       '012_content_digest',
       '013_pilot_closure',
       '014_assertion_delivery',
+      '015_data_lifecycle',
     ]);
     expect(files.every((m) => m.up.length > 0 && m.down.length > 0)).toBe(true);
 

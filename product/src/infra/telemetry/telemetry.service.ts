@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import type { QueryResultRow } from 'pg';
 import { PostgresService } from '../postgres/postgres.service';
 import type { ProductEvent, RecordEventInput, TelemetryServicePort } from '../../ports/telemetry';
+import { LEARNING_EVENT_TYPES } from '../../ports/telemetry';
 export type { ProductEvent, RecordEventInput } from '../../ports/telemetry';
 
 /**
@@ -35,8 +36,6 @@ const PAYLOAD_KEYS = new Set(['nested', 'safe', 'details']);
 // Known product event/flag identifiers only. New identifiers require an explicit privacy review.
 const EVENT_TYPES = new Set(['lead_viewed']);
 // Internal learning surface only; direct legacy telemetry accepts lead_viewed alone.
-const LEARNING_EVENT_TYPES = new Set(['lead_opened', 'evidence_viewed', 'context_edited', 'handoff_created', 'handoff_accepted',
-  'action_created', 'action_completed', 'action_rescheduled', 'action_reopened', 'outcome_recorded', 'outcome_corrected']);
 const FLAG_VARIANTS: Readonly<Record<string, ReadonlySet<string>>> = {
   pancake_sync: new Set(['on', 'off']),
 };

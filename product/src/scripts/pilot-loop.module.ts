@@ -28,6 +28,9 @@ import { LEAD_EXPORT_STORE, LeadExportError, type LeadExportStore } from '../por
 import { PgLeadExportStore } from '../infra/postgres/pg-lead-export.store';
 import { PostgresService } from '../infra/postgres/postgres.service';
 import { DURABILITY } from '../ports/durability';
+import { DataLifecycleController } from '../api/data-lifecycle.controller';
+import { DATA_LIFECYCLE_STORE, DataLifecycleError, type DataLifecycleStore } from '../ports/data-lifecycle';
+import { PgDataLifecycleStore } from '../infra/data-lifecycle/pg-data-lifecycle.store';
 
 /**
  * P0 pilot loop module (PH3 T3-03/T3-04 wiring + education B2C candidate flow).
@@ -38,8 +41,13 @@ import { DURABILITY } from '../ports/durability';
  */
 @Module({
   imports: [PostgresModule],
-  controllers: [PilotLoopController, PilotClosureController, FeedbackTelemetryController, LearningController, LeadExportController],
+  controllers: [PilotLoopController, PilotClosureController, FeedbackTelemetryController, LearningController, LeadExportController, DataLifecycleController],
   providers: [
+    { provide: DATA_LIFECYCLE_STORE, inject: [PostgresService], useFactory: (db: PostgresService): DataLifecycleStore =>
+      resolvePilotStoreMode() === 'postgres' ? new PgDataLifecycleStore(db) : {
+        configure: async () => { throw new DataLifecycleError('DURABLE_STORAGE_REQUIRED', 503); },
+        preview: async () => { throw new DataLifecycleError('DURABLE_STORAGE_REQUIRED', 503); },
+      } },
     FeedbackService,
     TelemetryService,
     { provide: FEEDBACK_SERVICE, useExisting: FeedbackService },

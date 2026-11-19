@@ -1,15 +1,14 @@
 import { Body, Controller, Headers, HttpException, Inject, Post } from '@nestjs/common';
 import { AUTH_CONTEXT_RESOLVER, type AuthContextResolver } from '../ports/auth';
 import { LEAD_ACCESS_POLICY, type LeadAccessPolicy } from '../ports/rbac';
-import { LEARNING_TELEMETRY_SERVICE, type LearningTelemetryPort } from '../ports/telemetry';
+import { LEARNING_TELEMETRY_SERVICE, LEARNING_EVENT_TYPES, type LearningTelemetryPort } from '../ports/telemetry';
 import { DURABILITY, type DurabilityPort } from '../ports/durability';
 import { PilotLoopService } from '../application/pilot/pilot-loop.service';
 import { requirePilotLeadAccess } from '../application/pilot/lead-access';
 import { PilotDomainError } from '../ports/pilot-loop.types';
 import type { LeadId } from '../domain/lead/lead';
 
-export const LEARNING_EVENTS = new Set(['lead_opened', 'evidence_viewed', 'context_edited', 'handoff_created', 'handoff_accepted',
-  'action_created', 'action_completed', 'action_rescheduled', 'action_reopened', 'outcome_recorded', 'outcome_corrected']);
+export const LEARNING_EVENTS = LEARNING_EVENT_TYPES;
 /** Behavioral self-reports, never evidence or commercial truth. Server resolves scope and synthetic classification. */
 @Controller('pilot')
 export class LearningController {

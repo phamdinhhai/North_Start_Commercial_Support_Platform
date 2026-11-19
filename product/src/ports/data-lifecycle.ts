@@ -22,5 +22,5 @@ export interface DataLifecycleStore {
   preview(workspaceId: string, actorId: string, dataClass: LifecycleDataClass): Promise<LifecyclePreview>;
 }
 export class DataLifecycleError extends Error {
-  constructor(readonly code: 'FORBIDDEN' | 'INVALID_INPUT' | 'REVISION_CONFLICT' | 'POLICY_REQUIRED', readonly status: number) { super(code); }
+  constructor(readonly code: 'FORBIDDEN' | 'INVALID_INPUT' | 'REVISION_CONFLICT' | 'POLICY_REQUIRED' | 'DURABLE_STORAGE_REQUIRED', readonly status: number) { super(code); }
 }

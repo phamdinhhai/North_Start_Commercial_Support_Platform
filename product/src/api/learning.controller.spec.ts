@@ -17,6 +17,16 @@ async function fixture(isSynthetic: boolean, durable = true) {
   return { ctx, lead, recorder, auth, controller: new LearningController(auth, new RbacService(), loop, recorder, { durable }) };
 }
 describe('R4 privacy-safe learning boundary', () => {
+  it.each(['handoff_started', 'contact_attempt_recorded', 'workflow_error', 'workflow_recovered'])(
+    'keeps %s categorical and excludes synthetic observations', async eventType => {
+      const synthetic = await fixture(true);
+      expect(await synthetic.controller.record({}, { leadId: synthetic.lead.lead.id, eventType })).toMatchObject({ recorded: false });
+      expect(synthetic.recorder.recordLearning).not.toHaveBeenCalled();
+      const classified = await fixture(false);
+      expect(await classified.controller.record({}, { leadId: classified.lead.lead.id, eventType })).toMatchObject({ recorded: true });
+      expect(classified.recorder.recordLearning).toHaveBeenCalledWith(expect.objectContaining({ eventType, payload: { safe: 'ok' } }));
+      await expect(classified.controller.record({}, { leadId: classified.lead.lead.id, eventType, error: 'private details' })).rejects.toMatchObject({ status: 400 });
+    });
   it('records only categorical scoped metadata, never lead/customer IDs or message content', async () => {
     const f = await fixture(false);
     expect(await f.controller.record({}, { leadId: f.lead.lead.id, eventType: 'evidence_viewed', releaseVersion: '0.1.0' })).toMatchObject({ recorded: true });
