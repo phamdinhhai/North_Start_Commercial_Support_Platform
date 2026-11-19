@@ -14,6 +14,7 @@ describe('lifecycle HTTP boundary', () => {
     const controller = new DataLifecycleController({ resolve: () => ctx }, store);
     await expect(controller.preview({}, 'audit', { asOf: '2099-01-01' })).rejects.toMatchObject({ status: 400 });
     expect(store.preview).not.toHaveBeenCalled();
+    await expect(controller.preview({}, 'audit', [])).rejects.toMatchObject({ status: 400 });
     await expect(controller.preview({}, 'audit', {})).rejects.toMatchObject({ status: 500, response: { code: 'INTERNAL' } });
     expect(store.preview).toHaveBeenCalledWith('trusted', 'actor', 'audit');
   });

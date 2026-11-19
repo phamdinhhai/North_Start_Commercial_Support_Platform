@@ -31,6 +31,11 @@ import { DURABILITY } from '../ports/durability';
 import { DataLifecycleController } from '../api/data-lifecycle.controller';
 import { DATA_LIFECYCLE_STORE, DataLifecycleError, type DataLifecycleStore } from '../ports/data-lifecycle';
 import { PgDataLifecycleStore } from '../infra/data-lifecycle/pg-data-lifecycle.store';
+import { ContactAttemptController } from '../api/contact-attempt.controller';
+import { ContactAttemptService } from '../application/pilot/contact-attempt.service';
+import { CONTACT_ATTEMPT_STORE, type ContactAttemptStore } from '../ports/contact-attempt';
+import { PgContactAttemptStore } from '../infra/postgres/pg-contact-attempt.store';
+import { InMemoryContactAttemptStore } from '../infra/pilot/in-memory-contact-attempt.store';
 
 /**
  * P0 pilot loop module (PH3 T3-03/T3-04 wiring + education B2C candidate flow).
@@ -41,8 +46,14 @@ import { PgDataLifecycleStore } from '../infra/data-lifecycle/pg-data-lifecycle.
  */
 @Module({
   imports: [PostgresModule],
-  controllers: [PilotLoopController, PilotClosureController, FeedbackTelemetryController, LearningController, LeadExportController, DataLifecycleController],
+  controllers: [PilotLoopController, PilotClosureController, FeedbackTelemetryController, LearningController, LeadExportController, DataLifecycleController, ContactAttemptController],
   providers: [
+    { provide: CONTACT_ATTEMPT_STORE, inject: [PostgresService, PILOT_STORE],
+      useFactory: (db: PostgresService, store: PilotLoopStore): ContactAttemptStore =>
+        resolvePilotStoreMode() === 'postgres' ? new PgContactAttemptStore(db) : new InMemoryContactAttemptStore(store) },
+    { provide: ContactAttemptService, inject: [PILOT_STORE, LEAD_ACCESS_POLICY, CONTACT_ATTEMPT_STORE],
+      useFactory: (store: PilotLoopStore, policy: LeadAccessPolicy, attempts: ContactAttemptStore) =>
+        new ContactAttemptService(store, policy, contentDigester(), attempts) },
     { provide: DATA_LIFECYCLE_STORE, inject: [PostgresService], useFactory: (db: PostgresService): DataLifecycleStore =>
       resolvePilotStoreMode() === 'postgres' ? new PgDataLifecycleStore(db) : {
         configure: async () => { throw new DataLifecycleError('DURABLE_STORAGE_REQUIRED', 503); },

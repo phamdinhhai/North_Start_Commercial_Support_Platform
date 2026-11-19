@@ -25,6 +25,7 @@ const db = {
       { version: '013_pilot_closure' },
       { version: '014_assertion_delivery' },
       { version: '015_data_lifecycle' },
+      { version: '016_contact_attempt' },
   ] })),
 };
 const controller = new HealthController(new PostgresReadinessProbe(db as never));
@@ -74,7 +75,7 @@ describe('HealthController', () => {
         '004_envelope_workspace_scope', '005_workspace_consistency',
         '006_pilot_ingest_command', '007_evidence_acquisition',
         '008_integration_receipts', '009_work_completion_provenance', '010_workspace_membership',
-        '011_governed_actions', '012_content_digest', '013_pilot_closure', '014_assertion_delivery', '015_data_lifecycle',
+        '011_governed_actions', '012_content_digest', '013_pilot_closure', '014_assertion_delivery', '015_data_lifecycle', '016_contact_attempt',
       ]],
     );
   });

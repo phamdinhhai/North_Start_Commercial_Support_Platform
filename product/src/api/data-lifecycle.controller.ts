@@ -25,7 +25,7 @@ export class DataLifecycleController {
   @Header('Cache-Control', 'no-store')
   preview(@Headers() headers: Record<string, string | undefined>, @Param('dataClass') dataClass: string, @Body() body: unknown) {
     return this.run(headers, ctx => {
-      if (body !== undefined && body !== null && (typeof body !== 'object' || Object.keys(body).length !== 0)) throw new DataLifecycleError('INVALID_INPUT', 400);
+      if (body !== undefined && body !== null && (typeof body !== 'object' || Array.isArray(body) || Object.keys(body).length !== 0)) throw new DataLifecycleError('INVALID_INPUT', 400);
       return this.service.preview(ctx, dataClass);
     });
   }

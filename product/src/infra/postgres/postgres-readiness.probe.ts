@@ -18,6 +18,7 @@ const REQUIRED_MIGRATIONS = [
   '013_pilot_closure',
   '014_assertion_delivery',
   '015_data_lifecycle',
+  '016_contact_attempt',
 ] as const;
 
 @Injectable()

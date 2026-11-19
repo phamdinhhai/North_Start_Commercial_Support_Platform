@@ -9,6 +9,7 @@ import { Client } from 'pg';
 const productRoot = resolve(fileURLToPath(new URL('..', import.meta.url)));
 const requiredSuites = [
   'src/infra/data-lifecycle/data-lifecycle.integration.spec.ts',
+  'src/infra/postgres/contact-attempt.integration.spec.ts',
   'src/infra/postgres/completion-provenance.integration.spec.ts',
   'src/infra/postgres/lead-access.integration.spec.ts',
   'src/infra/integration/receipts.integration.spec.ts',
