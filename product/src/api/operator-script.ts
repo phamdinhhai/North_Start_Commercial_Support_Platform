@@ -77,6 +77,7 @@ export const OPERATOR_SCRIPT = String.raw`
         selected = { id, d, version: d.version };
         render();
         telemetry('lead_opened', id);
+        await contactHistory(id, generation);
     }
     catch (e) {
         if (generation === epoch)
@@ -110,6 +111,7 @@ export const OPERATOR_SCRIPT = String.raw`
     }
     catch (e) {
         msg('dialog-status', err(e), true);
+        telemetry('workflow_error', c.id);
         if (e.status === 409) {
             $('submit-command').dataset.stale = 'true';
             const b = document.createElement('button');
@@ -130,7 +132,7 @@ export const OPERATOR_SCRIPT = String.raw`
     function render() {
         const d = selected.d, root = $('context');
         msg('context-status', 'Recorded projection. Business truth and attribution UNKNOWN.');
-        root.innerHTML = '<h3>' + esc(d.lead.displayName) + '</h3><p>Stable Lead ID: ' + esc(selected.id) + '</p><p class="badge">' + (d.isSynthetic === true ? 'SYNTHETIC' : d.isSynthetic === false ? 'REAL' : 'CLASSIFICATION UNKNOWN') + '</p><p>Status: ' + esc(d.lead.status) + '  -  Version: ' + esc(d.version) + '</p><p>Owner: ' + esc(d.lead.owner) + '  -  Recipient: ' + esc(d.lead.handoffRecipient) + '</p><h3>Current context</h3><pre>' + esc(d.currentContext?.text || d.currentContext || d.handoff?.context) + '</pre><div id="lead-actions"></div><div id="work-items"></div><div id="outcomes"></div><div id="read-view" role="region" aria-label="Evidence and audit"></div>';
+        root.innerHTML = '<h3>' + esc(d.lead.displayName) + '</h3><p>Stable Lead ID: ' + esc(selected.id) + '</p><p class="badge">' + (d.isSynthetic === true ? 'SYNTHETIC' : d.isSynthetic === false ? 'REAL' : 'CLASSIFICATION UNKNOWN') + '</p><p>Status: ' + esc(d.lead.status) + '  -  Version: ' + esc(d.version) + '</p><p>Owner: ' + esc(d.lead.owner) + '  -  Recipient: ' + esc(d.lead.handoffRecipient) + '</p><h3>Current context</h3><pre>' + esc(d.currentContext?.text || d.currentContext || d.handoff?.context) + '</pre><div id="lead-actions"></div><section id="commercial-truth" aria-label="Source lineage and attribution"></section><section id="contact-history" aria-label="Contact attempt history"></section><div id="work-items"></div><div id="outcomes"></div><div id="read-view" role="region" aria-label="Evidence and audit"></div>';
         const a = $('lead-actions');
         button(a, 'reload-lead', 'Reload lead', () => openLead(selected.id));
         button(a, 'edit-context', 'Edit context', () => basic('Append context revision', '/context', 'context_edited', [['context-text', 'Context', 'textarea', true, d.currentContext?.text || ''], ['reason', 'Reason', 'textarea']], () => ({ text: v('context-text'), reason: v('reason') })));
@@ -153,6 +155,8 @@ export const OPERATOR_SCRIPT = String.raw`
             button(a, 'stage-' + stage, 'Move to ' + stage, () => basic('Move to ' + stage, '/commands/advance', null, [['reason', 'Reason', 'textarea']], () => ({ to: stage, reason: v('reason') })));
         button(a, 'outcome', 'Record outcome claim', () => outcome());
         button(a, 'feedback', 'Send feedback', feedback);
+        button(a, 'record-contact', 'Record contact attempt', contactAttempt);
+        button(a, 'contact-attempts', 'View contact attempt history', () => contactHistory(selected.id, epoch));
         for (const w of d.workItems || []) {
             const s = document.createElement('section');
             s.innerHTML = '<h3>' + esc(w.action) + '</h3><pre>' + esc(JSON.stringify(w, null, 2)) + '</pre>';
@@ -169,7 +173,38 @@ export const OPERATOR_SCRIPT = String.raw`
             button(s, 'correct-' + o.id, 'Correct outcome', () => outcome(o.id));
         }
     }
+    async function contactHistory(id, generation, after) {
+        try {
+            const data = await request('/v1/pilot/leads/' + encodeURIComponent(id) + '/contact-attempts?limit=50' + (after ? '&after=' + encodeURIComponent(after) : ''));
+            if (generation !== epoch) return;
+            const truth = $('commercial-truth'); truth.replaceChildren();
+            for (const [key, label] of [['conversationSource', 'Conversation Source'], ['acquisitionLineage', 'Acquisition Lineage'], ['revenueAttribution', 'Revenue Attribution']]) {
+                const p = document.createElement('p'), t = data.truth[key];
+                p.textContent = label + ': ' + (t.status === 'unknown' ? 'UNKNOWN' : t.value) + ' ? ' + t.reason; truth.append(p);
+            }
+            const root = $('contact-history'); root.replaceChildren();
+            const h = document.createElement('h3'); h.textContent = 'Contact attempt history (human claims)'; root.append(h);
+            if (!data.items.length) { const p = document.createElement('p'); p.textContent = 'No contact attempts recorded.'; root.append(p); }
+            for (const a of data.items) {
+                const p = document.createElement('pre');
+                p.textContent = 'Occurred: ' + (a.occurredAt === 'unknown' ? 'UNKNOWN ? not supplied by operator' : a.occurredAt) + '\nChannel: ' + a.channel + '\nActor: ' + a.actor + '\nRecorded: ' + a.recordedAt + '\nClaimed result: ' + a.claimedResult + '\nEvidence: ' + (a.evidenceRef || 'UNKNOWN ? no evidence linked') + '\nFollow-up implication (claim; no action scheduled): ' + a.followUpImplication + '\nReason: ' + a.reason;
+                root.append(p);
+            }
+            if (data.nextCursor) button(root, 'contact-next', 'Next contact attempts', () => contactHistory(id, generation, data.nextCursor));
+        } catch (e) { if (generation === epoch) { $('commercial-truth').textContent = 'Conversation Source / Acquisition Lineage / Revenue Attribution unavailable: ' + err(e); $('contact-history').textContent = 'Contact history unavailable: ' + err(e); } }
+    }
+    function contactAttempt() {
+        dialog('Record manual contact claim', () => {
+            field('contact-occurred', 'Contact occurred at (optional; otherwise UNKNOWN)', 'datetime-local', false);
+            choices('contact-channel', 'Contact channel', [['phone', 'Phone'], ['message', 'Message'], ['email', 'Email'], ['other', 'Other']]);
+            choices('contact-result', 'Claimed contact result', [['unknown', 'Unknown'], ['reached', 'Reached (claim)'], ['no-answer', 'No answer (claim)'], ['left-message', 'Left message (claim)']]);
+            field('contact-evidence', 'Contact evidence reference (optional)', 'text', false);
+            field('contact-follow-up', 'Follow-up implication (does not schedule an action)', 'textarea');
+            field('reason', 'Contact claim reason', 'textarea');
+        }, meta => mutate('/contact-attempts', { occurredAt: v('contact-occurred') ? new Date(v('contact-occurred')).toISOString() : 'unknown', channel: v('contact-channel'), claimedResult: v('contact-result'), followUpImplication: v('contact-follow-up'), reason: v('reason'), ...(v('contact-evidence') ? { evidenceRef: v('contact-evidence') } : {}) }, meta, 'contact_attempt_recorded'));
+    }
     async function handoff() { const generation = epoch; try {
+        telemetry('handoff_started', selected.id);
         const directory = await request('/v1/pilot/assignees');
         if (generation !== epoch)
             return;

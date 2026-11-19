@@ -26,7 +26,7 @@ export class PgLeadExportStore implements LeadExportStore {
       records.commercial_envelope=evidence.rows;
       records.assertion_envelope=(await tx.query<Record<string,unknown>>(`SELECT * FROM assertion_envelope
         WHERE workspace_id=$1 AND subject_type='lead' AND subject_id=$2 LIMIT 1001`,[workspaceId,leadId])).rows;
-      for(const table of ['pilot_context_revision','pilot_closure_command']){
+      for(const table of ['pilot_context_revision','pilot_closure_command','pilot_contact_attempt']){
         const exists=await tx.query<{name:string|null}>('SELECT to_regclass($1)::text AS name',[table]);
         if(exists.rows[0].name)records[table]=(await tx.query<Record<string,unknown>>(`SELECT * FROM ${table} WHERE workspace_id=$1 AND lead_id=$2::uuid LIMIT 1001`,[workspaceId,leadId])).rows;
       }
