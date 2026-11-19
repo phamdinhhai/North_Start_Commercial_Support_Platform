@@ -67,6 +67,30 @@ test('real OIDC redirect and UI-only complete commercial journey survives app re
   await expect(recipient.locator('#read-view')).toContainText('Fabricated original: please call tomorrow');
   expect(await recipient.evaluate(() => (window as unknown as { qaXss?: number }).qaXss)).toBeUndefined();
   await recipient.locator('[id^="accept-"]').first().click(); await reason(recipient); await record(recipient);
+  // Manual contact is a separate human claim; UNKNOWN time/evidence stay explicit.
+  const stateBeforeContact = (await recipient.locator('#context').innerText()).match(/Status: ([^\n]+?)-\s+Version:/)![1].trim();
+  const actionsBeforeContact = await recipient.locator('#work-items section').count();
+  await recipient.locator('#record-contact').click();
+  await recipient.locator('#contact-channel').selectOption('phone');
+  await recipient.locator('#contact-result').selectOption('no-answer');
+  await recipient.locator('#contact-follow-up').fill('Ask the customer for a suitable callback time');
+  await reason(recipient, 'Fabricated manual contact claim'); await record(recipient);
+  await expect(recipient.locator('#contact-history')).toContainText('no-answer');
+  await expect(recipient.locator('#contact-history')).toContainText('UNKNOWN');
+  await expect(recipient.locator('#contact-history')).toContainText('Ask the customer for a suitable callback time');
+  await expect(recipient.locator('#context')).toContainText('Status: ' + stateBeforeContact);
+  await expect(recipient.locator('#work-items section')).toHaveCount(actionsBeforeContact);
+  await expect(recipient.locator('#commercial-truth')).toContainText('Source');
+  await expect(recipient.locator('#commercial-truth')).toContainText('Lineage');
+  await expect(recipient.locator('#commercial-truth')).toContainText('Attribution');
+  await expect(recipient.locator('#commercial-truth')).toContainText('UNKNOWN');
+  await recipient.reload();
+  await recipient.locator('.queue-item').filter({ hasText: 'Fabricated full browser journey' }).click();
+  await expect(recipient.locator('#contact-history')).toContainText('Fabricated manual contact claim');
+  await recipient.locator('#feedback').click();
+  await recipient.locator('#rating').selectOption('4');
+  await recipient.locator('#feedback-body').fill('Synthetic automation feedback: evidence was available');
+  await record(recipient);
   await recipient.locator('#create-action').click(); await recipient.locator('#action').fill('Independent callback'); await reason(recipient); await record(recipient);
   let section = recipient.locator('#work-items section').filter({ has: recipient.getByRole('heading', { name: 'Independent callback', exact: true }) }).last();
   await section.getByRole('button', { name: 'Reschedule', exact: true }).click();
@@ -84,6 +108,8 @@ test('real OIDC redirect and UI-only complete commercial journey survives app re
   await recipient.locator('#audit').click(); await expect(recipient.locator('#read-view')).toContainText('Correction: payment not verified');
   const db = new Pool({ connectionString: process.env.QA_DATABASE_URL });
   try {
+    expect((await db.query('SELECT rating,body FROM feedback WHERE lead_id=$1', [leadId])).rows)
+      .toEqual([{ rating: 4, body: 'Synthetic automation feedback: evidence was available' }]);
     await expect.poll(async () => (await db.query('SELECT DISTINCT event_type FROM product_event')).rows.map(r => r.event_type))
       .toEqual(expect.arrayContaining(['evidence_viewed', 'context_edited', 'action_completed', 'outcome_corrected']));
     const events = (await db.query('SELECT payload,release_version,flag_exposure FROM product_event')).rows;
@@ -107,7 +133,35 @@ test('real OIDC redirect and UI-only complete commercial journey survives app re
   await recipient.locator('.queue-item').filter({ hasText: 'Fabricated full browser journey' }).click();
   await expect(recipient.locator('#context')).toContainText(leadId);
   await expect(recipient.locator('#outcomes')).toContainText('Correction: payment not verified');
+  await expect(recipient.locator('#contact-history')).toContainText('Fabricated manual contact claim');
+  await expect(recipient.locator('#commercial-truth')).toContainText('UNKNOWN');
   await recipientContext.close();
+});
+
+test('signed admin HTTP lifecycle composition remains planning-only and sales denied', async ({ page }) => {
+  await login(page, 'admin');
+  const result = await page.evaluate(async () => {
+    const session = await (await fetch('/v1/auth/session')).json();
+    const send = async (path: string, body: unknown) => {
+      const response = await fetch('/v1/pilot/lifecycle/' + path, { method: 'POST',
+        headers: { 'content-type': 'application/json', 'X-CSRF-Token': session.csrfToken }, body: JSON.stringify(body) });
+      return { status: response.status, body: await response.json(), cache: response.headers.get('cache-control') };
+    };
+    return { missing: await send('previews/accepted_evidence', {}),
+      configured: await send('policies', { dataClass: 'accepted_evidence', retentionSeconds: 60, expectedRevision: 0, approvalRef: 'SYNTHETIC-QA-ONLY' }),
+      preview: await send('previews/accepted_evidence', {}),
+      clock: await send('previews/accepted_evidence', { asOf: '2099-01-01' }) };
+  });
+  expect(result.missing).toMatchObject({ status: 409, body: { code: 'POLICY_REQUIRED' } });
+  expect(result.configured).toMatchObject({ status: 201, body: { revision: 1 }, cache: 'no-store' });
+  expect(result.preview).toMatchObject({ status: 201, body: { disposition: 'BLOCKED_IMMUTABLE_HISTORY', executionAvailable: false }, cache: 'no-store' });
+  expect(result.clock).toMatchObject({ status: 400, body: { code: 'INVALID_INPUT' } });
+  await page.locator('#logout').click(); await login(page, 'owner');
+  expect(await page.evaluate(async () => {
+    const session = await (await fetch('/v1/auth/session')).json();
+    return (await fetch('/v1/pilot/lifecycle/previews/accepted_evidence', { method: 'POST',
+      headers: { 'content-type': 'application/json', 'X-CSRF-Token': session.csrfToken }, body: '{}' })).status;
+  })).toBe(403);
 });
 
 test('OIDC viewer and tenant denials with UI-created classification fixtures', async ({ browser, page }) => {
