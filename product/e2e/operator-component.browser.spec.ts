@@ -82,5 +82,11 @@ test('holds stale command for explicit reload and suppresses double submission',
   await page.getByRole('button', { name: 'Reload current lead' }).click();
   await expect(page.locator('#command-dialog')).not.toBeVisible();
   await expect(page.locator('#context')).toContainText('Version: 7');
+  await expect(page.locator('#context')).toContainText('CLASSIFICATION UNKNOWN');
+  await page.locator('#edit-context').click();
+  await expect(page.locator('#submit-command')).toBeEnabled();
+  await page.locator('#cancel-command').click();
+  await page.locator('#login-workspace').fill('workspace / special');
+  await expect(page.locator('#signin')).toHaveAttribute('href', '/v1/auth/login?workspace=workspace%20%2F%20special');
   expect(contextWrites).toBe(1);
 });
