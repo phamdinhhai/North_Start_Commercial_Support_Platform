@@ -23,6 +23,7 @@ export interface OidcConfig {
   readonly clockSkewSeconds: number;
   readonly jwksCacheMaxAgeMs: number;
   readonly jwksRefetchCooldownMs: number;
+  readonly jwksMaxStaleAgeMs?: number;
 }
 
 export class OidcConfigError extends Error {
@@ -93,13 +94,16 @@ export function loadOidcConfig(env: NodeJS.ProcessEnv = process.env): OidcConfig
       throw new OidcConfigError(`algorithm '${alg.slice(0, 16)}' is not an allowed asymmetric algorithm`);
     }
   }
+  const cacheSeconds = integerInRange(env, 'OIDC_JWKS_CACHE_SECONDS', 600, 60, 86_400);
+  const maximumSeconds = integerInRange(env, 'OIDC_JWKS_MAX_STALE_SECONDS', cacheSeconds + 900, cacheSeconds, 172_800);
   return Object.freeze({
     issuer,
     audiences: Object.freeze(audiences),
     jwksUri,
     algorithms: Object.freeze(algorithms),
     clockSkewSeconds: integerInRange(env, 'OIDC_CLOCK_SKEW_SECONDS', 30, 0, 120),
-    jwksCacheMaxAgeMs: integerInRange(env, 'OIDC_JWKS_CACHE_SECONDS', 600, 60, 86_400) * 1000,
+    jwksCacheMaxAgeMs: cacheSeconds * 1000,
+    jwksMaxStaleAgeMs: maximumSeconds * 1000,
     jwksRefetchCooldownMs: integerInRange(env, 'OIDC_JWKS_COOLDOWN_SECONDS', 30, 5, 3_600) * 1000,
   });
 }

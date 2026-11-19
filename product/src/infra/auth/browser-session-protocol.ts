@@ -16,6 +16,7 @@ export function equalOpaque(a: string, b: string): boolean {
 export function codeExchange(config: BrowserSessionConfig): BrowserCodeExchange {
   const keys = new JwksKeyStore(httpJwksFetcher(config.oidc.jwksUri), {
     cacheMaxAgeMs: config.oidc.jwksCacheMaxAgeMs, refetchCooldownMs: config.oidc.jwksRefetchCooldownMs,
+    maxStaleAgeMs: config.oidc.jwksMaxStaleAgeMs,
   });
   return async (code, verifier, nonce) => {
     const response = await fetch(config.tokenEndpoint, { method: 'POST', redirect: 'error', signal: AbortSignal.timeout(5000),

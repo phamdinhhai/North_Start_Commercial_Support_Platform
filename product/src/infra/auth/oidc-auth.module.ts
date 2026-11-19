@@ -37,6 +37,7 @@ export function createOidcAuthenticator(store: MembershipStore, env: NodeJS.Proc
   const config = loadOidcConfig(env);
   const keys = new JwksKeyStore(httpJwksFetcher(config.jwksUri), {
     cacheMaxAgeMs: config.jwksCacheMaxAgeMs,
+    maxStaleAgeMs: config.jwksMaxStaleAgeMs,
     refetchCooldownMs: config.jwksRefetchCooldownMs,
   });
   return new OidcAuthenticator(new OidcTokenVerifier(config, keys), store);

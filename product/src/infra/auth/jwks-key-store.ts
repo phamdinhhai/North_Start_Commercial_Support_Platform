@@ -16,6 +16,8 @@ export type JwksFetcher = () => Promise<unknown>;
 export interface JwksKeyStoreOptions {
   readonly cacheMaxAgeMs: number;
   readonly refetchCooldownMs: number;
+  /** Absolute age since the last successful fetch, including outage grace. */
+  readonly maxStaleAgeMs?: number;
   readonly now?: () => number;
 }
 
@@ -105,6 +107,9 @@ export class JwksKeyStore {
 
   private current(): ReturnType<typeof createLocalJWKSet> {
     if (!this.resolver) throw new JwksUnavailableError('JWKS not loaded');
+    // Failed refreshes and unknown-kid traffic must never extend a trusted set indefinitely.
+    const maximum = this.options.maxStaleAgeMs ?? this.options.cacheMaxAgeMs + 900_000;
+    if (this.now() - this.fetchedAt >= maximum) throw new JwksUnavailableError('JWKS cache expired');
     return this.resolver;
   }
 

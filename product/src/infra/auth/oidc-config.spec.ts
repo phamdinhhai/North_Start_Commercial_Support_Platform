@@ -39,6 +39,8 @@ describe('OIDC configuration — fail closed', () => {
     ['skew too large', { OIDC_CLOCK_SKEW_SECONDS: '3600' }],
     ['skew not integer', { OIDC_CLOCK_SKEW_SECONDS: '1e3' }],
     ['cooldown too small', { OIDC_JWKS_COOLDOWN_SECONDS: '0' }],
+    ['absolute key age below refresh age', { OIDC_JWKS_MAX_STALE_SECONDS: '599' }],
+    ['unbounded absolute key age', { OIDC_JWKS_MAX_STALE_SECONDS: '172801' }],
     ['demo enabled in production', { DEMO_WORKSPACES: 'true' }],
     ['unsigned dev tokens in production', { AUTH_DEV_UNSIGNED_TOKENS: 'true' }],
   ])('rejects %s', (_label, overrides) => {
