@@ -94,6 +94,3 @@ suite('R4.7 bounded PostgreSQL failure recovery (fabricated data)', () => {
     expect((await db.query('SELECT raw_payload FROM commercial_envelope WHERE id=$1', [fixture2.envelope.envelopeId])).rows[0].raw_payload).toHaveProperty('privateToken');
   });
 });
-
-
-

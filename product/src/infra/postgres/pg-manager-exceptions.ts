@@ -28,5 +28,3 @@ export class PgManagerExceptionsReader implements ManagerExceptionsReader {
   return result.rows;
  }
 }
-
-

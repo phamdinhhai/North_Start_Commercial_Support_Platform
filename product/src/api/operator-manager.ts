@@ -21,4 +21,3 @@ window.mountManagerExceptions = ({container, request, openLead, classification =
  return ()=>{active=false;epoch++;container.replaceChildren();};
 };
 `;
-

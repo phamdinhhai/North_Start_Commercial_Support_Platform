@@ -58,4 +58,3 @@ const control = createServer(async (req, res) => {
 await new Promise(resolve => control.listen(3412, '127.0.0.1', resolve));
 async function close() { await app.close(); await db.onModuleDestroy(); idp.close(); control.close(); process.exit(0); }
 process.on('SIGTERM', close); process.on('SIGINT', close);
-
