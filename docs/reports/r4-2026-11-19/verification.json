@@ -1,0 +1,308 @@
+{
+  "date": "2026-11-19",
+  "branch": "feat/r4-lvp-closure",
+  "validated_source_sha": "ce4ee13ae73b123fb67c349aee7249812a7f85b8",
+  "baseline_sha": "bcbbc095dd029c1aceac8b9e428bfadd05507fe4",
+  "scope": "Local integrated validation. Later documentation-only commits do not change the validated source. Hosted R4 CI has not been run.",
+  "overall_r4_status": "PARTIAL",
+  "pilot_readiness": "Controlled synthetic/internal exercise only; real customer-data pilot not approved.",
+  "lanes": [
+    {
+      "name": "typecheck",
+      "exit_code": 0,
+      "result": "PASS",
+      "log": "C:\\Users\\admin\\AppData\\Local\\Temp\\north-r4-integrated-j8iVD1\\typecheck.log",
+      "log_exists": true,
+      "log_sha256": "09b9a49f6769e2371ae5cfedc320845c173fe8c1356b69e516cecf3df4a23c7a"
+    },
+    {
+      "name": "lint",
+      "exit_code": 0,
+      "result": "PASS",
+      "log": "C:\\Users\\admin\\AppData\\Local\\Temp\\north-r4-integrated-j8iVD1\\lint.log",
+      "log_exists": true,
+      "log_sha256": "ad43281dbc673e71b219a3b5f8bb1351cdbf31f778553f420b51e951f5ce0a46"
+    },
+    {
+      "name": "architecture",
+      "exit_code": 0,
+      "result": "PASS",
+      "log": "C:\\Users\\admin\\AppData\\Local\\Temp\\north-r4-integrated-j8iVD1\\architecture.log",
+      "log_exists": true,
+      "log_sha256": "d77621a86ab9943075df85f3191a1cb7bb1df838338d769fe581a2ff13a87c50"
+    },
+    {
+      "name": "registry",
+      "exit_code": 0,
+      "result": "PASS",
+      "log": "C:\\Users\\admin\\AppData\\Local\\Temp\\north-r4-integrated-j8iVD1\\registry.log",
+      "log_exists": true,
+      "log_sha256": "9ba0b062f4ecd65b28129862b0b83b76af3684de213382c0d20ffa086be3ab85"
+    },
+    {
+      "name": "integration-ci",
+      "exit_code": 0,
+      "result": "PASS",
+      "suites": 18,
+      "tests": 80,
+      "skipped": 0,
+      "included_in_coverage_count": true,
+      "log": "C:\\Users\\admin\\AppData\\Local\\Temp\\north-r4-integrated-j8iVD1\\integration-ci.log",
+      "log_exists": true,
+      "log_sha256": "7b6dcf14c74669f9d4bec3a473d186994decd3a6bc8afb8ad0a9747c374b60e3"
+    },
+    {
+      "name": "coverage",
+      "exit_code": 0,
+      "result": "PASS",
+      "files": 107,
+      "tests": 1102,
+      "skipped": 0,
+      "log": "C:\\Users\\admin\\AppData\\Local\\Temp\\north-r4-final-recheck-akngLz\\coverage.log",
+      "log_exists": true,
+      "log_sha256": "4ce683a6e3b9792d437b1159a524b62a6c71ac2e218b5be4d59a77e3f2857c73"
+    },
+    {
+      "name": "build",
+      "exit_code": 0,
+      "result": "PASS",
+      "log": "C:\\Users\\admin\\AppData\\Local\\Temp\\north-r4-integrated-j8iVD1\\build.log",
+      "log_exists": true,
+      "log_sha256": "4bc24afec50c327cef250b332ffda2df07d6c6766d549f4ee6b27ea4aaaebc3a"
+    },
+    {
+      "name": "http-e2e",
+      "exit_code": 0,
+      "result": "PASS",
+      "files": 3,
+      "tests": 22,
+      "log": "C:\\Users\\admin\\AppData\\Local\\Temp\\north-r4-final-recheck-akngLz\\http-e2e.log",
+      "log_exists": true,
+      "log_sha256": "164ae4ee7c9eb3c6aecc32b625f9faf3c83318d8f949775f4e8b3b69d6ba0ed7"
+    },
+    {
+      "name": "browser",
+      "exit_code": 0,
+      "result": "PASS",
+      "tests": 4,
+      "log": "C:\\Users\\admin\\AppData\\Local\\Temp\\north-r4-integrated-j8iVD1\\browser.log",
+      "log_exists": true,
+      "log_sha256": "6805d28c95ff0a9095ec0f1a1f0ab6d46b95f116582c332922f60c88d10fe67a"
+    },
+    {
+      "name": "component",
+      "exit_code": 0,
+      "result": "PASS",
+      "tests": 3,
+      "log": "C:\\Users\\admin\\AppData\\Local\\Temp\\north-r4-integrated-j8iVD1\\component.log",
+      "log_exists": true,
+      "log_sha256": "3eb765e2b09a4721181990560ac8b474fe7dcf2aa6655be7d148267b48244019"
+    },
+    {
+      "name": "oidc-ui",
+      "exit_code": 0,
+      "result": "PASS",
+      "tests": 2,
+      "log": "C:\\Users\\admin\\AppData\\Local\\Temp\\north-r4-integrated-j8iVD1\\oidc-ui.log",
+      "log_exists": true,
+      "log_sha256": "06b967109cf2318fb18d2e0552db22234d34a121f95dce98e0ecba2130c8861f"
+    },
+    {
+      "name": "companion",
+      "exit_code": 0,
+      "result": "PASS",
+      "log": "C:\\Users\\admin\\AppData\\Local\\Temp\\north-r4-integrated-j8iVD1\\companion.log",
+      "log_exists": true,
+      "log_sha256": "e641f14df592ca1b949a99ffec918a83d6130ece576a436bc83181c84c44696a"
+    },
+    {
+      "name": "guardrails",
+      "exit_code": 0,
+      "result": "PASS",
+      "tests": 44,
+      "skipped": 0,
+      "log": "C:\\Users\\admin\\AppData\\Local\\Temp\\north-r4-final-recheck-akngLz\\guardrails.log",
+      "log_exists": true,
+      "log_sha256": "a469806ee65fff755171fa547560c175e511412b2f10b303cdb4d8b2cce53240"
+    },
+    {
+      "name": "ail-research",
+      "exit_code": 0,
+      "result": "PASS",
+      "tests": 14,
+      "skipped": 0,
+      "log": "C:\\Users\\admin\\AppData\\Local\\Temp\\north-r4-integrated-j8iVD1\\ail-research.log",
+      "log_exists": true,
+      "log_sha256": "21870684a60e6c8c3afff4e8e89372708d82955f6b60f5d37f53e27a730031ad"
+    },
+    {
+      "name": "restore",
+      "exit_code": 0,
+      "result": "PASS",
+      "log": "C:\\Users\\admin\\AppData\\Local\\Temp\\north-r4-integrated-j8iVD1\\restore.log",
+      "log_exists": true,
+      "log_sha256": "0bcf418c1b2b7628ab6f8a523177f543f7430aa992fd48b0c15704031c81f67e"
+    },
+    {
+      "name": "audit",
+      "exit_code": 0,
+      "result": "PASS",
+      "log": "C:\\Users\\admin\\AppData\\Local\\Temp\\north-r4-integrated-j8iVD1\\audit.log",
+      "log_exists": true,
+      "log_sha256": "57e8b10012c380383e853728fe570a8746171dc602003a7af2be5786773033e3"
+    }
+  ],
+  "coverage": {
+    "lines": {
+      "percent": 91.57,
+      "covered": 4129,
+      "total": 4509
+    },
+    "statements": {
+      "percent": 87.57,
+      "covered": 5031,
+      "total": 5745
+    },
+    "branches": {
+      "percent": 85.3,
+      "covered": 4725,
+      "total": 5539
+    },
+    "functions": {
+      "percent": 90.59,
+      "covered": 1165,
+      "total": 1286
+    },
+    "focused_line_coverage": {
+      "infra/auth": {
+        "covered": 393,
+        "total": 400,
+        "percent": 98.25
+      },
+      "infra/crypto": {
+        "covered": 27,
+        "total": 27,
+        "percent": 100
+      },
+      "application/pilot/pilot-closure": {
+        "covered": 68,
+        "total": 71,
+        "percent": 95.77
+      },
+      "infra/governed-action/pg-assertion": {
+        "covered": 19,
+        "total": 20,
+        "percent": 95
+      }
+    },
+    "security_critical_100_percent_gate": "NOT_ESTABLISHED",
+    "local_lcov": "product/coverage/lcov.info"
+  },
+  "failed_attempts": [
+    {
+      "lane": "coverage",
+      "exit_code": 1,
+      "cause_and_remediation": "Global LOG_LEVEL=silent in orchestration runner suppressed the metrics logger under test; remove runner override.",
+      "initial_results": "C:\\Users\\admin\\AppData\\Local\\Temp\\north-r4-integrated-j8iVD1\\results.json",
+      "superseding_results": "C:\\Users\\admin\\AppData\\Local\\Temp\\north-r4-final-recheck-akngLz\\results.json",
+      "final_result": "PASS"
+    },
+    {
+      "lane": "http-e2e",
+      "exit_code": 1,
+      "cause_and_remediation": "Two old smoke assertions assumed a static queue URL and synthetic visibility by default; update assertions for session-first UI and explicit synthetic filtering while retaining redaction/scope checks.",
+      "initial_results": "C:\\Users\\admin\\AppData\\Local\\Temp\\north-r4-integrated-j8iVD1\\results.json",
+      "superseding_results": "C:\\Users\\admin\\AppData\\Local\\Temp\\north-r4-final-recheck-akngLz\\results.json",
+      "final_result": "PASS"
+    },
+    {
+      "lane": "guardrails",
+      "exit_code": 1,
+      "cause_and_remediation": "Global PG_DUMP override in orchestration runner conflicted with dry-run default-binary assertion; scope override to restore rehearsal.",
+      "initial_results": "C:\\Users\\admin\\AppData\\Local\\Temp\\north-r4-integrated-j8iVD1\\results.json",
+      "superseding_results": "C:\\Users\\admin\\AppData\\Local\\Temp\\north-r4-final-recheck-akngLz\\results.json",
+      "final_result": "PASS"
+    }
+  ],
+  "source_results": [
+    {
+      "path": "C:\\Users\\admin\\AppData\\Local\\Temp\\north-r4-integrated-j8iVD1\\results.json",
+      "sha256": "8a3b9d9ad778513b959f1e520de5e1d513024c3d5b32c4b32cbc6ec5f45b08c7"
+    },
+    {
+      "path": "C:\\Users\\admin\\AppData\\Local\\Temp\\north-r4-final-recheck-akngLz\\results.json",
+      "sha256": "90e1d646c3b17c1335d84761460246042a7aa26fd88acc80b4219f419756fcfd"
+    }
+  ],
+  "ui_evidence": {
+    "fixture": "Runtime-generated loopback RS256 IdP and disposable PostgreSQL; memberships/identities only seeded by setup. Business records created via UI.",
+    "journey": [
+      "login",
+      "create lead",
+      "context revision",
+      "handoff",
+      "recipient login",
+      "original evidence inspection",
+      "accept",
+      "create action",
+      "reschedule",
+      "declared complete",
+      "reopen successor",
+      "Contacting/Follow-up",
+      "Won claim",
+      "Unknown correction",
+      "audit inspection",
+      "Nest app/DI restart",
+      "reauthenticate",
+      "durable history"
+    ],
+    "limitations": [
+      "All text fabricated, even fixtures classified non-synthetic for filter assertions.",
+      "Application/DI restart is not an OS crash or power-loss rehearsal.",
+      "No real employee usability, deployed IdP, customer data or external provider was exercised."
+    ]
+  },
+  "restore": {
+    "result": "PASS",
+    "synthetic_only": true,
+    "migrations": 14,
+    "tables_compared": 5,
+    "receipt_uniqueness_verified": true,
+    "limits": [
+      "Not PITR",
+      "Not all-table restore proof",
+      "No RPO/RTO SLA established"
+    ]
+  },
+  "dependencies": {
+    "production_audit": "PASS",
+    "waivers": 0,
+    "install_moderate_advisories": 5,
+    "note": "Pre-existing moderate advisories; no forced dependency upgrade."
+  },
+  "operational_state": {
+    "owned_validation_pg_clusters": "STOPPED",
+    "production_deployed": false,
+    "main_merged": false,
+    "r4_pushed": false,
+    "hosted_r4_ci": "NOT_RUN",
+    "assertion_runner": "DEFAULT_OFF_LOCAL_TEST_ONLY"
+  },
+  "unmet_release_conditions": [
+    "Physical deletion/anonymization NOT IMPLEMENTED",
+    "Automated retention/legal holds NOT IMPLEMENTED",
+    "Encrypted research raw-capture sink NOT IMPLEMENTED; capture remains disabled",
+    "Real IdP deployment acceptance NOT VERIFIED",
+    "100% security-critical coverage NOT ESTABLISHED",
+    "Representative Sales usability/value NOT VERIFIED"
+  ],
+  "evidence_handling": "Local logs are referenced, not published as raw browser traces. No secrets or credential-bearing artifacts are included in this report.",
+  "requirement_traceability": "traceability.md",
+  "remaining_product_gaps": [
+    "R-10 complete source/lineage/attribution-reason presentation",
+    "R-12 dedicated contact-attempt history",
+    "R-22 full per-session experiment-exposure acceptance",
+    "R-08 rejection/reassignment and R-23 feedback browser acceptance not independently established",
+    "R-24 manager exception UI and R-25 Data Health view deferred P1"
+  ]
+}

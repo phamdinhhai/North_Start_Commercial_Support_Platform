@@ -1,6 +1,6 @@
 # R4 — LVP Closure: execution plan
 
-Status: baseline verified; first-wave implementation active. No release approval implied.
+Status: final technical validation passed at ce4ee13; R4 PARTIAL. The initial plan and its checkpoint states below are retained as execution history. Final statuses at the end of this document supersede them. No release approval implied.
 
 ## Baseline assessment
 
@@ -85,3 +85,25 @@ flowchart LR
 - Evidence view is authenticated, workspace/lead scoped, bounded to accepted lead evidence; no arbitrary raw frame/file lookup.
 - Browser session uses OIDC auth-code + PKCE against configured endpoints, cookie authority server-side, same-origin mutation protection and per-request existing membership verification. No new identity provider or role assignment from claims.
 - Data deletion must reconcile privacy with append-only audit: prefer a separately audited content-erasure overlay over deleting business/audit history; no real-data execution in R4.
+
+## Final checkpoint: 19/11/2026
+
+Validated code: ce4ee13ae73b123fb67c349aee7249812a7f85b8. All six specialist roles actually ran in waves and finished; reviewed worker changes were integrated. Reports: lvp-readiness.md, independent-review.md and verification.json. The initial data-overlay direction above was not implemented and must not be interpreted as a deletion policy or accepted design.
+
+| Task | Final status | Completion evidence / remaining condition |
+|---|---|---|
+| BASE | TESTED | baseline-verification.json: fresh R3 install and full baseline checks |
+| SEC-01 | IMPLEMENTED / TESTED | security.md; migration012; HMAC/key rotation/legacy and preview integrity tests; deployment key custody remains operational work |
+| SEC-02 | IMPLEMENTED / TESTED | backend contract; UI/PG classification and learning exclusion; explicit UNKNOWN labels |
+| API-01 | IMPLEMENTED / TESTED / VERIFIED END-TO-END | backend.md, backend-api-contract.md; UI-only context/handoff/evidence/action/correction with PG persistence |
+| AUTH-01 | IMPLEMENTED / TESTED / VERIFIED END-TO-END with fixture IdP | auth-learning-checkpoint.md, qa-execution.md; actual deployed IdP acceptance remains BLOCKED on environment/configuration evidence |
+| UX-01 | IMPLEMENTED / TESTED / VERIFIED END-TO-END | frontend.md, qa-execution.md; no real employee usability observation yet |
+| REL-01 | IMPLEMENTED / TESTED | reliability.md, lifecycle-runbook.md; PG rollback/lease/retry/dedup/replay; composed runner default off, local/test only |
+| DATA-01 | PARTIAL: export IMPLEMENTED / TESTED | Scoped audited export only; physical deletion/anonymization, retention and holds NOT IMPLEMENTED; migration015 was not created |
+| LEARN-01 | IMPLEMENTED / TESTED | Actual UI signals verified by read-only PG queries, synthetic/unknown excluded; no commercial value inference |
+| QA-01 | TESTED review deliverable | qa-matrix.md retains initial findings; qa-execution.md records actual later outcomes |
+| QA-02 | VERIFIED END-TO-END within documented fixture scope | 2 OIDC/PG UI acceptance tests; 4 legacy browser and 3 component regressions; restart recreates Nest/DI, not OS crash |
+| ARCH-01 | TESTED independent review | independent-review.md: 33 focused tests; both findings fixed and covered in final integrated lanes |
+| VALIDATE | Technical lanes PASS; release gate UNMET | verification.json: 1,102 tests, 91.57% lines, PG80/HTTP22/browser4/component3/OIDC2/MV3; 100% security-critical coverage and real-data readiness not established |
+
+Outstanding P0 items: data lifecycle implementation and review, actual IdP deployment acceptance, security-critical coverage gaps, representative Sales observation. Production integrations, autonomous AI, attribution and identity merge remain DEFERRED under their existing gates. No production deploy, push or main merge was performed. Only controlled synthetic/internal exercises are supported by current evidence.
