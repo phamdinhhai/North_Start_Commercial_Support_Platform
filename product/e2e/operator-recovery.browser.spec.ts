@@ -52,3 +52,45 @@ for (const failure of [401, 403] as const) {
     });
   }
 }
+for (const downgrade of [false, true]) {
+  test(`new lead recovery role downgrade ${downgrade}`, async ({ page }) => {
+    const writes: unknown[] = [], csrf: string[] = [];
+    await page.route('http://localhost:47819/**', route => {
+      const r = route.request(), p = new URL(r.url()).pathname;
+      if (p.endsWith('/operator')) return route.fulfill({ contentType: 'text/html', body: OPERATOR_CLIENT_HTML });
+      if (p.endsWith('/scenarios')) {
+        writes.push(r.postDataJSON()); csrf.push(r.headers()['x-csrf-token']);
+        return route.fulfill(writes.length === 1 ? { status: 401, json: {} } : { json: {} });
+      }
+      return route.fulfill({ json: p.endsWith('/session') ? { authenticated: true, loginAvailable: true, csrfToken: writes.length ? 'fresh' : 'initial', context: { userId: 'u', workspaceId: 'w', role: writes.length && downgrade ? 'viewer' : 'sales' } } : { items: [] } });
+    });
+    await page.goto('http://localhost:47819/v1/operator');
+    await expect(page.locator('#session-status')).toHaveText('Signed in.');
+    await page.locator('#new-lead').click();
+    await page.locator('#display-name').fill('Invented lead');
+    await page.locator('#utterance').fill('Invented conversation');
+    await page.locator('#connection').fill('fixture-source');
+    await page.locator('#external-record').fill('stable-record');
+    await page.locator('#synthetic').check();
+    await page.locator('#submit-command').click();
+    await expect(page.locator('#command-fields')).toBeEmpty();
+    await page.locator('#recheck-session').click();
+    if (downgrade) {
+      await expect(page.locator('#session-status')).toContainText('role changed');
+      await expect(page.locator('#command-fields')).toBeEmpty();
+      await expect(page.locator('#recheck-session')).toBeHidden();
+      expect(writes).toHaveLength(1);
+    } else {
+      await expect(page.locator('#external-record')).toHaveValue('stable-record');
+      await expect(page.locator('#utterance')).toHaveValue('Invented conversation');
+      await expect(page.locator('#dialog-status')).toContainText('membership checked');
+      expect(writes).toHaveLength(1);
+      await page.locator('#submit-command').click();
+      await expect(page.locator('#command-dialog')).not.toBeVisible();
+      expect(writes).toHaveLength(2);
+      expect(writes[1]).toEqual(writes[0]);
+      expect(csrf).toEqual(['initial', 'fresh']);
+    }
+    expect(await page.evaluate(() => [localStorage.length, sessionStorage.length])).toEqual([0, 0]);
+  });
+}

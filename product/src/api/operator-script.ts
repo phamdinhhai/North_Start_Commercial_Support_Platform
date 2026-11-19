@@ -17,7 +17,7 @@ export const OPERATOR_SCRIPT = String.raw`
         e.status = r.status;
         e.body = b;
         if (r.status === 401) {
-            if (command?.id && session.authenticated && dirty) recovery = { command, fields: Array.from($('command-fields').children), context: session.context };
+            if (command && session.authenticated && dirty) recovery = { command, fields: Array.from($('command-fields').children), context: session.context };
             clear();
             session.authenticated = false;
             $('recheck-session').hidden = !recovery;
@@ -293,19 +293,19 @@ export const OPERATOR_SCRIPT = String.raw`
         try {
             const fresh = await request('/v1/auth/session');
             if (!fresh.authenticated) { msg('session-status', 'Sign in before rechecking.', true); return; }
-            if (fresh.context.userId !== held.context.userId || fresh.context.workspaceId !== held.context.workspaceId) {
+            if (fresh.context.userId !== held.context.userId || fresh.context.workspaceId !== held.context.workspaceId || fresh.context.role !== held.context.role) {
                 recovery = null; clear(); session = fresh; $('recheck-session').hidden = true;
-                msg('session-status', 'Identity or workspace changed. Unsaved draft discarded.', true); return;
+                msg('session-status', 'Identity, workspace or role changed. Unsaved draft discarded.', true); return;
             }
             session = fresh;
-            await openLead(held.command.id);
-            if (!selected || !recovery) return;
+            if (held.command.id) await openLead(held.command.id);
+            if ((held.command.id && !selected) || !recovery) return;
             $('command-fields').replaceChildren(...held.fields);
-            command = { ...held.command, epoch, version: selected.version, key: crypto.randomUUID() };
+            command = { ...held.command, epoch, version: selected?.version, key: crypto.randomUUID() };
             recovery = null; dirty = true; $('recheck-session').hidden = true;
             $('submit-command').disabled = false; $('submit-command').dataset.stale = '';
             $('command-dialog').showModal();
-            msg('dialog-status', 'Session restored and lead access checked. Review draft and refreshed context before explicitly recording.');
+            msg('dialog-status', held.command.id ? 'Session restored and lead access checked. Review draft and refreshed context before explicitly recording.' : 'Session restored and membership checked. Review new lead draft before explicitly recording.');
             msg('session-status', 'Signed in.'); $('signin').hidden = true;
             mountManager();
         } catch (e) { msg('session-status', err(e), true); }
