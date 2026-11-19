@@ -9,8 +9,8 @@ import { OidcTokenVerifier } from '../auth/oidc-token-verifier';
 import { createTestKey, mintToken, testConfig, TEST_ISSUER } from '../auth/oidc-test-kit';
 
 /**
- * Runs directly in the TEST_DATABASE_URL database (no extra databases are created); fixtures use
- * a per-run suffix so reruns on the same disposable database are independent.
+ * Uses owned schemas in TEST_DATABASE_URL, never downgrading shared tables.
+ * Migration 010 round-trips only in a schema containing migrations 001–010.
  * Skips ONLY when TEST_DATABASE_URL is absent (CI forbids that; see ci-integration.mjs).
  */
 const databaseUrl = process.env.TEST_DATABASE_URL;
@@ -31,13 +31,23 @@ integration('migration 010 + PgMembershipStore (PostgreSQL, ADR-006)', () => {
   let db: PostgresService;
   let store: PgMembershipStore;
   let adminId: string;
+  const schema = `membership_${randomUUID().replace(/-/g, '')}`;
+  const latestSchema = `membership_latest_${randomUUID().replace(/-/g, '')}`;
+  let latest: PostgresService;
   const issuer = `${TEST_ISSUER}/${run}`;
   const audit = (subject: string) => db.query<{ operation: string; workspace_id: string; base_role: string; actor: string; actor_user_id: string | null; transaction_id: string; membership_id: string }>(
     `SELECT a.operation, a.workspace_id, a.base_role, a.actor, a.actor_user_id, a.transaction_id, a.membership_id FROM membership_audit a
        JOIN external_identity i ON i.user_id = a.user_id WHERE i.issuer = $1 AND i.subject = $2 ORDER BY a.id`, [issuer, subject]);
 
   beforeAll(async () => {
-    db = new PostgresService({ connectionString: databaseUrl, max: 2 });
+    const admin = new PostgresService({ connectionString: databaseUrl, max: 1 });
+    try {
+      await admin.query(`CREATE SCHEMA ${schema}`);
+      await admin.query(`CREATE SCHEMA ${latestSchema}`);
+    } finally { await admin.onModuleDestroy(); }
+    db = new PostgresService({ connectionString: databaseUrl, max: 2, options: `-c search_path=${schema}` });
+    latest = new PostgresService({ connectionString: databaseUrl, max: 1, options: `-c search_path=${latestSchema}` });
+    await new Migrator(latest, loadMigrations()).up();
     await new Migrator(db, loadMigrations().filter((m) => m.version <= MIGRATION_010)).up();
     await db.query('INSERT INTO workspace(id, name) VALUES ($1, $2), ($3, $4)', [WS_A, 'A', WS_B, 'B']);
     store = new PgMembershipStore(db);
@@ -45,7 +55,13 @@ integration('migration 010 + PgMembershipStore (PostgreSQL, ADR-006)', () => {
   });
 
   afterAll(async () => {
+    await latest?.onModuleDestroy().catch(() => undefined);
     await db?.onModuleDestroy().catch(() => undefined);
+    const admin = new PostgresService({ connectionString: databaseUrl, max: 1 });
+    try {
+      await admin.query(`DROP SCHEMA IF EXISTS ${schema} CASCADE`);
+      await admin.query(`DROP SCHEMA IF EXISTS ${latestSchema} CASCADE`);
+    } finally { await admin.onModuleDestroy(); }
   });
 
   it('grant provisions platform_user + external_identity; resolution is exact and never provisions', async () => {
@@ -177,15 +193,23 @@ integration('migration 010 + PgMembershipStore (PostgreSQL, ADR-006)', () => {
 
   it('migration 010 down/up SQL round-trips (inside a rolled-back transaction)', async () => {
     const m = migration010();
+    // Regression: newest migrations and their FK must already exist elsewhere.
+    const latestVersions = await new Migrator(latest, loadMigrations()).applied();
+    expect(latestVersions).toContain('017_assertion_ops');
+    const dependency = () => latest.query(`SELECT 1 FROM pg_constraint WHERE
+      conrelid = 'assertion_delivery_audit'::regclass AND confrelid = 'platform_user'::regclass AND contype = 'f'`);
+    expect((await dependency()).rowCount).toBe(1);
+    const principal = randomUUID();
+    await latest.query('INSERT INTO platform_user(id) VALUES ($1)', [principal]);
     await expect(db.withTransaction(async (tx) => {
       await tx.query(m.down);
       for (const table of ['memberships', 'membership_audit', 'platform_user', 'external_identity']) {
-        const gone = await tx.query<{ t: string | null }>('SELECT to_regclass($1)::text AS t', [`public.${table}`]);
+        const gone = await tx.query<{ t: string | null }>('SELECT to_regclass($1)::text AS t', [`${schema}.${table}`]);
         expect(gone.rows[0].t).toBeNull();
       }
       const fn = await tx.query(`SELECT 1 FROM pg_proc WHERE proname IN ('memberships_guard_update', 'memberships_guard_delete',
         'memberships_audit_write', 'membership_audit_append_only', 'platform_user_guard_update', 'principal_guard_immutable',
-        'memberships_check_identity')`);
+        'memberships_check_identity') AND pronamespace = current_schema()::regnamespace`);
       expect(fn.rowCount).toBe(0);
       await tx.query(m.up);
       const fresh = await new PgMembershipStore(tx).grant({ workspaceId: WS_A, issuer, subject: 'fresh', baseRole: 'viewer' });
@@ -202,5 +226,8 @@ integration('migration 010 + PgMembershipStore (PostgreSQL, ADR-006)', () => {
       throw new Rollback('leave the shared disposable database unchanged');
     })).rejects.toBeInstanceOf(Rollback);
     expect(await store.resolveUserId(issuer, 'alice')).not.toBeNull();
+    expect((await dependency()).rowCount).toBe(1);
+    expect((await latest.query('SELECT id FROM platform_user WHERE id=$1', [principal])).rows).toEqual([{ id: principal }]);
+    expect(await new Migrator(latest, loadMigrations()).applied()).toEqual(latestVersions);
   });
 });
