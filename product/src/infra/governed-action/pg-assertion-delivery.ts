@@ -1,4 +1,5 @@
 import { randomUUID } from 'node:crypto';
+import { validDeliveryEnvelope } from './assertion-envelope.validation';
 import type { AssertionEnvelope } from '../../domain/commercial-event/commercial-event';
 import type { AssertionSink } from '../../ports/governed-action';
 import type { SqlExecutor } from '../postgres/postgres.service';
@@ -34,17 +35,19 @@ export class PgAssertionDelivery {
   private async deliver(row: Claim): Promise<void> {
     let timer: ReturnType<typeof setTimeout> | undefined;
     try {
+      if (!validDeliveryEnvelope(row.envelope, row.workspace_id, row.assertion_id)) throw new Error('INVALID_ENVELOPE');
       await Promise.race([this.sink.emit(row.envelope), new Promise<never>((_, reject) => {
         timer=setTimeout(() => reject(new Error('SINK_TIMEOUT')),this.options.timeoutMs);
       })]);
       await this.db.query(`UPDATE assertion_outbox SET status='DELIVERED',delivered_at=now(),last_error=NULL,
         lease_token=NULL,lease_until=NULL WHERE workspace_id=$1 AND assertion_id=$2 AND lease_token=$3 AND status='LEASED'`,
       [row.workspace_id,row.assertion_id,row.lease_token]);
-    } catch {
-      await this.db.query(`UPDATE assertion_outbox SET status=$4,last_error='SINK_FAILED',lease_token=NULL,lease_until=NULL,
+    } catch (error) {
+      const code = error instanceof Error && ['INVALID_ENVELOPE','SINK_TIMEOUT','ENVELOPE_CONFLICT'].includes(error.message) ? error.message : 'SINK_FAILED';
+      await this.db.query(`UPDATE assertion_outbox SET status=$4,last_error=$6,lease_token=NULL,lease_until=NULL,
         next_attempt_at=now()+$5*interval '1 millisecond' WHERE workspace_id=$1 AND assertion_id=$2 AND lease_token=$3 AND status='LEASED'`,
-      [row.workspace_id,row.assertion_id,row.lease_token,row.attempts >= this.options.maxAttempts ? 'FAILED' : 'PENDING',
-        Math.min(3_600_000,this.options.backoffMs*2**(row.attempts-1))]);
+      [row.workspace_id,row.assertion_id,row.lease_token,code === 'INVALID_ENVELOPE' || code === 'ENVELOPE_CONFLICT' || row.attempts >= this.options.maxAttempts ? 'FAILED' : 'PENDING',
+        Math.min(3_600_000,this.options.backoffMs*2**(row.attempts-1)),code]);
     } finally { if (timer) clearTimeout(timer); }
   }
   /** Internal admin tooling only; exposes no raw envelope/error. */
@@ -53,17 +56,18 @@ export class PgAssertionDelivery {
       `SELECT assertion_id,status,attempts,next_attempt_at,last_error FROM assertion_outbox WHERE workspace_id=$1 ORDER BY created_at DESC LIMIT 100`,[workspaceId]);
     return rows.rows.map((r)=>({assertionId:r.assertion_id,status:r.status,attempts:r.attempts,nextAttemptAt:r.next_attempt_at.toISOString(),lastError:r.last_error}));
   }
-  async replay(workspaceId:string,assertionId:string):Promise<boolean> {
-    const r=await this.db.query(`UPDATE assertion_outbox SET status='PENDING',attempts=0,next_attempt_at=now(),last_error=NULL
-      WHERE workspace_id=$1 AND assertion_id=$2 AND status='FAILED'`,[workspaceId,assertionId]);
-    return r.rowCount===1;
-  }
+
 }
 /** Append-only durable evidence, never a Commercial State mutation. */
 export class PgAssertionInbox implements AssertionSink {
   constructor(private readonly db:SqlExecutor) {}
   async emit(envelope:AssertionEnvelope):Promise<void> {
-    await this.db.query(`INSERT INTO assertion_inbox(workspace_id,assertion_id,envelope) VALUES ($1,$2,$3::jsonb)
-      ON CONFLICT(workspace_id,assertion_id) DO NOTHING`,[envelope.workspaceId,envelope.assertionId,JSON.stringify(envelope)]);
+    if (!validDeliveryEnvelope(envelope, envelope.workspaceId, envelope.assertionId)) throw new Error('INVALID_ENVELOPE');
+    const result = await this.db.query(`INSERT INTO assertion_inbox(workspace_id,assertion_id,envelope) VALUES ($1,$2,$3::jsonb)
+      ON CONFLICT(workspace_id,assertion_id) DO NOTHING RETURNING assertion_id`,[envelope.workspaceId,envelope.assertionId,JSON.stringify(envelope)]);
+    if (!result.rowCount) {
+      const same = await this.db.query('SELECT 1 FROM assertion_inbox WHERE workspace_id=$1 AND assertion_id=$2 AND envelope=$3::jsonb', [envelope.workspaceId,envelope.assertionId,JSON.stringify(envelope)]);
+      if (same.rowCount !== 1) throw new Error('ENVELOPE_CONFLICT');
+    }
   }
 }
