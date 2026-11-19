@@ -1,4 +1,4 @@
-import 'reflect-metadata';
+﻿import 'reflect-metadata';
 import { randomBytes } from 'node:crypto';
 import { createRequire } from 'node:module';
 import { createServer } from 'node:http';
@@ -25,6 +25,7 @@ const { PostgresService } = require('../../dist/infra/postgres/postgres.service.
 const { Migrator, loadMigrations } = require('../../dist/infra/postgres/migrator.js');
 const { AppModule } = require('../../dist/app.module.js');
 const { MEMBERSHIP_STORE } = require('../../dist/ports/auth.js');
+const { BROWSER_SESSION } = require('../../dist/ports/browser-session.js');
 const db = new PostgresService(); await new Migrator(db, loadMigrations()).up();
 // Refuse reused business data: this setup provisions identities only.
 const empty = await db.query('SELECT count(*)::int AS n FROM lead');
@@ -43,12 +44,18 @@ await start();
 const members = app.get(MEMBERSHIP_STORE);
 for (const account of ['owner', 'recipient', 'viewer', 'bystander', 'foreign', 'admin'])
   await members.grant({ workspaceId: account === 'foreign' ? 'qa-browser-b' : 'qa-browser-a', issuer, subject: account,
-    baseRole: account === 'viewer' ? 'viewer' : account === 'admin' ? 'admin' : 'sales' });
-// Test control plane is loopback only, uses a runner secret, and can only restart the app.
+    baseRole: account === 'viewer' ? 'viewer' : account === 'admin' ? 'admin' : account === 'bystander' ? 'manager' : 'sales' });
+// Loopback-only runner control. Never returns credentials, tokens or session identifiers.
 const control = createServer(async (req, res) => {
-  if (req.method !== 'POST' || req.url !== '/restart' || req.headers['x-qa-control'] !== process.env.QA_CONTROL_SECRET) { res.writeHead(403); return res.end(); }
+  if (req.method !== 'POST' || !['/restart', '/expire-sessions'].includes(req.url) || req.headers['x-qa-control'] !== process.env.QA_CONTROL_SECRET) { res.writeHead(403); return res.end(); }
+  if (req.url === '/expire-sessions') {
+    // Test-only access to compiled private state; production composition is unchanged.
+    for (const [key, value] of app.get(BROWSER_SESSION).sessions) app.get(BROWSER_SESSION).sessions.set(key, { ...value, expires: 0 });
+    return res.end('expired');
+  }
   await app.close(); await start(); res.end('restarted');
 });
 await new Promise(resolve => control.listen(3412, '127.0.0.1', resolve));
 async function close() { await app.close(); await db.onModuleDestroy(); idp.close(); control.close(); process.exit(0); }
 process.on('SIGTERM', close); process.on('SIGINT', close);
+

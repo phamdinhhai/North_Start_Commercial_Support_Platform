@@ -1,0 +1,24 @@
+﻿{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Anonymous synthetic rehearsal attempt; empty preparation only",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["participant", "scenario", "attempt", "result", "unaidedSeconds", "assistedSeconds", "outageSeconds", "navigationInterventions", "conceptInterventions", "recoveryInterventions", "environmentInterventions", "comprehension", "trust", "error", "stopReason"],
+  "properties": {
+    "participant": { "enum": ["P01", "P02", "P03", "P04", "P05"] },
+    "scenario": { "enum": ["S01", "S02", "S03", "S04", "S05", "S06", "S07"] },
+    "attempt": { "type": "integer", "minimum": 1, "maximum": 20 },
+    "result": { "enum": ["completed-unaided", "completed-assisted", "incomplete", "abandoned", "stopped"] },
+    "unaidedSeconds": { "type": ["number", "null"], "minimum": 0, "maximum": 86400 },
+    "assistedSeconds": { "type": ["number", "null"], "minimum": 0, "maximum": 86400 },
+    "outageSeconds": { "type": "number", "minimum": 0, "maximum": 86400 },
+    "navigationInterventions": { "type": "integer", "minimum": 0, "maximum": 100 },
+    "conceptInterventions": { "type": "integer", "minimum": 0, "maximum": 100 },
+    "recoveryInterventions": { "type": "integer", "minimum": 0, "maximum": 100 },
+    "environmentInterventions": { "type": "integer", "minimum": 0, "maximum": 100 },
+    "comprehension": { "enum": ["correct", "partial", "incorrect", "not-assessed"] },
+    "trust": { "enum": ["appropriate-reliance", "overtrust", "undertrust", "not-assessed"] },
+    "error": { "enum": ["none", "401", "403", "409", "503", "network", "other-category"] },
+    "stopReason": { "enum": ["none", "withdrawal", "real-data", "access-boundary", "account-mixing", "authorization-pending", "environment"] }
+  }
+}
