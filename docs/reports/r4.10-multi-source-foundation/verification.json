@@ -362,8 +362,15 @@
         "Browser operator workflow:success"
       ]
     },
-    "current": "NOT VERIFIED",
-    "reason": "R4.10 not pushed; new phase requires explicit push approval"
+    "current": {
+      "status": "completed",
+      "conclusion": "success",
+      "runId": 44664427195,
+      "sha": "a2f1ca89a6c2fc04dd72304ae82a1ae7c5b00998",
+      "url": "https://github.com/phamdinhhai/North_Start_Commercial_Support_Platform/actions/runs/44664427195",
+      "evidence": "hosted-ci-verification.json"
+    },
+    "reason": "User explicitly approved R4.10 push and CI monitoring; exact source-equivalent hosted revision passed both jobs."
   },
   "readiness": {
     "PancakeSynthetic": "SYNTHETIC E2E VERIFIED on tested subset",
@@ -375,7 +382,7 @@
     "productionApproved": false,
     "humanValidation": "NOT RUN",
     "businessValidation": "NOT VALIDATED",
-    "gateA": "BASELINE PASS; R4.10 LOCAL PASS / HOSTED NOT VERIFIED",
+    "gateA": "PASS at exact hosted source-equivalent a2f1ca8 / run44664427195",
     "gateB": "CONDITIONAL",
     "gateC": "NOT READY FOR REAL CUSTOMER DATA"
   },
@@ -390,7 +397,7 @@
     "forcePush": false,
     "mainMerged": false,
     "productionDeployed": false,
-    "r410Pushed": false
+    "r410Pushed": true
   },
   "remainingLimits": [
     "no live transport/OAuth/vault/signature receiver",
