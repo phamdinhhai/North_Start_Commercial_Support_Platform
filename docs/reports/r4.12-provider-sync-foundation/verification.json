@@ -1,9 +1,9 @@
 {
   "schema_version": 1,
-  "recorded_at": "2026-11-20T15:03:33.563Z",
+  "recorded_at": "2026-11-20T15:13:44.019Z",
   "git": {
     "base_sha": "4503e80d54853b15da405f7c36df298aa0852eb0",
-    "source_sha": "41948f37a72d75e024ea115818e2834914232e92",
+    "source_sha": "81f3a5dc8437830ccdb658f57ac552b18c9fd66d",
     "branch": "feat/r412-provider-sync-foundation",
     "documentation_head": "Documentation-only commit containing this verification; final SHA in handover / git log -1",
     "baseline_source_sha": "4fe69e396f1db665e41c3ec4b8ad324e9dd2f92b",
@@ -17,7 +17,7 @@
     "node": "22.21.0",
     "npm": "10.9.0",
     "postgresql": "17.11",
-    "postgresql_final_port": 50685,
+    "postgresql_final_port": 61679,
     "chromium": "Playwright bundled headless Chromium",
     "env": {
       "CI": "true",
@@ -35,36 +35,36 @@
     "new_infra_dependencies": false
   },
   "run": {
-    "artifact_directory": "C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r412-final-reviewed-yGKLtm",
-    "source_sha": "41948f37a72d75e024ea115818e2834914232e92",
-    "mode": "r412-final-reviewed",
+    "artifact_directory": "C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r412-final-clean-xPpg2o",
+    "source_sha": "81f3a5dc8437830ccdb658f57ac552b18c9fd66d",
+    "mode": "r412-final-clean",
     "results": [
-      {"name":"pilot-research-safety","command":["C:\\Program Files\\nodejs\\node.exe","--test","scripts/pilot/safety.test.mjs","scripts/research/validate-observation.test.mjs"],"exit_code":0,"seconds":0,"log":"C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r412-final-reviewed-yGKLtm\\pilot-research-safety.log","result":"PASS","log_sha256":"f5c27933d0333005feb3e93ad90039872b9317dcb3723b3a49540214bb48d597","test_summary":["# pass 7","# skipped 0"]},
-      {"name":"typecheck","command":["C:\\Program Files\\nodejs\\node.exe","C:/Program Files/nodejs/node_modules/npm/bin/npm-cli.js","run","typecheck"],"exit_code":0,"seconds":6,"log":"C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r412-final-reviewed-yGKLtm\\typecheck.log","result":"PASS","log_sha256":"09b9a49f6769e2371ae5cfedc320845c173fe8c1356b69e516cecf3df4a23c7a","test_summary":[]},
-      {"name":"lint","command":["C:\\Program Files\\nodejs\\node.exe","C:/Program Files/nodejs/node_modules/npm/bin/npm-cli.js","run","lint"],"exit_code":0,"seconds":4,"log":"C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r412-final-reviewed-yGKLtm\\lint.log","result":"PASS","log_sha256":"ad43281dbc673e71b219a3b5f8bb1351cdbf31f778553f420b51e951f5ce0a46","test_summary":[]},
-      {"name":"architecture","command":["C:\\Program Files\\nodejs\\node.exe","C:/Program Files/nodejs/node_modules/npm/bin/npm-cli.js","run","architecture:check:strict"],"exit_code":0,"seconds":1,"log":"C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r412-final-reviewed-yGKLtm\\architecture.log","result":"PASS","log_sha256":"d77621a86ab9943075df85f3191a1cb7bb1df838338d769fe581a2ff13a87c50","test_summary":[]},
-      {"name":"registry","command":["C:\\Program Files\\nodejs\\node.exe","C:/Program Files/nodejs/node_modules/npm/bin/npm-cli.js","run","registry:validate"],"exit_code":0,"seconds":0,"log":"C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r412-final-reviewed-yGKLtm\\registry.log","result":"PASS","log_sha256":"9ba0b062f4ecd65b28129862b0b83b76af3684de213382c0d20ffa086be3ab85","test_summary":[]},
-      {"name":"integration-ci","command":["C:\\Program Files\\nodejs\\node.exe","C:/Program Files/nodejs/node_modules/npm/bin/npm-cli.js","run","test:integration:ci"],"exit_code":0,"seconds":66,"log":"C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r412-final-reviewed-yGKLtm\\integration-ci.log","result":"PASS","log_sha256":"996b919e70e48a5d2541c86e949b49eccb21784ea201f6966e1d28fd3ef1920d","test_summary":["Test Files  1 passed (1)","Tests  8 passed (8)","Test Files  1 passed (1)","Tests  3 passed (3)","Test Files  1 passed (1)","Tests  8 passed (8)","Test Files  1 passed (1)","Tests  2 passed (2)","Test Files  1 passed (1)","Tests  2 passed (2)","Test Files  1 passed (1)","Tests  8 passed (8)","Test Files  1 passed (1)","Tests  4 passed (4)","Test Files  1 passed (1)","Tests  10 passed (10)","Test Files  1 passed (1)","Tests  11 passed (11)","Test Files  1 passed (1)","Tests  5 passed (5)","Test Files  1 passed (1)","Tests  4 passed (4)","Test Files  1 passed (1)","Tests  7 passed (7)","Test Files  1 passed (1)","Tests  2 passed (2)","Test Files  1 passed (1)","Tests  2 passed (2)","Test Files  1 passed (1)","Tests  6 passed (6)","Test Files  1 passed (1)","Tests  4 passed (4)","Test Files  1 passed (1)","Tests  2 passed (2)","Test Files  1 passed (1)","Tests  2 passed (2)","Test Files  1 passed (1)","Tests  4 passed (4)","Test Files  1 passed (1)","Tests  2 passed (2)","Test Files  1 passed (1)","Tests  12 passed (12)","Test Files  1 passed (1)","Tests  7 passed (7)","Test Files  1 passed (1)","Tests  3 passed (3)","Test Files  1 passed (1)","Tests  2 passed (2)","Test Files  1 passed (1)","Tests  8 passed (8)","Test Files  1 passed (1)","Tests  5 passed (5)","Test Files  1 passed (1)","Tests  7 passed (7)","Test Files  1 passed (1)","Tests  4 passed (4)","Test Files  1 passed (1)","Tests  5 passed (5)","Test Files  1 passed (1)","Tests  8 passed (8)","Integration gate: 30 suites, 157 tests passed without skips"]},
-      {"name":"coverage","command":["C:\\Program Files\\nodejs\\node.exe","C:/Program Files/nodejs/node_modules/npm/bin/npm-cli.js","run","test:cov","--","--no-file-parallelism"],"exit_code":0,"seconds":107,"log":"C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r412-final-reviewed-yGKLtm\\coverage.log","result":"PASS","log_sha256":"b7c6c0b7aae2240264c345c717cb92c4ea8e35eb4f43ac3e321c1386d5de15d5","test_summary":["Test Files  155 passed (155)","Tests  1413 passed (1413)"]},
-      {"name":"build","command":["C:\\Program Files\\nodejs\\node.exe","C:/Program Files/nodejs/node_modules/npm/bin/npm-cli.js","run","build"],"exit_code":0,"seconds":10,"log":"C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r412-final-reviewed-yGKLtm\\build.log","result":"PASS","log_sha256":"4bc24afec50c327cef250b332ffda2df07d6c6766d549f4ee6b27ea4aaaebc3a","test_summary":[]},
-      {"name":"http-e2e","command":["C:\\Program Files\\nodejs\\node.exe","C:/Program Files/nodejs/node_modules/npm/bin/npm-cli.js","run","test:e2e"],"exit_code":0,"seconds":7,"log":"C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r412-final-reviewed-yGKLtm\\http-e2e.log","result":"PASS","log_sha256":"6371a0750ff5d9b6fd9a707465c570e4f5d032e4e6cad8d9b8cca2fc0ad50896","test_summary":["Test Files  3 passed (3)","Tests  22 passed (22)"]},
-      {"name":"browser","command":["C:\\Program Files\\nodejs\\node.exe","C:/Program Files/nodejs/node_modules/npm/bin/npm-cli.js","run","test:browser"],"exit_code":0,"seconds":18,"log":"C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r412-final-reviewed-yGKLtm\\browser.log","result":"PASS","log_sha256":"ddc7f8189bb672f721d04e321113b93e331c1033c2dc8321a6998eabf1343990","test_summary":["4 passed (17.4s)"]},
-      {"name":"component","command":["C:\\Program Files\\nodejs\\node.exe","node_modules/@playwright/test/cli.js","test","--config","playwright.operator-recovery.config.ts"],"exit_code":0,"seconds":6,"log":"C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r412-final-reviewed-yGKLtm\\component.log","result":"PASS","log_sha256":"236674ba6f30c83cc8024dd7f2cde97ceddb21f143289473696e83d2fe9ab8a0","test_summary":["10 passed (5.3s)"]},
-      {"name":"lifecycle-memory","command":["C:\\Program Files\\nodejs\\node.exe","node_modules/@playwright/test/cli.js","test","--config","playwright.lifecycle.config.ts"],"exit_code":0,"seconds":13,"log":"C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r412-final-reviewed-yGKLtm\\lifecycle-memory.log","result":"PASS","log_sha256":"eaa529e5d24c5b4937fd96028aae5628b91ad9a94a75bdc5d1f3b40a1076569c","test_summary":["1 passed (12.8s)"]},
-      {"name":"oidc-ui","command":["C:\\Program Files\\nodejs\\node.exe","node_modules/@playwright/test/cli.js","test","--config","playwright.oidc.config.ts"],"exit_code":0,"seconds":28,"log":"C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r412-final-reviewed-yGKLtm\\oidc-ui.log","result":"PASS","log_sha256":"1f2778a07225dd0b3b3d3558e7e1a02a6145b60f6ecc9ee58f9a9474fac13965","test_summary":["6 passed (27.5s)"]},
-      {"name":"source-ui","command":["C:\\Program Files\\nodejs\\node.exe","node_modules/@playwright/test/cli.js","test","--config","playwright.source-integration.config.ts"],"exit_code":0,"seconds":26,"log":"C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r412-final-reviewed-yGKLtm\\source-ui.log","result":"PASS","log_sha256":"49094efd2f6271c922608b958a5b0efbb85723d17cd77b6b7fd3afcbc4822392","test_summary":["1 passed (24.9s)"]},
-      {"name":"companion","command":["C:\\Program Files\\nodejs\\node.exe","C:/Program Files/nodejs/node_modules/npm/bin/npm-cli.js","run","test:companion"],"exit_code":0,"seconds":6,"log":"C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r412-final-reviewed-yGKLtm\\companion.log","result":"PASS","log_sha256":"e641f14df592ca1b949a99ffec918a83d6130ece576a436bc83181c84c44696a","test_summary":[]},
-      {"name":"packaging","command":["C:\\Program Files\\nodejs\\node.exe","--test","scripts/companion-package.test.mjs"],"exit_code":0,"seconds":1,"log":"C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r412-final-reviewed-yGKLtm\\packaging.log","result":"PASS","log_sha256":"a2e20d9c5c76be2521111d654596570a94e9dda9bb7a810023638f98a0d2c68f","test_summary":["# pass 7","# skipped 0"]},
-      {"name":"guardrails","command":["C:\\Program Files\\nodejs\\node.exe","--test","scripts/check-architecture.test.mjs","scripts/registry-validation.test.mjs","scripts/security-audit.test.mjs","scripts/backup-verify.test.mjs"],"exit_code":0,"seconds":1,"log":"C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r412-final-reviewed-yGKLtm\\guardrails.log","result":"PASS","log_sha256":"a9144d53799c22c69024aed5391d91e0ca8b044be6f9d781873f9ef62176862d","test_summary":["# pass 44","# skipped 0"]},
-      {"name":"ail-research","command":["C:\\Program Files\\nodejs\\node.exe","C:/Program Files/nodejs/node_modules/npm/bin/npm-cli.js","run","test:ail:research"],"exit_code":0,"seconds":2,"log":"C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r412-final-reviewed-yGKLtm\\ail-research.log","result":"PASS","log_sha256":"d6a6d6d4b3c3313210003ff71c25834eb7877a67ce48aeffec25fd265884809e","test_summary":["# pass 14","# skipped 0"]},
-      {"name":"restore","command":["C:\\Program Files\\nodejs\\node.exe","scripts/restore-rehearsal.mjs"],"exit_code":0,"seconds":5,"log":"C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r412-final-reviewed-yGKLtm\\restore.log","result":"PASS","log_sha256":"58a13ba67ad3ba8ccf9d40c839fb8fd3c68ad065ab48824c3a10818b8a7b5ae8","test_summary":[]},
-      {"name":"audit","command":["C:\\Program Files\\nodejs\\node.exe","C:/Program Files/nodejs/node_modules/npm/bin/npm-cli.js","run","security:audit"],"exit_code":0,"seconds":4,"log":"C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r412-final-reviewed-yGKLtm\\audit.log","result":"PASS","log_sha256":"57e8b10012c380383e853728fe570a8746171dc602003a7af2be5786773033e3","test_summary":[]},
-      {"name":"r411-browser","command":["C:\\Program Files\\nodejs\\node.exe","node_modules/@playwright/test/cli.js","test","--config","playwright.r411.config.ts"],"exit_code":0,"seconds":19,"log":"C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r412-final-reviewed-yGKLtm\\r411-browser.log","result":"PASS","log_sha256":"fbdef4458a734564ec850d2a6d8c03149fa2376989e12a7a6a4f322f83a97f85","test_summary":["2 passed (18.5s)"]},
-      {"name":"pilot-launcher","command":["C:\\Program Files\\nodejs\\node.exe","C:/Users/admin/AppData/Local/Temp/north-r411-pilot-verify.mjs"],"exit_code":0,"seconds":31,"log":"C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r412-final-reviewed-yGKLtm\\pilot-launcher.log","result":"PASS","log_sha256":"ba14af007dedbe1cef2fa4535503528e13cab26dca504cd788ffbe9ee40e07a8","test_summary":[]},
-      {"name":"benchmark","command":["C:\\Program Files\\nodejs\\node.exe","scripts/source-integration-benchmark.mjs"],"exit_code":0,"seconds":3,"log":"C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r412-final-reviewed-yGKLtm\\benchmark.log","result":"PASS","log_sha256":"e71735b82ee32680db2ac1e58547515fff284039ccf8c30a2bba741999065f8b","test_summary":[]},
-      {"name":"r412-browser","command":["C:\\Program Files\\nodejs\\node.exe","node_modules/@playwright/test/cli.js","test","--config","playwright.r412.config.ts"],"exit_code":0,"seconds":17,"log":"C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r412-final-reviewed-yGKLtm\\r412-browser.log","result":"PASS","log_sha256":"a0b2b7e5078aa1ced6f2388033a7b6eba403905359c13e045936158b69beda2d","test_summary":["1 passed (16.2s)"]},
-      {"name":"sync-recovery","command":["C:\\Program Files\\nodejs\\node.exe","scripts/sync-recovery-rehearsal.mjs"],"exit_code":0,"seconds":3,"log":"C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r412-final-reviewed-yGKLtm\\sync-recovery.log","result":"PASS","log_sha256":"8d5db602f4eeeaca4a1baeabf89fed87c4cc120923131028abef4955ef13e8c7","test_summary":[]},
-      {"name":"sync-benchmark","command":["C:\\Program Files\\nodejs\\node.exe","scripts/sync-benchmark.mjs"],"exit_code":0,"seconds":2,"log":"C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r412-final-reviewed-yGKLtm\\sync-benchmark.log","result":"PASS","log_sha256":"22724bf5c81fcb6d3f08c39d99ae32288d8c0ff9171ae501a13667bea1d59553","test_summary":[]}
+      {"name":"pilot-research-safety","command":["C:\\Program Files\\nodejs\\node.exe","--test","scripts/pilot/safety.test.mjs","scripts/research/validate-observation.test.mjs"],"exit_code":0,"seconds":0,"log":"C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r412-final-clean-xPpg2o\\pilot-research-safety.log","result":"PASS","log_sha256":"23e51e43a60153a7d222e035b39f256037161ed871b5c66ad080228b7f1521d6","test_summary":["# pass 7","# skipped 0"]},
+      {"name":"typecheck","command":["C:\\Program Files\\nodejs\\node.exe","C:/Program Files/nodejs/node_modules/npm/bin/npm-cli.js","run","typecheck"],"exit_code":0,"seconds":9,"log":"C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r412-final-clean-xPpg2o\\typecheck.log","result":"PASS","log_sha256":"09b9a49f6769e2371ae5cfedc320845c173fe8c1356b69e516cecf3df4a23c7a","test_summary":[]},
+      {"name":"lint","command":["C:\\Program Files\\nodejs\\node.exe","C:/Program Files/nodejs/node_modules/npm/bin/npm-cli.js","run","lint"],"exit_code":0,"seconds":5,"log":"C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r412-final-clean-xPpg2o\\lint.log","result":"PASS","log_sha256":"ad43281dbc673e71b219a3b5f8bb1351cdbf31f778553f420b51e951f5ce0a46","test_summary":[]},
+      {"name":"architecture","command":["C:\\Program Files\\nodejs\\node.exe","C:/Program Files/nodejs/node_modules/npm/bin/npm-cli.js","run","architecture:check:strict"],"exit_code":0,"seconds":1,"log":"C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r412-final-clean-xPpg2o\\architecture.log","result":"PASS","log_sha256":"d77621a86ab9943075df85f3191a1cb7bb1df838338d769fe581a2ff13a87c50","test_summary":[]},
+      {"name":"registry","command":["C:\\Program Files\\nodejs\\node.exe","C:/Program Files/nodejs/node_modules/npm/bin/npm-cli.js","run","registry:validate"],"exit_code":0,"seconds":0,"log":"C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r412-final-clean-xPpg2o\\registry.log","result":"PASS","log_sha256":"9ba0b062f4ecd65b28129862b0b83b76af3684de213382c0d20ffa086be3ab85","test_summary":[]},
+      {"name":"integration-ci","command":["C:\\Program Files\\nodejs\\node.exe","C:/Program Files/nodejs/node_modules/npm/bin/npm-cli.js","run","test:integration:ci"],"exit_code":0,"seconds":71,"log":"C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r412-final-clean-xPpg2o\\integration-ci.log","result":"PASS","log_sha256":"b6716ba055ae098cf3ec9c571cfc7578494551086dd163b1e26ae5ab591976f4","test_summary":["Test Files  1 passed (1)","Tests  8 passed (8)","Test Files  1 passed (1)","Tests  3 passed (3)","Test Files  1 passed (1)","Tests  8 passed (8)","Test Files  1 passed (1)","Tests  2 passed (2)","Test Files  1 passed (1)","Tests  2 passed (2)","Test Files  1 passed (1)","Tests  8 passed (8)","Test Files  1 passed (1)","Tests  4 passed (4)","Test Files  1 passed (1)","Tests  10 passed (10)","Test Files  1 passed (1)","Tests  11 passed (11)","Test Files  1 passed (1)","Tests  5 passed (5)","Test Files  1 passed (1)","Tests  4 passed (4)","Test Files  1 passed (1)","Tests  7 passed (7)","Test Files  1 passed (1)","Tests  2 passed (2)","Test Files  1 passed (1)","Tests  2 passed (2)","Test Files  1 passed (1)","Tests  6 passed (6)","Test Files  1 passed (1)","Tests  4 passed (4)","Test Files  1 passed (1)","Tests  2 passed (2)","Test Files  1 passed (1)","Tests  2 passed (2)","Test Files  1 passed (1)","Tests  4 passed (4)","Test Files  1 passed (1)","Tests  2 passed (2)","Test Files  1 passed (1)","Tests  12 passed (12)","Test Files  1 passed (1)","Tests  7 passed (7)","Test Files  1 passed (1)","Tests  3 passed (3)","Test Files  1 passed (1)","Tests  2 passed (2)","Test Files  1 passed (1)","Tests  8 passed (8)","Test Files  1 passed (1)","Tests  5 passed (5)","Test Files  1 passed (1)","Tests  7 passed (7)","Test Files  1 passed (1)","Tests  4 passed (4)","Test Files  1 passed (1)","Tests  5 passed (5)","Test Files  1 passed (1)","Tests  8 passed (8)","Integration gate: 30 suites, 157 tests passed without skips"]},
+      {"name":"coverage","command":["C:\\Program Files\\nodejs\\node.exe","C:/Program Files/nodejs/node_modules/npm/bin/npm-cli.js","run","test:cov","--","--no-file-parallelism"],"exit_code":0,"seconds":123,"log":"C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r412-final-clean-xPpg2o\\coverage.log","result":"PASS","log_sha256":"6cdf75b798323e4815c9e543ab009dde0ee3698abaa4336cd81c4903f78a23b0","test_summary":["Test Files  155 passed (155)","Tests  1413 passed (1413)"]},
+      {"name":"build","command":["C:\\Program Files\\nodejs\\node.exe","C:/Program Files/nodejs/node_modules/npm/bin/npm-cli.js","run","build"],"exit_code":0,"seconds":10,"log":"C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r412-final-clean-xPpg2o\\build.log","result":"PASS","log_sha256":"4bc24afec50c327cef250b332ffda2df07d6c6766d549f4ee6b27ea4aaaebc3a","test_summary":[]},
+      {"name":"http-e2e","command":["C:\\Program Files\\nodejs\\node.exe","C:/Program Files/nodejs/node_modules/npm/bin/npm-cli.js","run","test:e2e"],"exit_code":0,"seconds":7,"log":"C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r412-final-clean-xPpg2o\\http-e2e.log","result":"PASS","log_sha256":"23ce982303ddc66d8a8533c7a09c88d68a41a0d88ab548ee15209728e57e92de","test_summary":["Test Files  3 passed (3)","Tests  22 passed (22)"]},
+      {"name":"browser","command":["C:\\Program Files\\nodejs\\node.exe","C:/Program Files/nodejs/node_modules/npm/bin/npm-cli.js","run","test:browser"],"exit_code":0,"seconds":20,"log":"C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r412-final-clean-xPpg2o\\browser.log","result":"PASS","log_sha256":"b5d2c0661d8a3580ede0554d47bf4ad4b92bec16644f360d184faabd4d5b75b1","test_summary":["4 passed (18.7s)"]},
+      {"name":"component","command":["C:\\Program Files\\nodejs\\node.exe","node_modules/@playwright/test/cli.js","test","--config","playwright.operator-recovery.config.ts"],"exit_code":0,"seconds":7,"log":"C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r412-final-clean-xPpg2o\\component.log","result":"PASS","log_sha256":"26ba3ee603b2732a755a45020d70d6a387f6a7613979ccc42d8905fa66a580f3","test_summary":["10 passed (6.0s)"]},
+      {"name":"lifecycle-memory","command":["C:\\Program Files\\nodejs\\node.exe","node_modules/@playwright/test/cli.js","test","--config","playwright.lifecycle.config.ts"],"exit_code":0,"seconds":16,"log":"C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r412-final-clean-xPpg2o\\lifecycle-memory.log","result":"PASS","log_sha256":"d62572c5a7a66773fa7375bc43ead2034b116e305e67ce75c61cdb8dac5b82ac","test_summary":["1 passed (15.1s)"]},
+      {"name":"oidc-ui","command":["C:\\Program Files\\nodejs\\node.exe","node_modules/@playwright/test/cli.js","test","--config","playwright.oidc.config.ts"],"exit_code":0,"seconds":28,"log":"C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r412-final-clean-xPpg2o\\oidc-ui.log","result":"PASS","log_sha256":"3a07cea4c0fce04847b9d2a3995afb127f61ad82e64c8cc28531a08c8fe7bf92","test_summary":["6 passed (27.6s)"]},
+      {"name":"source-ui","command":["C:\\Program Files\\nodejs\\node.exe","node_modules/@playwright/test/cli.js","test","--config","playwright.source-integration.config.ts"],"exit_code":0,"seconds":21,"log":"C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r412-final-clean-xPpg2o\\source-ui.log","result":"PASS","log_sha256":"e509be59f7e26655f92d6a455bc0c13e9602402627a2a4cc1e6684200129dd77","test_summary":["1 passed (20.3s)"]},
+      {"name":"companion","command":["C:\\Program Files\\nodejs\\node.exe","C:/Program Files/nodejs/node_modules/npm/bin/npm-cli.js","run","test:companion"],"exit_code":0,"seconds":5,"log":"C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r412-final-clean-xPpg2o\\companion.log","result":"PASS","log_sha256":"e641f14df592ca1b949a99ffec918a83d6130ece576a436bc83181c84c44696a","test_summary":[]},
+      {"name":"packaging","command":["C:\\Program Files\\nodejs\\node.exe","--test","scripts/companion-package.test.mjs"],"exit_code":0,"seconds":1,"log":"C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r412-final-clean-xPpg2o\\packaging.log","result":"PASS","log_sha256":"2f2b4cbc5d85c84c318e4adf443d5173330e94c65582ad92cf7abdbe804e29c0","test_summary":["# pass 7","# skipped 0"]},
+      {"name":"guardrails","command":["C:\\Program Files\\nodejs\\node.exe","--test","scripts/check-architecture.test.mjs","scripts/registry-validation.test.mjs","scripts/security-audit.test.mjs","scripts/backup-verify.test.mjs"],"exit_code":0,"seconds":1,"log":"C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r412-final-clean-xPpg2o\\guardrails.log","result":"PASS","log_sha256":"6c000f68cf6647f7a28217cd4d5b3e11d687679c68848187161c83bb7b4189b2","test_summary":["# pass 44","# skipped 0"]},
+      {"name":"ail-research","command":["C:\\Program Files\\nodejs\\node.exe","C:/Program Files/nodejs/node_modules/npm/bin/npm-cli.js","run","test:ail:research"],"exit_code":0,"seconds":2,"log":"C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r412-final-clean-xPpg2o\\ail-research.log","result":"PASS","log_sha256":"1ec20b4bc50147ca6ccac3b25587c3e3f65de66c9dc944cb686c0f1ab893cb9a","test_summary":["# pass 14","# skipped 0"]},
+      {"name":"restore","command":["C:\\Program Files\\nodejs\\node.exe","scripts/restore-rehearsal.mjs"],"exit_code":0,"seconds":6,"log":"C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r412-final-clean-xPpg2o\\restore.log","result":"PASS","log_sha256":"4d5f48116fb1e70afc3ff8fc6a8dae87d69d9809cfcce5270f52f5d706ab23ba","test_summary":[]},
+      {"name":"audit","command":["C:\\Program Files\\nodejs\\node.exe","C:/Program Files/nodejs/node_modules/npm/bin/npm-cli.js","run","security:audit"],"exit_code":0,"seconds":5,"log":"C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r412-final-clean-xPpg2o\\audit.log","result":"PASS","log_sha256":"57e8b10012c380383e853728fe570a8746171dc602003a7af2be5786773033e3","test_summary":[]},
+      {"name":"r411-browser","command":["C:\\Program Files\\nodejs\\node.exe","node_modules/@playwright/test/cli.js","test","--config","playwright.r411.config.ts"],"exit_code":0,"seconds":28,"log":"C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r412-final-clean-xPpg2o\\r411-browser.log","result":"PASS","log_sha256":"ff1feafc7cc01283df6b8df8d27c3701f970fba3ca6f39747949f175b73f2f34","test_summary":["2 passed (26.5s)"]},
+      {"name":"pilot-launcher","command":["C:\\Program Files\\nodejs\\node.exe","C:/Users/admin/AppData/Local/Temp/north-r411-pilot-verify.mjs"],"exit_code":0,"seconds":39,"log":"C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r412-final-clean-xPpg2o\\pilot-launcher.log","result":"PASS","log_sha256":"cb0d803464355aed63f1518c41862479e6dd67f1a88b26cac2385ac899958e0a","test_summary":[]},
+      {"name":"benchmark","command":["C:\\Program Files\\nodejs\\node.exe","scripts/source-integration-benchmark.mjs"],"exit_code":0,"seconds":4,"log":"C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r412-final-clean-xPpg2o\\benchmark.log","result":"PASS","log_sha256":"1aac0c42851cf938c20670af0aed562a7a20ab905c55b4211ffb302d1f97dd96","test_summary":[]},
+      {"name":"r412-browser","command":["C:\\Program Files\\nodejs\\node.exe","node_modules/@playwright/test/cli.js","test","--config","playwright.r412.config.ts"],"exit_code":0,"seconds":25,"log":"C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r412-final-clean-xPpg2o\\r412-browser.log","result":"PASS","log_sha256":"120cc34daa3e93276bd348ddf7a02e03a93043f5c4f882806d1b2dcdc45d5c60","test_summary":["1 passed (24.5s)"]},
+      {"name":"sync-recovery","command":["C:\\Program Files\\nodejs\\node.exe","scripts/sync-recovery-rehearsal.mjs"],"exit_code":0,"seconds":4,"log":"C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r412-final-clean-xPpg2o\\sync-recovery.log","result":"PASS","log_sha256":"c917c4ef3d9b62226f8aec74ddced3078c6f646ea1cd398ba031fa45a19ca536","test_summary":[]},
+      {"name":"sync-benchmark","command":["C:\\Program Files\\nodejs\\node.exe","scripts/sync-benchmark.mjs"],"exit_code":0,"seconds":3,"log":"C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r412-final-clean-xPpg2o\\sync-benchmark.log","result":"PASS","log_sha256":"a140a055fbd64cee49fb1d1505c769d653428edaa4053a0cc285c3ab3bb90905","test_summary":[]}
     ],
     "count": 26,
     "passed": 26,
@@ -86,13 +86,13 @@
       "total": 5554
     },
     "statements": {
-      "percent": 88.65,
-      "covered": 6532,
+      "percent": 88.59,
+      "covered": 6528,
       "total": 7368
     },
     "branches": {
-      "percent": 86.22,
-      "covered": 6092,
+      "percent": 86.18,
+      "covered": 6089,
       "total": 7065
     },
     "functions": {
@@ -100,12 +100,12 @@
       "covered": 1483,
       "total": 1627
     },
-    "lcov_sha256": "989c64b027931febd605413621cbe1e1dcddc91b2b5b397006e5771abb4ee64b",
+    "lcov_sha256": "a5b466cd4c2f2a476756704a2cd7abe6f0e79e16f74b5d2a2650d1657b94ceec",
     "security_boundary_note": "credential-binding5/5lines7/7branches; credential store60/60lines; fabricated admission16/16lines; checkpoint store45/45lines; not full security or provider approval"
   },
   "recovery": {
     "result": "PASS",
-    "sourceSha": "41948f37a72d75e024ea115818e2834914232e92",
+    "sourceSha": "81f3a5dc8437830ccdb658f57ac552b18c9fd66d",
     "syntheticOnly": true,
     "actualWorkerExit": 73,
     "restartedFromPage": 3,
@@ -114,7 +114,7 @@
     "unassignedLeads": 3,
     "networkCalls": 0,
     "productionSla": "NOT_ESTABLISHED",
-    "log_sha256": "8d5db602f4eeeaca4a1baeabf89fed87c4cc120923131028abef4955ef13e8c7"
+    "log_sha256": "c917c4ef3d9b62226f8aec74ddced3078c6f646ea1cd398ba031fa45a19ca536"
   },
   "restore": {
     "result": "PASS",
@@ -123,47 +123,47 @@
     "sync_checkpoint_replay": true,
     "fabricated_delivery_replay": true,
     "tables": {
-      "schema_migrations": {"count":23,"hmacSha256":"8e9afa9fddb17c734bfcfe832e10ec8c4bd97718e3ebbeef53fb00099088bf2a"},
-      "workspace": {"count":1,"hmacSha256":"16bdf433ef0acfb83af9e74bffb83d8df09d0d0b6ebb5620d159028af800a2a1"},
-      "integration_enrollment": {"count":1,"hmacSha256":"1adaa439a692da7df09b3b141e399db17913eaa763ef3fcb4327155a86d3fcab"},
-      "integration_receipt": {"count":1,"hmacSha256":"bc7f46c81f37822c5226b76f1e2cf781f43b77ecd34445f35a23a9cfa6d74e60"},
-      "integration_audit": {"count":1,"hmacSha256":"decf2b2aa5795a4131462ebe8b1b4e982ea50b800c71d4c887bf6e029a3aefe8"},
-      "lead": {"count":2,"hmacSha256":"7a2154ee82e5d52007ce30ae5e7fa2ba3255fdee484bbbe926f78270d68a6595"},
-      "commercial_envelope": {"count":2,"hmacSha256":"c189fb536f96905bac33588cc3c0b0126970409a4866f92da9b7d2c59c970c34"},
-      "source_connection": {"count":1,"hmacSha256":"1c3be43bd7bf05be1e56afe9bc1510cc0920f59a20f7b4ba7958a1af0c34e170"},
-      "source_native_message": {"count":2,"hmacSha256":"a673eb87aa8bcca04d5b85c74b898308ac168642d1a99dee01a3649d2e3d85da"},
-      "source_receipt": {"count":2,"hmacSha256":"5d486e2e5782cedbe9818f8262a6d198cf9823b5cfa467ce60ac47cdbb6464cb"},
-      "source_episode_link": {"count":1,"hmacSha256":"b1ca3fd1bfd8f443f0abc02fcafc311f44feaa0f04bf5f94aaba66b2d6a37901"},
-      "sync_stream": {"count":1,"hmacSha256":"de3bb8462c40a3632f2e186f898fb1c9d7d82c52adea817ec11f7a7f70438962"},
-      "sync_page_commit": {"count":1,"hmacSha256":"60eae968355e1701a83423601bb83503ba66287095e16a021d8b7a37e25213be"},
-      "fabricated_delivery": {"count":1,"hmacSha256":"0d356702d79b736dd4a260297f2cfe4d729c90af2f61c15b79464cb299728ca5"},
-      "fabricated_delivery_attempt": {"count":1,"hmacSha256":"77fd75344d03ffbada04ec0bc39394f74f3a5edf54593531b356ebb8bb2af4c1"},
-      "audit_record": {"count":7,"hmacSha256":"b580ad429bc3481372a6a0900450d00b3494c81ae14ee9cfbde6d212576f5ac5"}
+      "schema_migrations": {"count":23,"hmacSha256":"3f16fb8871d2b456ef814cd8677a1f61ae56b8143b73fc4d96922eb21267b273"},
+      "workspace": {"count":1,"hmacSha256":"a268ebe59e434665e5fd94dd7da4ddfc38fe429a700fb0360eef8e0ec9f6165a"},
+      "integration_enrollment": {"count":1,"hmacSha256":"1c1183642af34b1a206d478a2b9b4c31159c980457d134a44875126baf0d5d0d"},
+      "integration_receipt": {"count":1,"hmacSha256":"6b7f4b675db8c47a97fd51d83aebcb3117e960eb5b9f320f40eed9f0bbe5b7ef"},
+      "integration_audit": {"count":1,"hmacSha256":"1c07587582b49989801e3368f77c443df6ea1bca235611e77cf55726ade084a0"},
+      "lead": {"count":2,"hmacSha256":"7cf8851564edea09536a15a20b005557a8f641e85625eed72839ead047335fcc"},
+      "commercial_envelope": {"count":2,"hmacSha256":"1df32743aeba9ee36a32ad6868cc4dfb21dcaabb25fdf9d44b6fecd47dbae9d1"},
+      "source_connection": {"count":1,"hmacSha256":"48fd95c428bd0d07b22a9fc65afecd23bba1b07674278598cdc5942cc56c9204"},
+      "source_native_message": {"count":2,"hmacSha256":"d16df209c0e049301bfb5567487b29535fef9f30622eca3cf06c347a2ae8447a"},
+      "source_receipt": {"count":2,"hmacSha256":"9d77877763ae78ae7131f65393e1b619f6530e08886e87e5cd427c97036d10cc"},
+      "source_episode_link": {"count":1,"hmacSha256":"034a018c5686ba072341c467fb875617960d8f5413e165dd935f6838e54c3665"},
+      "sync_stream": {"count":1,"hmacSha256":"238a148a1f3e7800ae34a9f7e37e4991e9bc824aebe8d45d5e438c340662d0c2"},
+      "sync_page_commit": {"count":1,"hmacSha256":"1423a06c897ee0f4df18cefb4cd4cef78ca04fafe53fdab9b2b15371458553cb"},
+      "fabricated_delivery": {"count":1,"hmacSha256":"55c4fcf85bb4a44969e980ead1821db6cb8cce4fe3729dbd9035d2d877ace3a7"},
+      "fabricated_delivery_attempt": {"count":1,"hmacSha256":"c5d190671fac6ecf5e503a0aaa42beb4137b7a6aa1985bcb2771c57eec11e6fc"},
+      "audit_record": {"count":7,"hmacSha256":"3da6b1061a8f8289606bd2aeeb8fb4e05d8530b1a8eb7e39432c486ee551754e"}
     },
-    "archive_sha256": "baa2ac623d6de822db67ac46f791bf7cadef8bb675c1641e0dadb3ef1f81efb4",
-    "restore_ms": 367,
-    "rehearsal_ms": 1075,
-    "log_sha256": "58a13ba67ad3ba8ccf9d40c839fb8fd3c68ad065ab48824c3a10818b8a7b5ae8",
+    "archive_sha256": "137f8c2d1b45251ef6175517472b18145e32aacf1689f64a931ae4fac67491f2",
+    "restore_ms": 676,
+    "rehearsal_ms": 1233,
+    "log_sha256": "4d5f48116fb1e70afc3ff8fc6a8dae87d69d9809cfcce5270f52f5d706ab23ba",
     "sla": "NOT_ESTABLISHED"
   },
   "benchmark": {
     "result": "PASS",
-    "sourceSha": "41948f37a72d75e024ea115818e2834914232e92",
+    "sourceSha": "81f3a5dc8437830ccdb658f57ac552b18c9fd66d",
     "syntheticOnly": true,
     "results": {
-      "sequentialSameStream": {"samples":32,"workers":1,"p50Ms":6.458399999999983,"p95Ms":8.600999999999885,"elapsedMs":214.43859999999984,"maxObservedPoolQueue":0},
-      "parallelEightStreams": {"samples":64,"workers":8,"p50Ms":31.676799999999957,"p95Ms":72.58770000000004,"elapsedMs":267.6889000000001,"maxObservedPoolQueue":0},
-      "samePageReplay": {"samples":32,"workers":1,"p50Ms":2.304499999999962,"p95Ms":2.942800000000034,"elapsedMs":75.2340999999999,"maxObservedPoolQueue":0}
+      "sequentialSameStream": {"samples":32,"workers":1,"p50Ms":12.724699999999984,"p95Ms":21.092599999999948,"elapsedMs":439.64649999999983,"maxObservedPoolQueue":0},
+      "parallelEightStreams": {"samples":64,"workers":8,"p50Ms":51.02060000000006,"p95Ms":129.70690000000013,"elapsedMs":449.9106999999999,"maxObservedPoolQueue":0},
+      "samePageReplay": {"samples":32,"workers":1,"p50Ms":7.033800000000156,"p95Ms":10.889200000000073,"elapsedMs":231.60530000000017,"maxObservedPoolQueue":0}
     },
     "receipts": 96,
     "deadlocks": 0,
     "limitations": "Single local run,32/64samples,claim+commit latency,8workers; no production throughput/SLO or p99 claim",
-    "log_sha256": "22724bf5c81fcb6d3f08c39d99ae32288d8c0ff9171ae501a13667bea1d59553"
+    "log_sha256": "a140a055fbd64cee49fb1d1505c769d653428edaa4053a0cc285c3ab3bb90905"
   },
   "legacy_intake_benchmark": {
-    "log": "C:/Users/admin/AppData/Local/Temp/north-r47-r412-final-reviewed-yGKLtm/benchmark.log",
-    "sha256": "e71735b82ee32680db2ac1e58547515fff284039ccf8c30a2bba741999065f8b",
-    "note": "Separate R4.11-style baseline-preservation workload; does not prove provider scalability"
+    "log": "C:/Users/admin/AppData/Local/Temp/north-r47-r412-final-clean-xPpg2o/benchmark.log",
+    "sha256": "1aac0c42851cf938c20670af0aed562a7a20ab905c55b4211ffb302d1f97dd96",
+    "note": "Separate baseline-preservation workload; no provider capacity claim"
   },
   "external_runners": [
     {
@@ -192,7 +192,8 @@
     "Mandatory explicit deployment mode added; a manual call without mode refused TEST_ONLY; test fixture now sets mode explicitly",
     "New migration registry cherry-pick conflicted; root retained both new suites and correct001?023 inventory; no historicalSQL edit",
     "Before-fetch credential admission and profile-only signed-delivery scope findings corrected with direct negative tests",
-    "Final source added4tests after first successful26lane run; final155files1413tests and26lane rerun supersede earliercounts"
+    "Final source added4tests after first successful26lane run; final155files1413tests and26lane rerun supersede earliercounts",
+    "Final baseline-to-HEAD git diff --check found trailing blank lines at6new file ends; fixed only final whitespace in81f3a5d, independently compared trimEnd equality and reran all26 exact-source lanes PASS."
   ],
   "agents": [
     {
@@ -268,9 +269,12 @@
   },
   "source_changed_paths": [
     ".github/workflows/ci.yml",
+    "docs/reports/r4.12-provider-sync-foundation/architecture-decisions.md",
     "docs/reports/r4.12-provider-sync-foundation/baseline-audit.md",
     "docs/reports/r4.12-provider-sync-foundation/checkpoint-and-recovery-tests.md",
     "docs/reports/r4.12-provider-sync-foundation/credential-security-design.md",
+    "docs/reports/r4.12-provider-sync-foundation/final-report.md",
+    "docs/reports/r4.12-provider-sync-foundation/findings-and-limitations.md",
     "docs/reports/r4.12-provider-sync-foundation/hosted-acceptance-addendum.md",
     "docs/reports/r4.12-provider-sync-foundation/identity-continuity-review.md",
     "docs/reports/r4.12-provider-sync-foundation/independent-qa-review-final.md",
@@ -278,8 +282,10 @@
     "docs/reports/r4.12-provider-sync-foundation/meta-contract-assessment.md",
     "docs/reports/r4.12-provider-sync-foundation/multi-agent-task-matrix.md",
     "docs/reports/r4.12-provider-sync-foundation/operator-data-health.md",
+    "docs/reports/r4.12-provider-sync-foundation/operator-runbook.md",
     "docs/reports/r4.12-provider-sync-foundation/pancake-contract-assessment.md",
     "docs/reports/r4.12-provider-sync-foundation/provider-admission-matrix.md",
+    "docs/reports/r4.12-provider-sync-foundation/release-gates.md",
     "docs/reports/r4.12-provider-sync-foundation/sandbox-admission-checklist.md",
     "docs/reports/r4.12-provider-sync-foundation/synchronization-architecture.md",
     "docs/reports/r4.12-provider-sync-foundation/verification.json",
@@ -336,7 +342,8 @@
     "first_final_cluster": "STOPPED_BY_RUNNER",
     "final_reviewed_cluster": "STOPPED_BY_RUNNER",
     "generated_launcher_fixtures": "STOPPED_BY_RUNNER",
-    "owner_resources": "UNTOUCHED"
+    "owner_resources": "UNTOUCHED",
+    "final_clean_cluster": "STOPPED_BY_RUNNER"
   },
   "limitations": [
     "Trusted authorization/persistence callbacks must terminate; only request has enforced timeout/abort",
@@ -346,5 +353,27 @@
     "Failed-page/event history counts NOT_PERSISTED; external lag/completeness UNKNOWN",
     "No customer merge/automatic episode segmentation/intake attach/outcome/owner inference",
     "No production SLO,RTO,RPO,real-data lifecycle or human usability approval"
-  ]
+  ],
+  "prior_reviewed_run": {
+    "source_sha": "41948f37a72d75e024ea115818e2834914232e92",
+    "results_json": "C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r412-final-reviewed-yGKLtm/results.json",
+    "sha256": "6a2c717af71bf715f0b12961101941b1201b6be1272109ecb71aaee574818375",
+    "lanes": 26,
+    "coverage": {
+      "lines": {"percent":92.77,"covered":5153,"total":5554},
+      "statements": {"percent":88.59,"covered":6528,"total":7368},
+      "branches": {"percent":86.18,"covered":6089,"total":7065},
+      "functions": {"percent":91.14,"covered":1483,"total":1627},
+      "lcov_sha256": "a5b466cd4c2f2a476756704a2cd7abe6f0e79e16f74b5d2a2650d1657b94ceec",
+      "security_boundary_note": "credential-binding5/5lines7/7branches; credential store60/60lines; fabricated admission16/16lines; checkpoint store45/45lines; not full security or provider approval"
+    },
+    "note": "Successful26lane reviewed run; final diff gate then found trailing blank lines in6new files. Whitespace-only correction re-ran all26 at final81f3a5d."
+  },
+  "whitespace_correction": {
+    "artifact": "C:/Users/admin/AppData/Local/Temp/north-r412-whitespace-check.json",
+    "sha256": "8ec0791b970586e0234de81e7be7935a43e5a812244b1279baf3f8fab034551e",
+    "source_before": "41948f37a72d75e024ea115818e2834914232e92",
+    "source_after": "81f3a5dc8437830ccdb658f57ac552b18c9fd66d",
+    "diff_gate": "PASS"
+  }
 }

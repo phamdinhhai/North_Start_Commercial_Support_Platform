@@ -2,7 +2,7 @@
 
 | Gate | Status | Basis / pending evidence |
 |---|---|---|
-| Gate A technical regression | PASS ? local exact revision41948f3; hosted R4.12 NOT RUN | 26/26 lanes PASS,1,413 Vitest tests including 157 PostgreSQL, zero skipped,92.77% line coverage; baseline counts are not reused |
+| Gate A technical regression | PASS - local exact revision `81f3a5d`; hosted R4.12 NOT RUN | 26/26 lanes PASS,1,413 Vitest tests including 157 PostgreSQL, zero skipped,92.77% line coverage; baseline counts are not reused |
 | Gate B human synthetic pilot | CONDITIONAL | Project Owner operator confirmed; Sales session, participants/observers and observation policy not approved/executed; human testing NOT RUN |
 | Provider Admission | OFFLINE VERIFIED for tested fabricated subsets; AUTHORIZATION PENDING for any provider account | No account entitlement, approved vault, sandbox assets, live receiver or network activation |
 | Gate C real customer data | NOT READY FOR REAL CUSTOMER DATA | Retention/deletion/anonymization/legal hold, real IdP/session/security acceptance, key custody, backup/downstream erasure and privacy/operating approval remain pending |

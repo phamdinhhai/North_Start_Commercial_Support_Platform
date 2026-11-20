@@ -1,6 +1,6 @@
 ﻿# Findings, corrections and residual limits
 
-Findings distinguish baseline limitations, new implementation review findings, demonstrated failures and future live risks. No P0 is assigned from hypothetical provider behavior. Final source/test revision:41948f37a72d75e024ea115818e2834914232e92.
+Findings distinguish baseline limitations, new implementation review findings, demonstrated failures and future live risks. No P0 is assigned from hypothetical provider behavior. Final source/test revision:81f3a5dc8437830ccdb658f57ac552b18c9fd66d.
 
 | ID / severity | Classification | Exact seam | Evidence and correction | Remaining limit |
 |---|---|---|---|---|
