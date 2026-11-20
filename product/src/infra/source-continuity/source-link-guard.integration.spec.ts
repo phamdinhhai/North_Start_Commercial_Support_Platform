@@ -1,5 +1,6 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { randomUUID } from 'node:crypto';
+import { Client } from 'pg';
 import { PostgresService } from '../postgres/postgres.service';
 import { Migrator, loadMigrations } from '../postgres/migrator';
 import { PgSourceIntegrationStore } from '../source-integration/pg-source-integration.store';
@@ -10,6 +11,9 @@ import type { SourceReceipt } from '../../ports/source-observation';
 
 const suite = process.env.TEST_DATABASE_URL ? describe : describe.skip;
 suite('021 additive immutable receipt tuple guard', () => {
+  const databaseName = `source_guard_${randomUUID().replace(/-/g,'')}`;
+  const target = (name:string) => { const url=new URL(process.env.TEST_DATABASE_URL!);url.pathname=`/${name}`;return url.toString(); };
+  let admin: Client, created=false;
   let db: PostgresService, connectionId: string, source: SourceReceipt, other: SourceReceipt, foreign: SourceReceipt;
   const ctx: AuthContext = { workspaceId: `guard-${randomUUID()}`, userId: 'fabricated-admin', role: 'admin', isDemo: false };
   const files = loadMigrations(), guard = files.find(m => m.version === '021_source_link_receipt_guard')!;
@@ -22,7 +26,12 @@ suite('021 additive immutable receipt tuple guard', () => {
       1 + Number((await db.query('SELECT count(*)::int n FROM source_episode_link WHERE workspace_id=$1 AND connection_id=$2 AND receipt_id=$3',[ctx.workspaceId,connectionId,receipt.receiptId])).rows[0].n),ctx.userId,randomUUID()]);
   }
   beforeAll(async () => {
-    db = new PostgresService({ connectionString: process.env.TEST_DATABASE_URL });
+    // Migration rollback tests must never alter the shared parent test database.
+    admin=new Client({connectionString:target('postgres'),connectionTimeoutMillis:5000,query_timeout:60000});
+    await admin.connect();
+    await admin.query(`CREATE DATABASE ${databaseName}`);created=true;
+    db = new PostgresService({ connectionString: target(databaseName),max:2,connectionTimeoutMillis:5000,
+      query_timeout:12000,options:'-c statement_timeout=10000 -c lock_timeout=3000 -c idle_in_transaction_session_timeout=15000' });
     await new Migrator(db,older).up();
     installContentDigester(configuredContentDigester({ NODE_ENV: 'test' }));
     const store = new PgSourceIntegrationStore(db);
@@ -37,7 +46,14 @@ suite('021 additive immutable receipt tuple guard', () => {
     [foreign] = await seed({...ctx,workspaceId:`foreign-${randomUUID()}`});
     await append(source);
   });
-  afterAll(async () => db?.onModuleDestroy());
+  afterAll(async () => {
+    const results=await Promise.allSettled([
+      db?.onModuleDestroy(),created?admin.query(`DROP DATABASE ${databaseName} WITH (FORCE)`):Promise.resolve(),
+    ]);
+    if(admin)results.push(...await Promise.allSettled([admin.end()]));
+    const errors=results.flatMap(r=>r.status==='rejected'?[r.reason]:[]);
+    if(errors.length)throw new AggregateError(errors,'Source guard database cleanup failed');
+  },60000);
   it('upgrades valid 020 history unchanged, rejects wrong/foreign envelopes and wrong origin, down/up retains bytes', async () => {
     const before = await snapshot();
     expect(await new Migrator(db,files).up()).toEqual([guard.version]);
