@@ -8,6 +8,7 @@ import { Client } from 'pg';
 
 const productRoot = resolve(fileURLToPath(new URL('..', import.meta.url)));
 const requiredSuites = [
+  'src/infra/source-continuity/source-link-guard.integration.spec.ts',
   'src/infra/source-continuity/source-continuity.integration.spec.ts',
   'src/infra/source-integration/source-performance.integration.spec.ts',
   'src/infra/source-integration/source-intake.integration.spec.ts',
