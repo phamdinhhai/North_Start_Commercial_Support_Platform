@@ -18,7 +18,6 @@ export function assertSyntheticSourceAdmission(o: SourceTrustObservation, contex
 export function assertSyntheticNativeIdentity(o: SourceTrustObservation): void {
   const n = o.native;
   if ((o.provider === 'meta-page' && (n.system === 'pancake' || (n.pageId !== null && n.pageId !== o.accountId))) ||
-      (n.system === null && Object.entries(n).some(([key, value]) => key !== 'system' && value !== null)) ||
       (n.revision !== null && n.eventId === null)) {
     throw new SourceIntegrationError('SOURCE_NATIVE_INVALID', 400);
   }

@@ -42,11 +42,12 @@ describe('synthetic source trust adversarial boundary', () => {
   });
   it('rejects impossible native combinations while allowing incomplete unknown identities', () => {
     const o = observation();
-    for (const change of [{ system: 'pancake' }, { pageId: 'page-b' }, { system: null }, { eventId: null, revision: 'r2' }]) {
+    for (const change of [{ system: 'pancake' }, { pageId: 'page-b' }, { eventId: null, revision: 'r2' }]) {
       expect(() => assertSyntheticNativeIdentity({ ...o, native: { ...o.native, ...change } } as SourceTrustObservation)).toThrow('SOURCE_NATIVE_INVALID');
     }
     const unknown = { ...o, native: { system: null, pageId: null, messageId: null, conversationId: null, eventId: null, revision: null } };
     expect(projectSourceTrust(unknown, context).nativeMapping).toBe('UNKNOWN');
+    expect(projectSourceTrust({ ...o, native: { ...o.native, system: null } }, context).nativeMapping).toBe('UNKNOWN');
   });
   it('preserves the explicit Pancake/Meta fabricated alignment demonstration as a candidate', () => {
     const o: SourceObservation = { ...observation(), provider: 'pancake', route: 'pancake-synthetic', accountId: 'pancake-page' };
