@@ -30,7 +30,8 @@ function text(value: unknown, max = 256): string {
 }
 function timestamp(value: unknown): string {
   const result = text(value);
-  if (!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,6})?Z$/.test(result) || !Number.isFinite(Date.parse(result))) fail();
+  if (!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,6})?Z$/.test(result) || !Number.isFinite(Date.parse(result)) ||
+      new Date(result).toISOString().slice(0,19) !== result.slice(0,19)) fail();
   return result;
 }
 /** Strict offline fixture boundary. No HTTP, hashes, inferred revisions or commercial assertions. */

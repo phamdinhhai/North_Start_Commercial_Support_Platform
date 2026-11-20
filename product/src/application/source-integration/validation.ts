@@ -1,7 +1,8 @@
 import { SourceIntegrationError, type SourceObservation } from '../../ports/source-observation';
 const object = (v: unknown): v is Record<string,unknown> => !!v && typeof v === 'object' && !Array.isArray(v);
 const id = (v: unknown): v is string => typeof v === 'string' && v.length > 0 && v.length <= 256 && !/[\x00-\x1f\x7f]/.test(v);
-const time = (v: unknown) => typeof v === 'string' && /^\d{4}-\d{2}-\d{2}T.*Z$/.test(v) && Number.isFinite(Date.parse(v));
+const time = (v: unknown) => typeof v === 'string' && /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,6})?Z$/.test(v) &&
+  Number.isFinite(Date.parse(v)) && new Date(v).toISOString().slice(0,19) === v.slice(0,19);
 const keys = (v: Record<string,unknown>, expected: string) => Object.keys(v).sort().join() === expected;
 export function validateSourceObservation(v: unknown): SourceObservation {
   const fail = (): never => {throw new SourceIntegrationError('INPUT_INVALID',400);};

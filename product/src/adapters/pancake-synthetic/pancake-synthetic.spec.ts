@@ -44,6 +44,10 @@ describe('Pancake fabricated webhook contract', () => {
     expect(result.occurredAt).toBe('2026-11-19T23:59:00Z');
     expect(result.rawPayload.utterance).toBe('Fabricated inquiry');
   });
+  it.each(['2026-02-30T00:00:00Z', '2026-01-01T24:00:00Z', '2026-11-31T00:00:00.123456Z'])('rejects calendar normalization instead of inventing occurred time %s', value => {
+    const input = fixture(); input.payload.data.message.inserted_at = value;
+    expect(() => decodePancakeSynthetic(input)).toThrow('INVALID_PANCAKE_SYNTHETIC');
+  });
   it.each(['access_token', 'page_access_token', 'api_key', 'url', 'payloadHash', 'workspaceId', 'connectionId'])('rejects %s anywhere in accepted objects without echo', key => {
     for (const select of [(x: any) => x, (x: any) => x.payload, (x: any) => x.payload.data,
       (x: any) => x.payload.data.message, (x: any) => x.payload.data.conversation]) {

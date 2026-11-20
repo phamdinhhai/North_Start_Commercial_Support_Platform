@@ -27,5 +27,6 @@ describe('synthetic source application boundary',()=>{
   it('validates a strict bounded synthetic schema; unknown native IDs remain explicit',()=>{
     expect(validateSourceObservation(observation()).native.conversationId).toBeNull();
     for(const change of [{synthetic:false},{sourceAuthority:'provider'},{verification:'VERIFIED'},{workspaceId:'other'},{confidence:1},{rawPayload:{...observation().rawPayload,utterance:'a'.repeat(16385)}}])expect(()=>validateSourceObservation({...observation(),...change})).toThrow('INPUT_INVALID');
+    expect(()=>validateSourceObservation({...observation(),occurredAt:'2026-02-30T00:00:00Z'})).toThrow('INPUT_INVALID');
   });
 });
