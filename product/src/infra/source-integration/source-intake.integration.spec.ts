@@ -31,6 +31,15 @@ suite('durable synthetic source evidence',()=>{
     const foreign=await connect('pancake',other);expect((await s.intake(other,foreign.id,a)).leadId).not.toBe(first.leadId);
     await expect(s.intake(other,c.id,a)).rejects.toMatchObject({status:404});expect(await s.evidence(other.workspaceId,first.leadId!,other.userId)).toEqual([]);
   });
+  it('serializes duplicate receipt retries and fails known conversation/native event collisions',async()=>{
+    const c=await connect(),a=o(),results=await Promise.all([s.intake(ctx,c.id,a),s.intake(ctx,c.id,a)]);
+    expect(results.map(r=>r.disposition).sort()).toEqual(['receipt_duplicate','stored']);
+    const known={...a,receiptId:randomUUID(),native:{...a.native,conversationId:'known',eventId:'immutable-event'}};
+    await s.intake(ctx,c.id,known);
+    await expect(s.intake(ctx,c.id,{...known,receiptId:randomUUID(),native:{...known.native,conversationId:'different'}})).rejects.toMatchObject({code:'NATIVE_OBJECT_COLLISION'});
+    await expect(s.intake(ctx,c.id,{...known,receiptId:randomUUID(),native:{...known.native,messageId:'different'}})).rejects.toMatchObject({code:'NATIVE_EVENT_COLLISION'});
+    await expect(s.intake(ctx,c.id,{...o(),accountId:'foreign'})).rejects.toMatchObject({code:'SOURCE_SCOPE_MISMATCH'});
+  });
   it('appends unordered edits/delete and explicit distinct events while refusing same native event changed content',async()=>{
     const c=await connect(),base=o(),event={...base,native:{...base.native,eventId:'event1',revision:'1'}},r=await s.intake(ctx,c.id,event);
     await expect(s.intake(ctx,c.id,{...event,receiptId:randomUUID(),rawPayload:{...base.rawPayload,utterance:'collision'}})).rejects.toMatchObject({code:'NATIVE_EVENT_COLLISION'});

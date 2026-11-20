@@ -56,6 +56,11 @@ export class PgSourceIntegrationStore implements SourceIntegrationStore {
       let disposition:ReceiptRow['disposition']='unknown';
       if(known) {
         const args=[ctx.workspaceId,n.system,n.pageId,n.messageId];
+        if(n.eventId!==null) {
+          await tx.query('SELECT pg_advisory_xact_lock(hashtextextended($1,0))',[JSON.stringify(['source-event',ctx.workspaceId,n.system,n.pageId,n.eventId,n.revision])]);
+          const events=await tx.query<{message_id:string}>(`SELECT message_id FROM source_receipt WHERE workspace_id=$1 AND native_system=$2 AND page_id=$3 AND event_id=$4 AND revision IS NOT DISTINCT FROM $5`,[ctx.workspaceId,n.system,n.pageId,n.eventId,n.revision]);
+          if(events.rows.some(r=>r.message_id!==n.messageId))return fail('NATIVE_EVENT_COLLISION');
+        }
         await tx.query('SELECT pg_advisory_xact_lock(hashtextextended($1,0))',[JSON.stringify(['source-message',...args])]);
         const priorObjects=(await tx.query<ReceiptRow>(`SELECT * FROM source_receipt WHERE workspace_id=$1 AND native_system=$2 AND page_id=$3 AND message_id=$4 ORDER BY created_at,id`,args)).rows;
         if(n.conversationId!==null && priorObjects.some(r=>r.observation.native.conversationId!==null && r.observation.native.conversationId!==n.conversationId))return fail('NATIVE_OBJECT_COLLISION');
