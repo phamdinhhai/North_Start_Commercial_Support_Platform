@@ -8,6 +8,8 @@ export interface SourceObservation {
   readonly schemaVersion: 1;
   readonly provider: SourceProvider;
   readonly route: SourceRoute;
+  /** Transport page/account binding; native original identity can refer to a different page namespace. */
+  readonly accountId: string;
   readonly synthetic: true;
   readonly sourceAuthority: 'synthetic_fixture';
   readonly completeness: 'UNKNOWN' | 'partial';

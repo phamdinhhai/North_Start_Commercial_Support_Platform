@@ -35,7 +35,9 @@ export class SourceIntegrationService {
     return {items:evidence.map(({receipt,observation,envelope})=>({receipt,observation,envelope:{
       envelopeId:envelope.envelopeId,connection:envelope.connection,externalRecordId:envelope.externalRecordId,
       sourceCapturedAt:envelope.sourceCapturedAt,ingestedAt:envelope.ingestedAt,isSynthetic:true,
-      acquisitionMode:envelope.acquisitionMode,acquisitionSource:envelope.acquisitionSource,rawPayload:envelope.rawPayload,
+      acquisitionMode:envelope.acquisitionMode,acquisitionSource:envelope.acquisitionSource,
+      rawPayload:{utterance:(envelope.rawPayload as SourceRaw).utterance,speaker:(envelope.rawPayload as SourceRaw).speaker},
     }})),limit:100,possiblyTruncated:evidence.length===100,verification:'UNVERIFIED' as const,completeness:'UNKNOWN' as const};
   }
 }
+type SourceRaw = {utterance:string;speaker:string};

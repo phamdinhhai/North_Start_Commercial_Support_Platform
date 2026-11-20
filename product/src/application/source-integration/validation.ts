@@ -5,10 +5,10 @@ const time = (v: unknown) => typeof v === 'string' && /^\d{4}-\d{2}-\d{2}T.*Z$/.
 const keys = (v: Record<string,unknown>, expected: string) => Object.keys(v).sort().join() === expected;
 export function validateSourceObservation(v: unknown): SourceObservation {
   const fail = (): never => {throw new SourceIntegrationError('INPUT_INVALID',400);};
-  if (!object(v) || !keys(v,'completeness,displayName,lifecycle,native,observedAt,occurredAt,provider,rawPayload,receiptId,route,schemaVersion,sourceAuthority,synthetic,verification')) return fail();
+  if (!object(v) || !keys(v,'accountId,completeness,displayName,lifecycle,native,observedAt,occurredAt,provider,rawPayload,receiptId,route,schemaVersion,sourceAuthority,synthetic,verification')) return fail();
   if (v.schemaVersion !== 1 || v.synthetic !== true || v.sourceAuthority !== 'synthetic_fixture' || v.verification !== 'UNVERIFIED' ||
     !['UNKNOWN','partial'].includes(v.completeness as string) || !['pancake','meta-page'].includes(v.provider as string) ||
-    v.route !== `${v.provider}-synthetic` || !id(v.receiptId) || !id(v.displayName) || !time(v.observedAt) ||
+    v.route !== `${v.provider}-synthetic` || !id(v.accountId) || !id(v.receiptId) || !id(v.displayName) || !time(v.observedAt) ||
     (v.occurredAt !== null && !time(v.occurredAt)) || !['upsert-observed','deletion-labelled'].includes(v.lifecycle as string)) return fail();
   const n=v.native,r=v.rawPayload;
   if (!object(n) || !keys(n,'conversationId,eventId,messageId,pageId,revision,system') || ![null,'meta','pancake'].includes(n.system as null|string) ||

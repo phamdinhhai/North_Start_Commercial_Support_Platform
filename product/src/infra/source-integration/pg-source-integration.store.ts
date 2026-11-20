@@ -43,7 +43,7 @@ export class PgSourceIntegrationStore implements SourceIntegrationStore {
       const c=(await tx.query<ConnectionRow>('SELECT * FROM source_connection WHERE workspace_id=$1 AND id::text=$2 FOR UPDATE',[ctx.workspaceId,connectionId])).rows[0];
       if(!c)return fail('CONNECTION_NOT_FOUND',404);
       if(c.status!=='active')return fail('CONNECTION_REVOKED',403);
-      if(c.provider!==o.provider || c.route!==o.route || (o.native.pageId!==null && c.page_id!==o.native.pageId))return fail('SOURCE_SCOPE_MISMATCH',403);
+      if(c.provider!==o.provider || c.route!==o.route || c.page_id!==o.accountId)return fail('SOURCE_SCOPE_MISMATCH',403);
       const serialized=canonicalizePayload(o);
       const prior=(await tx.query<ReceiptRow>('SELECT * FROM source_receipt WHERE workspace_id=$1 AND connection_id=$2 AND receipt_id=$3',[ctx.workspaceId,c.id,o.receiptId])).rows[0];
       if(prior) {
@@ -57,7 +57,8 @@ export class PgSourceIntegrationStore implements SourceIntegrationStore {
       if(known) {
         const args=[ctx.workspaceId,n.system,n.pageId,n.messageId];
         await tx.query('SELECT pg_advisory_xact_lock(hashtextextended($1,0))',[JSON.stringify(['source-message',...args])]);
-        const priorObjects=(await tx.query<ReceiptRow>(`SELECT * FROM source_receipt WHERE workspace_id=$1 AND native_system=$2 AND page_id=$3 AND conversation_id=$4 AND message_id=$5 ORDER BY created_at,id`,args)).rows;
+        const priorObjects=(await tx.query<ReceiptRow>(`SELECT * FROM source_receipt WHERE workspace_id=$1 AND native_system=$2 AND page_id=$3 AND message_id=$4 ORDER BY created_at,id`,args)).rows;
+        if(n.conversationId!==null && priorObjects.some(r=>r.observation.native.conversationId!==null && r.observation.native.conversationId!==n.conversationId))return fail('NATIVE_OBJECT_COLLISION');
         // Same explicit event/revision means immutable observation identity, never a text identity merge.
         const sameEvent=n.eventId===null?undefined:priorObjects.find(r=>r.event_id===n.eventId && r.revision===n.revision);
         if(sameEvent) {
@@ -68,7 +69,7 @@ export class PgSourceIntegrationStore implements SourceIntegrationStore {
           const previous={...sameEvent.observation,rawPayload:a} as unknown as SourceObservation;
           if(stable(previous)!==stable(o))return fail('NATIVE_EVENT_COLLISION');
         }
-        const mapped=(await tx.query<{lead_id:string}>(`SELECT lead_id FROM source_native_message WHERE workspace_id=$1 AND native_system=$2 AND page_id=$3 AND conversation_id=$4 AND message_id=$5`,args)).rows[0];
+        const mapped=(await tx.query<{lead_id:string}>(`SELECT lead_id FROM source_native_message WHERE workspace_id=$1 AND native_system=$2 AND page_id=$3 AND message_id=$4`,args)).rows[0];
         const env=createEnvelope({workspaceId:ctx.workspaceId,connection:c.id,externalRecordId:o.receiptId,externalEventType:o.lifecycle,sourceCapturedAt:o.observedAt,rawPayload:o.rawPayload,isSynthetic:true,acquisitionMode:'imported_record',acquisitionSource:'manual'});
         envelopeId=env.envelopeId;
         await tx.query(`INSERT INTO commercial_envelope(id,schema_version,workspace_id,connection,external_record_id,external_event_type,source_captured_at,ingested_at,raw_payload,raw_payload_hash,raw_payload_digest,mapping_status,is_synthetic,acquisition_mode,acquisition_source)
@@ -78,7 +79,7 @@ export class PgSourceIntegrationStore implements SourceIntegrationStore {
           // Synthetic message intake creates an unassigned commercial episode seed, not a conversation/customer merge.
           const lead=createLead({workspaceId:ctx.workspaceId,displayName:o.displayName,conversationSource:`${n.system}:page`});leadId=lead.id;disposition='stored';
           await tx.query(`INSERT INTO lead(id,workspace_id,display_name,conversation_source,attribution,status,created_at,owner_user_id,source_envelope_id) VALUES($1,$2,$3,$4,'unknown','New',$5,$6,$7)`,[lead.id,ctx.workspaceId,lead.displayName,lead.conversationSource,lead.createdAt,options.claimResponsibility?ctx.userId:null,envelopeId]);
-          await tx.query(`INSERT INTO source_native_message(workspace_id,native_system,page_id,conversation_id,message_id,lead_id) VALUES($1,$2,$3,$4,$5,$6)`,[...args,leadId]);
+          await tx.query(`INSERT INTO source_native_message(workspace_id,native_system,page_id,message_id,lead_id) VALUES($1,$2,$3,$4,$5)`,[...args,leadId]);
           await audit(tx,ctx,lead.id,'source.lead.seeded',{leadId,envelopeId,owner:options.claimResponsibility?ctx.userId:null,explicitAdminClaim:options.claimResponsibility,attribution:'unknown',synthetic:true});
         }
       }

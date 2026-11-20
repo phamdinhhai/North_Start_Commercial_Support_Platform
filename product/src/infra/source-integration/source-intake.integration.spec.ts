@@ -11,7 +11,7 @@ const suite=process.env.TEST_DATABASE_URL?describe:describe.skip;
 suite('durable synthetic source evidence',()=>{
   let db:PostgresService,s:PgSourceIntegrationStore;
   const ctx:AuthContext={workspaceId:`source-${randomUUID()}`,userId:'synthetic-admin',role:'admin',isDemo:false};
-  const o=(changes:Partial<SourceObservation>={}):SourceObservation=>({schemaVersion:1,provider:'pancake',route:'pancake-synthetic',synthetic:true,sourceAuthority:'synthetic_fixture',completeness:'UNKNOWN',verification:'UNVERIFIED',receiptId:randomUUID(),native:{system:'meta',pageId:'p',conversationId:null,messageId:randomUUID(),eventId:null,revision:null},observedAt:'2026-11-20T00:00:00Z',occurredAt:null,lifecycle:'upsert-observed',displayName:'Invented episode',rawPayload:{utterance:'Invented message',speaker:'customer',original:{invented:true}},...changes});
+  const o=(changes:Partial<SourceObservation>={}):SourceObservation=>({schemaVersion:1,accountId:'p',provider:'pancake',route:'pancake-synthetic',synthetic:true,sourceAuthority:'synthetic_fixture',completeness:'UNKNOWN',verification:'UNVERIFIED',receiptId:randomUUID(),native:{system:'meta',pageId:'p',conversationId:null,messageId:randomUUID(),eventId:null,revision:null},observedAt:'2026-11-20T00:00:00Z',occurredAt:null,lifecycle:'upsert-observed',displayName:'Invented episode',rawPayload:{utterance:'Invented message',speaker:'customer',original:{invented:true}},...changes});
   const connect=(p:'pancake'|'meta-page'='pancake',c=ctx)=>s.createConnection(c,{provider:p,route:p==='pancake'?'pancake-synthetic':'meta-page-synthetic',pageId:'p'});
   beforeAll(async()=>{db=new PostgresService({connectionString:process.env.TEST_DATABASE_URL});await new Migrator(db,loadMigrations()).up();await db.query('INSERT INTO workspace(id,name) VALUES($1,$1)',[ctx.workspaceId]);installContentDigester(configuredContentDigester({NODE_ENV:'test'}));s=new PgSourceIntegrationStore(db);});
   afterAll(async()=>{await db?.onModuleDestroy();});
@@ -61,3 +61,4 @@ suite('durable synthetic source evidence',()=>{
     expect(await s.intake(ctx,c.id,a)).toMatchObject({disposition:'stored'});
   });
 });
+

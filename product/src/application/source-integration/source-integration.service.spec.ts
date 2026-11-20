@@ -3,7 +3,7 @@ import { SourceIntegrationService } from './source-integration.service';
 import { validateSourceObservation } from './validation';
 import type { SourceIntegrationStore,SourceObservation } from '../../ports/source-observation';
 import type { AuthContext } from '../../ports/auth';
-export const observation=():SourceObservation=>({schemaVersion:1,provider:'pancake',route:'pancake-synthetic',synthetic:true,sourceAuthority:'synthetic_fixture',completeness:'UNKNOWN',verification:'UNVERIFIED',receiptId:'r',native:{system:'meta',pageId:'p',conversationId:null,messageId:'m',eventId:null,revision:null},observedAt:'2026-11-20T00:00:00Z',occurredAt:null,lifecycle:'upsert-observed',displayName:'Invented episode',rawPayload:{utterance:'Invented message',speaker:'customer',original:{id:'m'}}});
+export const observation=():SourceObservation=>({schemaVersion:1,accountId:'p',provider:'pancake',route:'pancake-synthetic',synthetic:true,sourceAuthority:'synthetic_fixture',completeness:'UNKNOWN',verification:'UNVERIFIED',receiptId:'r',native:{system:'meta',pageId:'p',conversationId:null,messageId:'m',eventId:null,revision:null},observedAt:'2026-11-20T00:00:00Z',occurredAt:null,lifecycle:'upsert-observed',displayName:'Invented episode',rawPayload:{utterance:'Invented message',speaker:'customer',original:{id:'m'}}});
 const ctx:AuthContext={workspaceId:'synthetic',userId:'admin',role:'admin',isDemo:false};
 describe('synthetic source application boundary',()=>{
   const store=()=>({intake:vi.fn(),evidence:vi.fn().mockResolvedValue([]),createConnection:vi.fn(),listConnections:vi.fn(),revokeConnection:vi.fn()}) satisfies SourceIntegrationStore;
@@ -29,3 +29,4 @@ describe('synthetic source application boundary',()=>{
     for(const change of [{synthetic:false},{sourceAuthority:'provider'},{verification:'VERIFIED'},{workspaceId:'other'},{confidence:1},{rawPayload:{...observation().rawPayload,utterance:'a'.repeat(16385)}}])expect(()=>validateSourceObservation({...observation(),...change})).toThrow('INPUT_INVALID');
   });
 });
+
