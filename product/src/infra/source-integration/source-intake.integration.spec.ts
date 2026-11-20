@@ -76,6 +76,37 @@ suite('durable synthetic source evidence',()=>{
     expect((await db.query('SELECT count(*)::int n FROM source_receipt WHERE workspace_id=$1', [ctx.workspaceId])).rows[0].n).toBe(before);
     expect((await new Migrator(db, loadMigrations()).applied()).at(-1)).toBe('018_source_integration');
   });
+  it('reconciles an explicit event across routes while preserving originals and refusing changed meaning atomically', async () => {
+    const pancake=await connect(),meta=await connect('meta-page'),base=o();
+    const first={...base,native:{...base.native,eventId:randomUUID(),revision:'fixture-revision-1'}};
+    const second=o({...first,provider:'meta-page',route:'meta-page-synthetic',receiptId:randomUUID(),
+      observedAt:'2026-11-20T00:00:02Z',rawPayload:{...first.rawPayload,original:{differentFabricatedRoute:'meta'}}});
+    const a=await s.intake(ctx,pancake.id,first),b=await s.intake(ctx,meta.id,second);
+    expect(b).toMatchObject({leadId:a.leadId,disposition:'object_aligned'});
+    expect(b.envelopeId).not.toBe(a.envelopeId);
+    const snapshot=async()=>({
+      receipts:(await db.query('SELECT count(*)::int n FROM source_receipt WHERE workspace_id=$1 AND lead_id=$2',[ctx.workspaceId,a.leadId])).rows[0].n,
+      envelopes:(await db.query('SELECT count(*)::int n FROM commercial_envelope WHERE workspace_id=$1 AND connection IN ($2,$3)',[ctx.workspaceId,pancake.id,meta.id])).rows[0].n,
+      native:(await db.query('SELECT count(*)::int n FROM source_native_message WHERE workspace_id=$1 AND lead_id=$2',[ctx.workspaceId,a.leadId])).rows[0].n,
+    });
+    expect(await snapshot()).toEqual({receipts:2,envelopes:2,native:1});
+    const evidence=await s.evidence(ctx.workspaceId,a.leadId!,ctx.userId);
+    expect(evidence.map(item=>item.envelope.rawPayload)).toEqual(expect.arrayContaining([first.rawPayload,second.rawPayload]));
+    for(const changed of [
+      {...second,receiptId:randomUUID(),rawPayload:{...second.rawPayload,speaker:'staff' as const}},
+      {...second,receiptId:randomUUID(),lifecycle:'deletion-labelled' as const},
+    ]) {
+      await expect(s.intake(ctx,meta.id,changed)).rejects.toMatchObject({code:'NATIVE_EVENT_COLLISION',status:409});
+      expect(await snapshot()).toEqual({receipts:2,envelopes:2,native:1});
+    }
+    const other={...ctx,workspaceId:`explicit-event-other-${randomUUID()}`};
+    await db.query('INSERT INTO workspace(id,name) VALUES($1,$1)',[other.workspaceId]);
+    const foreign=await connect('meta-page',other);
+    const foreignResult=await s.intake(other,foreign.id,{...second,rawPayload:{...second.rawPayload,speaker:'staff'}});
+    expect(foreignResult.leadId).not.toBe(a.leadId);
+    expect(foreignResult.disposition).toBe('stored');
+    expect(await snapshot()).toEqual({receipts:2,envelopes:2,native:1});
+  });
   it('reports only scoped local receipt health, including quarantine, without claiming a live sync', async () => {
     const c=await connect(),a=o();
     await s.intake(ctx,c.id,a);
