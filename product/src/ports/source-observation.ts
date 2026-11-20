@@ -59,7 +59,11 @@ export interface SourceEvidence {
   readonly observation: Omit<SourceObservation, 'rawPayload'>;
   readonly envelope: CommercialEnvelope;
 }
+export interface SourceEvidencePageOptions { readonly limit?: number; readonly cursor?: string }
+export interface SourceEvidencePage { readonly items: readonly SourceEvidence[]; readonly nextCursor: string | null }
 export interface SourceIntegrationStore {
+  getConnection?(workspaceId: string, id: string): Promise<SourceConnection | null>;
+  evidencePage?(workspaceId: string, leadId: string, actorId: string, options?: SourceEvidencePageOptions): Promise<SourceEvidencePage>;
   createConnection(ctx: AuthContext, input: Pick<SourceConnection, 'provider' | 'route' | 'pageId'>): Promise<SourceConnection>;
   revokeConnection(ctx: AuthContext, id: string): Promise<SourceConnection>;
   listConnections(workspaceId: string): Promise<readonly SourceConnection[]>;

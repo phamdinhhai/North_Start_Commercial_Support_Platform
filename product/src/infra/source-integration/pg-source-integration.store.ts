@@ -4,7 +4,8 @@ import { createLead } from '../../domain/lead/lead';
 import { contentDigester } from '../../ports/content-digester-runtime';
 import type { ContentDigest } from '../../ports/content-digester';
 import type { AuthContext } from '../../ports/auth';
-import { SourceIntegrationError, type SourceConnection, type SourceEvidence, type SourceIntegrationStore, type SourceObservation, type SourceReceipt } from '../../ports/source-observation';
+import { SourceIntegrationError, type SourceConnection, type SourceEvidence, type SourceEvidencePageOptions, type SourceIntegrationStore, type SourceObservation, type SourceReceipt } from '../../ports/source-observation';
+import { encodeEvidenceCursor, evidencePageRequest } from './evidence-cursor';
 import { PostgresService, type SqlExecutor } from '../postgres/postgres.service';
 import { toEnvelope, type EnvelopeDbRow } from '../postgres/repositories/pilot-persistence.types';
 
@@ -19,6 +20,10 @@ async function audit(tx:SqlExecutor,ctx:AuthContext,id:string,event:string,value
 /** One existing PostgreSQL transaction boundary for accepted raw evidence, lead seed and receipts. */
 export class PgSourceIntegrationStore implements SourceIntegrationStore {
   constructor(private readonly db:PostgresService) {}
+  async getConnection(workspaceId:string,id:string):Promise<SourceConnection|null> {
+    const row=(await this.db.query<ConnectionRow>('SELECT * FROM source_connection WHERE workspace_id=$1 AND id::text=$2',[workspaceId,id])).rows[0];
+    return row?connection(row):null;
+  }
   async createConnection(ctx:AuthContext,input:Pick<SourceConnection,'provider'|'route'|'pageId'>) {
     return this.db.withTransaction(async tx=>{
       const id=randomUUID();
@@ -107,6 +112,22 @@ export class PgSourceIntegrationStore implements SourceIntegrationStore {
       const rows=await tx.query<ReceiptRow & {envelope:EnvelopeDbRow}>(`SELECT r.*,to_jsonb(e) AS envelope FROM source_receipt r JOIN commercial_envelope e ON e.id=r.envelope_id AND e.workspace_id=r.workspace_id WHERE r.workspace_id=$1 AND r.lead_id::text=$2 ORDER BY r.created_at,r.id LIMIT 100`,[workspaceId,leadId]);
       await audit(tx,{workspaceId,userId:actorId,role:'viewer',isDemo:false},leadId,'source.evidence.accessed',{count:rows.rows.length});
       return rows.rows.map(r=>({receipt:receipt(r),observation:r.observation,envelope:toEnvelope(r.envelope)}));
+    });
+  }
+  async evidencePage(workspaceId:string,leadId:string,actorId:string,options:SourceEvidencePageOptions={}) {
+    const {limit,position}=evidencePageRequest(workspaceId,leadId,options);
+    return this.db.withTransaction(async tx=>{
+      const rows=await tx.query<ReceiptRow & {envelope:EnvelopeDbRow;cursor_time:string}>(`SELECT r.*,to_jsonb(e) AS envelope,
+        to_char(r.created_at AT TIME ZONE 'UTC','YYYY-MM-DD"T"HH24:MI:SS.US"Z"') AS cursor_time
+        FROM source_receipt r JOIN commercial_envelope e ON e.id=r.envelope_id AND e.workspace_id=r.workspace_id
+        WHERE r.workspace_id=$1 AND r.lead_id::text=$2
+        ${position?'AND (r.created_at,r.id)>($3::timestamptz,$4::uuid)':''}
+        ORDER BY r.created_at,r.id LIMIT $${position?5:3}`,
+        position?[workspaceId,leadId,position.time,position.id,limit+1]:[workspaceId,leadId,limit+1]);
+      const selected=rows.rows.slice(0,limit),last=selected.at(-1);
+      await audit(tx,{workspaceId,userId:actorId,role:'viewer',isDemo:false},leadId,'source.evidence.accessed',{count:selected.length});
+      return {items:selected.map(r=>({receipt:receipt(r),observation:r.observation,envelope:toEnvelope(r.envelope)})),
+        nextCursor:rows.rows.length>limit && last?encodeEvidenceCursor(workspaceId,leadId,{time:last.cursor_time,id:last.id}):null};
     });
   }
 }
