@@ -92,12 +92,12 @@ export class TestOnlyProviderCredentialStore implements ProviderCredentialStore 
     if(this.auditEntries.length>=1000)throw new ProviderCredentialError('CREDENTIAL_UNAVAILABLE',503);
     this.auditEntries.push(Object.freeze({action,credentialId:metadata.credentialId,workspaceId:ctx.workspaceId,version:metadata.version,actorId:ctx.userId,at:new Date().toISOString()}));
   }
-  private guard(){if(!['local','test'].includes(this.deploymentMode)||['production','prod','pilot'].includes(process.env.DEPLOYMENT_MODE??'')||process.env.NODE_ENV==='production')throw new ProviderCredentialError('CREDENTIALS_TEST_ONLY',503);}
+  private guard(){if(!['local','test'].includes(this.deploymentMode)||['DEPLOYMENT_MODE','APP_MODE','NODE_ENV'].some(key=>['production','prod','pilot'].includes(process.env[key]??'')))throw new ProviderCredentialError('CREDENTIALS_TEST_ONLY',503);}
   private admin(ctx: AuthContext): void { this.guard();if (!ctx?.userId || !ctx.workspaceId || ctx.isDemo || ctx.role !== 'admin') throw new ProviderCredentialError('FORBIDDEN', 403); }
   private key(workspaceId: string, connectionId: string): string { return `${workspaceId}\u0000${connectionId}`; }
   private identity(input: ProviderConnectionIdentity): void {
     if (!input || !idOk(input.workspaceId) || !idOk(input.connectionId) || !idOk(input.accountId) || !['pancake', 'meta-page'].includes(input.provider) || !Array.isArray(input.scopes) || !input.scopes.length || input.scopes.length > 32 || input.scopes.some(scope => typeof scope !== 'string' || !SCOPE.test(scope))) this.invalid();
   }
-  private expiry(value: string | null | undefined): void { if (value !== null && value !== undefined && (!/^(?:19|20|21)\d{2}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,3})?Z$/.test(value) || !Number.isFinite(Date.parse(value)))) this.invalid(); }
+  private expiry(value: string | null | undefined): void { if (value !== null && value !== undefined && (!/^(?:19|20|21)\d{2}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,3})?Z$/.test(value) || !Number.isFinite(Date.parse(value)) || new Date(value).toISOString().slice(0,19)!==value.slice(0,19))) this.invalid(); }
   private invalid(): never { throw new ProviderCredentialError('INPUT_INVALID', 400); }
 }
