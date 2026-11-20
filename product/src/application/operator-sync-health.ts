@@ -42,7 +42,7 @@ export class OperatorSyncHealthQuery {
   async command(ctx: AuthContext|null, streamId: string, action: 'pause'|'resume'|'revoke') {
     if (!this.enabled) throw new HealthError('HEALTH_UNAVAILABLE',404);
     const c=this.auth(ctx); if(c.role!=='admin') throw new HealthError('FORBIDDEN',403);
-    if(!text(streamId) || !/^[0-9a-f-]{36}$/i.test(streamId) || !['pause','resume','revoke'].includes(action)) throw new HealthError('INPUT_INVALID',400);
+    if(!text(streamId) || !/^[0-9a-f]{8}(-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i.test(streamId) || !['pause','resume','revoke'].includes(action)) throw new HealthError('INPUT_INVALID',400);
     try { await this.control.control(c.workspaceId,streamId,action,c.userId); } catch { throw new HealthError('CONTROL_UNAVAILABLE',503); }
     return {streamId, action, accepted:true, asynchronous:true};
   }

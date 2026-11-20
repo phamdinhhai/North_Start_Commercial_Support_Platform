@@ -39,7 +39,7 @@ export class TestOnlyProviderCredentialStore implements ProviderCredentialStore 
       state: 'CONFIGURED', version: existing ? existing.version + 1 : 1, expiresAt: input.expiresAt ?? null,
       rotatedAt: now, revokedAt: null,
     };
-    this.record('configured',ctx,metadata);this.entries.set(key, { ...metadata, secret }); return metadata;
+    this.record('configured',ctx,metadata);this.entries.set(key, { ...metadata, secret }); return this.public({...metadata,secret});
   }
 
   async issuePrincipal(ctx: AuthContext, credentialId: string): Promise<ProviderServicePrincipal> {
@@ -71,14 +71,14 @@ export class TestOnlyProviderCredentialStore implements ProviderCredentialStore 
     if (current.state === 'REVOKED' || current.state === 'DISABLED') throw new ProviderCredentialError('CREDENTIAL_REVOKED', 403);
     if (current.version !== expectedVersion) throw new ProviderCredentialError('CREDENTIAL_VERSION_CONFLICT', 409);
     const metadata = { ...this.public(current), version: current.version + 1, rotatedAt: new Date().toISOString(), state: 'CONFIGURED' as const, revokedAt: null };
-    this.record('rotated',ctx,metadata);this.entries.set(this.key(current.workspaceId, current.connectionId), { ...metadata, secret }); return metadata;
+    this.record('rotated',ctx,metadata);this.entries.set(this.key(current.workspaceId, current.connectionId), { ...metadata, secret }); return this.public({...metadata,secret});
   }
 
   async revoke(ctx: AuthContext, credentialId: string): Promise<ProviderCredentialMetadata> {
     this.admin(ctx); if (!idOk(credentialId)) this.invalid();
     const current = [...this.entries.values()].find(entry => entry.credentialId === credentialId && entry.workspaceId === ctx.workspaceId); if (!current) throw new ProviderCredentialError('CREDENTIAL_NOT_FOUND', 404);
     const metadata = { ...this.public(current), state: 'REVOKED' as const, revokedAt: new Date().toISOString() };
-    this.record('revoked',ctx,metadata);this.entries.set(this.key(current.workspaceId, current.connectionId), { ...metadata, secret: current.secret }); return metadata;
+    this.record('revoked',ctx,metadata);this.entries.set(this.key(current.workspaceId, current.connectionId), { ...metadata, secret: current.secret }); return this.public({...metadata,secret:current.secret});
   }
 
   async inspect(ctx: AuthContext, credentialId: string): Promise<ProviderCredentialMetadata> {

@@ -2,9 +2,9 @@ export const OPERATOR_SCRIPT = String.raw`
 (() => {
     'use strict';
     const $ = id => document.getElementById(id), v = id => $(id)?.value.trim() || '', esc = x => String(x ?? 'UNKNOWN').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-    let session = {}, selected = null, epoch = 0, listEpoch = 0, cursor = null, busy = false, command = null, recovery = null, dirty = false, managerCleanup = null, sourceCleanup = null;
+    let session = {}, selected = null, epoch = 0, listEpoch = 0, cursor = null, busy = false, command = null, recovery = null, dirty = false, managerCleanup = null, sourceCleanup = null, syncCleanup = null;
     const msg = (id, text, error = false) => { $(id).textContent = text; $(id).className = 'notice' + (error ? ' error' : ''); };
-    const clear = () => { managerCleanup?.(); managerCleanup = null; $('manager-exceptions').hidden = true; sourceCleanup?.(); sourceCleanup = null; $('synthetic-sources').hidden = true; epoch++; listEpoch++; selected = null; cursor = null; $('context').replaceChildren(); $('queue').replaceChildren(); $('next').hidden = true; if ($('command-dialog').open)
+    const clear = () => { managerCleanup?.(); managerCleanup = null; $('manager-exceptions').hidden = true; sourceCleanup?.(); sourceCleanup = null; $('synthetic-sources').hidden = true; syncCleanup?.(); syncCleanup = null; $('synchronization-health').hidden = true; epoch++; listEpoch++; selected = null; cursor = null; $('context').replaceChildren(); $('queue').replaceChildren(); $('next').hidden = true; if ($('command-dialog').open)
         $('command-dialog').close(); $('command-fields').replaceChildren(); command = null; dirty = false; };
     const err = e => e.body?.code === 'SOURCE_LINK_STALE_VERSION' ? 'Source link changed. Inspect source link history and enter its current link version before retrying; Lead version is separate.' : e.status === 401 ? 'Session expired. Sign in again.' : e.status === 403 ? 'Permission denied for this lead or action.' : e.status === 409 ? 'Conflict (' + (e.body?.code || '409') + '). Reload before retrying.' : (e.body?.code ? e.body.code + ': ' : '') + e.message;
     async function request(url, options = {}) { const headers = { 'content-type': 'application/json' }; if (session.devTokensAllowed && !session.authenticated && v('token'))
@@ -49,6 +49,10 @@ export const OPERATOR_SCRIPT = String.raw`
         msg('session-status', err(e), true);
     } }
     function mountManager() {
+        syncCleanup?.(); syncCleanup = null;
+        const health=$('synchronization-health');
+        health.hidden=!(session.authenticated&&session.sourceIntegration&&['admin','manager'].includes(session.context?.role));
+        if(!health.hidden&&window.mountSyncHealth)syncCleanup=window.mountSyncHealth({container:health,request,canControl:session.context.role==='admin'});
         managerCleanup?.(); managerCleanup = null;
         const root = $('manager-exceptions');
         root.hidden = !(session.authenticated && ['manager', 'admin'].includes(session.context?.role));
