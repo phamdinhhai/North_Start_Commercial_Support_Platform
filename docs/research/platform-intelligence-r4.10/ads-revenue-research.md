@@ -16,7 +16,7 @@ A provider `Purchase`, GA4 `purchase`, Shopify order, or POS paid flag can be ev
 
 ## ADS-02: official-source access and capability matrix
 
-All URLs below were checked through public web search/open on the research date. ìReadableî means documentation text retrieved, not an authenticated API smoke test. Search-index-only pages need a later reproducible documentation capture. Rolling references are not immutable SDK pins. No SDK or third-party code was imported or installed.
+All URLs below were checked through public web search/open on the research date. ‚ÄúReadable‚Äù means documentation text retrieved, not an authenticated API smoke test. Search-index-only pages need a later reproducible documentation capture. Rolling references are not immutable SDK pins. No SDK or third-party code was imported or installed.
 
 | Provider/surface | Official checked URL and observed status/version | Read or write boundary; account access | Adopt/adapt decision and remaining proof |
 |---|---|---|---|
