@@ -16,6 +16,7 @@ export interface PancakeRequestIntent {
   recipientPermissionEvidenceId?: string;
 }
 const deny = (): never => { throw new Error('PANCAKE_REQUEST_DENIED'); };
+const targetKeys = ['accountId', 'pageId', 'conversationId', 'contactId', 'verificationEvidenceId'] as const;
 function validReference(value: string): boolean {
   return typeof value === 'string' && value.length > 0 && value.length <= 256 && !/[\r\n]/u.test(value);
 }
@@ -37,7 +38,8 @@ export class PancakeRequestPolicy {
   private awaitingResponse = false;
   constructor(target: VerifiedPancakeTarget, routes: readonly PancakeRouteAdmission[],
     private readonly ceiling = 25, private readonly minDelayMs = 1000) {
-    if (!target || !Object.values(target).every(validReference) || Object.keys(target).length !== 5 ||
+    if (!target || !targetKeys.every(key => Object.hasOwn(target, key) && validReference(target[key])) ||
+      Object.keys(target).length !== targetKeys.length ||
       !Number.isInteger(ceiling) || ceiling < 1 || ceiling > 25 || !Number.isFinite(minDelayMs) || minDelayMs < 1000 ||
       !Array.isArray(routes) || routes.length > 25) deny();
     this.target = {...target};
