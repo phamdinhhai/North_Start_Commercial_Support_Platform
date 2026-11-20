@@ -18,5 +18,8 @@ Executed command:
 TEST_DATABASE_URL=postgres://postgres@127.0.0.1:54050/r412_sync_final npx vitest run src/infra/sync/sync-checkpoint.integration.spec.ts src/infra/postgres/migrator.spec.ts --no-file-parallelism
 ```
 
-Result: 12 tests passed, zero skipped (6 durable sync PostgreSQL tests plus 6 migration unit tests). Typecheck, lint and strict architecture check passed. This does not prove provider availability, live delivery, production throughput or crash timing outside the transaction boundaries exercised.
+Result: 13 tests passed, zero skipped (7 durable sync PostgreSQL tests plus 6 migration unit tests). Typecheck, lint and strict architecture check passed. This does not prove provider availability, live delivery, production throughput or crash timing outside the transaction boundaries exercised.
+
+
+Additional bounded harness test commits two fabricated pages, confirms all PostgreSQL pool clients are idle during request callbacks, resumes with a new worker, commits page3 and checks three unassigned Lead seeds. This is a worker/store restart simulation; OS process crash is independently parent-owned.
 

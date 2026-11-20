@@ -5,6 +5,7 @@ import {Migrator,loadMigrations} from '../postgres/migrator';
 import {PgSourceIntegrationStore} from '../source-integration/pg-source-integration.store';
 import {PgSyncCheckpointStore} from './pg-sync-checkpoint.store';
 import {admitSyncObservation} from '../../application/durable-sync/admission';
+import {runDurableOfflineSync} from '../../application/durable-sync/offline-sync';
 import {SourceIntegrationError,type SourceObservation} from '../../ports/source-observation';
 const suite=process.env.TEST_DATABASE_URL?describe:describe.skip;
 suite('R4.12 durable sync checkpoint and replay',()=>{
@@ -54,6 +55,20 @@ suite('R4.12 durable sync checkpoint and replay',()=>{
   expect(await sync.claimLease(workspace,f.stream.id,'next-worker',5000)).toBeNull();
   expect(await sync.getStream('foreign',f.stream.id)).toBeNull();
   await expect(sync.createStream('foreign',f.connectionId)).rejects.toMatchObject({code:'SYNC_CONNECTION_NOT_FOUND'});
+ });
+ it('runs bounded polling outside transactions and resumes with a fresh worker after two pages',async()=>{
+  const f=await fresh(),requests:(string|null)[]=[],connection={mode:'offline-synthetic' as const,connectionId:f.connectionId,provider:'pancake' as const,accountId:'sync-page'};
+  const request=async(cursor:string|null)=>{
+   requests.push(cursor);expect(db.getPool().idleCount).toBe(db.getPool().totalCount);
+   const n=cursor===null?1:cursor==='opaque-poll-1'?2:3;
+   return {status:'page' as const,page:{pageKey:'poll-page-'+n,nextCursor:n===3?null:'opaque-poll-'+n,completed:n===3,observations:[observation('poll-'+n,'poll-message-'+n)]}};
+  };
+  expect(await runDurableOfflineSync(connection,workspace,f.stream.id,'worker-first',{maxPages:2,maxItems:10,requestTimeoutMs:100,leaseMs:5000},request,sync)).toMatchObject({status:'bounded',cursor:'opaque-poll-2',pages:2,items:2});
+  expect(await runDurableOfflineSync(connection,workspace,f.stream.id,'worker-restarted',{maxPages:2,maxItems:10,requestTimeoutMs:100,leaseMs:5000},request,new PgSyncCheckpointStore(db,admitSyncObservation,async()=>{}))).toMatchObject({status:'complete',cursor:null,pages:1,items:1});
+  expect(requests).toEqual([null,'opaque-poll-1','opaque-poll-2']);
+  expect(await sync.getStream(workspace,f.stream.id)).toMatchObject({completed:true,pageCount:3,cursorVersion:3});
+  const leads=await db.query('SELECT owner_user_id FROM lead WHERE workspace_id=$1 AND id IN (SELECT lead_id FROM source_receipt WHERE connection_id=$2)',[workspace,f.connectionId]);
+  expect(leads.rows).toHaveLength(3);expect(leads.rows.every(r=>r.owner_user_id===null)).toBe(true);
  });
 });
 
