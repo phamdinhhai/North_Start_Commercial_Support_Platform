@@ -14,7 +14,7 @@ export interface SourceObservation {
   readonly verification: 'UNVERIFIED';
   readonly receiptId: string;
   readonly native: {
-    readonly system: 'meta' | null;
+    readonly system: 'meta' | 'pancake' | null;
     readonly pageId: string | null;
     readonly conversationId: string | null;
     readonly messageId: string | null;
