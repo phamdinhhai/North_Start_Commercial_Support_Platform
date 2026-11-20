@@ -12,6 +12,7 @@ export interface SyncHealthSource {
   readonly lastAttemptedAt: string|null; readonly lastCommittedAt: string|null;
   readonly retryCount: number; readonly nextRetryAt: string|null;
   readonly failureCode: OperatorSyncFailure; readonly gapStatus: 'UNKNOWN'|'NONE'|'DETECTED';
+  readonly localReceiptCount?:number;readonly quarantineCount?:number;
 }
 export interface SyncHealthReader { list(workspaceId: string, limit: number): Promise<{items: readonly SyncHealthSource[]; observedAt: string; truncated: boolean}>; }
 export interface SyncHealthControl { control(workspaceId: string, streamId: string, action: 'pause'|'resume'|'revoke', actorId: string): Promise<void>; }

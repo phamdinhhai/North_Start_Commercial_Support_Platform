@@ -36,12 +36,21 @@ import { SOURCE_FIXTURE_DECODER, type SourceFixtureDecoder } from './ports/sourc
 import { decodePancakeSynthetic, PANCAKE_SYNTHETIC_FIXTURE } from './adapters/pancake-synthetic/pancake-synthetic';
 import { decodeMetaSynthetic, META_SYNTHETIC_FIXTURE } from './adapters/meta-synthetic/meta-page-fixture';
 import { SourceContinuityController } from './api/source-continuity.controller';
+import { OperatorSyncHealthController } from './api/operator-sync-health.controller';
+import { OperatorSyncHealthQuery } from './application/operator-sync-health';
+import { PgOperatorSyncHealthReader } from './infra/observability/pg-operator-sync-health.reader';
+import { PgSyncCheckpointStore } from './infra/sync/pg-sync-checkpoint.store';
+import { admitSyncObservation } from './application/durable-sync/admission';
+import { SOURCE_SYNTHETIC_MODE } from './ports/source-fixture-decoder';
+import { SourceIntegrationError } from './ports/source-observation';
 
 /** Composition root for the manual pilot loop and health delivery. */
 @Module({
   imports: [HealthModule, PilotLoopModule, OidcAuthModule],
-  controllers: [OperatorClientController, IntegrationController, ConnectorHealthController, MembershipController, BrowserSessionController, SourceIntegrationController, SourceContinuityController],
+  controllers: [OperatorClientController, IntegrationController, ConnectorHealthController, MembershipController, BrowserSessionController, SourceIntegrationController, SourceContinuityController, OperatorSyncHealthController],
   providers: [
+    {provide:OperatorSyncHealthQuery,inject:[PostgresService,SOURCE_SYNTHETIC_MODE],useFactory:(db:PostgresService,enabled:boolean)=>
+      new OperatorSyncHealthQuery(new PgOperatorSyncHealthReader(db),new PgSyncCheckpointStore(db,admitSyncObservation,async()=>{throw new SourceIntegrationError('WORKER_NOT_CONFIGURED',403);}),enabled)},
     { provide: SOURCE_FIXTURE_DECODER, useValue: {
       decode: (provider, input) => provider === 'pancake' ? decodePancakeSynthetic(input) : decodeMetaSynthetic(input),
       example: provider => structuredClone(provider === 'pancake' ? PANCAKE_SYNTHETIC_FIXTURE : META_SYNTHETIC_FIXTURE),

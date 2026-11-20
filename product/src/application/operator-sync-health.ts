@@ -21,6 +21,9 @@ function visible(row: SyncHealthSource, observedAt: string) {
     lastAttemptedAt: row.lastAttemptedAt, lastCommittedAt: row.lastCommittedAt,
     retryCount: row.retryCount, nextRetryAt: row.nextRetryAt, failureCode: row.failureCode,
     gapStatus: row.gapStatus, lag: 'UNKNOWN' as const, observedAt,
+    localReceiptCount:row.localReceiptCount??null,quarantineCount:row.quarantineCount??null,
+    failedPages:{count:null,reason:'ONLY_LATEST_FAILURE_RECORDED'},failedEvents:{count:null,reason:'NOT_PERSISTED'},
+    replayAvailability:'AUTHORIZED_PAGE_KEY_REPLAY_ONLY',
     completeness: 'UNKNOWN' as const,
   };
 }
