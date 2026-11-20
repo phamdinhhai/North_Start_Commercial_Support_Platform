@@ -11,6 +11,7 @@ const fixture = () => {
 describe('Pancake fabricated webhook contract', () => {
   it('exports explicit test-only original identity for the fabricated dual-route demo', () => {
     expect(decodePancakeSynthetic(PANCAKE_SYNTHETIC_FIXTURE)).toMatchObject({
+      accountId: 'synthetic-page-1',
       native: { system: 'meta', pageId: 'synthetic-page', messageId: 'synthetic-message' },
       occurredAt: '2026-11-20T00:00:00.000Z',
     });

@@ -73,7 +73,7 @@ export function decodePancakeSynthetic(input: unknown): SourceObservation {
         messageId: text(meta.messageId), eventId: null, revision: null };
     }
     return {
-      schemaVersion: 1, provider: 'pancake', route: 'pancake-synthetic', synthetic: true,
+      schemaVersion: 1, provider: 'pancake', route: 'pancake-synthetic', accountId: pageId, synthetic: true,
       sourceAuthority: 'synthetic_fixture', completeness: 'UNKNOWN', verification: 'UNVERIFIED',
       receiptId: text(root.receiptId), displayName: text(root.displayName), observedAt: timestamp(root.observedAt),
       occurredAt: message.inserted_at === undefined ? null : timestamp(message.inserted_at),
