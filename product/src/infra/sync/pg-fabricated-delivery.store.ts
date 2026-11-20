@@ -21,6 +21,7 @@ export class PgFabricatedDeliveryStore implements FabricatedDeliveryStore {
    const row=(await tx.query<{id:string;workspace_id:string;provider:SourceConnection['provider'];route:SourceConnection['route'];page_id:string;status:SourceConnection['status']}>('SELECT * FROM source_connection WHERE workspace_id=$1 AND id=$2::uuid FOR UPDATE',[w,cid])).rows[0];
    if(!row)throw new SourceIntegrationError('CONNECTION_NOT_FOUND',404);
    const credential=await this.credentials.resolve(principal);
+   if(!credential.scopes.includes('messages.read'))throw new SourceIntegrationError('CREDENTIAL_SCOPE_MISMATCH',403);
    if(row.status!=='active')throw new SourceIntegrationError('CONNECTION_REVOKED',403);
    if(credential.provider!==row.provider||credential.accountId!==row.page_id)throw new SourceIntegrationError('SOURCE_SCOPE_MISMATCH',403);
    const old=(await tx.query<{delivery_digest:ContentDigest;accepted_count:number}>('SELECT delivery_digest,accepted_count FROM fabricated_delivery WHERE workspace_id=$1 AND connection_id=$2::uuid AND delivery_id=$3',[w,cid,delivery.deliveryId])).rows[0];

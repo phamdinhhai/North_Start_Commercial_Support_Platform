@@ -13,6 +13,7 @@ export class FabricatedWebhookAdmission {
   const mode=(process.env.DEPLOYMENT_MODE??process.env.APP_MODE??'').trim().toLowerCase();
   if(!['test','local'].includes(mode)||['production','pilot'].includes((process.env.NODE_ENV??'').trim().toLowerCase()))throw new SourceIntegrationError('TEST_ONLY',403);
   const credential=await this.credentials.resolve(principal);
+  if(!credential.scopes.includes('messages.read'))throw new SourceIntegrationError('CREDENTIAL_SCOPE_MISMATCH',403);
   if(!(raw instanceof Uint8Array)||raw.byteLength>1048576||typeof contentType!=='string'||!/^application\/json(?:;\s*charset=utf-8)?$/i.test(contentType))throw new SourceIntegrationError('DELIVERY_SCHEMA_INVALID',400);
   let valid=false;try{valid=this.verify(raw,signature,Buffer.from(credential.secret,'utf8'));}catch{valid=false;}
   if(!valid)throw new SourceIntegrationError('DELIVERY_AUTH_INVALID',401);

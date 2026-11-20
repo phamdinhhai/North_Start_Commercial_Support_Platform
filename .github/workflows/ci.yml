@@ -107,6 +107,10 @@ jobs:
         run: npm run build
       - name: Disposable PostgreSQL backup and restore rehearsal
         run: node scripts/restore-rehearsal.mjs
+      - name: Fabricated worker process crash and checkpoint resume
+        run: node scripts/sync-recovery-rehearsal.mjs
+      - name: Bounded synthetic synchronization benchmark
+        run: node scripts/sync-benchmark.mjs
       - name: E2E HTTP smoke
         run: npm run test:e2e
 
@@ -196,6 +200,16 @@ jobs:
         run: npx playwright test --config playwright.r411.config.ts
         env:
           QA_DATABASE_URL: postgresql://north_browser:browser_ci_only@127.0.0.1:5432/qa_browser_r411_ci
+      - name: Create separate synthetic synchronization health database
+        run: >-
+          node -e "const {Client}=require('pg'); const c=new Client({connectionString:process.env.QA_SYNC_ADMIN_URL});
+          (async()=>{await c.connect();try{await c.query('CREATE DATABASE qa_browser_r412_ci');}finally{await c.end();}})().catch(()=>process.exit(1));"
+        env:
+          QA_SYNC_ADMIN_URL: postgresql://north_browser:browser_ci_only@127.0.0.1:5432/postgres
+      - name: Signed synthetic synchronization health and operator controls
+        run: npx playwright test --config playwright.r412.config.ts
+        env:
+          QA_DATABASE_URL: postgresql://north_browser:browser_ci_only@127.0.0.1:5432/qa_browser_r412_ci
       - name: Upload Playwright report
         if: always()
         uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6

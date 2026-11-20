@@ -73,4 +73,13 @@ suite('signed fabricated delivery durable admission (not a live provider receive
   const broken=new FabricatedWebhookAdmission(credentials,new PgFabricatedDeliveryStore(db,credentials,admit),()=>{throw Error('private-provider-token');},true);
   await expect(broken.accept(principal,s.raw,'application/json',s.signature)).rejects.toMatchObject({code:'DELIVERY_AUTH_INVALID'});
  });
+ it('refuses a signed profile-only principal at admission and persistence, without creating accepted evidence',async()=>{
+  const{c,principal}=await setup(),profile=await credentials.configure(ctx,{workspaceId:ctx.workspaceId,connectionId:c.id,provider:'pancake',accountId:'page',scopes:['profile.read']},secret);
+  const restricted=await credentials.issuePrincipal(ctx,profile.credentialId),b=body(),s=signed(b),sink=new PgFabricatedDeliveryStore(db,credentials,admit);
+  const service=new FabricatedWebhookAdmission(credentials,sink,verifyMetaSignature,true);
+  await expect(service.accept(restricted,s.raw,'application/json',s.signature)).rejects.toMatchObject({code:'CREDENTIAL_SCOPE_MISMATCH'});
+  await expect(sink.accept(restricted,{deliveryId:b.deliveryId,observations:b.events as never})).rejects.toMatchObject({code:'CREDENTIAL_SCOPE_MISMATCH'});
+  await expect(credentials.resolve(principal)).rejects.toMatchObject({code:'CREDENTIAL_VERSION_CONFLICT'});
+  expect((await db.query('SELECT count(*)::int n FROM source_receipt WHERE connection_id=$1',[c.id])).rows[0].n).toBe(0);
+ });
 });

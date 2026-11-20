@@ -48,6 +48,7 @@ test('signed OIDC health is bounded, tenant-scoped and admin-controlled', async 
     const managerContext = await browser.newContext(); contexts.push(managerContext); const manager = await managerContext.newPage();
     await login(manager, 'bystander');
     expect((await api(manager, 'sync-health')).status).toBe(200);
+    expect((await api(manager, 'sync-health/' + own[0].streamId + '/control', { action: 'pause' })).status).toBe(403);
     await expect(manager.locator('#synchronization-health').getByRole('button', { name: 'pause synthetic synchronization' })).toHaveCount(0);
     const salesContext = await browser.newContext(); contexts.push(salesContext); const sales = await salesContext.newPage();
     await login(sales, 'owner');
@@ -63,8 +64,11 @@ test('signed OIDC health is bounded, tenant-scoped and admin-controlled', async 
     page.once('dialog', dialog => dialog.accept());
     await panel.locator('article').filter({ hasText: own[1].streamId }).getByRole('button', { name: 'revoke synthetic synchronization' }).click();
     await expect(panel.locator('article').filter({ hasText: own[1].streamId })).toContainText('REVOKED');
-    const counts = (await db.query('SELECT (SELECT count(*) FROM sync_page_commit)::int pages,(SELECT count(*) FROM source_receipt)::int receipts,(SELECT count(*) FROM outcome)::int outcomes')).rows[0];
-    expect(counts).toEqual({ pages: 3, receipts: 3, outcomes: 0 });
+    const counts = (await db.query('SELECT (SELECT count(*) FROM sync_page_commit)::int pages,(SELECT count(*) FROM source_receipt)::int receipts,(SELECT count(*) FROM outcome)::int outcomes,(SELECT count(*) FROM lead WHERE owner_user_id IS NOT NULL)::int owned')).rows[0];
+    expect(counts).toEqual({ pages: 3, receipts: 3, outcomes: 0, owned: 0 });
     expect((await request.get('source-integrations/sync-health')).status()).toBe(401);
+    expect((await request.post('http://127.0.0.1:3442/restart', { headers: { 'x-qa-control': process.env.QA_CONTROL_SECRET! } })).ok()).toBe(true);
+    await login(page, 'admin');
+    expect((await api(page, 'sync-health')).body.items.every((item: { state: string }) => item.state === 'REVOKED')).toBe(true);
   } finally { for (const context of contexts) await context.close(); await db.end(); }
 });

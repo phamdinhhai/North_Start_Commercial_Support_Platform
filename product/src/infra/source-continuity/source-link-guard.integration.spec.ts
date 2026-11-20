@@ -16,7 +16,8 @@ suite('021 additive immutable receipt tuple guard', () => {
   let admin: Client, created=false;
   let db: PostgresService, connectionId: string, source: SourceReceipt, other: SourceReceipt, foreign: SourceReceipt;
   const ctx: AuthContext = { workspaceId: `guard-${randomUUID()}`, userId: 'fabricated-admin', role: 'admin', isDemo: false };
-  const files = loadMigrations(), guard = files.find(m => m.version === '021_source_link_receipt_guard')!;
+  // This suite exercises the historical 020->021 guard only, independently of later additive migrations.
+  const files = loadMigrations().filter(m=>m.version<='021_source_link_receipt_guard'), guard = files.find(m => m.version === '021_source_link_receipt_guard')!;
   const older = files.filter(m => m.version < guard.version);
   const snapshot = async () => (await db.query('SELECT to_jsonb(l) AS row FROM source_episode_link l ORDER BY id')).rows;
   async function append(receipt: SourceReceipt, envelope = receipt.envelopeId, origin = receipt.leadId) {
