@@ -69,4 +69,11 @@ suite('durable synthetic source evidence',()=>{
     expect((await db.query('SELECT id FROM source_receipt WHERE connection_id=$1',[c.id])).rows).toHaveLength(0);
     expect(await s.intake(ctx,c.id,a)).toMatchObject({disposition:'stored'});
   });
+  it('refuses schema rollback when accepted source history exists and preserves migration bookkeeping', async () => {
+    const before = (await db.query('SELECT count(*)::int n FROM source_receipt WHERE workspace_id=$1', [ctx.workspaceId])).rows[0].n;
+    expect(before).toBeGreaterThan(0);
+    await expect(new Migrator(db, loadMigrations()).down(1)).rejects.toThrow('source integration rollback requires empty history');
+    expect((await db.query('SELECT count(*)::int n FROM source_receipt WHERE workspace_id=$1', [ctx.workspaceId])).rows[0].n).toBe(before);
+    expect((await new Migrator(db, loadMigrations()).applied()).at(-1)).toBe('018_source_integration');
+  });
 });
