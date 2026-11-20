@@ -35,11 +35,12 @@ import { SourceFixtureIntake } from './application/source-integration/fixture-in
 import { SOURCE_FIXTURE_DECODER, type SourceFixtureDecoder } from './ports/source-fixture-decoder';
 import { decodePancakeSynthetic, PANCAKE_SYNTHETIC_FIXTURE } from './adapters/pancake-synthetic/pancake-synthetic';
 import { decodeMetaSynthetic, META_SYNTHETIC_FIXTURE } from './adapters/meta-synthetic/meta-page-fixture';
+import { SourceContinuityController } from './api/source-continuity.controller';
 
 /** Composition root for the manual pilot loop and health delivery. */
 @Module({
   imports: [HealthModule, PilotLoopModule, OidcAuthModule],
-  controllers: [OperatorClientController, IntegrationController, ConnectorHealthController, MembershipController, BrowserSessionController, SourceIntegrationController],
+  controllers: [OperatorClientController, IntegrationController, ConnectorHealthController, MembershipController, BrowserSessionController, SourceIntegrationController, SourceContinuityController],
   providers: [
     { provide: SOURCE_FIXTURE_DECODER, useValue: {
       decode: (provider, input) => provider === 'pancake' ? decodePancakeSynthetic(input) : decodeMetaSynthetic(input),

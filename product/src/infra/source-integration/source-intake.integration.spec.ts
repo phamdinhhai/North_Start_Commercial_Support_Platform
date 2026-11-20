@@ -72,9 +72,10 @@ suite('durable synthetic source evidence',()=>{
   it('refuses schema rollback when accepted source history exists and preserves migration bookkeeping', async () => {
     const before = (await db.query('SELECT count(*)::int n FROM source_receipt WHERE workspace_id=$1', [ctx.workspaceId])).rows[0].n;
     expect(before).toBeGreaterThan(0);
-    await expect(new Migrator(db, loadMigrations()).down(1)).rejects.toThrow('source integration rollback requires empty history');
+    const sourceMigration=loadMigrations().find(m=>m.version==='018_source_integration')!;
+    await expect(db.withTransaction(tx=>tx.query(sourceMigration.down))).rejects.toThrow('source integration rollback requires empty history');
     expect((await db.query('SELECT count(*)::int n FROM source_receipt WHERE workspace_id=$1', [ctx.workspaceId])).rows[0].n).toBe(before);
-    expect((await new Migrator(db, loadMigrations()).applied()).at(-1)).toBe('018_source_integration');
+    expect((await new Migrator(db, loadMigrations()).applied()).at(-1)).toBe(loadMigrations().at(-1)!.version);
   });
   it('reconciles an explicit event across routes while preserving originals and refusing changed meaning atomically', async () => {
     const pancake=await connect(),meta=await connect('meta-page'),base=o();

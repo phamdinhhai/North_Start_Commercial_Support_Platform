@@ -12,7 +12,9 @@ export interface SourceEpisodeLink {
  readonly actorId:string; readonly recordedAt:string;
  readonly linkage:'human_confirmed'|'rejected'|'unknown'; readonly verification:'UNVERIFIED';
 }
-export type SourceLinkAuthorization = (ctx:AuthContext,leadId:string)=>Promise<unknown>;
+/** Store-derived locked row, never accepted from HTTP input. Avoid nested pool acquisition. */
+export interface SourceLinkLockedAuthority {readonly workspaceId:string;readonly ownerUserId:string|null;}
+export type SourceLinkAuthorization = (ctx:AuthContext,leadId:string,locked?:SourceLinkLockedAuthority)=>Promise<unknown>;
 /** Store invokes authorization inside its serialized command boundary, before disclosing history. */
 export interface SourceEpisodeLinkStore {
  command(ctx:AuthContext,leadId:string,input:SourceEpisodeLinkInput,content:string,digester:import('./content-digester').ContentDigester,authorize:SourceLinkAuthorization):Promise<SourceEpisodeLink>;

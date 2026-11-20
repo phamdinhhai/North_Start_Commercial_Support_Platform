@@ -52,6 +52,12 @@ import { SOURCE_SYNTHETIC_MODE } from '../ports/source-fixture-decoder';
 import { syntheticSourceMode } from '../infra/source-integration/synthetic-source-mode';
 import { requirePilotLeadAccess } from '../application/pilot/lead-access';
 import type { LeadId } from '../domain/lead/lead';
+import { SourceContinuityService } from '../application/source-continuity/source-continuity.service';
+import { PgSourceEpisodeLinkStore } from '../infra/source-continuity/pg-source-episode-link.store';
+import { requireOwner } from '../application/pilot/work-mutation-policy';
+import { LinkedSourceEvidenceQuery } from '../application/source-continuity/linked-source-evidence';
+import { PgLinkedSourceEvidenceReader } from '../infra/source-continuity/pg-linked-source-evidence.reader';
+import type { SourceLinkAuthorization } from '../ports/source-episode-link';
 
 /**
  * P0 pilot loop module (PH3 T3-03/T3-04 wiring + education B2C candidate flow).
@@ -64,6 +70,20 @@ import type { LeadId } from '../domain/lead/lead';
   imports: [PostgresModule],
   controllers: [PilotLoopController, PilotClosureController, FeedbackTelemetryController, LearningController, LeadExportController, DataLifecycleController, ContactAttemptController, AssertionDeliveryController, ManagerExceptionsController],
   providers: [
+    {provide:SourceContinuityService,inject:[PostgresService,PilotLoopService,LEAD_ACCESS_POLICY,SOURCE_SYNTHETIC_MODE],
+      useFactory:(db:PostgresService,loop:PilotLoopService,policy:LeadAccessPolicy,enabled:boolean)=>{
+        const read=async(ctx:Parameters<typeof requirePilotLeadAccess>[0],id:string)=>{requirePilotLeadAccess(ctx,await loop.get(id as LeadId),policy);};
+        const mutate:SourceLinkAuthorization=async(ctx,id,locked)=>{
+          if(locked){
+            if(locked.workspaceId!==ctx.workspaceId||!policy.canAccessLead(ctx,{id,workspaceId:locked.workspaceId,assignedTo:locked.ownerUserId??undefined}))throw new SourceIntegrationError('LEAD_ACCESS_DENIED',403);
+            requireOwner({ownerUserId:locked.ownerUserId??undefined},ctx.userId,'associate source evidence');return;
+          }
+          const state=await loop.get(id as LeadId);requirePilotLeadAccess(ctx,state,policy);requireOwner(state!,ctx.userId,'associate source evidence');
+        };
+        return new SourceContinuityService(new PgSourceEpisodeLinkStore(db),mutate,read,contentDigester(),enabled);
+      }},
+    {provide:LinkedSourceEvidenceQuery,inject:[SourceContinuityService,PostgresService],
+      useFactory:(continuity:SourceContinuityService,db:PostgresService)=>new LinkedSourceEvidenceQuery(continuity,new PgLinkedSourceEvidenceReader(db))},
     { provide: SOURCE_SYNTHETIC_MODE, useFactory: () => syntheticSourceMode() },
     { provide: SourceIntegrationService, inject: [PostgresService, PilotLoopService, LEAD_ACCESS_POLICY, SOURCE_SYNTHETIC_MODE],
       useFactory: (db: PostgresService, loop: PilotLoopService, policy: LeadAccessPolicy, enabled: boolean) => {
@@ -136,6 +156,6 @@ import type { LeadId } from '../domain/lead/lead';
   ],
   // Shared with the integration controller so enrollment issuance uses the same resolver
   // (whatever AuthContextResolver this module binds, e.g. a future OIDC resolver).
-  exports: [AUTH_CONTEXT_RESOLVER, SYNTHETIC_PILOT_MODE, SOURCE_SYNTHETIC_MODE, SourceIntegrationService],
+  exports: [AUTH_CONTEXT_RESOLVER, SYNTHETIC_PILOT_MODE, SOURCE_SYNTHETIC_MODE, SourceIntegrationService, SourceContinuityService, LinkedSourceEvidenceQuery],
 })
 export class PilotLoopModule {}

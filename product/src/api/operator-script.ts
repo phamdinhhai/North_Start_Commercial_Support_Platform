@@ -6,7 +6,7 @@ export const OPERATOR_SCRIPT = String.raw`
     const msg = (id, text, error = false) => { $(id).textContent = text; $(id).className = 'notice' + (error ? ' error' : ''); };
     const clear = () => { managerCleanup?.(); managerCleanup = null; $('manager-exceptions').hidden = true; sourceCleanup?.(); sourceCleanup = null; $('synthetic-sources').hidden = true; epoch++; listEpoch++; selected = null; cursor = null; $('context').replaceChildren(); $('queue').replaceChildren(); $('next').hidden = true; if ($('command-dialog').open)
         $('command-dialog').close(); $('command-fields').replaceChildren(); command = null; dirty = false; };
-    const err = e => e.status === 401 ? 'Session expired. Sign in again.' : e.status === 403 ? 'Permission denied for this lead or action.' : e.status === 409 ? 'Conflict (' + (e.body?.code || '409') + '). Reload before retrying.' : (e.body?.code ? e.body.code + ': ' : '') + e.message;
+    const err = e => e.body?.code === 'SOURCE_LINK_STALE_VERSION' ? 'Source link changed. Inspect source link history and enter its current link version before retrying; Lead version is separate.' : e.status === 401 ? 'Session expired. Sign in again.' : e.status === 403 ? 'Permission denied for this lead or action.' : e.status === 409 ? 'Conflict (' + (e.body?.code || '409') + '). Reload before retrying.' : (e.body?.code ? e.body.code + ': ' : '') + e.message;
     async function request(url, options = {}) { const headers = { 'content-type': 'application/json' }; if (session.devTokensAllowed && !session.authenticated && v('token'))
         headers.authorization = v('token').startsWith('Bearer ') ? v('token') : 'Bearer ' + v('token'); if (session.authenticated)
         headers['X-CSRF-Token'] = session.csrfToken; const r = await fetch(url, { credentials: 'same-origin', ...options, headers }); let b = {}; try {
@@ -189,11 +189,26 @@ export const OPERATOR_SCRIPT = String.raw`
         button(a, 'evidence', 'View original evidence', () => read('evidence', 'evidence_viewed'));
         if (session.sourceIntegration) button(a, 'source-evidence', 'Inspect source observations', async () => {
             const id = selected.id, generation = epoch;
-            try {
-                const data = await request('/v1/source-integrations/leads/' + id + '/evidence');
-                if (generation === epoch && window.renderSourceEvidence) window.renderSourceEvidence($('read-view'), data);
-            } catch (e) { if (generation === epoch) msg('context-status', err(e), true); }
+            let pageEpoch=0;
+            const page=async cursor=>{const ticket=++pageEpoch;try {
+                const data = await request('/v1/source-integrations/leads/' + id + '/evidence' + (cursor?'?cursor='+encodeURIComponent(cursor):''));
+                if (generation === epoch && ticket === pageEpoch && window.renderSourceEvidence) window.renderSourceEvidence($('read-view'), data,page);
+            } catch (e) { if (generation === epoch) msg('context-status', err(e), true); }};
+            await page();
         });
+        if (session.sourceIntegration) {
+            button(a,'linked-source-evidence','Inspect human-linked evidence',async()=>{const id=selected.id,generation=epoch;
+                try{const data=await request('/v1/source-integrations/leads/'+id+'/linked-evidence');
+                    if(generation===epoch&&window.renderSourceEvidence){window.renderSourceEvidence($('read-view'),data);const p=document.createElement('p');p.textContent='Human-confirmed context association only. Source is still synthetic / UNVERIFIED; no Customer or Lead identity merge.';$('read-view').prepend(p);}}
+                catch(e){if(generation===epoch)msg('context-status',err(e),true);}});
+            button(a,'source-link-history','View source link history',async()=>{const id=selected.id,generation=epoch;try{const data=await request('/v1/source-integrations/leads/'+id+'/source-links');if(generation===epoch){$('read-view').replaceChildren();const pre=document.createElement('pre');pre.textContent='Human linkage claims / rejected / unknown; source remains UNVERIFIED\n'+JSON.stringify(data,null,2);$('read-view').append(pre);}}catch(e){if(generation===epoch)msg('context-status',err(e),true);}});
+            if(session.context?.role==='admin')button(a,'link-source-receipt','Associate source evidence with this episode',()=>dialog('Human evidence context association (no identity merge)',()=>{
+                field('link-connection','Source connection ID');field('link-receipt','Source receipt ID');field('link-envelope','Original evidence envelope ID');
+                field('link-version','Current link version (0 for first command)','number',true,'0');
+                choices('link-action','Association decision',[['link','Human-confirmed context association'],['unlink','Unlink context'],['reject','Reject proposed context']]);
+                field('reason','Reason','textarea');
+            },meta=>request('/v1/source-integrations/leads/'+selected.id+'/source-links',{method:'POST',body:JSON.stringify({connectionId:v('link-connection'),receiptId:v('link-receipt'),evidenceEnvelopeId:v('link-envelope'),expectedVersion:Number(v('link-version')),idempotencyKey:meta.idempotencyKey,action:v('link-action'),reason:v('reason')})})));
+        }
         button(a, 'audit', 'View detailed audit', () => read('timeline'));
         if (session.context?.role === 'admin') button(a, 'export-lead', 'Export lead data', async () => {
             const id = selected.id, generation = epoch;

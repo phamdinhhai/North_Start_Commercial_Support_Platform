@@ -39,7 +39,7 @@ window.mountSyntheticSources = ({container, request, openLead, createConnection,
   refresh.onclick = load; load();
   return () => {active = false; generation++; container.replaceChildren();};
 };
-window.renderSourceEvidence = (container, data) => {
+window.renderSourceEvidence = (container, data, nextPage) => {
   container.replaceChildren();
   const heading = document.createElement('h3'); heading.textContent = 'Source observations: synthetic, UNVERIFIED; completeness UNKNOWN'; container.append(heading);
   for (const item of data.items) {
@@ -51,11 +51,15 @@ window.renderSourceEvidence = (container, data) => {
       '\nNative event: ' + (o.native.eventId || 'UNKNOWN - not supplied') + '\nObserved: ' + o.observedAt +
       '\nOccurred: ' + (o.occurredAt || 'UNKNOWN') + '\nReceived: ' + e.ingestedAt +
       '\nFreshness: capture timestamps only; no sync SLA verified' + '\nCompleteness: UNKNOWN - no full history established' +
-      '\nAuthority: synthetic_fixture / UNVERIFIED' + '\nLifecycle label: ' + o.lifecycle + ' (history observation; not current provider truth)' +
+      '\nAuthority: synthetic_fixture / UNVERIFIED' + '\nNative mapping: ' + (item.trust?.nativeMapping || 'UNKNOWN') +
+      '\nProvider attestation: NOT_AVAILABLE; independent verification: NOT_AVAILABLE' +
+      '\nObserved means locally captured fixture, not provider-authenticated or human-confirmed business fact' +
+      '\nLifecycle label: ' + o.lifecycle + ' (history observation; not current provider truth)' +
       '\nReconciliation: ' + item.receipt.disposition + '\nEvidence: ' + e.envelopeId + '\nOriginal captured text: ' + e.rawPayload.utterance;
     container.append(block);
   }
   if (!data.items.length) {const p = document.createElement('p'); p.textContent = 'No admitted source observation for this lead. Source linkage UNKNOWN.'; container.append(p);}
-  if (data.possiblyTruncated) {const p = document.createElement('p'); p.textContent = 'Only the first 100 observations are shown; history may be truncated.'; container.append(p);}
+  if (data.possiblyTruncated) {const p = document.createElement('p'); p.textContent = 'This page is bounded; completeness remains UNKNOWN.'; container.append(p);}
+  if (data.nextCursor && nextPage) {const b=document.createElement('button');b.type='button';b.id='source-next-page';b.textContent='Next source observations';b.onclick=()=>{b.disabled=true;nextPage(data.nextCursor);};container.append(b);}
 };
 `;

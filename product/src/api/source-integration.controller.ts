@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Header, Headers, HttpException, Inject, Param, Post } from '@nestjs/common';
+import { Body, Controller, Get, Header, Headers, HttpException, Inject, Param, Post, Query } from '@nestjs/common';
 import { AUTH_CONTEXT_RESOLVER, type AuthContextResolver } from '../ports/auth';
 import { SOURCE_SYNTHETIC_MODE } from '../ports/source-fixture-decoder';
 import { SourceIntegrationError, type SourceConnection } from '../ports/source-observation';
@@ -47,7 +47,11 @@ export class SourceIntegrationController {
   @Post('connections/:id/observations') @Header('Cache-Control', 'no-store') intake(@Headers() h: Record<string, string | undefined>, @Param('id') id: string, @Body() body: unknown) {
     return this.run(h, ctx => this.fixtures.intake(ctx, this.id(id), body));
   }
-  @Get('leads/:id/evidence') @Header('Cache-Control', 'no-store') evidence(@Headers() h: Record<string, string | undefined>, @Param('id') id: string) {
-    return this.run(h, ctx => this.service.evidence(ctx, this.id(id)));
+  @Get('leads/:id/evidence') @Header('Cache-Control', 'no-store') evidence(@Headers() h: Record<string, string | undefined>, @Param('id') id: string, @Query() q: Record<string,string|undefined>) {
+    return this.run(h, ctx => {
+      if(Object.keys(q).some(k=>!['limit','cursor'].includes(k)) || (q.limit!==undefined&&(!Number.isInteger(Number(q.limit))||Number(q.limit)<1||Number(q.limit)>100)) ||
+        (q.cursor!==undefined&&(typeof q.cursor!=='string'||q.cursor.length>2048))) throw new SourceIntegrationError('INPUT_INVALID',400);
+      return this.service.evidence(ctx, this.id(id),{...(q.limit!==undefined?{limit:Number(q.limit)}:{}),...(q.cursor!==undefined?{cursor:q.cursor}:{})});
+    });
   }
 }

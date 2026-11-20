@@ -68,6 +68,8 @@ describe('Migrator — PH3 T3-08', () => {
       '016_contact_attempt',
       '017_assertion_ops',
       '018_source_integration',
+      '019_source_receipt_lookup_indexes',
+      '020_source_episode_link',
     ]);
     expect(files.every((m) => m.up.length > 0 && m.down.length > 0)).toBe(true);
 

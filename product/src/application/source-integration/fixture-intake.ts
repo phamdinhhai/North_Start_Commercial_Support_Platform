@@ -7,14 +7,12 @@ import { SourceIntegrationService } from './source-integration.service';
 export class SourceFixtureIntake {
   constructor(private readonly service: SourceIntegrationService, private readonly decoder: SourceFixtureDecoder) {}
   async example(ctx: AuthContext, connectionId: string) {
-    const connection = (await this.service.listConnections(ctx)).find(c => c.id === connectionId);
-    if (!connection) throw new SourceIntegrationError('CONNECTION_NOT_FOUND', 404);
+    const connection = await this.service.connection(ctx,connectionId);
     if (connection.status !== 'active') throw new SourceIntegrationError('CONNECTION_REVOKED', 403);
     return { fixture: this.decoder.example(connection.provider), classification: 'FABRICATED_EXAMPLE_NOT_PROVIDER_EVIDENCE' };
   }
   async intake(ctx: AuthContext, connectionId: string, input: unknown) {
-    const connection = (await this.service.listConnections(ctx)).find(c => c.id === connectionId);
-    if (!connection) throw new SourceIntegrationError('CONNECTION_NOT_FOUND', 404);
+    const connection = await this.service.connection(ctx,connectionId);
     if (connection.status !== 'active') throw new SourceIntegrationError('CONNECTION_REVOKED', 403);
     if (!input || typeof input !== 'object' || Array.isArray(input)) throw new SourceIntegrationError('INPUT_INVALID', 400);
     const value = input as Record<string, unknown>;

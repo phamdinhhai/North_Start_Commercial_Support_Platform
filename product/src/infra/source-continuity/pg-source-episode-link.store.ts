@@ -19,8 +19,11 @@ export class PgSourceEpisodeLinkStore implements SourceEpisodeLinkStore {
    const latest=(await tx.query<Row>(`SELECT * FROM source_episode_link WHERE workspace_id=$1 AND connection_id=$2 AND receipt_id=$3 ORDER BY version DESC LIMIT 1`,[ctx.workspaceId,v.connectionId,v.receiptId])).rows[0];
    const affected=[...new Set([leadId,receipt.lead_id,latest?.effective_lead_id].filter((id):id is string=>!!id))].sort();
    // Freeze ownership rows while the existing authorization callback resolves them.
-   await tx.query('SELECT id FROM lead WHERE workspace_id=$1 AND id=ANY($2::uuid[]) ORDER BY id FOR UPDATE',[ctx.workspaceId,affected]);
-   for(const id of affected)await authorize(ctx,id);
+   const locked=await tx.query<{id:string;workspace_id:string;owner_user_id:string|null}>('SELECT id,workspace_id,owner_user_id FROM lead WHERE workspace_id=$1 AND id=ANY($2::uuid[]) ORDER BY id FOR UPDATE',[ctx.workspaceId,affected]);
+   for(const id of affected){
+    const row=locked.rows.find(r=>r.id===id);if(!row)return fail('LEAD_NOT_FOUND',404);
+    await authorize(ctx,id,{workspaceId:row.workspace_id,ownerUserId:row.owner_user_id});
+   }
    const prior=(await tx.query<Row>(`SELECT * FROM source_episode_link WHERE workspace_id=$1 AND connection_id=$2 AND receipt_id=$3 AND idempotency_key=$4`,[ctx.workspaceId,v.connectionId,v.receiptId,v.idempotencyKey])).rows[0];
    if(prior){if(prior.actor_id!==ctx.userId||digester.matches(ctx.workspaceId,'command',content,prior.command_digest)!==true)return fail('IDEMPOTENCY_CONFLICT');return project(prior);}
    if((latest?.version??0)!==v.expectedVersion)return fail('SOURCE_LINK_STALE_VERSION');
