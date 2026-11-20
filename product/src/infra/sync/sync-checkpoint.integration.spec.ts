@@ -70,6 +70,20 @@ suite('R4.12 durable sync checkpoint and replay',()=>{
   const leads=await db.query('SELECT owner_user_id FROM lead WHERE workspace_id=$1 AND id IN (SELECT lead_id FROM source_receipt WHERE connection_id=$2)',[workspace,f.connectionId]);
   expect(leads.rows).toHaveLength(3);expect(leads.rows.every(r=>r.owner_user_id===null)).toBe(true);
  });
+ it('persists retry eligibility and explicit gaps while refusing malformed checkpoint pages',async()=>{
+  const f=await fresh(),lease=await sync.claimLease(workspace,f.stream.id,'failure-worker',5000);
+  await expect(sync.commitPage(workspace,f.stream.id,lease!.token,{pageKey:'bad',expectedCursor:null,expectedVersion:0,nextCursor:'not-terminal',completed:true,observations:[]})).rejects.toMatchObject({code:'SYNC_PAGE_INVALID'});
+  const retryAt=new Date(Date.now()+60000).toISOString();
+  await sync.recordFailure(workspace,f.stream.id,lease!.token,'RATE_LIMITED',retryAt);await sync.releaseLease(workspace,f.stream.id,lease!.token);
+  expect(await sync.getStream(workspace,f.stream.id)).toMatchObject({status:'degraded',retryCount:1,failureCode:'RATE_LIMITED',nextRetryAt:retryAt,cursorVersion:0,pageCount:0});
+  expect(await sync.claimLease(workspace,f.stream.id,'too-early',5000)).toBeNull();
+  // Advance only disposable operational retry time to emulate a later worker invocation.
+  await db.query("UPDATE sync_stream SET next_retry_at=clock_timestamp()-interval '1 second' WHERE id=$1",[f.stream.id]);
+  const next=await sync.claimLease(workspace,f.stream.id,'gap-worker',5000);expect(next).not.toBeNull();
+  await sync.recordFailure(workspace,f.stream.id,next!.token,'GAP_DETECTED',null);
+  expect(await sync.getStream(workspace,f.stream.id)).toMatchObject({status:'blocked',gapStatus:'DETECTED',retryCount:2,cursorVersion:0});
+  await sync.releaseLease(workspace,f.stream.id,next!.token);expect(await sync.claimLease(workspace,f.stream.id,'blocked-worker',5000)).toBeNull();
+ });
 });
 
 

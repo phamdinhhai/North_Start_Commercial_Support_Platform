@@ -1,7 +1,14 @@
 import{describe,it,expect,vi}from'vitest';import{runDurableOfflineSync}from'./offline-sync';
+import{SourceIntegrationError}from'../../ports/source-observation';
 const connection={mode:'offline-synthetic' as const,connectionId:'c',provider:'pancake' as const,accountId:'page'};
 function store(){const stream={id:'s',workspaceId:'w',connectionId:'c',provider:'pancake',accountId:'page',capability:'synthetic-messages',mode:'offline-synthetic',status:'active',cursor:null,completed:false,cursorVersion:0,schemaVersion:1,lastAttemptedAt:null,lastCommittedAt:null,retryCount:0,pageCount:0,nextRetryAt:null,failureCode:null,gapStatus:'UNKNOWN',leaseOwner:null,leaseUntil:null};return{claimLease:vi.fn().mockResolvedValue({stream,token:'t',owner:'worker'}),getStream:vi.fn().mockResolvedValue(stream),releaseLease:vi.fn(),recordFailure:vi.fn(),commitPage:vi.fn()};}
 describe('durable offline authorization boundary',()=>{
  it('does not call fetch when the server-bound credential is revoked before the request',async()=>{const s=store(),request=vi.fn(),authorize=vi.fn().mockRejectedValue(new Error('revoked'));expect(await runDurableOfflineSync(connection,'w','s','worker',{maxPages:1,maxItems:1,requestTimeoutMs:10,leaseMs:100,authorizeFetch:authorize},request,s as never)).toMatchObject({status:'auth-revoked'});expect(request).not.toHaveBeenCalled();expect(s.releaseLease).toHaveBeenCalledWith('w','s','t');});
  it('records bounded provider timeout and never advances checkpoint',async()=>{const s=store(),request=vi.fn().mockResolvedValue({status:'timeout'});const r=await runDurableOfflineSync(connection,'w','s','worker',{maxPages:1,maxItems:1,requestTimeoutMs:10,leaseMs:100,authorizeFetch:async()=>{}},request,s as never);expect(r.status).toBe('timeout');expect(s.commitPage).not.toHaveBeenCalled();expect(s.recordFailure).toHaveBeenCalledWith('w','s','t','TIMEOUT',expect.any(String));});
+ it('rejects unsafe run bounds before leasing and preserves categorical commit refusals',async()=>{
+  const s=store(),request=vi.fn().mockResolvedValue({status:'page',page:{pageKey:'page',nextCursor:null,completed:true,observations:[]}}),opts={maxPages:1,maxItems:1,requestTimeoutMs:10,leaseMs:100,authorizeFetch:async()=>{}};
+  await expect(runDurableOfflineSync(connection,'w','s','worker',{...opts,maxPages:101},request,s as never)).rejects.toMatchObject({code:'INPUT_INVALID'});expect(s.claimLease).not.toHaveBeenCalled();
+  s.commitPage.mockRejectedValue(new SourceIntegrationError('SYNC_PAGE_INVALID',400));expect(await runDurableOfflineSync(connection,'w','s','worker',opts,request,s as never)).toMatchObject({status:'schema-poison'});
+  s.commitPage.mockRejectedValue(new SourceIntegrationError('SYNC_LEASE_LOST',409));await expect(runDurableOfflineSync(connection,'w','s','worker',opts,request,s as never)).rejects.toMatchObject({code:'SYNC_LEASE_LOST'});
+ });
 });
