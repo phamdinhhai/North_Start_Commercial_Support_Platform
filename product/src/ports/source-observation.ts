@@ -59,7 +59,7 @@ export interface SourceIntegrationStore {
   createConnection(ctx: AuthContext, input: Pick<SourceConnection, 'provider' | 'route' | 'pageId'>): Promise<SourceConnection>;
   revokeConnection(ctx: AuthContext, id: string): Promise<SourceConnection>;
   listConnections(workspaceId: string): Promise<readonly SourceConnection[]>;
-  intake(ctx: AuthContext, connectionId: string, observation: SourceObservation): Promise<SourceReceipt>;
+  intake(ctx: AuthContext, connectionId: string, observation: SourceObservation, options?: { readonly claimResponsibility: boolean }): Promise<SourceReceipt>;
   evidence(workspaceId: string, leadId: string, actorId: string): Promise<readonly SourceEvidence[]>;
 }
 export class SourceIntegrationError extends Error {

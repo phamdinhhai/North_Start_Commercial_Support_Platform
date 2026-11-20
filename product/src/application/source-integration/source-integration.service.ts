@@ -23,13 +23,19 @@ export class SourceIntegrationService {
   }
   async revokeConnection(ctx: AuthContext, id: string) { this.admin(ctx); return this.store.revokeConnection(ctx,id); }
   async listConnections(ctx: AuthContext) { this.admin(ctx); return this.store.listConnections(ctx.workspaceId); }
-  async intake(ctx: AuthContext, connectionId: string, value: unknown) {
+  async intake(ctx: AuthContext, connectionId: string, value: unknown, options: {claimResponsibility:boolean} = {claimResponsibility:false}) {
     this.admin(ctx);
-    return this.store.intake(ctx,connectionId,validateSourceObservation(value));
+    if (!options || Object.keys(options).join() !== 'claimResponsibility' || typeof options.claimResponsibility !== 'boolean') throw new SourceIntegrationError('INPUT_INVALID',400);
+    return this.store.intake(ctx,connectionId,validateSourceObservation(value),options);
   }
   async evidence(ctx: AuthContext, leadId: string) {
     this.gate();
     await this.authorizeLead(ctx,leadId);
-    return {items:await this.store.evidence(ctx.workspaceId,leadId,ctx.userId),verification:'UNVERIFIED' as const,completeness:'UNKNOWN' as const};
+    const evidence=await this.store.evidence(ctx.workspaceId,leadId,ctx.userId);
+    return {items:evidence.map(({receipt,observation,envelope})=>({receipt,observation,envelope:{
+      envelopeId:envelope.envelopeId,connection:envelope.connection,externalRecordId:envelope.externalRecordId,
+      sourceCapturedAt:envelope.sourceCapturedAt,ingestedAt:envelope.ingestedAt,isSynthetic:true,
+      acquisitionMode:envelope.acquisitionMode,acquisitionSource:envelope.acquisitionSource,rawPayload:envelope.rawPayload,
+    }})),limit:100,possiblyTruncated:evidence.length===100,verification:'UNVERIFIED' as const,completeness:'UNKNOWN' as const};
   }
 }
