@@ -45,3 +45,22 @@ Go for integration of the offline policy correction and positional planner, foll
 Before this local commit, owned changed/untracked files and staged diff were scanned for credential assignments, bearer/cookie headers, JWT-like strings, email/phone-like data and raw provider-content indicators; only fabricated test identifiers/reference strings are present. No `.env`, cookies, capture, runtime journal or generated provider artifact is staged. Root must scan the integrated tree, artifacts and new history again before each commit/push decision.
 
 Gate A final R4.13: **NOT YET ATTESTED** by this bounded checkpoint. Gate B remains CONDITIONAL; human Sales testing NOT RUN. Provider live capability: NOT ATTESTED. Gate C remains NOT READY FOR REAL CUSTOMER DATA. R4.13 push/merge/deploy remains unauthorized.
+
+## Supplemental review — 2026-11-21
+
+Root reported another reproduced constructor validation defect: five malformed targets, each missing one required field but replacing it with an unknown key, passed the former `Object.values` plus key-count checks. Reviewed correction uses an explicit five-key list, `Object.hasOwn` and per-key string validation, while still refusing extra enumerable keys. Classification: **VERIFIED DEFECT, Medium** in the offline safety boundary; the reproduction history is root-reported, and QA independently ran all five new regression cases successfully. Caller-owned evidence references remain references, not provider authentication proof.
+
+Reviewed `adapters/pancake/pancake-message-scope.ts` and its new spec directly from root's worktree. The pure helper requires provider-success, exact conversation, bounded message count and exact Page/conversation/message identity on each message, and emits fixed metadata only. It neither returns raw IDs/content nor modifies input, creates receipts, advances checkpoints or activates transport. Contact identity is only provider-observed when a well-formed `conv_from.id` exists; it is not cross-provider Customer identity or mutation authorization. Empty message history cannot independently prove per-message Page binding. Authentic transport and exact route binding are still required outside this helper.
+
+QA copied only the four reviewed source/spec files into its own worktree and reran:
+
+```text
+npx vitest run src/application/pancake-admission/pancake-request-policy.spec.ts src/application/pancake-admission/pancake-request-policy.qa.spec.ts src/adapters/pancake/pancake-history-readback.spec.ts src/adapters/pancake/pancake-message-scope.spec.ts
+npm run typecheck
+npm run lint
+npm run architecture:check:strict
+```
+
+Result: **4 files, 68 tests PASS, zero skipped**; typecheck/lint/strict architecture PASS, zero architecture findings. Source SHA-256: message-scope `cab321f6cddb79ab32dc6db24d9954691a2a585774415dde7ff3a84cde0ef0a7`; request-policy `f31c325270c88466b21b6fa05368afcc1f9179b442ec8c22f36f5c6342a2648b`. This source snapshot has no final integrated commit SHA yet. An initial copy command used an incorrect relative destination and copied no files; its three-file/40-test output is excluded from acceptance. The corrected copy and four-file run above supply the result. No new blocker found in these bounded helpers; no coverage or full-regression claim is made.
+
+Root reports four total provider requests, terminal stop after an un-followed target UI HTML redirect, zero mutations and no real-data North Start intake. The reported official message-read success is limited to that response; Page alias/contact/current-account entitlement remain unverified. QA did not open the runtime journal, raw responses, credential files or capture and therefore does not independently attest these provider outcomes. Preserve the terminal stop and continue offline engineering only until the precise remaining identity/authorization requirements can be satisfied. Gate B/C and hosted/full-regression limits above remain unchanged.
