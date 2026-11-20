@@ -24,7 +24,9 @@ async function request(ports: OfflineTransportPorts, connection: OfflineConnecti
     ]);
   } finally { if (timer !== undefined) clearTimeout(timer); }
 }
-/** Bounded function, no scheduler/network client/routes. At-least-once, no SLO promise. */
+/** Attempt/item bounds and request deadlines; trusted callbacks must terminate.
+ * Elapsed budget checked between callbacks; not an end-to-end cancellation guarantee.
+ * No scheduler/network client/routes. At-least-once, no SLO promise. */
 export async function runOfflineTransport(connection: OfflineConnection, initialCursor: string | null,
   bounds: TransportBounds, ports: OfflineTransportPorts): Promise<TransportResult> {
   let attempts = 0, items = 0, checkpoint = initialCursor;
@@ -39,8 +41,10 @@ export async function runOfflineTransport(connection: OfflineConnection, initial
     if (!Number.isFinite(remaining) || remaining <= 0) return finish('bounded');
     try { if (!await ports.isAuthorized(connection)) return finish('revoked'); }
     catch { return finish('revoked'); }
+    const requestRemaining=bounds.maxElapsedMs-(ports.now()-started);
+    if(!Number.isFinite(requestRemaining)||requestRemaining<=0)return finish('bounded');
     attempts++;
-    const response = await request(ports, connection, checkpoint, Math.min(remaining, bounds.requestTimeoutMs));
+    const response = await request(ports, connection, checkpoint, Math.min(requestRemaining, bounds.requestTimeoutMs));
     if (response.status === 'provider-error') return finish('provider-error');
     if (response.status !== 'page') {
       const delay = response.status === 'rate-limited'
@@ -59,6 +63,7 @@ export async function runOfflineTransport(connection: OfflineConnection, initial
     if (page.gap) return finish('gap');
     if (items + page.items.length > bounds.maxItems || ports.now() - started >= bounds.maxElapsedMs) return finish('bounded');
     try { if (!await ports.isAuthorized(connection)) return finish('revoked'); } catch { return finish('revoked'); }
+    if(ports.now()-started>=bounds.maxElapsedMs)return finish('bounded');
     try { await ports.processAndCheckpoint(connection, page); } catch { return finish('persistence-failed'); }
     checkpoint = page.nextCursor;
     items += page.items.length;

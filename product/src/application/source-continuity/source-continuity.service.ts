@@ -26,7 +26,7 @@ export class SourceContinuityService {
  }
  async list(ctx:AuthContext,leadId:string){
   this.gate(ctx);await this.authorizeRead(ctx,leadId);
-  const rows=await this.store.list(ctx.workspaceId,leadId),items=[];
+  const rows=await this.store.list(ctx.workspaceId,leadId,ctx.userId),items=[];
   for(const row of rows){
    if(await this.canRead(ctx,[row.originLeadId,row.effectiveLeadId]))items.push(row);
   }

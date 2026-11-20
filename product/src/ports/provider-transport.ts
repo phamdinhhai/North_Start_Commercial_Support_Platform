@@ -23,6 +23,7 @@ export interface TransportBounds {
   readonly backoffMs: number;
 }
 export interface OfflineTransportPorts {
+  /** Trusted local callbacks must terminate; only request has enforced deadline/cancellation. */
   readonly now: () => number;
   readonly sleep: (milliseconds: number) => Promise<void>;
   /** Server-owned binding and revocation check, never a field in a client JSON payload. */

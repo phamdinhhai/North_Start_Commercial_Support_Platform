@@ -82,6 +82,16 @@ describe('offline bounded provider transport', () => {
     expect(JSON.stringify(result)).not.toContain('private'); expect(result.status).toBe('provider-error');
     expect((await runOfflineTransport({ ...connection, mode: 'live' } as unknown as OfflineConnection, null, bounds, h.ports)).status).toBe('invalid-configuration');
   });
+  it('rechecks elapsed budget after slow authorization before request or persistence',async()=>{
+    for(const expireOn of [1,2]){
+      const h=harness([page()]);let time=0,calls=0;
+      h.ports.now=()=>time;
+      h.ports.isAuthorized=async()=>{if(++calls===expireOn)time=bounds.maxElapsedMs;return true;};
+      expect((await runOfflineTransport(connection,null,bounds,h.ports)).status).toBe('bounded');
+      expect(h.ports.processAndCheckpoint).not.toHaveBeenCalled();expect(h.ports.acknowledge).not.toHaveBeenCalled();
+      if(expireOn===1)expect(h.ports.request).not.toHaveBeenCalled();
+    }
+  });
   it('rejects authorization errors, exhausted budgets and invalid page cursors', async () => {
     const h = harness([page('next')]);
     h.ports.isAuthorized = async () => { throw new Error('private'); };

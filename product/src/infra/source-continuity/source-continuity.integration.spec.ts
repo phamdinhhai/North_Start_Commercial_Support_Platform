@@ -64,7 +64,8 @@ suite('append-only human episode context',()=>{
   await expect(store.command({...ctx,workspaceId:'foreign'},a.leadId!,input(b),'content',digester,async()=>{})).rejects.toMatchObject({code:'SOURCE_RECEIPT_NOT_FOUND'});
   await service.command(ctx,a.leadId!,input(b));
   for(const sql of ['UPDATE source_episode_link SET reason=reason','DELETE FROM source_episode_link','TRUNCATE source_episode_link'])await expect(db.query(sql)).rejects.toThrow('append-only');
-  await expect(new Migrator(db,loadMigrations()).down(1)).rejects.toThrow('empty history');
+  const historyMigration=loadMigrations().find(m=>m.version==='020_source_episode_link')!;
+  await expect(db.withTransaction(tx=>tx.query(historyMigration.down))).rejects.toThrow('empty history');
  });
  it('uses actual runtime locked authority with one pool client and ten concurrent commands',async()=>{
   // Exercise the production factory instead of reproducing its permission checks in the test.

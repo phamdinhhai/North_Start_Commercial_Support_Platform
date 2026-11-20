@@ -17,8 +17,9 @@ const require = createRequire(import.meta.url);
 const { PostgresService } = require('../dist/infra/postgres/postgres.service.js');
 const { Migrator, loadMigrations } = require('../dist/infra/postgres/migrator.js');
 const { PgSourceIntegrationStore } = require('../dist/infra/source-integration/pg-source-integration.store.js');
+const { PgSourceEpisodeLinkStore } = require('../dist/infra/source-continuity/pg-source-episode-link.store.js');
 const { decodeMetaSynthetic, META_SYNTHETIC_FIXTURE } = require('../dist/adapters/meta-synthetic/meta-page-fixture.js');
-const { installContentDigester } = require('../dist/ports/content-digester-runtime.js');
+const { installContentDigester, contentDigester } = require('../dist/ports/content-digester-runtime.js');
 const { configuredContentDigester } = require('../dist/infra/crypto/configured-content-digester.js');
 // Generated rehearsal-only key retained across source/restore verification, never printed or committed.
 installContentDigester(configuredContentDigester({ CONTENT_DIGEST_KEYS_JSON: JSON.stringify([
@@ -34,7 +35,7 @@ const archive = join(directory, 'synthetic.dump');
 const created = [];
 const snapshotKey = randomBytes(32);
 const tables = ['schema_migrations', 'workspace', 'integration_enrollment', 'integration_receipt', 'integration_audit',
-  'lead', 'commercial_envelope', 'source_connection', 'source_native_message', 'source_receipt', 'audit_record'];
+  'lead', 'commercial_envelope', 'source_connection', 'source_native_message', 'source_receipt', 'source_episode_link', 'audit_record'];
 let source;
 let restored;
 async function snapshot(db) {
@@ -75,7 +76,15 @@ try {
   const sourceStore = new PgSourceIntegrationStore(source);
   const connection = await sourceStore.createConnection(ctx, { provider: 'meta-page', route: 'meta-page-synthetic', pageId: 'synthetic-page' });
   const observation = decodeMetaSynthetic(META_SYNTHETIC_FIXTURE);
-  const accepted = await sourceStore.intake(ctx, connection.id, observation);
+  const accepted = await sourceStore.intake(ctx, connection.id, observation, {claimResponsibility:true});
+  const second = await sourceStore.intake(ctx, connection.id, {...observation,receiptId:'restore-second',
+    native:{...observation.native,messageId:'restore-second'}}, {claimResponsibility:true});
+  const linkInput={connectionId:connection.id,receiptId:second.receiptId,evidenceEnvelopeId:second.envelopeId,
+    expectedVersion:0,idempotencyKey:'restore-context-link',action:'link',reason:'Fabricated restore episode context'};
+  const content=JSON.stringify(linkInput),authorize=async(_ctx,_id,locked)=>{
+    if(locked && (locked.workspaceId!==ctx.workspaceId||locked.ownerUserId!==ctx.userId))throw new Error('Restore fixture ownership mismatch');
+  };
+  const association=await new PgSourceEpisodeLinkStore(source).command(ctx,accepted.leadId,linkInput,content,contentDigester(),authorize);
   const expected = await snapshot(source);
   const began = performance.now();
   runHelper(['backup', '--target', urlFor(sourceName), '--output', archive]);
@@ -86,6 +95,8 @@ try {
   const actual = await snapshot(restored);
   if (JSON.stringify(expected) !== JSON.stringify(actual)) throw new Error('Restored table content differs');
   const replay = await new PgSourceIntegrationStore(restored).intake(ctx, connection.id, observation);
+  const linkReplay = await new PgSourceEpisodeLinkStore(restored).command(ctx,accepted.leadId,linkInput,content,contentDigester(),authorize);
+  if(JSON.stringify(linkReplay)!==JSON.stringify(association))throw new Error('Restored source association replay differs');
   if (replay.disposition !== 'receipt_duplicate' || replay.leadId !== accepted.leadId ||
       JSON.stringify(actual) !== JSON.stringify(await snapshot(restored))) throw new Error('Restored source replay changed durable history');
   // The restored unique delivery contract must still reject duplicate source identity.
@@ -94,7 +105,7 @@ try {
       [randomUUID(), enrollment, 'synthetic-capture', 'b'.repeat(64), '{}']);
     throw new Error('Restored receipt uniqueness was not enforced');
   } catch (error) { if (error.code !== '23505') throw error; }
-  console.log(JSON.stringify({ result: 'PASS', syntheticOnly: true, sourceReplayAfterRestore: true, tables: actual,
+  console.log(JSON.stringify({ result: 'PASS', syntheticOnly: true, sourceReplayAfterRestore: true, associationReplayAfterRestore:true,tables: actual,
     archiveSha256: createHash('sha256').update(await readFile(archive)).digest('hex'),
     restoreMs, rehearsalMs: Math.round(performance.now() - began), sla: 'NOT_ESTABLISHED' }));
 } finally {

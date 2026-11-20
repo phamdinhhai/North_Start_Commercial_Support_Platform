@@ -5,6 +5,7 @@ import { writeFileSync } from 'node:fs';
 import { performance } from 'node:perf_hooks';
 import { relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { execFileSync } from 'node:child_process';
 const require = createRequire(import.meta.url);
 const { PostgresService } = require('../dist/infra/postgres/postgres.service');
 const { Migrator, loadMigrations } = require('../dist/infra/postgres/migrator');
@@ -20,7 +21,7 @@ const db = new PostgresService({ connectionString: url.href, max: 8, application
 const store = new PgSourceIntegrationStore(db);
 const started = performance.now();
 const cap = setTimeout(() => { console.error('Benchmark exceeded 120 second cap'); process.exit(2); }, 120000);
-const report = { label: process.env.BENCH_LABEL ?? 'baseline', workers: 8, seedReceipts: 1200, workloads: {}, plans: {}, observations: {} };
+const report = { sourceSha:execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim(),label: process.env.BENCH_LABEL ?? 'baseline', workers: 8, seedReceipts: 1200, workloads: {}, plans: {}, observations: {} };
 const ctx = { workspaceId: `bench-${randomUUID()}`, userId: 'fabricated-admin', role: 'admin', isDemo: false };
 const observation = (messageId = randomUUID(), eventId = null) => ({ schemaVersion: 1, accountId: 'fabricated-page', provider: 'pancake', route: 'pancake-synthetic', synthetic: true, sourceAuthority: 'synthetic_fixture', completeness: 'UNKNOWN', verification: 'UNVERIFIED', receiptId: randomUUID(), native: { system: 'meta', pageId: 'fabricated-page', conversationId: null, messageId, eventId, revision: null }, observedAt: '2026-11-20T00:00:00Z', occurredAt: null, lifecycle: 'upsert-observed', displayName: 'Fabricated benchmark', rawPayload: { utterance: 'Fabricated content', speaker: 'customer', original: { fabricated: true } } });
 async function workload(name, count, task) {
@@ -49,7 +50,14 @@ try {
       native: ['SELECT * FROM source_receipt WHERE workspace_id=$1 AND native_system=$2 AND page_id=$3 AND message_id=$4 ORDER BY created_at,id', [ctx.workspaceId, 'meta', 'fabricated-page', 'fabricated-600']],
       event: ['SELECT message_id FROM source_receipt WHERE workspace_id=$1 AND native_system=$2 AND page_id=$3 AND event_id=$4 AND revision IS NOT DISTINCT FROM $5', [ctx.workspaceId, 'meta', 'fabricated-page', 'event-600', null]],
       health: ['SELECT c.id,count(r.id) FROM source_connection c LEFT JOIN source_receipt r ON r.workspace_id=c.workspace_id AND r.connection_id=c.id WHERE c.workspace_id=$1 GROUP BY c.id ORDER BY c.id LIMIT 100', [ctx.workspaceId]],
+      currentHealth: [`WITH page AS MATERIALIZED (SELECT * FROM source_connection WHERE workspace_id=$1 ORDER BY created_at,id LIMIT 100)
+        SELECT c.*,r.* FROM page c CROSS JOIN LATERAL (SELECT count(*)::int receipt_count,
+        count(*) FILTER(WHERE quarantine_reason IS NOT NULL)::int quarantine_count,max(created_at) last_receipt_at
+        FROM source_receipt WHERE workspace_id=c.workspace_id AND connection_id=c.id) r ORDER BY c.created_at,c.id`,[ctx.workspaceId]],
     };
+    const lead=(await db.query('SELECT lead_id FROM source_receipt WHERE workspace_id=$1 AND lead_id IS NOT NULL LIMIT 1',[ctx.workspaceId])).rows[0].lead_id;
+    queries.leadEvidence=[`SELECT r.*,to_jsonb(e) envelope FROM source_receipt r JOIN commercial_envelope e ON e.id=r.envelope_id AND e.workspace_id=r.workspace_id
+      WHERE r.workspace_id=$1 AND r.lead_id=$2::uuid ORDER BY r.created_at,r.id LIMIT 21`,[ctx.workspaceId,lead]];
     for (const [name, [sql, args]] of Object.entries(queries)) report.plans[name] = (await db.query(`EXPLAIN (ANALYZE,BUFFERS,FORMAT JSON) ${sql}`, args)).rows[0]['QUERY PLAN'];
     await workload('sameConnectionDifferentMessages', 64, () => store.intake(ctx, connections[0].id, observation()));
     await workload('sameConnectionSameMessage', 64, () => store.intake(ctx, connections[0].id, observation('same-message')));
