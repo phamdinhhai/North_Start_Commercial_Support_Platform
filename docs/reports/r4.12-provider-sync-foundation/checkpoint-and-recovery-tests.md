@@ -23,3 +23,11 @@ Result: 13 tests passed, zero skipped (7 durable sync PostgreSQL tests plus 6 mi
 
 Additional bounded harness test commits two fabricated pages, confirms all PostgreSQL pool clients are idle during request callbacks, resumes with a new worker, commits page3 and checks three unassigned Lead seeds. This is a worker/store restart simulation; OS process crash is independently parent-owned.
 
+
+
+## Final integrated evidence checkpoint
+
+Root source `41948f37a72d75e024ea115818e2834914232e92` requires mandatory authorizeFetch before every request and current binding inside commit. Direct credential-binding tests now exercise exact workspace/connection/provider/account/scope, rotation, forged principal and revoked state. A new actual PostgreSQL test verifies persisted RATE_LIMITED retry eligibility refuses early claims, explicit GAP_DETECTED blocks subsequent claims, and malformed terminal cursor input never advances checkpoint. Source code is unchanged from0e6f971; only tests were added before the final full rerun. Full exact-source results and log hashes are in verification.json.
+
+
+Final root execution at frozen41948f3:26/26lanes PASS,1,413tests in155files,157PostgreSQL included/zero skipped,92.77%line coverage. Signed R4.12 UI,16table restore and page/delivery replay, abrupt child exit73/resume page3, owned launcher PG outage and bounded benchmark all PASS. This is independent of the earlier workstream checkpoint above. Hosted R4.12, provider authorization and human validation remain NOT RUN/PENDING as separately scoped.

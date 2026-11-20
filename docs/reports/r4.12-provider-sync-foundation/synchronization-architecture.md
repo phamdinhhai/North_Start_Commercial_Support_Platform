@@ -13,3 +13,11 @@ Failure paths record bounded retry state and categorical failure codes. Authenti
 Migration down refuses nonempty stream/page history. Restore must preserve these tables before a stream is resumed. Stream control is auditable and clears leases on pause/revoke. Human operator authorization is separate from provider service authorization.
 
 Offline verified only: a test PostgreSQL database proves two pages' durable receipt/checkpoint transaction, same-page replay, collision rollback with no checkpoint advance, lease fencing, revocation and no owner claim. Live OAuth, vault/KMS, provider webhook routes, real cursor semantics and production scheduler remain outside this slice.
+
+## Root integration and signed fabricated delivery
+
+Root adds migration023 for an unregistered `north-start-fabricated-delivery/v1` test protocol. A bounded raw byte body is authenticated with an injected HMAC verifier before JSON decoding, then schema/account/native/trust validation runs. Current opaque credential and messages.read fixture scope are rechecked under the connection lock. Source effects, an immutable delivery ledger and attempt row commit together; a response is returned only afterward. Repeats append attempts without duplicate source effects; changed content under one delivery ID conflicts. This is not Pancake webhook authentication or approved Meta app identity.
+
+Operator source gate composes only health/control. It deliberately provides a deny-worker commit authorization callback in the HTTP application composition. Credentials, polling workers and fabricated webhook admission have no automatically registered route or daemon. Programmatic offline harnesses use `bindSyncCredential` for current account/version/scope and mandatory `authorizeFetch` before each request. Live transport remains unavailable.
+
+Root retains the same request-time/in-transaction authorization snapshot limit: memory credential changes after the check cannot retroactively cancel a committed in-flight transaction. Database source revoke is lock ordered. Page/attempt ledgers are append-only, cursor updates are transactional, source context authority remains UNVERIFIED, and no business outcome or human ownership is created.

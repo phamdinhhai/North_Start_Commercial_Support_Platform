@@ -18,3 +18,5 @@ Confirmed baseline boundaries:
 - `UNKNOWN` completeness is required where backfill or provider state is not established.
 
 Potential R4.12 risks are classified as design/implementation hypotheses until reproduced: checkpoint crash windows, lease races, token lifecycle mistakes, replay idempotency, stale health status, and worker pool contention. No P0 is inferred from test-count or synthetic fixtures.
+
+Final read-only worktree audit:119registered worktrees,17dirty preserved, zero unreadable; R4.11 clean and unchanged. Artifact/hash are in verification.json. Final source41948f3 has26/26local acceptance lanes PASS; no R4.11 counts substituted.
