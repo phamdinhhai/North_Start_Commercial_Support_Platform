@@ -49,3 +49,23 @@ Pin all occurrences to these immutable SHAs with readable major comments, set ch
 ## Evidence limits and release posture
 
 This document is an initial audit and executable acceptance plan, not an execution report. Passing synthetic tests cannot grant provider rights, remove per-capability gates, claim real Sales usability, resolve canonical decisions, or approve production. No push, merge, deployment, provider account access, Owner pilot access, or administrative configuration change was performed.
+
+## Integrated local execution — independent QA
+
+Executed against source revision `e0afdee5ef4177a02e1beef609a72c569f97fc06` plus the new QA files/workflow in this commit. Coordinator changes after that source revision require the coordinator's final rerun; these results do not cover them.
+
+- `npm ci`: passed; five moderate advisories reported. No dependency changes made.
+- `npx vitest run src/api/source-continuity.http.spec.ts src/infra/source-continuity/linked-source-reader.qa.spec.ts src/infra/source-continuity/linked-evidence-reader.integration.spec.ts`: 15 tests across three files passed, with actual PostgreSQL enabled. Covers feature-off/anonymous/demo/role denial, malformed ID, scoped denial before pointer lookup, sanitized failures, full receipt pointer tuple, safe evidence projection, and mandatory access audit failure with transaction rollback/retry.
+- `npm run typecheck` and `npm run lint`: passed. Browser launcher also builds successfully.
+- `npx playwright test --config playwright.r411.config.ts`: two serial tests passed on fresh disposable `qa_browser_r411_final` (private loopback port50936), Chromium with signed OIDC and real application HTTP/PostgreSQL. Earlier runs used separate `qa_browser_r411` and `qa_browser_r411_second`; no existing DB was cleaned/reused for a browser journey.
+- `git diff --check`: passed. No production source changes were made by QA.
+
+Browser evidence: distinct native messages produce two stable Leads despite shared conversation; exact replay returns receipt_duplicate; conflicting payload returns409; forged verified field, body digest and mismatched evidence tuple fail. Human UI link/unlink/relink creates three append-only history records, leaves original receipts byte-for-byte unchanged and keeps two Leads. Source projection remains UNVERIFIED with USER_ASSERTED_CANDIDATE and no provider attestation. Target-only Sales sees neither origin evidence nor hidden link history; foreign workspace receives404; admin mutation after target ownership changes receives403; recipient membership revocation takes effect on the next request. Missing CSRF receives403 and anonymous access401. Durable readback survives application restart; revoked connection refuses intake.
+
+Paging evidence: disclosed fixture control invokes the production PostgreSQL store to add105 fabricated event versions to one original receipt's Lead. Signed HTTP traverses all106 unique receipts using17-record pages, rejects limit101, and UI renders20 records then a next page. A deliberately delayed old-Lead evidence response completes after another Lead is selected and does not overwrite its read view. This is synthetic setup, not a claim that a human created105 events through the UI.
+
+Cache finding investigated and closed: the suspected error-cache omission was not reproduced. Actual Fastify503 response has `Cache-Control: no-store`, now asserted in the HTTP regression test. Mandatory audit-failure read returns no successful evidence.
+
+New runner: `product/playwright.r411.config.ts`, app/issuer/control ports3430/3431/3432, trace off, random ephemeral control secret, no server reuse. Fixture refuses non-loopback DB targets, missing explicit port, DB names outside `qa_browser_*`, and nonempty Lead data. CI creates isolated `qa_browser_r411_ci` before this suite. Action SHA pins, persist-credentials:false and retention-days:7 are applied in the workflow; application Node22 stays unchanged. Hosted R4.11 compatibility remains unverified pending an authorized exact-revision hosted run.
+
+The tests add 15 direct/HTTP/PG cases and two browser cases. Actual PostgreSQL outage/recovery is coordinator-owned and not executed by this agent. Provider-service credential transport is a separate agent's boundary; this browser suite exercises signed local admin simulation only. No live provider, human acceptance, pilot outcome or production approval follows from these results.
