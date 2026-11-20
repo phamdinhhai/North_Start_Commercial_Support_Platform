@@ -27,3 +27,7 @@ The projection distinguishes `SYNTHETIC_ONLY`, `AUTHORIZATION_PENDING`, `SYNCING
 - Root must bind the new controller/query/reader and optional UI mount, then run integrated HTTP/browser/PG checks. This workstream does not self-claim that runtime composition is complete.
 
 Gate C remains NOT READY FOR REAL CUSTOMER DATA. Provider status, external lag, full history and credential validity remain unverified until provider authorization and lifecycle/security acceptance exist.
+
+## Executed verification
+
+On `work/r412-ops` based on4503e80: `npm run typecheck`, `npm run lint`, and targeted Vitest projection/HTTP suites PASS. Fifteen tests verify manager/admin reads, role/demo/anonymous denial, disabled feature, safe output, categorical status/faults, no-store success/error, strict control body, server workspace binding, and admin-only controls. PostgreSQL reader/UI helper are implemented but require root composition and final integrated execution; no provider/live/human claim is made.
