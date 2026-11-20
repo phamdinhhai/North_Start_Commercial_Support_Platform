@@ -2,9 +2,9 @@ export const OPERATOR_SCRIPT = String.raw`
 (() => {
     'use strict';
     const $ = id => document.getElementById(id), v = id => $(id)?.value.trim() || '', esc = x => String(x ?? 'UNKNOWN').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-    let session = {}, selected = null, epoch = 0, listEpoch = 0, cursor = null, busy = false, command = null, recovery = null, dirty = false, managerCleanup = null;
+    let session = {}, selected = null, epoch = 0, listEpoch = 0, cursor = null, busy = false, command = null, recovery = null, dirty = false, managerCleanup = null, sourceCleanup = null;
     const msg = (id, text, error = false) => { $(id).textContent = text; $(id).className = 'notice' + (error ? ' error' : ''); };
-    const clear = () => { managerCleanup?.(); managerCleanup = null; $('manager-exceptions').hidden = true; epoch++; listEpoch++; selected = null; cursor = null; $('context').replaceChildren(); $('queue').replaceChildren(); $('next').hidden = true; if ($('command-dialog').open)
+    const clear = () => { managerCleanup?.(); managerCleanup = null; $('manager-exceptions').hidden = true; sourceCleanup?.(); sourceCleanup = null; $('synthetic-sources').hidden = true; epoch++; listEpoch++; selected = null; cursor = null; $('context').replaceChildren(); $('queue').replaceChildren(); $('next').hidden = true; if ($('command-dialog').open)
         $('command-dialog').close(); $('command-fields').replaceChildren(); command = null; dirty = false; };
     const err = e => e.status === 401 ? 'Session expired. Sign in again.' : e.status === 403 ? 'Permission denied for this lead or action.' : e.status === 409 ? 'Conflict (' + (e.body?.code || '409') + '). Reload before retrying.' : (e.body?.code ? e.body.code + ': ' : '') + e.message;
     async function request(url, options = {}) { const headers = { 'content-type': 'application/json' }; if (session.devTokensAllowed && !session.authenticated && v('token'))
@@ -34,7 +34,7 @@ export const OPERATOR_SCRIPT = String.raw`
     } return b; }
     async function init() { try {
         session = await request('/v1/auth/session');
-        if (session.syntheticOnly) { $('classification').value = 'synthetic'; msg('practice-status', 'Synthetic practice: invented data only'); }
+        if (session.syntheticOnly || session.sourceIntegration) { $('classification').value = 'synthetic'; msg('practice-status', 'Synthetic practice: invented data only'); }
         $('development').hidden = !session.devTokensAllowed;
         $('signin').hidden = session.authenticated || !session.loginAvailable;
         $('logout').hidden = !session.authenticated;
@@ -43,6 +43,7 @@ export const OPERATOR_SCRIPT = String.raw`
         if (session.authenticated)
             await load();
         mountManager();
+        mountSources();
     }
     catch (e) {
         msg('session-status', err(e), true);
@@ -53,6 +54,30 @@ export const OPERATOR_SCRIPT = String.raw`
         root.hidden = !(session.authenticated && ['manager', 'admin'].includes(session.context?.role));
         if (!root.hidden && window.mountManagerExceptions) managerCleanup = window.mountManagerExceptions({ container: root, request, openLead,
             classification: session.syntheticOnly ? 'synthetic' : 'real' });
+    }
+    function mountSources() {
+        sourceCleanup?.(); sourceCleanup = null;
+        const root = $('synthetic-sources');
+        root.hidden = !(session.authenticated && session.sourceIntegration && session.context?.role === 'admin');
+        if (!root.hidden && window.mountSyntheticSources) sourceCleanup = window.mountSyntheticSources({container: root, request, openLead,
+            createConnection: () => dialog('Create synthetic source connection', () => {
+                choices('source-provider', 'Provider fixture', [['pancake', 'Pancake synthetic'], ['meta-page', 'Meta Page synthetic']]);
+                field('source-page', 'Transport page ID', 'text', true, 'synthetic-page-1');
+            }, async () => {
+                const provider = v('source-provider');
+                const result = await request('/v1/source-integrations/connections', {method:'POST', body:JSON.stringify({provider, route:provider + '-synthetic', pageId:v('source-page')})});
+                mountSources(); return result;
+            }),
+            importFixture: async connection => {
+                try {
+                    const data = await request('/v1/source-integrations/connections/' + connection.id + '/example');
+                    dialog('Import invented source observation', () => {
+                        field('source-fixture', 'Fabricated fixture JSON (no real data or credentials)', 'textarea', true, JSON.stringify(data.fixture, null, 2));
+                        field('source-claim', 'Explicitly assign a newly created episode to me (existing ownership never changes)', 'checkbox', false);
+                    }, () => request('/v1/source-integrations/connections/' + connection.id + '/observations', {method:'POST', body:JSON.stringify({fixture:JSON.parse(v('source-fixture')),claimResponsibility:$('source-claim').checked})}));
+                } catch (e) { msg('context-status', err(e), true); }
+            },
+        });
     }
     async function telemetry(eventType, id) { if (!eventType || !id)
         return; try {
@@ -162,6 +187,13 @@ export const OPERATOR_SCRIPT = String.raw`
         button(a, 'reload-lead', 'Reload lead', () => openLead(selected.id));
         button(a, 'edit-context', 'Edit context', () => basic('Append context revision', '/context', 'context_edited', [['context-text', 'Context', 'textarea', true, d.currentContext?.text || ''], ['reason', 'Reason', 'textarea']], () => ({ text: v('context-text'), reason: v('reason') })));
         button(a, 'evidence', 'View original evidence', () => read('evidence', 'evidence_viewed'));
+        if (session.sourceIntegration) button(a, 'source-evidence', 'Inspect source observations', async () => {
+            const id = selected.id, generation = epoch;
+            try {
+                const data = await request('/v1/source-integrations/leads/' + id + '/evidence');
+                if (generation === epoch && window.renderSourceEvidence) window.renderSourceEvidence($('read-view'), data);
+            } catch (e) { if (generation === epoch) msg('context-status', err(e), true); }
+        });
         button(a, 'audit', 'View detailed audit', () => read('timeline'));
         if (session.context?.role === 'admin') button(a, 'export-lead', 'Export lead data', async () => {
             const id = selected.id, generation = epoch;
@@ -308,6 +340,7 @@ export const OPERATOR_SCRIPT = String.raw`
             msg('dialog-status', held.command.id ? 'Session restored and lead access checked. Review draft and refreshed context before explicitly recording.' : 'Session restored and membership checked. Review new lead draft before explicitly recording.');
             msg('session-status', 'Signed in.'); $('signin').hidden = true;
             mountManager();
+            mountSources();
         } catch (e) { msg('session-status', err(e), true); }
     };
     $('logout').onclick = async () => { if (!discard()) return; recovery = null; clear(); try {

@@ -29,4 +29,3 @@ describe('synthetic source application boundary',()=>{
     for(const change of [{synthetic:false},{sourceAuthority:'provider'},{verification:'VERIFIED'},{workspaceId:'other'},{confidence:1},{rawPayload:{...observation().rawPayload,utterance:'a'.repeat(16385)}}])expect(()=>validateSourceObservation({...observation(),...change})).toThrow('INPUT_INVALID');
   });
 });
-

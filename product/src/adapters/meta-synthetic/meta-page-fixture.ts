@@ -70,4 +70,3 @@ export function decodeMetaSynthetic(input: unknown, expectedPageId?: string): So
     rawPayload: { utterance, speaker: 'customer', original: structuredClone(fixture) },
   };
 }
-

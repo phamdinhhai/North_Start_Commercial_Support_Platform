@@ -29,12 +29,24 @@ import { OidcAuthModule } from './infra/auth/oidc-auth.module';
 import { MembershipController } from './api/membership.controller';
 import { BrowserSessionController } from './api/browser-session.controller';
 import { AssertionDeliveryRunner } from './infra/governed-action/assertion-delivery.runner';
+import { SourceIntegrationController } from './api/source-integration.controller';
+import { SourceIntegrationService } from './application/source-integration/source-integration.service';
+import { SourceFixtureIntake } from './application/source-integration/fixture-intake';
+import { SOURCE_FIXTURE_DECODER, type SourceFixtureDecoder } from './ports/source-fixture-decoder';
+import { decodePancakeSynthetic, PANCAKE_SYNTHETIC_FIXTURE } from './adapters/pancake-synthetic/pancake-synthetic';
+import { decodeMetaSynthetic, META_SYNTHETIC_FIXTURE } from './adapters/meta-synthetic/meta-page-fixture';
 
 /** Composition root for the manual pilot loop and health delivery. */
 @Module({
   imports: [HealthModule, PilotLoopModule, OidcAuthModule],
-  controllers: [OperatorClientController, IntegrationController, ConnectorHealthController, MembershipController, BrowserSessionController],
+  controllers: [OperatorClientController, IntegrationController, ConnectorHealthController, MembershipController, BrowserSessionController, SourceIntegrationController],
   providers: [
+    { provide: SOURCE_FIXTURE_DECODER, useValue: {
+      decode: (provider, input) => provider === 'pancake' ? decodePancakeSynthetic(input) : decodeMetaSynthetic(input),
+      example: provider => structuredClone(provider === 'pancake' ? PANCAKE_SYNTHETIC_FIXTURE : META_SYNTHETIC_FIXTURE),
+    } satisfies SourceFixtureDecoder },
+    { provide: SourceFixtureIntake, inject: [SourceIntegrationService, SOURCE_FIXTURE_DECODER],
+      useFactory: (service: SourceIntegrationService, decoder: SourceFixtureDecoder) => new SourceFixtureIntake(service, decoder) },
     AssertionDeliveryRunner,
     { provide: IntegrationIntake, inject: [PostgresService], useFactory: (db: PostgresService) => new IntegrationIntake(new PgIntegrationStore(db)) },
     // Observability (operational telemetry only; never commercial evidence).

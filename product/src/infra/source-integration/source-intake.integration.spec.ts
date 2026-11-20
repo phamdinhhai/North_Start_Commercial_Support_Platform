@@ -70,4 +70,3 @@ suite('durable synthetic source evidence',()=>{
     expect(await s.intake(ctx,c.id,a)).toMatchObject({disposition:'stored'});
   });
 });
-

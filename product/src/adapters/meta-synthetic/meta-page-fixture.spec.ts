@@ -59,4 +59,3 @@ describe('Meta Page synthetic fixture boundary', () => {
     expect(() => decodeMetaSynthetic({ ...fixture(), synthetic: false }, 'page-1')).toThrow('INVALID_FIXTURE');
   });
 });
-

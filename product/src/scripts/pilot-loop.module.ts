@@ -45,6 +45,13 @@ import { PgManagerExceptionsReader } from '../infra/postgres/pg-manager-exceptio
 import { ManagerExceptionsUnavailable } from '../ports/manager-exceptions';
 import { SYNTHETIC_PILOT_MODE } from '../ports/pilot-mode';
 import { syntheticPilotOnly } from '../infra/pilot/synthetic-pilot-mode';
+import { SourceIntegrationService } from '../application/source-integration/source-integration.service';
+import { PgSourceIntegrationStore } from '../infra/source-integration/pg-source-integration.store';
+import { SourceIntegrationError, type SourceIntegrationStore } from '../ports/source-observation';
+import { SOURCE_SYNTHETIC_MODE } from '../ports/source-fixture-decoder';
+import { syntheticSourceMode } from '../infra/source-integration/synthetic-source-mode';
+import { requirePilotLeadAccess } from '../application/pilot/lead-access';
+import type { LeadId } from '../domain/lead/lead';
 
 /**
  * P0 pilot loop module (PH3 T3-03/T3-04 wiring + education B2C candidate flow).
@@ -57,6 +64,17 @@ import { syntheticPilotOnly } from '../infra/pilot/synthetic-pilot-mode';
   imports: [PostgresModule],
   controllers: [PilotLoopController, PilotClosureController, FeedbackTelemetryController, LearningController, LeadExportController, DataLifecycleController, ContactAttemptController, AssertionDeliveryController, ManagerExceptionsController],
   providers: [
+    { provide: SOURCE_SYNTHETIC_MODE, useFactory: () => syntheticSourceMode() },
+    { provide: SourceIntegrationService, inject: [PostgresService, PilotLoopService, LEAD_ACCESS_POLICY, SOURCE_SYNTHETIC_MODE],
+      useFactory: (db: PostgresService, loop: PilotLoopService, policy: LeadAccessPolicy, enabled: boolean) => {
+        const unavailable = async (): Promise<never> => { throw new SourceIntegrationError('DURABLE_STORAGE_REQUIRED', 503); };
+        const store: SourceIntegrationStore = resolvePilotStoreMode() === 'postgres' ? new PgSourceIntegrationStore(db) : {
+          createConnection: unavailable, revokeConnection: unavailable, listConnections: unavailable, intake: unavailable, evidence: unavailable,
+        };
+        return new SourceIntegrationService(store, async (ctx, id) => {
+          requirePilotLeadAccess(ctx, await loop.get(id as LeadId), policy);
+        }, enabled);
+      } },
     { provide: SYNTHETIC_PILOT_MODE, useFactory: () => syntheticPilotOnly() },
     { provide: ManagerExceptionsService, inject: [PostgresService], useFactory: (db: PostgresService) =>
       new ManagerExceptionsService(resolvePilotStoreMode() === 'postgres' ? new PgManagerExceptionsReader(db) : {
@@ -118,6 +136,6 @@ import { syntheticPilotOnly } from '../infra/pilot/synthetic-pilot-mode';
   ],
   // Shared with the integration controller so enrollment issuance uses the same resolver
   // (whatever AuthContextResolver this module binds, e.g. a future OIDC resolver).
-  exports: [AUTH_CONTEXT_RESOLVER, SYNTHETIC_PILOT_MODE],
+  exports: [AUTH_CONTEXT_RESOLVER, SYNTHETIC_PILOT_MODE, SOURCE_SYNTHETIC_MODE, SourceIntegrationService],
 })
 export class PilotLoopModule {}
