@@ -24,4 +24,3 @@ export function buildProviderAdmission(evidence:readonly ProviderCapabilityEvide
  return {provider:first.provider,capability:first.capability,stage:highest,syntheticOnly:evidence.every(e=>e.syntheticOnly),
   credentialBackend:last.credentialBackend,accountBinding:last.accountBinding,evidenceIds:evidence.map(e=>e.evidenceId),networkActivation:'NOT_ENABLED'};
 }
-

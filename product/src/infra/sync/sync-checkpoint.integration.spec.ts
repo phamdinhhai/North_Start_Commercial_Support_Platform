@@ -85,5 +85,3 @@ suite('R4.12 durable sync checkpoint and replay',()=>{
   await sync.releaseLease(workspace,f.stream.id,next!.token);expect(await sync.claimLease(workspace,f.stream.id,'blocked-worker',5000)).toBeNull();
  });
 });
-
-

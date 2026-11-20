@@ -16,4 +16,3 @@ export interface ProviderCapabilityAdmission {
 export const PROVIDER_ADMISSION_ORDER:readonly ProviderAdmissionStage[]=[
  'RESEARCHED','CONTRACT_PREPARED','OFFLINE_VERIFIED','CREDENTIALS_CONFIGURED','ACCOUNT_RIGHTS_VERIFIED','AUTHORIZED_SANDBOX_READY','AUTHORIZED_SANDBOX_VERIFIED','LIVE_READ_ONLY_APPROVED','PRODUCTION_APPROVED'];
 export const admissionRank=(stage:ProviderAdmissionStage):number=>PROVIDER_ADMISSION_ORDER.indexOf(stage);
-

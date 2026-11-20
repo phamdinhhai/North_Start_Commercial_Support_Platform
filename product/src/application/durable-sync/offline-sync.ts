@@ -61,4 +61,3 @@ async function requestWithDeadline(request:(cursor:string|null,signal:AbortSigna
  try{return await Promise.race([Promise.resolve().then(()=>request(cursor,controller.signal)).catch(()=>({status:'provider-error'} as const)),new Promise<TransportResponse>(resolve=>{timer=setTimeout(()=>{controller.abort();resolve({status:'timeout'});},ms);})]);}
  finally{if(timer!==undefined)clearTimeout(timer);}
 }
-

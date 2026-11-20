@@ -29,4 +29,3 @@ CREATE TABLE sync_page_commit (
 );
 CREATE TRIGGER immutable_sync_page_commit BEFORE UPDATE OR DELETE ON sync_page_commit FOR EACH ROW EXECUTE FUNCTION protect_source_history();
 CREATE TRIGGER no_truncate_sync_page_commit BEFORE TRUNCATE ON sync_page_commit FOR EACH STATEMENT EXECUTE FUNCTION protect_source_history();
-
