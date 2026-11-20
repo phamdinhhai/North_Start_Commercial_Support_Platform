@@ -5,6 +5,10 @@ import {Migrator,loadMigrations} from '../postgres/migrator';
 import {PgSourceIntegrationStore} from '../source-integration/pg-source-integration.store';
 import {PgSourceEpisodeLinkStore} from './pg-source-episode-link.store';
 import {SourceContinuityService} from '../../application/source-continuity/source-continuity.service';
+import {PilotLoopModule} from '../../scripts/pilot-loop.module';
+import {RbacService} from '../rbac/rbac.service';
+import type {PilotLoopService} from '../../application/pilot/pilot-loop.service';
+import type {SourceLinkAuthorization} from '../../ports/source-episode-link';
 import {installContentDigester} from '../../ports/content-digester-runtime';
 import {configuredContentDigester} from '../crypto/configured-content-digester';
 import type {AuthContext} from '../../ports/auth';
@@ -14,11 +18,11 @@ suite('append-only human episode context',()=>{
  let db:PostgresService,source:PgSourceIntegrationStore,store:PgSourceEpisodeLinkStore,service:SourceContinuityService,cid:string;
  const ctx:AuthContext={workspaceId:`continuity-${randomUUID()}`,userId:'operator-one',role:'admin',isDemo:false};
  const digester=configuredContentDigester({NODE_ENV:'test'});
- const auth=async(c:AuthContext,id:string)=>{const r=(await db.query('SELECT owner_user_id FROM lead WHERE workspace_id=$1 AND id=$2',[c.workspaceId,id])).rows[0];if(!r||r.owner_user_id!==c.userId)throw new Error('NOT_OWNER');};
+ const auth:SourceLinkAuthorization=async(c,id,locked)=>{const r=locked?{workspace_id:locked.workspaceId,owner_user_id:locked.ownerUserId}:(await db.query('SELECT workspace_id,owner_user_id FROM lead WHERE workspace_id=$1 AND id=$2',[c.workspaceId,id])).rows[0];if(!r||r.workspace_id!==c.workspaceId||r.owner_user_id!==c.userId)throw new Error('NOT_OWNER');};
  const observation=(conversationId:string|null='conversation',system:'meta'|'pancake'='meta'):SourceObservation=>({schemaVersion:1,accountId:'page',provider:'pancake',route:'pancake-synthetic',synthetic:true,sourceAuthority:'synthetic_fixture',completeness:'UNKNOWN',verification:'UNVERIFIED',receiptId:randomUUID(),native:{system,pageId:'page',conversationId,messageId:randomUUID(),eventId:null,revision:null},observedAt:'2026-11-20T00:00:00Z',occurredAt:null,lifecycle:'upsert-observed',displayName:'Same name 0900000000',rawPayload:{utterance:'same text 0900000000',speaker:'customer',original:{synthetic:true}}});
  const seed=async(o=observation())=>source.intake(ctx,cid,o,{claimResponsibility:true});
  const input=(r:SourceReceipt,changes={})=>({connectionId:cid,receiptId:r.receiptId,evidenceEnvelopeId:r.envelopeId!,expectedVersion:0,idempotencyKey:randomUUID(),action:'link' as const,reason:'Human chose episode context',...changes});
- beforeAll(async()=>{db=new PostgresService({connectionString:process.env.TEST_DATABASE_URL});await new Migrator(db,loadMigrations()).up();await db.query('INSERT INTO workspace(id,name) VALUES($1,$1)',[ctx.workspaceId]);installContentDigester(digester);source=new PgSourceIntegrationStore(db);store=new PgSourceEpisodeLinkStore(db);service=new SourceContinuityService(store,auth,auth,digester,true);cid=(await source.createConnection(ctx,{provider:'pancake',route:'pancake-synthetic',pageId:'page'})).id;});
+ beforeAll(async()=>{db=new PostgresService({connectionString:process.env.TEST_DATABASE_URL,max:1,connectionTimeoutMillis:1000});await new Migrator(db,loadMigrations()).up();await db.query('INSERT INTO workspace(id,name) VALUES($1,$1)',[ctx.workspaceId]);installContentDigester(digester);source=new PgSourceIntegrationStore(db);store=new PgSourceEpisodeLinkStore(db);service=new SourceContinuityService(store,auth,auth,digester,true);cid=(await source.createConnection(ctx,{provider:'pancake',route:'pancake-synthetic',pageId:'page'})).id;});
  afterAll(async()=>db?.onModuleDestroy());
  it('same conversation never merges: explicit link adds context and unlink/reject preserve immutable origins',async()=>{
   const a=await seed(),b=await seed();expect(a.leadId).not.toBe(b.leadId);
@@ -62,6 +66,30 @@ suite('append-only human episode context',()=>{
   for(const sql of ['UPDATE source_episode_link SET reason=reason','DELETE FROM source_episode_link','TRUNCATE source_episode_link'])await expect(db.query(sql)).rejects.toThrow('append-only');
   await expect(new Migrator(db,loadMigrations()).down(1)).rejects.toThrow('empty history');
  });
+ it('uses actual runtime locked authority with one pool client and ten concurrent commands',async()=>{
+  // Exercise the production factory instead of reproducing its permission checks in the test.
+  const providers=Reflect.getMetadata('providers',PilotLoopModule) as {provide:unknown;useFactory?:(db:PostgresService,loop:PilotLoopService,policy:RbacService,enabled:boolean)=>SourceContinuityService}[];
+  const factory=providers.find(p=>p.provide===SourceContinuityService)?.useFactory;
+  expect(factory).toBeTypeOf('function');
+  const {PgPilotStore}=await import('../postgres/pg-pilot.store');
+  const pilotStore=new PgPilotStore(db);
+  const loop={get:(id:string)=>pilotStore.load(id)} as unknown as PilotLoopService;
+  const runtime=factory!(db,loop,new RbacService(),true);
+  const pairs=[];
+  for(let n=0;n<10;n++)pairs.push({target:await seed(),origin:await seed()});
+  const commands=pairs.map(({origin})=>input(origin));
+  const results=await Promise.all(pairs.map(({target},index)=>runtime.command(ctx,target.leadId!,commands[index]!)));
+  expect(results).toHaveLength(10);expect(results.every(r=>r.version===1&&r.verification==='UNVERIFIED')).toBe(true);
+  expect(db.getPool().totalCount).toBe(1);expect(db.getPool().waitingCount).toBe(0);
+  // A permission change must be reflected on the next request, including idempotent replay.
+  const pair=pairs[0]!,command=input(pair.origin,{expectedVersion:1});
+  await db.query('UPDATE lead SET owner_user_id=$1 WHERE id=$2',['operator-two',pair.origin.leadId]);
+  await expect(runtime.command(ctx,pair.target.leadId!,command)).rejects.toMatchObject({code:'NOT_OWNER',status:403});
+  await expect(runtime.command(ctx,pair.target.leadId!,commands[0]!)).rejects.toMatchObject({code:'NOT_OWNER',status:403});
+  expect((await store.list(ctx.workspaceId,pair.target.leadId!))).toHaveLength(1);
+  // Caller authority cannot replace the current source origin's owner, even on a target they own.
+  expect((await db.query('SELECT owner_user_id FROM lead WHERE id=$1',[pair.origin.leadId])).rows[0].owner_user_id).toBe('operator-two');
+ },10000);
  it('rolls back link when final audit fails and permits retry',async()=>{
   const a=await seed(),b=await seed(),v=input(b),original=db.withTransaction.bind(db);
   const failing={withTransaction:<T>(fn:Parameters<PostgresService['withTransaction']>[0])=>original(async tx=>fn({query:async(sql:string,args?:unknown[])=>{if(sql.includes('INSERT INTO audit_record'))throw new Error('injected audit failure');return tx.query(sql,args);}})) as Promise<T>} as PostgresService;
