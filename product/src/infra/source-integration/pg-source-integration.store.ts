@@ -14,6 +14,7 @@ type ReceiptRow = {id:string;connection_id:string;receipt_id:string;lead_id:stri
 const connection = (r:ConnectionRow):SourceConnection => ({id:r.id,workspaceId:r.workspace_id,provider:r.provider,route:r.route,pageId:r.page_id,status:r.status,health:'SYNTHETIC_ONLY'});
 const receipt = (r:ReceiptRow, duplicate=false):SourceReceipt => ({receiptId:r.receipt_id,connectionId:r.connection_id,leadId:r.lead_id,envelopeId:r.envelope_id,disposition:duplicate?'receipt_duplicate':r.disposition,quarantineReason:r.quarantine_reason,verification:'UNVERIFIED',completeness:'UNKNOWN'});
 const fail = (code:string,status=409):never=>{throw new SourceIntegrationError(code,status);};
+const uuid = (value:string) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value);
 async function audit(tx:SqlExecutor,ctx:AuthContext,id:string,event:string,value:unknown) {
   await tx.query(`INSERT INTO audit_record(entity_type,entity_id,workspace_id,actor,event_type,new_value) VALUES('source-integration',$1,$2,$3,$4,$5::jsonb)`,[id,ctx.workspaceId,ctx.userId,event,JSON.stringify(value)]);
 }
@@ -21,7 +22,8 @@ async function audit(tx:SqlExecutor,ctx:AuthContext,id:string,event:string,value
 export class PgSourceIntegrationStore implements SourceIntegrationStore {
   constructor(private readonly db:PostgresService) {}
   async getConnection(workspaceId:string,id:string):Promise<SourceConnection|null> {
-    const row=(await this.db.query<ConnectionRow>('SELECT * FROM source_connection WHERE workspace_id=$1 AND id::text=$2',[workspaceId,id])).rows[0];
+    if(!uuid(id))return null;
+    const row=(await this.db.query<ConnectionRow>('SELECT * FROM source_connection WHERE workspace_id=$1 AND id=$2::uuid',[workspaceId,id])).rows[0];
     return row?connection(row):null;
   }
   async createConnection(ctx:AuthContext,input:Pick<SourceConnection,'provider'|'route'|'pageId'>) {
@@ -42,10 +44,11 @@ export class PgSourceIntegrationStore implements SourceIntegrationStore {
   }
   async listConnections(workspaceId:string) {
     const rows=await this.db.query<ConnectionRow & {receipt_count:number;quarantine_count:number;last_receipt_at:Date|string|null}>(`
-      SELECT c.*,count(r.id)::int AS receipt_count,
-        count(r.id) FILTER(WHERE r.quarantine_reason IS NOT NULL)::int AS quarantine_count,max(r.created_at) AS last_receipt_at
-      FROM source_connection c LEFT JOIN source_receipt r ON r.workspace_id=c.workspace_id AND r.connection_id=c.id
-      WHERE c.workspace_id=$1 GROUP BY c.id ORDER BY c.created_at,c.id LIMIT 100`,[workspaceId]);
+      WITH page AS MATERIALIZED (SELECT * FROM source_connection WHERE workspace_id=$1 ORDER BY created_at,id LIMIT 100)
+      SELECT c.*,r.* FROM page c CROSS JOIN LATERAL (
+        SELECT count(*)::int AS receipt_count,count(*) FILTER(WHERE quarantine_reason IS NOT NULL)::int AS quarantine_count,
+          max(created_at) AS last_receipt_at FROM source_receipt WHERE workspace_id=c.workspace_id AND connection_id=c.id
+      ) r ORDER BY c.created_at,c.id`,[workspaceId]);
     return rows.rows.map(r=>({...connection(r),delivery:{receiptCount:r.receipt_count,quarantineCount:r.quarantine_count,
       lastReceiptAt:r.last_receipt_at===null?null:new Date(r.last_receipt_at).toISOString()}}));
   }
@@ -69,14 +72,19 @@ export class PgSourceIntegrationStore implements SourceIntegrationStore {
         const args=[ctx.workspaceId,n.system,n.pageId,n.messageId];
         if(n.eventId!==null) {
           await tx.query('SELECT pg_advisory_xact_lock(hashtextextended($1,0))',[JSON.stringify(['source-event',ctx.workspaceId,n.system,n.pageId,n.eventId,n.revision])]);
-          const events=await tx.query<{message_id:string}>(`SELECT message_id FROM source_receipt WHERE workspace_id=$1 AND native_system=$2 AND page_id=$3 AND event_id=$4 AND revision IS NOT DISTINCT FROM $5`,[ctx.workspaceId,n.system,n.pageId,n.eventId,n.revision]);
-          if(events.rows.some(r=>r.message_id!==n.messageId))return fail('NATIVE_EVENT_COLLISION');
+          const events=await tx.query(`SELECT 1 FROM source_receipt WHERE workspace_id=$1 AND native_system=$2 AND page_id=$3 AND event_id=$4
+            AND revision IS NOT DISTINCT FROM $5 AND message_id IS DISTINCT FROM $6 LIMIT 1`,[ctx.workspaceId,n.system,n.pageId,n.eventId,n.revision,n.messageId]);
+          if(events.rows.length)return fail('NATIVE_EVENT_COLLISION');
         }
         await tx.query('SELECT pg_advisory_xact_lock(hashtextextended($1,0))',[JSON.stringify(['source-message',...args])]);
-        const priorObjects=(await tx.query<ReceiptRow>(`SELECT * FROM source_receipt WHERE workspace_id=$1 AND native_system=$2 AND page_id=$3 AND message_id=$4 ORDER BY created_at,id`,args)).rows;
-        if(n.conversationId!==null && priorObjects.some(r=>r.observation.native.conversationId!==null && r.observation.native.conversationId!==n.conversationId))return fail('NATIVE_OBJECT_COLLISION');
+        if(n.conversationId!==null) {
+          const conflict=await tx.query(`SELECT 1 FROM source_receipt WHERE workspace_id=$1 AND native_system=$2 AND page_id=$3 AND message_id=$4
+            AND conversation_id IS NOT NULL AND conversation_id<>$5 LIMIT 1`,[...args,n.conversationId]);
+          if(conflict.rows.length)return fail('NATIVE_OBJECT_COLLISION');
+        }
         // Same explicit event/revision means immutable observation identity, never a text identity merge.
-        const sameEvent=n.eventId===null?undefined:priorObjects.find(r=>r.event_id===n.eventId && r.revision===n.revision);
+        const sameEvent=n.eventId===null?undefined:(await tx.query<ReceiptRow>(`SELECT * FROM source_receipt WHERE workspace_id=$1 AND native_system=$2 AND page_id=$3 AND message_id=$4
+          AND event_id=$5 AND revision IS NOT DISTINCT FROM $6 ORDER BY created_at,id LIMIT 1`,[...args,n.eventId,n.revision])).rows[0];
         if(sameEvent) {
           const existing=(await tx.query<EnvelopeDbRow>('SELECT * FROM commercial_envelope WHERE id=$1',[sameEvent.envelope_id])).rows[0];
           const a=toEnvelope(existing).rawPayload as Record<string,unknown>;
@@ -116,11 +124,12 @@ export class PgSourceIntegrationStore implements SourceIntegrationStore {
   }
   async evidencePage(workspaceId:string,leadId:string,actorId:string,options:SourceEvidencePageOptions={}) {
     const {limit,position}=evidencePageRequest(workspaceId,leadId,options);
+    if(!uuid(leadId))return fail('INPUT_INVALID',400);
     return this.db.withTransaction(async tx=>{
       const rows=await tx.query<ReceiptRow & {envelope:EnvelopeDbRow;cursor_time:string}>(`SELECT r.*,to_jsonb(e) AS envelope,
         to_char(r.created_at AT TIME ZONE 'UTC','YYYY-MM-DD"T"HH24:MI:SS.US"Z"') AS cursor_time
         FROM source_receipt r JOIN commercial_envelope e ON e.id=r.envelope_id AND e.workspace_id=r.workspace_id
-        WHERE r.workspace_id=$1 AND r.lead_id::text=$2
+        WHERE r.workspace_id=$1 AND r.lead_id=$2::uuid
         ${position?'AND (r.created_at,r.id)>($3::timestamptz,$4::uuid)':''}
         ORDER BY r.created_at,r.id LIMIT $${position?5:3}`,
         position?[workspaceId,leadId,position.time,position.id,limit+1]:[workspaceId,leadId,limit+1]);
