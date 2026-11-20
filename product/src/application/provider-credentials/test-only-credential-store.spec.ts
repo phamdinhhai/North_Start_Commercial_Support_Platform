@@ -60,10 +60,11 @@ describe('R4.12 test-only provider credential boundary', () => {
     expect(a.credentialId).not.toBe(b.credentialId);expect((await store.resolve(await store.issuePrincipal(admin,a.credentialId))).secret).toBe(secret);
     await expect(store.issuePrincipal(other,a.credentialId)).rejects.toMatchObject({code:'CREDENTIAL_NOT_FOUND'});
     await expect(store.configure(admin,{...identity,workspaceId:'forged'},secret)).rejects.toMatchObject({code:'CREDENTIAL_SCOPE_MISMATCH'});
+    await expect(store.configure(admin,{...identity,accountId:'other'},secret)).rejects.toMatchObject({code:'CREDENTIAL_SCOPE_MISMATCH'});
   });
   it('rechecks actual environment after construction and rejects impossible expiry dates',async()=>{
     const store=new TestOnlyProviderCredentialStore('test',true),metadata=await store.configure(admin,identity,secret),principal=await store.issuePrincipal(admin,metadata.credentialId);
     await expect(store.configure(admin,{...identity,expiresAt:'2026-02-30T00:00:00Z'},secret)).rejects.toMatchObject({code:'INPUT_INVALID'});
-    vi.stubEnv('APP_MODE','pilot');await expect(store.resolve(principal)).rejects.toMatchObject({code:'CREDENTIALS_TEST_ONLY'});
+    vi.stubEnv('APP_MODE',' PILOT ');await expect(store.resolve(principal)).rejects.toMatchObject({code:'CREDENTIALS_TEST_ONLY'});
   });
 });

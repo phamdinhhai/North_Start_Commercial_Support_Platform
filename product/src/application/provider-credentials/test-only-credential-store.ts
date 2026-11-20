@@ -21,7 +21,7 @@ export class TestOnlyProviderCredentialStore implements ProviderCredentialStore 
   private readonly mode = 'TEST_ONLY' as const;
   private readonly auditEntries: { action: 'configured'|'rotated'|'revoked'; credentialId: string; workspaceId: string; version: number; actorId: string; at: string }[] = [];
   constructor(private readonly deploymentMode: string, enabled: boolean) {
-    if (!enabled) throw new ProviderCredentialError('CREDENTIALS_DISABLED', 404);
+    if (enabled !== true) throw new ProviderCredentialError('CREDENTIALS_DISABLED', 404);
     this.guard();
   }
 
@@ -31,6 +31,7 @@ export class TestOnlyProviderCredentialStore implements ProviderCredentialStore 
     const key = this.key(ctx.workspaceId, input.connectionId);
     const existing = this.entries.get(key);
     if (existing?.state === 'REVOKED' || existing?.state === 'DISABLED') throw new ProviderCredentialError('CREDENTIAL_REVOKED', 403);
+    if(existing&&(existing.provider!==input.provider||existing.accountId!==input.accountId))throw new ProviderCredentialError('CREDENTIAL_SCOPE_MISMATCH',403);
     const now = new Date().toISOString();
     const metadata: ProviderCredentialMetadata = {
       workspaceId: ctx.workspaceId, connectionId: input.connectionId, provider: input.provider, accountId: input.accountId,
@@ -92,7 +93,7 @@ export class TestOnlyProviderCredentialStore implements ProviderCredentialStore 
     if(this.auditEntries.length>=1000)throw new ProviderCredentialError('CREDENTIAL_UNAVAILABLE',503);
     this.auditEntries.push(Object.freeze({action,credentialId:metadata.credentialId,workspaceId:ctx.workspaceId,version:metadata.version,actorId:ctx.userId,at:new Date().toISOString()}));
   }
-  private guard(){if(!['local','test'].includes(this.deploymentMode)||['DEPLOYMENT_MODE','APP_MODE','NODE_ENV'].some(key=>['production','prod','pilot'].includes(process.env[key]??'')))throw new ProviderCredentialError('CREDENTIALS_TEST_ONLY',503);}
+  private guard(){if(!['local','test'].includes(this.deploymentMode)||['DEPLOYMENT_MODE','APP_MODE','NODE_ENV'].some(key=>['production','prod','pilot'].includes((process.env[key]??'').trim().toLowerCase())))throw new ProviderCredentialError('CREDENTIALS_TEST_ONLY',503);}
   private admin(ctx: AuthContext): void { this.guard();if (!ctx?.userId || !ctx.workspaceId || ctx.isDemo || ctx.role !== 'admin') throw new ProviderCredentialError('FORBIDDEN', 403); }
   private key(workspaceId: string, connectionId: string): string { return `${workspaceId}\u0000${connectionId}`; }
   private identity(input: ProviderConnectionIdentity): void {
