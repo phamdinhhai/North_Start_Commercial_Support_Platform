@@ -97,4 +97,27 @@ suite('append-only human episode context',()=>{
   const s=new SourceContinuityService(new PgSourceEpisodeLinkStore(failing),auth,auth,digester,true);await expect(s.command(ctx,a.leadId!,v)).rejects.toThrow('injected audit failure');
   expect((await store.list(ctx.workspaceId,a.leadId!))).toHaveLength(0);expect(await service.command(ctx,a.leadId!,v)).toMatchObject({version:1});
  });
+ it('keeps explicit context links and owners stable across incremental worker observations',async()=>{
+  const target=await seed(),base=observation('shared-conversation'),origin=await seed(base);
+  const link=await service.command(ctx,target.leadId!,input(origin));
+  const historyBefore=(await db.query('SELECT to_jsonb(l) data FROM source_episode_link l WHERE id=$1',[link.id])).rows;
+  const worker={...ctx,userId:'fabricated-sync-worker'};
+  for(const [eventId,lifecycle,text,at] of [
+   ['delete-later','deletion-labelled','','2026-11-20T00:00:03Z'],
+   ['edit-earlier','upsert-observed','Fabricated edited statement','2026-11-20T00:00:02Z'],
+  ] as const){
+   const result=await source.intake(worker,cid,{...base,receiptId:randomUUID(),native:{...base.native,eventId},lifecycle,observedAt:at,rawPayload:{...base.rawPayload,utterance:text}});
+   expect(result).toMatchObject({leadId:origin.leadId,disposition:'distinct_event'});
+  }
+  expect(await source.intake(worker,cid,base)).toMatchObject({leadId:origin.leadId,disposition:'receipt_duplicate'});
+  const later=await source.intake(worker,cid,{...observation('shared-conversation'),observedAt:'2026-12-20T00:00:00Z'});
+  expect(later.leadId).not.toBe(origin.leadId);expect(later.leadId).not.toBe(target.leadId);
+  expect(await service.linkedReceipts(ctx,target.leadId!)).toEqual([{connectionId:cid,receiptId:origin.receiptId,envelopeId:origin.envelopeId}]);
+  expect((await db.query('SELECT to_jsonb(l) data FROM source_episode_link l WHERE id=$1',[link.id])).rows).toEqual(historyBefore);
+  const leads=(await db.query('SELECT id,owner_user_id,customer_id,attribution,status FROM lead WHERE id=ANY($1::uuid[]) ORDER BY id',[[target.leadId,origin.leadId,later.leadId]])).rows;
+  for(const row of leads){expect(row.customer_id).toBeNull();expect(row.attribution).toBe('unknown');expect(row.status).toBe('New');expect(row.owner_user_id).toBe(row.id===later.leadId?null:ctx.userId);}
+  for(const table of ['outcome','handoff','pilot_work_item'])expect((await db.query(`SELECT id FROM ${table} WHERE lead_id=ANY($1::uuid[])`,[[target.leadId,origin.leadId,later.leadId]])).rows).toEqual([]);
+  const original=(await db.query('SELECT raw_payload FROM commercial_envelope WHERE id=$1',[origin.envelopeId])).rows[0].raw_payload;
+  expect(original).toEqual(base.rawPayload);
+ });
 });
