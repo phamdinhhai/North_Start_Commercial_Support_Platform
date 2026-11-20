@@ -74,4 +74,3 @@ Operational limits: trusted authorization/persistence callbacks must terminate; 
 Next: separately approve R4.12 push/hosted CI if desired; select owned Pancake read-only synthetic sandbox app/account/Page; supply account/scopes/asset entitlement evidence and approve custody via a secure channel; accept TLS/ingress/egress, retention/cleanup/revoke/stop conditions; then review authenticated transport and real provider schema subset. Meta sandbox admission is independent. Production lifecycle/IdP/keys/erasure/privacy work and human Sales study remain separately gated.
 
 All agent-owned engineering/final-run PostgreSQL clusters and generated launcher/app/IdP/browser fixtures are stopped. No Owner resource was stopped or reset. Logs and artifacts remain outside Git, with hashes in verification.json.
-
