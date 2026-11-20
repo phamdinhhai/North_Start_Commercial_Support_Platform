@@ -26,16 +26,16 @@ export class PgSyncCheckpointStore implements SyncCheckpointStore {
  async claimLease(w:string,id:string,owner:string,ttlMs:number){
   if(!/^[\x21-\x7e]{1,128}$/.test(owner)||!Number.isSafeInteger(ttlMs)||ttlMs<100||ttlMs>60000)throw new SourceIntegrationError('INPUT_INVALID',400);
   const token=randomUUID();const r=await this.db.query<Row>(`UPDATE sync_stream SET lease_owner=$3,lease_token=$4::uuid,
-   lease_until=now()+($5::int*interval '1 millisecond'),last_attempted_at=now(),updated_at=now()
+   lease_until=clock_timestamp()+($5::int*interval '1 millisecond'),last_attempted_at=clock_timestamp(),updated_at=clock_timestamp()
    WHERE workspace_id=$1 AND id=$2::uuid AND status IN ('active','degraded') AND completed=false
-   AND (next_retry_at IS NULL OR next_retry_at<=now()) AND (lease_until IS NULL OR lease_until<now())
+   AND (next_retry_at IS NULL OR next_retry_at<=clock_timestamp()) AND (lease_until IS NULL OR lease_until<clock_timestamp())
    AND EXISTS(SELECT 1 FROM source_connection c WHERE c.workspace_id=sync_stream.workspace_id AND c.id=sync_stream.connection_id AND c.status='active') RETURNING *`,[w,id,owner,token,ttlMs]);
   return r.rows[0]?{stream:map(r.rows[0]),token,owner} as SyncLease:null;
  }
  async releaseLease(w:string,id:string,token:string){await this.db.query(`UPDATE sync_stream SET lease_owner=NULL,lease_token=NULL,lease_until=NULL,updated_at=now() WHERE workspace_id=$1 AND id=$2::uuid AND lease_token=$3::uuid`,[w,id,token]);}
  async commitPage(w:string,id:string,token:string,page:SyncPage):Promise<SyncPageResult>{
   if(!page||Object.keys(page).sort().join()!=='completed,expectedCursor,expectedVersion,nextCursor,observations,pageKey'||!Number.isSafeInteger(page.expectedVersion)||page.expectedVersion<0||
-   !cursor(page.expectedCursor)||!cursor(page.nextCursor)||typeof page.completed!=='boolean'||page.completed!==(page.nextCursor===null)||!page.pageKey||page.pageKey.length>256||!Array.isArray(page.observations)||page.observations.length>100)return fail('SYNC_PAGE_INVALID',400);
+   !cursor(page.expectedCursor)||!cursor(page.nextCursor)||typeof page.completed!=='boolean'||page.completed!==(page.nextCursor===null)||typeof page.pageKey!=='string'||!/^[\x21-\x7e]{1,256}$/.test(page.pageKey)||!Array.isArray(page.observations)||page.observations.length>100)return fail('SYNC_PAGE_INVALID',400);
   // Replay identity excludes the cursor position: the same page can be retried after
   // a crash with the stream's newly observed version, while its page key/content stays fixed.
   const canonical=canonicalizePayload({pageKey:page.pageKey,nextCursor:page.nextCursor,completed:page.completed,observations:page.observations});

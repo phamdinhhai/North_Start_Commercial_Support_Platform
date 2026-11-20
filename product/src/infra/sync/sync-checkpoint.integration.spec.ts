@@ -63,8 +63,8 @@ suite('R4.12 durable sync checkpoint and replay',()=>{
    const n=cursor===null?1:cursor==='opaque-poll-1'?2:3;
    return {status:'page' as const,page:{pageKey:'poll-page-'+n,nextCursor:n===3?null:'opaque-poll-'+n,completed:n===3,observations:[observation('poll-'+n,'poll-message-'+n)]}};
   };
-  expect(await runDurableOfflineSync(connection,workspace,f.stream.id,'worker-first',{maxPages:2,maxItems:10,requestTimeoutMs:100,leaseMs:5000},request,sync)).toMatchObject({status:'bounded',cursor:'opaque-poll-2',pages:2,items:2});
-  expect(await runDurableOfflineSync(connection,workspace,f.stream.id,'worker-restarted',{maxPages:2,maxItems:10,requestTimeoutMs:100,leaseMs:5000},request,new PgSyncCheckpointStore(db,admitSyncObservation,async()=>{}))).toMatchObject({status:'complete',cursor:null,pages:1,items:1});
+  expect(await runDurableOfflineSync(connection,workspace,f.stream.id,'worker-first',{maxPages:2,maxItems:10,requestTimeoutMs:100,leaseMs:5000,authorizeFetch:async()=>{}},request,sync)).toMatchObject({status:'bounded',cursor:'opaque-poll-2',pages:2,items:2});
+  expect(await runDurableOfflineSync(connection,workspace,f.stream.id,'worker-restarted',{maxPages:2,maxItems:10,requestTimeoutMs:100,leaseMs:5000,authorizeFetch:async()=>{}},request,new PgSyncCheckpointStore(db,admitSyncObservation,async()=>{}))).toMatchObject({status:'complete',cursor:null,pages:1,items:1});
   expect(requests).toEqual([null,'opaque-poll-1','opaque-poll-2']);
   expect(await sync.getStream(workspace,f.stream.id)).toMatchObject({completed:true,pageCount:3,cursorVersion:3});
   const leads=await db.query('SELECT owner_user_id FROM lead WHERE workspace_id=$1 AND id IN (SELECT lead_id FROM source_receipt WHERE connection_id=$2)',[workspace,f.connectionId]);

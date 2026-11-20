@@ -9,7 +9,7 @@ import { Client } from 'pg';
 // Explicit disposable target only. Never infer a production connection.
 const target = new URL(process.env.TEST_DATABASE_URL ?? 'invalid:');
 if (!['postgres:', 'postgresql:'].includes(target.protocol) ||
-    !['127.0.0.1', 'localhost'].includes(target.hostname) || target.pathname !== '/north_start_ci' ||
+    !['127.0.0.1', 'localhost'].includes(target.hostname) || !/^\/(north_start_ci|r412_root)$/.test(target.pathname) ||
     target.search || target.hash || process.env.DATABASE_URL) {
   throw new Error('Restore rehearsal requires explicit local TEST_DATABASE_URL /north_start_ci and no DATABASE_URL');
 }
@@ -18,6 +18,10 @@ const { PostgresService } = require('../dist/infra/postgres/postgres.service.js'
 const { Migrator, loadMigrations } = require('../dist/infra/postgres/migrator.js');
 const { PgSourceIntegrationStore } = require('../dist/infra/source-integration/pg-source-integration.store.js');
 const { PgSourceEpisodeLinkStore } = require('../dist/infra/source-continuity/pg-source-episode-link.store.js');
+const { PgSyncCheckpointStore } = require('../dist/infra/sync/pg-sync-checkpoint.store.js');
+const { admitSyncObservation } = require('../dist/application/durable-sync/admission.js');
+const { PgFabricatedDeliveryStore } = require('../dist/infra/sync/pg-fabricated-delivery.store.js');
+const { TestOnlyProviderCredentialStore } = require('../dist/application/provider-credentials/test-only-credential-store.js');
 const { decodeMetaSynthetic, META_SYNTHETIC_FIXTURE } = require('../dist/adapters/meta-synthetic/meta-page-fixture.js');
 const { installContentDigester, contentDigester } = require('../dist/ports/content-digester-runtime.js');
 const { configuredContentDigester } = require('../dist/infra/crypto/configured-content-digester.js');
@@ -35,7 +39,8 @@ const archive = join(directory, 'synthetic.dump');
 const created = [];
 const snapshotKey = randomBytes(32);
 const tables = ['schema_migrations', 'workspace', 'integration_enrollment', 'integration_receipt', 'integration_audit',
-  'lead', 'commercial_envelope', 'source_connection', 'source_native_message', 'source_receipt', 'source_episode_link', 'audit_record'];
+  'lead', 'commercial_envelope', 'source_connection', 'source_native_message', 'source_receipt', 'source_episode_link',
+  'sync_stream', 'sync_page_commit', 'fabricated_delivery', 'fabricated_delivery_attempt', 'audit_record'];
 let source;
 let restored;
 async function snapshot(db) {
@@ -85,6 +90,15 @@ try {
     if(locked && (locked.workspaceId!==ctx.workspaceId||locked.ownerUserId!==ctx.userId))throw new Error('Restore fixture ownership mismatch');
   };
   const association=await new PgSourceEpisodeLinkStore(source).command(ctx,accepted.leadId,linkInput,content,contentDigester(),authorize);
+  const syncStore=new PgSyncCheckpointStore(source,admitSyncObservation,async()=>{}),stream=await syncStore.createStream(ctx.workspaceId,connection.id);
+  const lease=await syncStore.claimLease(ctx.workspaceId,stream.id,'restore-worker',5000);
+  const page={pageKey:'restore-page',expectedCursor:null,expectedVersion:0,nextCursor:'opaque-restored-next',completed:false,observations:[observation]};
+  await syncStore.commitPage(ctx.workspaceId,stream.id,lease.token,page);
+  // Fabricated custody is regenerated in memory only; no provider credential enters the archive.
+  const credentials=new TestOnlyProviderCredentialStore('test',true);
+  const metadata=await credentials.configure(ctx,{workspaceId:ctx.workspaceId,connectionId:connection.id,provider:'meta-page',accountId:'synthetic-page',scopes:['messages.read']},randomBytes(48).toString('base64'));
+  const principal=await credentials.issuePrincipal(ctx,metadata.credentialId),delivery={deliveryId:'restore-delivery',observations:[observation]};
+  await new PgFabricatedDeliveryStore(source,credentials,admitSyncObservation).accept(principal,delivery);
   const expected = await snapshot(source);
   const began = performance.now();
   runHelper(['backup', '--target', urlFor(sourceName), '--output', archive]);
@@ -99,13 +113,22 @@ try {
   if(JSON.stringify(linkReplay)!==JSON.stringify(association))throw new Error('Restored source association replay differs');
   if (replay.disposition !== 'receipt_duplicate' || replay.leadId !== accepted.leadId ||
       JSON.stringify(actual) !== JSON.stringify(await snapshot(restored))) throw new Error('Restored source replay changed durable history');
+  const restoredSync=new PgSyncCheckpointStore(restored,admitSyncObservation,async()=>{});
+  const replayLease=await restoredSync.claimLease(ctx.workspaceId,stream.id,'restored-worker',5000);
+  const syncReplay=await restoredSync.commitPage(ctx.workspaceId,stream.id,replayLease.token,{...page,expectedVersion:1,expectedCursor:'opaque-restored-next'});
+  if(!syncReplay.replay||syncReplay.version!==1||syncReplay.cursor!=='opaque-restored-next')throw Error('Restored checkpoint replay regressed');
+  const deliveryReplay=await new PgFabricatedDeliveryStore(restored,credentials,admitSyncObservation).accept(principal,delivery);
+  if(!deliveryReplay.duplicate)throw Error('Restored delivery replay duplicated effect');
+  const afterReplay=await snapshot(restored);
+  for(const table of ['lead','commercial_envelope','source_receipt','source_native_message','source_episode_link','sync_page_commit','fabricated_delivery'])if(JSON.stringify(afterReplay[table])!==JSON.stringify(actual[table]))throw Error('Restored replay changed immutable '+table);
+  if(afterReplay.fabricated_delivery_attempt.count!==actual.fabricated_delivery_attempt.count+1)throw Error('Restored delivery attempt was not auditable');
   // The restored unique delivery contract must still reject duplicate source identity.
   try {
     await restored.query('INSERT INTO integration_receipt(id,enrollment_id,capture_id,sequence,fingerprint,metadata) VALUES($1,$2,$3,2,$4,$5)',
       [randomUUID(), enrollment, 'synthetic-capture', 'b'.repeat(64), '{}']);
     throw new Error('Restored receipt uniqueness was not enforced');
   } catch (error) { if (error.code !== '23505') throw error; }
-  console.log(JSON.stringify({ result: 'PASS', syntheticOnly: true, sourceReplayAfterRestore: true, associationReplayAfterRestore:true,tables: actual,
+  console.log(JSON.stringify({ result: 'PASS', syntheticOnly: true, sourceReplayAfterRestore: true, associationReplayAfterRestore:true,syncCheckpointReplayAfterRestore:true,fabricatedDeliveryReplayAfterRestore:true,tables: actual,
     archiveSha256: createHash('sha256').update(await readFile(archive)).digest('hex'),
     restoreMs, rehearsalMs: Math.round(performance.now() - began), sla: 'NOT_ESTABLISHED' }));
 } finally {

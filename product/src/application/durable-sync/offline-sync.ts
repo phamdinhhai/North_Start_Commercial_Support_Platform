@@ -1,7 +1,7 @@
 import type {OfflineConnection,TransportResponse} from '../../ports/provider-transport';
 import type {SyncCheckpointStore,SyncPage,SyncFailure} from '../../ports/durable-sync';
 import {SourceIntegrationError} from '../../ports/source-observation';
-export interface DurableSyncOptions {readonly maxPages:number;readonly maxItems:number;readonly requestTimeoutMs:number;readonly leaseMs:number;readonly maxElapsedMs?:number;readonly maxFailures?:number;}
+export interface DurableSyncOptions {readonly maxPages:number;readonly maxItems:number;readonly requestTimeoutMs:number;readonly leaseMs:number;readonly maxElapsedMs?:number;readonly maxFailures?:number;readonly authorizeFetch:()=>Promise<void>;}
 const invalid=()=>{throw new SourceIntegrationError('INPUT_INVALID',400);};
 const nextRetry=(retryAfter:string|undefined,count:number)=>{
  let ms=retryAfter!==undefined&&/^\d+$/.test(retryAfter)?Number(retryAfter)*1000:NaN;
@@ -12,7 +12,7 @@ const nextRetry=(retryAfter:string|undefined,count:number)=>{
 /** Fetch outside PG; one fenced same-transaction commit reuses the established source intake. */
 export async function runDurableOfflineSync(connection:OfflineConnection,workspaceId:string,streamId:string,owner:string,options:DurableSyncOptions,request:(cursor:string|null,signal:AbortSignal)=>Promise<TransportResponse>,store:SyncCheckpointStore){
  const maxElapsed=options.maxElapsedMs??Math.min(options.leaseMs,60000),maxFailures=options.maxFailures??5;
- if(connection.mode!=='offline-synthetic'||!Number.isSafeInteger(options.maxPages)||options.maxPages<1||options.maxPages>100||!Number.isSafeInteger(options.maxItems)||options.maxItems<1||options.maxItems>1000||
+ if(connection.mode!=='offline-synthetic'||typeof options.authorizeFetch!=='function'||!Number.isSafeInteger(options.maxPages)||options.maxPages<1||options.maxPages>100||!Number.isSafeInteger(options.maxItems)||options.maxItems<1||options.maxItems>1000||
   !Number.isSafeInteger(options.requestTimeoutMs)||options.requestTimeoutMs<1||options.requestTimeoutMs>60000||!Number.isSafeInteger(options.leaseMs)||options.leaseMs<100||options.leaseMs>60000||!Number.isSafeInteger(maxElapsed)||maxElapsed<1||maxElapsed>60000||!Number.isSafeInteger(maxFailures)||maxFailures<1||maxFailures>10)invalid();
  const lease=await store.claimLease(workspaceId,streamId,owner,options.leaseMs);
  if(!lease)return {status:'lease-unavailable' as const,cursor:(await store.getStream(workspaceId,streamId))?.cursor??null,pages:0,items:0};
@@ -25,9 +25,13 @@ export async function runDurableOfflineSync(connection:OfflineConnection,workspa
  };
  try {
   if(lease.stream.workspaceId!==workspaceId||lease.stream.connectionId!==connection.connectionId||lease.stream.provider!==connection.provider||lease.stream.accountId!==connection.accountId)throw new SourceIntegrationError('SYNC_CONNECTION_BINDING_INVALID',403);
+  const authorizeFetch=async()=>{try{await options.authorizeFetch();}catch{throw new SourceIntegrationError('CREDENTIAL_REVOKED',403);}};
+  await authorizeFetch();
   while(pages<options.maxPages&&!lease.stream.completed){
    const remaining=maxElapsed-(Date.now()-started);if(remaining<=0)return {status:'bounded',cursor,pages,items};
-   const response=await requestWithDeadline(request,cursor,Math.min(remaining,options.requestTimeoutMs));
+   await authorizeFetch();
+   const requestRemaining=maxElapsed-(Date.now()-started);if(requestRemaining<=0)return {status:'bounded',cursor,pages,items};
+   const response=await requestWithDeadline(request,cursor,Math.min(requestRemaining,options.requestTimeoutMs));
    if(response.status==='timeout')return await fail('TIMEOUT','timeout');
    if(response.status==='rate-limited')return await fail('RATE_LIMITED','rate-limited',response.retryAfter);
    if(response.status!=='page')return await fail('TIMEOUT','provider-error');
