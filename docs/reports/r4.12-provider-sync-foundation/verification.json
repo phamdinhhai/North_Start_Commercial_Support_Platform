@@ -1,0 +1,16 @@
+﻿{
+  "schema_version": 1,
+  "phase": "pre-integration-independent-qa",
+  "baseline_sha": "4503e80d54853b15da405f7c36df298aa0852eb0",
+  "hosted_baseline": {"run": 44675872672, "status": "success", "exact_sha": true},
+  "r412_source_sha": null,
+  "tests_run": [],
+  "tests_not_run": ["durable-sync-final", "R4.12-full-regression", "R4.12-hosted-CI", "provider-live-connectivity", "human-Sales-validation"],
+  "provider_status": "CONTRACT_PREPARED_OR_OFFLINE_VERIFIED",
+  "credential_status": "TEST_ONLY",
+  "sandbox_status": "AUTHORIZATION_PENDING",
+  "gate_a": "PENDING_R4.12_EXACT_REVISION",
+  "gate_b": "CONDITIONAL",
+  "gate_c": "NOT_READY_FOR_REAL_CUSTOMER_DATA",
+  "independent_qa_signoff": "PENDING_FINAL_INTEGRATION"
+}
