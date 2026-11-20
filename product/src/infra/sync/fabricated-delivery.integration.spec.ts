@@ -1,4 +1,4 @@
-import{beforeAll,afterAll,describe,it,expect}from'vitest';
+import{beforeAll,afterAll,describe,it,expect,vi}from'vitest';
 import{randomUUID,randomBytes,createHmac}from'node:crypto';
 import{PostgresService,type SqlExecutor}from'../postgres/postgres.service';
 import{Migrator,loadMigrations}from'../postgres/migrator';
@@ -21,8 +21,8 @@ suite('signed fabricated delivery durable admission (not a live provider receive
  const secret=randomBytes(48).toString('base64');
  const observation=(pageId:string)=>({schemaVersion:1,provider:'pancake',route:'pancake-synthetic',accountId:pageId,synthetic:true,sourceAuthority:'synthetic_fixture',verification:'UNVERIFIED',completeness:'UNKNOWN',receiptId:randomUUID(),native:{system:'meta',pageId,conversationId:'fabricated-conversation',messageId:randomUUID(),eventId:null,revision:null},observedAt:'2026-11-20T00:00:00Z',occurredAt:null,lifecycle:'upsert-observed',displayName:'Fabricated signed delivery',rawPayload:{utterance:'Fabricated only',speaker:'customer',original:{fabricated:true}}});
  const signed=(body:unknown,key=secret)=>{const raw=Buffer.from(typeof body==='string'?body:JSON.stringify(body));return {raw,signature:'sha256='+createHmac('sha256',key).update(raw).digest('hex')};};
- beforeAll(async()=>{db=new PostgresService({connectionString:process.env.TEST_DATABASE_URL});await new Migrator(db,loadMigrations()).up();await db.query('INSERT INTO workspace(id,name)VALUES($1,$1)',[ctx.workspaceId]);installContentDigester(configuredContentDigester({NODE_ENV:'test'}));source=new PgSourceIntegrationStore(db);credentials=new TestOnlyProviderCredentialStore('test',true);});
- afterAll(async()=>db?.onModuleDestroy());
+ beforeAll(async()=>{vi.stubEnv('DEPLOYMENT_MODE','test');db=new PostgresService({connectionString:process.env.TEST_DATABASE_URL});await new Migrator(db,loadMigrations()).up();await db.query('INSERT INTO workspace(id,name)VALUES($1,$1)',[ctx.workspaceId]);installContentDigester(configuredContentDigester({NODE_ENV:'test'}));source=new PgSourceIntegrationStore(db);credentials=new TestOnlyProviderCredentialStore('test',true);});
+ afterAll(async()=>{await db?.onModuleDestroy();vi.unstubAllEnvs();});
  async function setup(customDb=db){const c=await source.createConnection(ctx,{provider:'pancake',route:'pancake-synthetic',pageId:'page'}),m=await credentials.configure(ctx,{workspaceId:ctx.workspaceId,connectionId:c.id,provider:'pancake',accountId:'page',scopes:['messages.read']},secret),principal=await credentials.issuePrincipal(ctx,m.credentialId);return{c,m,principal,service:new FabricatedWebhookAdmission(credentials,new PgFabricatedDeliveryStore(customDb,credentials,admit),verifyMetaSignature,true)};}
  const body=(events=[observation('page')])=>({protocol:'north-start-fabricated-delivery/v1',deliveryId:randomUUID(),events});
  it('acknowledges only after commit; duplicate signed attempts preserve one intended effect and audit each attempt',async()=>{
@@ -64,5 +64,13 @@ suite('signed fabricated delivery durable admission (not a live provider receive
   const{principal}=await setup();const disabled=new FabricatedWebhookAdmission(credentials,new PgFabricatedDeliveryStore(db,credentials,admit),verifyMetaSignature);const s=signed(body());await expect(disabled.accept(principal,s.raw,'application/json',s.signature)).rejects.toMatchObject({code:'FABRICATED_WEBHOOK_DISABLED'});
   const down=loadMigrations().find(m=>m.version==='023_fabricated_delivery')!.down;await expect(db.withTransaction(tx=>tx.query(down))).rejects.toThrow('empty history');
   for(const sql of['UPDATE fabricated_delivery SET accepted_count=0','DELETE FROM fabricated_delivery_attempt','TRUNCATE fabricated_delivery_attempt'])await expect(db.query(sql)).rejects.toThrow('append-only');
+ });
+ it('fails closed without explicit mode and redacts verifier exceptions',async()=>{
+  const{principal,service}=await setup(),s=signed(body());
+  vi.stubEnv('DEPLOYMENT_MODE',undefined);vi.stubEnv('APP_MODE',undefined);
+  await expect(service.accept(principal,s.raw,'application/json',s.signature)).rejects.toMatchObject({code:'TEST_ONLY'});
+  vi.stubEnv('DEPLOYMENT_MODE','test');
+  const broken=new FabricatedWebhookAdmission(credentials,new PgFabricatedDeliveryStore(db,credentials,admit),()=>{throw Error('private-provider-token');},true);
+  await expect(broken.accept(principal,s.raw,'application/json',s.signature)).rejects.toMatchObject({code:'DELIVERY_AUTH_INVALID'});
  });
 });
