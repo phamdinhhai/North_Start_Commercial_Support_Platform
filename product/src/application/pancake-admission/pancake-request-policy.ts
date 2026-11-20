@@ -70,6 +70,7 @@ export class PancakeRequestPolicy {
   /** Must be called before another admission; redirects and out-of-scope data are terminal. */
   observe(result: {status: number; redirected?: boolean; scopeMismatch?: boolean}): void {
     if (!this.awaitingResponse || !Number.isInteger(result.status) || result.status < 100 || result.status > 599 ||
+      (result.status >= 300 && result.status < 400) ||
       [401, 403, 429].includes(result.status) || result.redirected || result.scopeMismatch) this.stopped = true;
     this.awaitingResponse = false;
   }
