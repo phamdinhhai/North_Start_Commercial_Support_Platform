@@ -1,0 +1,305 @@
+{
+  "schema_version": 1,
+  "recorded_at": "2026-11-20T04:34:47.043Z",
+  "baseline_sha": "5181aba2b325fb12fdb4a54b04783f23b4133d69",
+  "source_sha": "4fe69e396f1db665e41c3ec4b8ad324e9dd2f92b",
+  "branch": "feat/integration-trust-and-sync-readiness",
+  "documentation_head": "Documentation-only commit containing this file; exact SHA in final handover / git log -1",
+  "source_unchanged_during_run": true,
+  "environment": {
+    "os": "Windows",
+    "node": "v22.21.0",
+    "npm": "10.9.0",
+    "postgresql": "17.11, private loopback trust-auth fabricated test cluster; launcher separate SCRAM restricted role",
+    "chromium": "Playwright bundled headless Chromium",
+    "deployment_mode": "test",
+    "no_owner_pilot_resources": true,
+    "final_postgresql_port": 50793,
+    "global_env": {
+      "CI": "true",
+      "NODE_ENV": "test",
+      "DEPLOYMENT_MODE": "test",
+      "PILOT_STORE_MODE": "memory",
+      "DEMO_WORKSPACES": "false",
+      "TEST_DATABASE_URL": "Generated loopback /north_start_ci; browser suites use separate qa_browser_* databases; benchmark uses r411_final_perf",
+      "DATABASE_URL": "UNSET in runner; per-browser child sets dedicated ephemeral QA target",
+      "PG_DUMP": "PostgreSQL17/bin/pg_dump.exe",
+      "PG_RESTORE": "PostgreSQL17/bin/pg_restore.exe"
+    },
+    "runtime_policy": "No real customer/provider data; each DB/port generated or test-owned; no Owner pilot resources"
+  },
+  "run": {
+    "artifact_directory": "C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r411-final-uvhSOO",
+    "source_sha": "4fe69e396f1db665e41c3ec4b8ad324e9dd2f92b",
+    "mode": "r411-final",
+    "results": [
+      {"name":"pilot-research-safety","command":["C:\\Program Files\\nodejs\\node.exe","--test","scripts/pilot/safety.test.mjs","scripts/research/validate-observation.test.mjs"],"exit_code":0,"seconds":0,"log":"C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r411-final-uvhSOO\\pilot-research-safety.log","result":"PASS","log_sha256":"8ac0796103af51978866d95cd59ca8556e6423dc3f28fba3abe65cc68d7eecda","test_summary":["# pass 7","# skipped 0"]},
+      {"name":"typecheck","command":["C:\\Program Files\\nodejs\\node.exe","C:/Program Files/nodejs/node_modules/npm/bin/npm-cli.js","run","typecheck"],"exit_code":0,"seconds":7,"log":"C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r411-final-uvhSOO\\typecheck.log","result":"PASS","log_sha256":"09b9a49f6769e2371ae5cfedc320845c173fe8c1356b69e516cecf3df4a23c7a","test_summary":[]},
+      {"name":"lint","command":["C:\\Program Files\\nodejs\\node.exe","C:/Program Files/nodejs/node_modules/npm/bin/npm-cli.js","run","lint"],"exit_code":0,"seconds":5,"log":"C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r411-final-uvhSOO\\lint.log","result":"PASS","log_sha256":"ad43281dbc673e71b219a3b5f8bb1351cdbf31f778553f420b51e951f5ce0a46","test_summary":[]},
+      {"name":"architecture","command":["C:\\Program Files\\nodejs\\node.exe","C:/Program Files/nodejs/node_modules/npm/bin/npm-cli.js","run","architecture:check:strict"],"exit_code":0,"seconds":1,"log":"C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r411-final-uvhSOO\\architecture.log","result":"PASS","log_sha256":"d77621a86ab9943075df85f3191a1cb7bb1df838338d769fe581a2ff13a87c50","test_summary":[]},
+      {"name":"registry","command":["C:\\Program Files\\nodejs\\node.exe","C:/Program Files/nodejs/node_modules/npm/bin/npm-cli.js","run","registry:validate"],"exit_code":0,"seconds":0,"log":"C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r411-final-uvhSOO\\registry.log","result":"PASS","log_sha256":"9ba0b062f4ecd65b28129862b0b83b76af3684de213382c0d20ffa086be3ab85","test_summary":[]},
+      {"name":"integration-ci","command":["C:\\Program Files\\nodejs\\node.exe","C:/Program Files/nodejs/node_modules/npm/bin/npm-cli.js","run","test:integration:ci"],"exit_code":0,"seconds":77,"log":"C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r411-final-uvhSOO\\integration-ci.log","result":"PASS","log_sha256":"d26e43db53c5dc0ca55fef847a04eeaa3271d6f84aab8c446381e8f765d2a973","test_summary":["Test Files  1 passed (1)","Tests  2 passed (2)","Test Files  1 passed (1)","Tests  2 passed (2)","Test Files  1 passed (1)","Tests  7 passed (7)","Test Files  1 passed (1)","Tests  4 passed (4)","Test Files  1 passed (1)","Tests  10 passed (10)","Test Files  1 passed (1)","Tests  11 passed (11)","Test Files  1 passed (1)","Tests  5 passed (5)","Test Files  1 passed (1)","Tests  4 passed (4)","Test Files  1 passed (1)","Tests  7 passed (7)","Test Files  1 passed (1)","Tests  2 passed (2)","Test Files  1 passed (1)","Tests  2 passed (2)","Test Files  1 passed (1)","Tests  6 passed (6)","Test Files  1 passed (1)","Tests  4 passed (4)","Test Files  1 passed (1)","Tests  2 passed (2)","Test Files  1 passed (1)","Tests  2 passed (2)","Test Files  1 passed (1)","Tests  4 passed (4)","Test Files  1 passed (1)","Tests  2 passed (2)","Test Files  1 passed (1)","Tests  12 passed (12)","Test Files  1 passed (1)","Tests  7 passed (7)","Test Files  1 passed (1)","Tests  3 passed (3)","Test Files  1 passed (1)","Tests  2 passed (2)","Test Files  1 passed (1)","Tests  8 passed (8)","Test Files  1 passed (1)","Tests  5 passed (5)","Test Files  1 passed (1)","Tests  7 passed (7)","Test Files  1 passed (1)","Tests  4 passed (4)","Test Files  1 passed (1)","Tests  5 passed (5)","Test Files  1 passed (1)","Tests  8 passed (8)","Integration gate: 27 suites, 137 tests passed without skips"]},
+      {"name":"coverage","command":["C:\\Program Files\\nodejs\\node.exe","C:/Program Files/nodejs/node_modules/npm/bin/npm-cli.js","run","test:cov","--","--no-file-parallelism"],"exit_code":0,"seconds":130,"log":"C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r411-final-uvhSOO\\coverage.log","result":"PASS","log_sha256":"bea15fe37c33b3a11bd8197e626435f1553f06ff47b6f8854c9a87c44edcde9f","test_summary":["Test Files  144 passed (144)","Tests  1354 passed (1354)"]},
+      {"name":"build","command":["C:\\Program Files\\nodejs\\node.exe","C:/Program Files/nodejs/node_modules/npm/bin/npm-cli.js","run","build"],"exit_code":0,"seconds":13,"log":"C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r411-final-uvhSOO\\build.log","result":"PASS","log_sha256":"4bc24afec50c327cef250b332ffda2df07d6c6766d549f4ee6b27ea4aaaebc3a","test_summary":[]},
+      {"name":"http-e2e","command":["C:\\Program Files\\nodejs\\node.exe","C:/Program Files/nodejs/node_modules/npm/bin/npm-cli.js","run","test:e2e"],"exit_code":0,"seconds":9,"log":"C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r411-final-uvhSOO\\http-e2e.log","result":"PASS","log_sha256":"696cbe8de037b59a4e81ee489c8977c77d498c3edfa5f7e395d563b9d2b91046","test_summary":["Test Files  3 passed (3)","Tests  22 passed (22)"]},
+      {"name":"browser","command":["C:\\Program Files\\nodejs\\node.exe","C:/Program Files/nodejs/node_modules/npm/bin/npm-cli.js","run","test:browser"],"exit_code":0,"seconds":22,"log":"C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r411-final-uvhSOO\\browser.log","result":"PASS","log_sha256":"6716fc72669c5f4a710f511b75a9f65b102041679454a460c013277bf4aa2a86","test_summary":["4 passed (20.5s)"]},
+      {"name":"component","command":["C:\\Program Files\\nodejs\\node.exe","node_modules/@playwright/test/cli.js","test","--config","playwright.operator-recovery.config.ts"],"exit_code":0,"seconds":6,"log":"C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r411-final-uvhSOO\\component.log","result":"PASS","log_sha256":"a544c1cc7e97974697c0af5db8e19bf20331aeedf45ff41a1704555e07ff40d9","test_summary":["10 passed (5.3s)"]},
+      {"name":"lifecycle-memory","command":["C:\\Program Files\\nodejs\\node.exe","node_modules/@playwright/test/cli.js","test","--config","playwright.lifecycle.config.ts"],"exit_code":0,"seconds":16,"log":"C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r411-final-uvhSOO\\lifecycle-memory.log","result":"PASS","log_sha256":"569752e7936e7086499ade1f5e5befde7f223daa94a4763fa58c35cafdd7a01b","test_summary":["1 passed (15.0s)"]},
+      {"name":"oidc-ui","command":["C:\\Program Files\\nodejs\\node.exe","node_modules/@playwright/test/cli.js","test","--config","playwright.oidc.config.ts"],"exit_code":0,"seconds":28,"log":"C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r411-final-uvhSOO\\oidc-ui.log","result":"PASS","log_sha256":"9b2ea2ddecf88219e1bc1b979e5d7e5a3ffc2d4b3b69add7daf720ba25fe8e03","test_summary":["6 passed (26.8s)"]},
+      {"name":"source-ui","command":["C:\\Program Files\\nodejs\\node.exe","node_modules/@playwright/test/cli.js","test","--config","playwright.source-integration.config.ts"],"exit_code":0,"seconds":21,"log":"C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r411-final-uvhSOO\\source-ui.log","result":"PASS","log_sha256":"9e820bc0167227f5d2cd4c230cc0176138ccefcf46262f2ef12c923d476fb59c","test_summary":["1 passed (20.2s)"]},
+      {"name":"companion","command":["C:\\Program Files\\nodejs\\node.exe","C:/Program Files/nodejs/node_modules/npm/bin/npm-cli.js","run","test:companion"],"exit_code":0,"seconds":5,"log":"C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r411-final-uvhSOO\\companion.log","result":"PASS","log_sha256":"e641f14df592ca1b949a99ffec918a83d6130ece576a436bc83181c84c44696a","test_summary":[]},
+      {"name":"packaging","command":["C:\\Program Files\\nodejs\\node.exe","--test","scripts/companion-package.test.mjs"],"exit_code":0,"seconds":1,"log":"C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r411-final-uvhSOO\\packaging.log","result":"PASS","log_sha256":"7ab69751ec9d2d5638f5ff726c5623035f9f55fa8528deeac65b5f1d724842db","test_summary":["# pass 7","# skipped 0"]},
+      {"name":"guardrails","command":["C:\\Program Files\\nodejs\\node.exe","--test","scripts/check-architecture.test.mjs","scripts/registry-validation.test.mjs","scripts/security-audit.test.mjs","scripts/backup-verify.test.mjs"],"exit_code":0,"seconds":1,"log":"C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r411-final-uvhSOO\\guardrails.log","result":"PASS","log_sha256":"44bf2905cd85dbd15f97d5fe83ecdaf9c6d8b8a5b906cbd1593a9cc6b5274cf6","test_summary":["# pass 44","# skipped 0"]},
+      {"name":"ail-research","command":["C:\\Program Files\\nodejs\\node.exe","C:/Program Files/nodejs/node_modules/npm/bin/npm-cli.js","run","test:ail:research"],"exit_code":0,"seconds":1,"log":"C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r411-final-uvhSOO\\ail-research.log","result":"PASS","log_sha256":"3fe302122c2e2e678fd42f747f9c2753007501796454c847ec378419d151f8ae","test_summary":["# pass 14","# skipped 0"]},
+      {"name":"restore","command":["C:\\Program Files\\nodejs\\node.exe","scripts/restore-rehearsal.mjs"],"exit_code":0,"seconds":5,"log":"C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r411-final-uvhSOO\\restore.log","result":"PASS","log_sha256":"30550f5c16f9cf02936321ce447698cea08ae1b745f5e4c2e763a7fe0e2bfeb1","test_summary":[]},
+      {"name":"audit","command":["C:\\Program Files\\nodejs\\node.exe","C:/Program Files/nodejs/node_modules/npm/bin/npm-cli.js","run","security:audit"],"exit_code":0,"seconds":4,"log":"C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r411-final-uvhSOO\\audit.log","result":"PASS","log_sha256":"57e8b10012c380383e853728fe570a8746171dc602003a7af2be5786773033e3","test_summary":[]},
+      {"name":"r411-browser","command":["C:\\Program Files\\nodejs\\node.exe","node_modules/@playwright/test/cli.js","test","--config","playwright.r411.config.ts"],"exit_code":0,"seconds":21,"log":"C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r411-final-uvhSOO\\r411-browser.log","result":"PASS","log_sha256":"3b5673cee0082cb604b13612b79725048b48213f2cd6cbc36ad982181216de9b","test_summary":["2 passed (20.2s)"]},
+      {"name":"pilot-launcher","command":["C:\\Program Files\\nodejs\\node.exe","C:/Users/admin/AppData/Local/Temp/north-r411-pilot-verify.mjs"],"exit_code":0,"seconds":36,"log":"C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r411-final-uvhSOO\\pilot-launcher.log","result":"PASS","log_sha256":"1f7491bc5219250ae581c77158bc45a52acbd2c218ef516eac2e866a8e2b746c","test_summary":[]},
+      {"name":"benchmark","command":["C:\\Program Files\\nodejs\\node.exe","scripts/source-integration-benchmark.mjs"],"exit_code":0,"seconds":4,"log":"C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r411-final-uvhSOO\\benchmark.log","result":"PASS","log_sha256":"e97c3f6a41c69260754edbe0b8c9f11945a85048a5a87b14c9ae7e41f3d74fd3","test_summary":[]}
+    ],
+    "count": 23,
+    "passed": 23,
+    "failed": 0
+  },
+  "vitest": {
+    "files": 144,
+    "passed": 1354,
+    "failed": 0,
+    "skipped": 0,
+    "postgresql_included": 137,
+    "postgresql_required_suites": 27,
+    "counts_not_added_across_reruns": true
+  },
+  "coverage": {
+    "statements": {
+      "percent": 88.39,
+      "covered": 6079,
+      "total": 6877
+    },
+    "branches": {
+      "percent": 85.96,
+      "covered": 5667,
+      "total": 6592
+    },
+    "functions": {
+      "percent": 90.74,
+      "covered": 1392,
+      "total": 1534
+    },
+    "lines": {
+      "percent": 92.4,
+      "covered": 4882,
+      "total": 5283
+    },
+    "lcov_sha256": "733d03418276a1343852d9ed6f939fd96339aa0c9c2622c2a735c0db85394b7f",
+    "no_full_security_certification": true
+  },
+  "benchmark": {
+    "artifact": "C:/Users/admin/AppData/Local/Temp/north-r47-r411-final-uvhSOO/benchmark.json",
+    "sha256": "fdba0ffa495797c2dabeea7d4e0725aa2ed2ea97cbdb1b979544647e11daff43",
+    "source_sha": "4fe69e396f1db665e41c3ec4b8ad324e9dd2f92b",
+    "workers": 8,
+    "seed_receipts": 1200,
+    "workloads": {
+      "seed": {"count":1200,"elapsedMs":1856.2426999999998,"p50Ms":11.041200000000117,"p95Ms":23.17820000000006,"p99Ms":29.734500000000025,"errors":{}},
+      "sameConnectionDifferentMessages": {"count":64,"elapsedMs":199.68769999999995,"p50Ms":23.21309999999994,"p95Ms":29.7509,"p99Ms":32.9033000000004,"errors":{}},
+      "sameConnectionSameMessage": {"count":64,"elapsedMs":157.13969999999972,"p50Ms":19.00229999999965,"p95Ms":21.547100000000228,"p99Ms":22.066400000000158,"errors":{}},
+      "differentConnectionsSameNative": {"count":64,"elapsedMs":142.73960000000034,"p50Ms":17.39810000000034,"p95Ms":20.46889999999985,"p99Ms":20.767399999999725,"errors":{}},
+      "concurrentReplay": {"count":64,"elapsedMs":69.57690000000002,"p50Ms":6.695600000000013,"p95Ms":21.554200000000037,"p99Ms":21.79300000000012,"errors":{}},
+      "differentWorkspace": {"count":64,"elapsedMs":104.10919999999987,"p50Ms":11.328199999999924,"p95Ms":17.132800000000316,"p99Ms":21.965500000000247,"errors":{}},
+      "eventCollisionRollback": {"count":16,"elapsedMs":18.189600000000155,"p50Ms":7.964800000000196,"p95Ms":9.194500000000062,"p99Ms":9.194500000000062,"errors":{"NATIVE_EVENT_COLLISION":16}},
+      "afterRevoke": {"count":8,"elapsedMs":3.788100000000213,"p50Ms":2.488900000000285,"p95Ms":3.705500000000029,"p99Ms":3.705500000000029,"errors":{"CONNECTION_REVOKED":8}}
+    },
+    "observations": {
+      "revokeRace": ["stored","revoked"],
+      "lockWaitSessionSamples": 416,
+      "maxPoolWaitingCount": 0,
+      "databaseDeadlocks": "0",
+      "receipts": 1459
+    },
+    "elapsed_ms": 3028.1391,
+    "query_plans": {
+      "receipt": {"execution_ms":0.019,"shared_hit_blocks":2,"plan":"Index Scan"},
+      "native": {"execution_ms":0.024,"shared_hit_blocks":3,"plan":"Index Scan"},
+      "event": {"execution_ms":0.022,"shared_hit_blocks":3,"plan":"Index Scan"},
+      "health": {"execution_ms":0.93,"shared_hit_blocks":154,"plan":"Limit"},
+      "currentHealth": {"execution_ms":1.886,"shared_hit_blocks":1218,"plan":"Nested Loop"},
+      "leadEvidence": {"execution_ms":0.08,"shared_hit_blocks":6,"plan":"Limit"}
+    },
+    "unexpected_errors": 0,
+    "limitations": [
+      "64 samples per main workload, p99 effectively maximum",
+      "Single-machine local synthetic; not production SLO or demonstrated scalability",
+      "Earlier comparative run accumulated data/warmed caches; distinct-message tail regressed",
+      "Exclusive connection lock retained; health counts grow with history"
+    ]
+  },
+  "static_ci": {
+    "sourceSha": "4fe69e396f1db665e41c3ec4b8ad324e9dd2f92b",
+    "actionPins": [
+      {"repository":"actions/checkout","sha":"fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09","http":200,"node24":true},
+      {"repository":"actions/setup-node","sha":"a0853c24544627f65ddf259abe73b1d18a591444","http":200,"node24":true},
+      {"repository":"actions/upload-artifact","sha":"b7c566a772e6b6bfb58ed0dc250532a479d7789f","http":200,"node24":true}
+    ],
+    "secretPatternMatches": false,
+    "applicationNodeRuntime": "22 unchanged",
+    "hostedExecution": "NOT_RUN",
+    "artifact_sha256": "0aade52ec3b14094cc6ca56d608a2deb33cd6624f589c0482f59540b4eaf6b6f"
+  },
+  "external_runner_artifacts": [
+    {
+      "file": "C:/Users/admin/AppData/Local/Temp/north-r411-verify.mjs",
+      "sha256": "55bc623eecc49b25ec24649828d1cc23a2ef3c9c5e79ce818b4c2df047f7e68d"
+    },
+    {
+      "file": "C:/Users/admin/AppData/Local/Temp/north-r411-pilot-verify.mjs",
+      "sha256": "925510b88710f6b70844ea5ea4dd179adc58395c9877592498b8242f8496c8b5"
+    }
+  ],
+  "source_changed_paths": [
+    ".github/workflows/ci.yml",
+    "docs/reports/r4.11-integration-trust-readiness/architecture-review.md",
+    "docs/reports/r4.11-integration-trust-readiness/baseline-and-forensic-audit.md",
+    "docs/reports/r4.11-integration-trust-readiness/baseline-verification.json",
+    "docs/reports/r4.11-integration-trust-readiness/branch-and-pr-strategy.md",
+    "docs/reports/r4.11-integration-trust-readiness/conversation-identity-decision.md",
+    "docs/reports/r4.11-integration-trust-readiness/multi-agent-task-matrix.md",
+    "docs/reports/r4.11-integration-trust-readiness/pancake-spec-validation.json",
+    "docs/reports/r4.11-integration-trust-readiness/postgres-performance-report.md",
+    "docs/reports/r4.11-integration-trust-readiness/provenance-security-review.md",
+    "docs/reports/r4.11-integration-trust-readiness/provider-contract-readiness.md",
+    "docs/reports/r4.11-integration-trust-readiness/qa-and-ci-readiness.md",
+    "docs/reports/r4.11-integration-trust-readiness/receipt-guard-review-correction.md",
+    "docs/reports/r4.11-integration-trust-readiness/sandbox-admission-checklist.md",
+    "docs/reports/r4.11-integration-trust-readiness/trust-boundary-assessment.md",
+    "product/e2e/r411/continuity.browser.spec.ts",
+    "product/e2e/r411/server.mjs",
+    "product/migrations/019_source_receipt_lookup_indexes.down.sql",
+    "product/migrations/019_source_receipt_lookup_indexes.up.sql",
+    "product/migrations/020_source_episode_link.down.sql",
+    "product/migrations/020_source_episode_link.up.sql",
+    "product/migrations/021_source_link_receipt_guard.down.sql",
+    "product/migrations/021_source_link_receipt_guard.up.sql",
+    "product/playwright.r411.config.ts",
+    "product/scripts/ci-integration.mjs",
+    "product/scripts/restore-rehearsal.mjs",
+    "product/scripts/source-integration-benchmark.mjs",
+    "product/src/adapters/provider-contracts/meta-offline-inventory.spec.ts",
+    "product/src/adapters/provider-contracts/meta-offline-inventory.ts",
+    "product/src/adapters/provider-contracts/meta-signature.spec.ts",
+    "product/src/adapters/provider-contracts/meta-signature.ts",
+    "product/src/api/operator-script.ts",
+    "product/src/api/operator-sources.ts",
+    "product/src/api/source-continuity.controller.ts",
+    "product/src/api/source-continuity.http.spec.ts",
+    "product/src/api/source-integration.controller.ts",
+    "product/src/app.module.ts",
+    "product/src/application/pilot/work-mutation-policy.ts",
+    "product/src/application/provider-transport/offline-transport.spec.ts",
+    "product/src/application/provider-transport/offline-transport.ts",
+    "product/src/application/source-continuity/linked-source-evidence.ts",
+    "product/src/application/source-continuity/source-continuity.service.spec.ts",
+    "product/src/application/source-continuity/source-continuity.service.ts",
+    "product/src/application/source-integration/fixture-intake.ts",
+    "product/src/application/source-integration/source-integration.service.spec.ts",
+    "product/src/application/source-integration/source-integration.service.ts",
+    "product/src/application/source-trust/source-trust.adversarial.spec.ts",
+    "product/src/application/source-trust/source-trust.ts",
+    "product/src/infra/postgres/migrator.spec.ts",
+    "product/src/infra/source-continuity/linked-evidence-reader.integration.spec.ts",
+    "product/src/infra/source-continuity/linked-source-reader.qa.spec.ts",
+    "product/src/infra/source-continuity/pg-linked-source-evidence.reader.ts",
+    "product/src/infra/source-continuity/pg-source-episode-link.store.ts",
+    "product/src/infra/source-continuity/source-continuity.integration.spec.ts",
+    "product/src/infra/source-continuity/source-link-guard.integration.spec.ts",
+    "product/src/infra/source-integration/evidence-cursor.spec.ts",
+    "product/src/infra/source-integration/evidence-cursor.ts",
+    "product/src/infra/source-integration/pg-source-integration.store.ts",
+    "product/src/infra/source-integration/source-intake.integration.spec.ts",
+    "product/src/infra/source-integration/source-performance.integration.spec.ts",
+    "product/src/ports/linked-source-evidence.ts",
+    "product/src/ports/provider-transport.ts",
+    "product/src/ports/source-episode-link.ts",
+    "product/src/ports/source-observation.ts",
+    "product/src/ports/source-trust.ts",
+    "product/src/scripts/pilot-loop.module.ts"
+  ],
+  "source_product_workflow_paths": 52,
+  "agents": [
+    {
+      "owner": "r411_architecture",
+      "original": "8a444ef",
+      "integrated": "6078d2e"
+    },
+    {
+      "owner": "r411_identity",
+      "original": "a5be49b",
+      "integrated": "bb452ee",
+      "review": "b83860c"
+    },
+    {
+      "owner": "r411_security",
+      "original": ["7de04ff","b2eb87a"],
+      "integrated": ["f985d1d","46db805"]
+    },
+    {
+      "owner": "r411_performance",
+      "original": ["7cc4a90","99a7956"],
+      "integrated": ["6eee154","8297758"]
+    },
+    {
+      "owner": "r411_provider",
+      "original": "3462672",
+      "integrated": "c8aaab6",
+      "review_corrections": ["d002b93","12098fe"]
+    },
+    {
+      "owner": "r411_qa",
+      "original": ["b99dc13","82dadf8"],
+      "integrated": ["ec133c8","0b30e9e"]
+    }
+  ],
+  "independent_review": {
+    "revision": "4fe69e396f1db665e41c3ec4b8ad324e9dd2f92b",
+    "reviewers": [
+      "r411_identity",
+      "r411_provider",
+      "r411_qa"
+    ],
+    "report": "independent-acceptance-review.md",
+    "material_blockers_local_synthetic": 0
+  },
+  "readiness": {
+    "gate_a": "PASS_LOCAL_REGRESSION; BASELINE_HOSTED_PASS; R411_HOSTED_NOT_RUN",
+    "gate_b": "CONDITIONAL",
+    "gate_c": "NOT_READY_FOR_REAL_CUSTOMER_DATA",
+    "human_sales_validation": "NOT_RUN",
+    "business_validation": "NOT_ESTABLISHED",
+    "provider_authorization": "BLOCKED_PROVIDER_AUTHORIZATION",
+    "live_verified": false,
+    "production_approved": false,
+    "pushed": false
+  },
+  "resource_shutdown": {
+    "engineering_50936": "STOPPED",
+    "baseline_cluster": "STOPPED",
+    "final_cluster": "STOPPED_BY_RUNNER",
+    "generated_pilot": "STOPPED_BY_RUNNER",
+    "owner_resources": "UNTOUCHED"
+  },
+  "limitations": [
+    "No R4.11 hosted CI without separately approved push",
+    "Linked reads use request-time authorization across separate transactions; no instantaneous cancellation in flight",
+    "Source link history bounded100 no cursor, completeness UNKNOWN",
+    "Historical per-message Lead seeds preserved; no intake attach or automatic identity merge",
+    "Offline atomic checkpoint is a port contract, not new durable sync implementation",
+    "Only request has enforced timeout; trusted callbacks must terminate",
+    "Gate C data lifecycle/IdP/keys/privacy/backup erasure unaccepted"
+  ],
+  "preliminary_attempts": [
+    "One application mock lacked new connection lookup result; corrected fixture, no runtime weakening",
+    "One manual PG creation command failed PowerShell quoting; used createdb on exact named disposable target and reran11tests PASS",
+    "Guard migration test initially assumed empty parent; isolated per-run DB, verified already021 parent then final full regression PASS",
+    "Suspected no-store error omission was not reproduced; actual503 no-store asserted"
+  ]
+}

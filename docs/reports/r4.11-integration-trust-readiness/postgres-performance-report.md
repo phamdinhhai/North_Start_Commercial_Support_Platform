@@ -68,3 +68,19 @@ Verification: TypeScript check, build, two cursor unit tests and four actual
 PostgreSQL integration tests: connection lookup beyond 100; same-timestamp
 keyset traversal and foreign-scope rejection; observed revoke locking; and
 index-only downgrade with nonempty evidence plus concurrent reapplication.
+
+## Exact final-source execution
+
+Frozen source `4fe69e396f1db665e41c3ec4b8ad324e9dd2f92b` completed all23 verification lanes. A fresh dedicated benchmark database contained1,459 accepted fabricated receipts after the bounded run;8workers,1,200seeded receipts,3,028ms overall. No unexpected errors, deadlocks or observed pool queue. Sixteen event collisions and eight post-revoke attempts were intentionally rejected. Lock-wait sampling recorded416session samples at10ms intervals; this is not exact wait duration.
+
+| Workload,64 samples | p50 ms | p95 ms | p99 ms |
+|---|---|---|---|
+| Same connection, distinct messages |23.21|29.75|32.90|
+| Same connection, same message |19.00|21.55|22.07|
+| Different connections, same native message |17.40|20.47|20.77|
+| Concurrent replay |6.70|21.55|21.79|
+| Different workspaces |11.33|17.13|21.97|
+
+Final EXPLAIN ANALYZE BUFFERS: receipt index scan0.019ms/2shared hits; native lookup0.024ms/3hits; event lookup0.022ms/3hits; Lead evidence query0.080ms/6hits using existing018Lead-history index. Current bounded-connection lateral health query took1.886ms/1,218hits, versus0.930ms/154hits for the old aggregate shape on this small dataset. Thus health bounding does not establish lower cost on small workloads; it bounds which connections are aggregated while per-connection exact counts still grow. No extra speculative index or lock weakening was justified.
+
+Artifact `%TEMP%/north-r47-r411-final-uvhSOO/benchmark.json`, SHA256 `fdba0ffa495797c2dabeea7d4e0725aa2ed2ea97cbdb1b979544647e11daff43`. Exact commands, environment and log hashes are in verification.json. These measurements remain local synthetic observations, not production capacity/SLO evidence. Earlier before/after tail regression and dataset/cache confounds remain disclosed above.
