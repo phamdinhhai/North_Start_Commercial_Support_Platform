@@ -36,7 +36,13 @@ export class PgSourceIntegrationStore implements SourceIntegrationStore {
     });
   }
   async listConnections(workspaceId:string) {
-    return (await this.db.query<ConnectionRow>('SELECT * FROM source_connection WHERE workspace_id=$1 ORDER BY created_at,id LIMIT 100',[workspaceId])).rows.map(connection);
+    const rows=await this.db.query<ConnectionRow & {receipt_count:number;quarantine_count:number;last_receipt_at:Date|string|null}>(`
+      SELECT c.*,count(r.id)::int AS receipt_count,
+        count(r.id) FILTER(WHERE r.quarantine_reason IS NOT NULL)::int AS quarantine_count,max(r.created_at) AS last_receipt_at
+      FROM source_connection c LEFT JOIN source_receipt r ON r.workspace_id=c.workspace_id AND r.connection_id=c.id
+      WHERE c.workspace_id=$1 GROUP BY c.id ORDER BY c.created_at,c.id LIMIT 100`,[workspaceId]);
+    return rows.rows.map(r=>({...connection(r),delivery:{receiptCount:r.receipt_count,quarantineCount:r.quarantine_count,
+      lastReceiptAt:r.last_receipt_at===null?null:new Date(r.last_receipt_at).toISOString()}}));
   }
   async intake(ctx:AuthContext,connectionId:string,o:SourceObservation,options={claimResponsibility:false}):Promise<SourceReceipt> {
     return this.db.withTransaction(async tx=>{

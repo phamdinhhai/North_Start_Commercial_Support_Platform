@@ -76,4 +76,14 @@ suite('durable synthetic source evidence',()=>{
     expect((await db.query('SELECT count(*)::int n FROM source_receipt WHERE workspace_id=$1', [ctx.workspaceId])).rows[0].n).toBe(before);
     expect((await new Migrator(db, loadMigrations()).applied()).at(-1)).toBe('018_source_integration');
   });
+  it('reports only scoped local receipt health, including quarantine, without claiming a live sync', async () => {
+    const c=await connect(),a=o();
+    await s.intake(ctx,c.id,a);
+    await s.intake(ctx,c.id,{...o(),native:{...a.native,messageId:null}});
+    const view=(await s.listConnections(ctx.workspaceId)).find(r=>r.id===c.id)!;
+    expect(view.health).toBe('SYNTHETIC_ONLY');
+    expect(view.delivery).toMatchObject({receiptCount:2,quarantineCount:1});
+    expect(view.delivery?.lastReceiptAt).toMatch(/^\d{4}-/);
+    expect(await s.listConnections('unrelated-workspace')).toEqual([]);
+  });
 });

@@ -17,6 +17,10 @@ window.mountSyntheticSources = ({container, request, openLead, createConnection,
       for (const c of result.items) {
         const card = node('article'); card.dataset.connectionId = c.id;
         card.append(node('p', c.provider + ' | Transport page: ' + c.pageId + ' | ' + c.status + ' | ' + c.health));
+        card.append(node('p', 'Provider authorization: NOT VERIFIED. Capability: fabricated message import only. Local receipts: ' +
+          (c.delivery?.receiptCount ?? 'UNKNOWN') + '; quarantined: ' + (c.delivery?.quarantineCount ?? 'UNKNOWN') +
+          '; last local receipt: ' + (c.delivery?.lastReceiptAt || 'UNKNOWN - none recorded') +
+          '. Sync attempt/checkpoint/lag/gaps: UNKNOWN - no network synchronization runs.'));
         if (c.status === 'active') {
           const ingest = node('button', 'Import fabricated ' + c.provider + ' observation'), revoke = node('button', 'Revoke synthetic connection');
           ingest.type = revoke.type = 'button'; ingest.onclick = () => importFixture(c); revoke.onclick = async () => {

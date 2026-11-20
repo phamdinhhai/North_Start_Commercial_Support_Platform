@@ -41,6 +41,8 @@ export interface SourceConnection {
   readonly pageId: string;
   readonly status: 'active' | 'revoked';
   readonly health: 'SYNTHETIC_ONLY';
+  /** Local persistence receipts only; never a provider cursor or successful sync. */
+  readonly delivery?: { readonly receiptCount: number; readonly quarantineCount: number; readonly lastReceiptAt: string | null };
 }
 export interface SourceReceipt {
   readonly receiptId: string;
