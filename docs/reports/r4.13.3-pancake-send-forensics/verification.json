@@ -1,0 +1,47 @@
+{
+  "release": "R4.13.3",
+  "branch": "feat/r4133-pancake-send-forensics",
+  "baseline": {
+    "r4132_head": "2b990357b8dddd4ef8f6905cd413ba707c01d4e7",
+    "source_sha": "eecd87764bb9631c361c9eaa7f578dc5db0f79f2",
+    "hosted_baseline": "d990437bd5b8003f1068788538edde69fb3471b6"
+  },
+  "scope": {
+    "provider_calls_in_r4133": 0,
+    "post_attempts": 1,
+    "confirmed_provider_writes": 0,
+    "owner_manual_review": "NOT_OBSERVED",
+    "send_outcome": "SEND_UNRESOLVED",
+    "automatic_retry_allowed": false,
+    "new_mutations_allowed": false,
+    "delivery_status": "UNKNOWN",
+    "read_status": "UNKNOWN"
+  },
+  "offline_verification": {
+    "focused_vitest": {"files": 5, "tests": 31, "status": "PASS"},
+    "node_boundary": {"tests": 26, "status": "PASS"},
+    "full_vitest": {"passed": 1394, "skipped": 157, "status": "PASS_WITH_ENVIRONMENT_SKIPS"},
+    "postgres_integration": {"suites": 30, "tests": 157, "skipped": 0, "status": "PASS"},
+    "typecheck": "PASS",
+    "lint": "PASS",
+    "architecture_strict": "PASS",
+    "registry_validation": "PASS",
+    "dependency_audit": "PASS",
+    "build": "PASS",
+    "coverage": {"lines": 92.98, "status": "PASS"},
+    "r4133_final_manifest": {"source_sha": "5489ff9546d9e41790368e549d30a82f33b14023", "lanes": 18, "failed": 0, "manifest_sha256": "debf6bdcc3f4ec2939cb75b2bb6abfa7ea6ef15f00ca75e932b9ed4e646ba647", "status": "PASS"},
+    "supplemental": {"source_ui": "PASS", "r411_browser": "PASS", "r412_browser": "PASS", "packaging": "PASS", "benchmark": "PASS", "sync_recovery": "PASS", "sync_benchmark": "PASS", "forensics_focused": "PASS", "forensics_boundary": "PASS", "pilot_launcher": "PASS", "pilot_launcher_initial_failure": "ENVIRONMENT_DISK_FULL_DATABASE_RECOVERY", "manifest_sha256": "db82efacaa2fd9920c0ff8e949dd946a532872bd0497deaf9d5cf4b422dcf71d2"}
+  },
+  "provider": {
+    "live_requests_r4133": 0,
+    "mutation_status": "CLOSED_PENDING_OWNER_DISPOSITION",
+    "p3": "SEND_UNRESOLVED_MANUAL_REVIEW",
+    "p4": "NOT_TESTED",
+    "p5": "NOT_VERIFIED"
+  },
+  "notes": [
+    "No hosted CI result exists for this unpushed branch.",
+    "The ordinary full Vitest invocation skips integration files by environment; the dedicated isolated PostgreSQL gate ran all 30 suites and 157 tests with zero skips.",
+    "The offline journal is a fixture control and does not provide provider-side exactly-once delivery."
+  ]
+}

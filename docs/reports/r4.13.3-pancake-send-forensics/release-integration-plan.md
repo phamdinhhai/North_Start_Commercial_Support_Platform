@@ -13,8 +13,8 @@ Run `npm run typecheck`, focused adapter tests, the full Vitest suite, and `npm 
 build` from `product/`. Exercise synthetic WAL replay, duplicate replay,
 changed-payload quarantine, cursor restart/gap, lease fencing, revocation,
 scope/RBAC denial, HMAC/hash verification, and append-only audit checks. Verify
-that `SEND_UNRESOLVED` remains terminal and that `CurrentOwner=NOT_OBSERVED` never
-becomes ownership.
+that `SEND_UNRESOLVED` remains terminal and that the Owner's `NOT_OBSERVED` manual
+verdict never becomes a provider assignment or non-delivery claim.
 
 The release gate must assert Customer and Lead separation, immutable stable Lead IDs,
 raw evidence retention, unknown visibility, and absence of outcome, revenue,

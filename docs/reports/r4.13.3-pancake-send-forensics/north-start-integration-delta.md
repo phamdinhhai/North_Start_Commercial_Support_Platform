@@ -9,20 +9,21 @@ or cleanup was performed while preparing this report.
 
 ## Classification
 
-The observed send attempt remains `SEND_UNRESOLVED`. `CurrentOwner` is
-`NOT_OBSERVED`; therefore assignment is an observation only and cannot establish
+The observed send attempt remains `SEND_UNRESOLVED`. The Owner's manual verdict is
+`NOT_OBSERVED`; it is not a provider assignment field. Provider assignment alone cannot establish
 ownership, authorization, lead identity, or a commercial outcome. The integration
 must retain the unresolved send as an append-only audit/evidence record and must not
 infer delivery, read, conversion, revenue, or attribution.
 
 ## Adapter seam
 
-The offline transport/WAL boundary accepts synthetic envelopes and produces typed
-receipts. Raw request and response bytes remain immutable and HMAC/hash metadata is
-retained before projection. Workspace, connection, account/Page, conversation, and
-lead-scoped RBAC checks are enforced at the boundary. Duplicate external IDs are
-idempotent; changed payloads are quarantined; cursor gaps, lease loss, revoked
-enrollment, malformed pages, and scope mismatch fail closed.
+The new offline transport/WAL boundary accepts fabricated fixtures only. Its
+binding digest covers workspace, connection, operation, Page, conversation, and
+exact payload bytes. It records categorical outcomes without persisting message
+content. This code is not registered in the runtime, does not replace R4.12
+source admission or RBAC, and does not activate provider transport or ingestion.
+The existing synthetic sync, source identity, lease and checkpoint contracts
+remain in force and are covered separately by regression.
 
 The adapter emits observations only. It does not create or merge Customer and Lead
 entities (I-01), alter a stable Lead ID (I-07), assign ownership, emit outcome or
@@ -32,5 +33,5 @@ revenue facts, or bypass the Commercial Event pipeline (I-04). AI remains draft-
 ## Required follow-up
 
 Resolve `SEND_UNRESOLVED` only through an owner-approved, provider-side manual review.
-Until then, no second send, retry, tag/status/assignment mutation, or inferred
-receipt is permitted. CE-1, CE-2, MM-1, ID-1, ID-2, PM-1, and LG-1 remain open.
+Until then, no second send, retry, tag/status/assignment mutation, provider request,
+or inferred receipt is permitted. No canonical decision is changed by this work.
