@@ -133,7 +133,7 @@
     "native_ids_temporarily_persisted_then_removed": true,
     "north_start_ingestion": false,
     "old_r413_four_request_terminal_run_preserved": true,
-    "prototype_ledgers": "First two scripts had separate counters; retired without resetting. Aggregate count carried forward; later phases retained as separate completed read plans. All eight requests sequential below global ceiling. Prototype missing false-business/scope terminal classification recorded as limitation; new pure response gate is not retroactively claimed as live transport.",
+    "prototype_ledgers": "First two scripts had separate counters; retired without resetting. Aggregate count carried forward; later phases retained as separate completed read plans. The initial eight and subsequent two user-token reads were sequential, ten total below the global ceiling. Prior terminal states were preserved. Prototype missing false-business/scope terminal classification is recorded as a limitation; the new pure response gate is not retroactively claimed as live transport.",
     "ledger": [
       {
         "step": "PAGINATION_READ_0",
