@@ -7,3 +7,6 @@ An inline diagnostic loader was mistakenly used instead of the approved WAL exec
 The approved private executor source remains SHA-256 `26FF8470AA178FCBD6989651C84E031080014306261C54C19A3EA151723904EF`; this incident did not use its persisted ledger. No token, raw response, identifier, or PII is recorded here.
 
 Security finding: execution-control deviation; future activity must use the reviewed executor with WAL and retained tool metadata. Phase is terminal pending owner review.
+## Approved control entrypoint result
+
+The reviewed entrypoint reserved exactly one metadata GET and terminated with WAL state `STOPPED`: `TRANSPORT_OR_PARSE_STOP`; attempts `1`, inflight `false`, terminal `true`, phase `NEW`, mutations `0`. No provider business success evidence was available and no retry or send occurred. The earlier inline-loader incident remains a separate ambiguous read attempt.
