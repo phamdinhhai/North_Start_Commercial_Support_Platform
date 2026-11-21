@@ -9,6 +9,6 @@
 | Identity / authorization | Server-owned account?Page?token proof | Blocked until evidence |
 | Mutation admission | Reviewed plan, durable reservation, idempotency, readback/recovery | Blocked; no send authorized |
 | Gate A offline engineering | Reproducible source/test evidence | Pending candidate |
-| Provider gates P1–P5 | Bounded authenticated observations | Not established |
+| Provider gates P1â€“P5 | Bounded authenticated observations | Not established |
 
 This matrix records evidence requirements; synthetic or fabricated runner output cannot substitute for provider proof.

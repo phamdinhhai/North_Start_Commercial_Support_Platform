@@ -10,3 +10,7 @@ Source: `D:\Download\Pancake_Document\pancake_api_document.yaml` (offline only).
 
 Sanitized capture correlation: page id was observed in local DevTools records; page alias was observed in URL/referrer only; provider page metadata correlation remains unproven. Token values and personal data were not copied.
 
+
+## Local credential/cookie content inspection
+
+Local cookie JSON was fully parsed, and JWT-shaped values were decoded only in memory for structural correlation with the account token. No signature/authentication claim follows from decoding. 1 cookie values were JWT-shaped; account-claim equality and expiry were checked without retaining values or native account/session identifiers. Non-JWT locale/payment-session tracking cookies do not establish Page API rights. The actual official API read accepted the existing Page token; cookie-only behavior is a separate UI contract.

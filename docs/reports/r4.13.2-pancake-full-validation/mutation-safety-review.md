@@ -1,4 +1,4 @@
-﻿# SEC-01 Mutation safety review (R4.13.2)
+# SEC-01 Mutation safety review (R4.13.2)
 
 This review defines the fail-closed mutation contract for the Pancake pilot. It is a security gate, not provider API documentation.
 

@@ -16,4 +16,3 @@ Offline capture inspection only; no provider request was executed.
 | Credentials/PII copied to report | false |
 
 Captured conversation object fields included `id`, `type`, `page_id`, `from`, `from_psid`, `customers`, `thread_id`, and message/conversation metadata. Values are intentionally omitted.
-
