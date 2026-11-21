@@ -4,7 +4,9 @@ import {PancakeSendGuard} from './pancake-send-guard';
 describe('Pancake single-send guard', () => {
   it('reserves one exact target and prevents a second send', () => {
     const guard = new PancakeSendGuard();
+    expect(guard.current).toBeUndefined();
     expect(guard.reserve('run-001', 'server-target-001')).toMatchObject({state: 'reserved'});
+    expect(Object.isFrozen(guard.current)).toBe(true);
     expect(() => guard.reserve('run-002', 'server-target-001')).toThrow('PANCAKE_SEND_GUARD_DENIED');
   });
   it.each(['accepted', 'rejected', 'ambiguous'] as const)('makes %s terminal', result => {
