@@ -1,4 +1,4 @@
-﻿# R4.13.1 Pancake interaction: redirect and contract review
+# R4.13.1 Pancake interaction: redirect and contract review
 
 Date: 2026-11-21  |  Evidence class: historical local capture + checked-in Pancake YAML/static JS metadata
 
@@ -6,7 +6,7 @@ Date: 2026-11-21  |  Evidence class: historical local capture + checked-in Panca
 
 This review used only the operator-supplied local `D:/Download/Pancake_Document/download.devtools` HAR and checked-in YAML/static evidence. No provider call was made. Credential, cookie, token, account, contact, and customer values were not read or reproduced. The HAR was treated as untrusted historical evidence; it does not establish current availability or authorization.
 
-The target UI alias is `NetDecor.PhongcachsongnguoiViet`. The permitted target is the supplied conversation id `1172702029255664_27910194421914511`. Its pieces are candidate page/contact references only; the leading piece must not be promoted to a verified Page identity without a target-scoped provider/UI binding. This is a target-scoped assertion, not evidence that page enumeration is allowed.
+The target is the Owner-allowlisted UI alias and supplied composite conversation reference. Its pieces are candidate page/contact references only; the leading piece must not be promoted to a verified Page identity without a target-scoped provider/UI binding. This is a target-scoped assertion, not evidence that page enumeration is allowed. Actual target values remain in the private execution configuration.
 
 ## Target-only bootstrap and alias routing
 

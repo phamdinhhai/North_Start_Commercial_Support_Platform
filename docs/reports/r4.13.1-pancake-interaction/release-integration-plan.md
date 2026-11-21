@@ -1,10 +1,10 @@
-# R4.13.1 release integration plan — domain/release lane
+# R4.13.1 release integration plan â€” domain/release lane
 
 ## Current baseline and dependencies
 
-The worktree is based on `d990437`; its first-parent ancestry reaches `main` at `5d6c206` (commercial-support baseline), then the R4.10–R4.12 source/continuity and synthetic-sync foundations, and R4.13 Pancake admission commits (`2b05449`, `f1a3a0d`, `b3713b4`, `bea002a`, `4c3e167`, `5c43735`, `6aa1533`, `0ebf0f3`, `fc5907e`, `d990437`). This is a documentation/rehearsal lane and must not merge or retarget draft PRs.
+The worktree is based on `d990437`; its first-parent ancestry reaches `main` at `5d6c206` (commercial-support baseline), then the R4.10â€“R4.12 source/continuity and synthetic-sync foundations, and R4.13 Pancake admission commits (`2b05449`, `f1a3a0d`, `b3713b4`, `bea002a`, `4c3e167`, `5c43735`, `6aa1533`, `0ebf0f3`, `fc5907e`, `d990437`). This is a documentation/rehearsal lane and must not merge or retarget draft PRs.
 
-Domain dependencies are: canonical invariants and ADR-003 adapter boundary; Lead/pilot-loop access and audit; source integration migrations 018–023; prior envelope/workspace migrations 003–005; and the existing migration lifecycle tests. PR #1 and PR #2 are read-only reference points: both were draft and mergeable in the snapshot, but have different bases and must not be treated as release approval. GitHub reports `main` unprotected (404) and no repository rulesets; branch policy therefore comes from repository gates and human review.
+Domain dependencies are: canonical invariants and ADR-003 adapter boundary; Lead/pilot-loop access and audit; source integration migrations 018â€“023; prior envelope/workspace migrations 003â€“005; and the existing migration lifecycle tests. PR #1 and PR #2 are read-only reference points: both were draft and mergeable in the snapshot, but have different bases and must not be treated as release approval. GitHub reports `main` unprotected (404) and no repository rulesets; branch policy therefore comes from repository gates and human review.
 
 ## Safe rehearsal sequence
 
@@ -28,3 +28,14 @@ If a migration fails, stop at the failing version, preserve the isolated databas
 - **Provider gate:** only root-owned sanitized journal may claim provider capability; this document is not provider evidence.
 
 Recommended branch strategy is one writer per worktree: merge domain documentation only after Sync+QA review, then rebase onto the selected release tip and rerun the exact-source suite. Keep PR #1/#2 untouched; a release branch should cherry-pick only reviewed commits and preserve migration order. No merge, push, PR edit or protection change is performed here.
+
+
+## Root topology review and proposed protection
+
+At source `1c035ea`, origin/main `5d6c206` is an ancestor and the merge-base is exactly that SHA. The feature is256 commits ahead, with724 changed files across the full accumulated branch. R4.13.1 itself changes only new pure helpers/specs/reports. A whole-branch release therefore needs review of the accumulated product, canonical and migration history, not only this small final delta.
+
+No textual merge conflict with unchanged main is expected because main is an ancestor; this is an ancestry conclusion, not an executed merge rehearsal. Recheck remote refs immediately before any integration. In a new disposable worktree, first run a non-publishing merge-tree rehearsal, then migration/restore/regression checks against the chosen release tree. If main has advanced, inspect every conflict and rerun at the resulting exact source. Never reset the Owner primary worktree or reuse its uncommitted files.
+
+Recommended strategy: preserve the verified R4.13 and R4.13.1 histories. After an Owner integration decision, create a new `release/r4-platform-foundation` branch from an explicitly selected accepted feature SHA. Do not cherry-pick isolated migrations/features from the dependency chain or rebase verified public history. Keep PR #1/#2 untouched until their overlap and final disposition are reviewed separately.
+
+Recommended main ruleset (proposal only): require pull requests, at least one independent review, resolved conversations, required exact-head `product` and `Browser operator workflow` checks, stale approval dismissal, and block force push/deletion. No repository setting, merge, push, PR edit or worktree deletion was performed.

@@ -1,9 +1,9 @@
-﻿# R4.13.1 identity proof matrix (ID-01)
+# R4.13.1 identity proof matrix (ID-01)
 
 | Edge / claim | Minimum proof | Status from R4.13 evidence | Allowed interpretation | Explicitly forbidden inference |
 |---|---|---|---|---|
 | Authenticated account exists | Redacted provider account identifier in authenticated account response | **Observed, bounded** (`/me` token accepted) | Credential was accepted by that private endpoint at that time | Owner equality, admin role, Page access, write rights |
-| Account → native Page | Account-level Page listing containing exact native Page ID | **Blocked** | None | Alias, URL segment, token success, or field presence proves Page binding |
+| Account → native Page | Fresh target-scoped provider entitlement matching the authenticated principal and native Page; Page enumeration is outside this test scope | **Blocked** | None | Alias, URL segment, token success, or field presence proves Page binding |
 | Page token → native Page | Provider-attested token issuance/scope for exact Page | **Blocked** | None | Reusing a token or successful history read proves ownership |
 | Native Page → conversation | Exact requested Page/conversation echoed by response and each message | **Observed for one bounded read** | Target object scope matched | Complete history, chronology, lifecycle, commercial episode |
 | Conversation → contact | Explicit stable provider contact ID in exact conversation context | **Context present; identity linkage blocked** | `PROVIDER_OBSERVED` contact reference only | Customer identity, merge, phone/name equivalence |
