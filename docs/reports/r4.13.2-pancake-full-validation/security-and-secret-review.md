@@ -22,3 +22,9 @@ Status: **conditional approval — bounded read and one-shot send design only** 
 ## Review gate
 
 Final SEC approval requires source inspection of the actual HTTP executor and tests proving redaction, timeout/size limits, redirect stop, ledger bounds/rate spacing, durable write-ahead reservation across restart, exact body shape, scope checks, and ambiguous-result stop/readback. Until those artifacts are reviewed, status remains conditional and production mutation is blocked.
+
+## Executor source review — read phase
+
+Reviewed private executor SHA-256 `26FF8470AA178FCBD6989651C84E031080014306261C54C19A3EA151723904EF` on 2026-11-21, without credentials or provider calls. **Approved: read phase only, maximum five named GETs** through `accountMetadata` and `history`. The source fixes the native HTTPS host/routes and minimal account fields, uses manual redirects, stops on non-2xx/non-JSON/business failure, caps responses at 2 MiB and 20 seconds, serializes through an exclusive lock, persists inflight/terminal state before dispatch, limits aggregate count to 25 and spacing to at least one second, and emits generic errors without raw URL values.
+
+**Send remains blocked** pending per-request append-only outcome evidence, replacement of the corrupted message marker with the exact approved UTF-8 draft, and fresh identity proof/readback review. This read approval does not attest undocumented private metadata and does not expand provider or platform permissions.
