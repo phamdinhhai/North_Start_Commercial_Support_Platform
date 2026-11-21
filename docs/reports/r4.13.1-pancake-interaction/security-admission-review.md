@@ -23,3 +23,5 @@ The URL gate rejects credentials, query/fragment, user-info, non-HTTPS, non-appr
 ## Evidence and limitations
 
 Existing offline specs cover exact route matching, target mismatch, mutation recovery/recipient references, pacing/ceiling, redirect/auth/rate terminal stops, and configuration-copying. They do not prove provider authentication, account/Page/contact ownership, body-target binding, durable duplicate-send protection, credential custody, or production authorization. No live calls were made. Gate C remains closed.
+
+R4.13.1 adds a pure categorical history-response gate that rejects redirects, authentication/rate failures, non-200/non-JSON responses, and malformed or out-of-scope message bodies. Its accepted result is metadata-only and remains insufficient for authentication or mutation admission.
