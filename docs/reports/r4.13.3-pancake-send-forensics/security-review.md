@@ -38,3 +38,11 @@ body. These limits keep the incident at `SEND_UNRESOLVED`.
 
 No credentials, cookies, authenticated URLs, customer content, or raw provider
 responses are included in this report or the source tree.
+
+The final scan passed: 30 changed/untracked files, generated artifacts and 46
+validation logs, staged/new commits, and full reachable history were checked
+against the existing local credential values without printing them. Generic
+matches were limited to documented parameter placeholders, fabricated inputs,
+and a preexisting negative-test JWT. The scan receipt and log hashes are recorded
+in `verification.json`. Cleanup of temporary evidence directories was rejected
+by automatic approval review (`blocked by policy`); the evidence was retained.

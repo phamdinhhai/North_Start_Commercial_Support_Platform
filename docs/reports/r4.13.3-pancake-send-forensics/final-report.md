@@ -6,6 +6,11 @@ There were **zero Pancake requests** during this release. The Owner's manual
 review of the exact conversation was `NOT_OBSERVED`; it does not prove that the
 earlier POST was never processed.
 
+The baseline is R4.13.2 commit `2b990357b8dddd4ef8f6905cd413ba707c01d4e7`.
+The tested implementation source is `5489ff9546d9e41790368e549d30a82f33b14023`;
+subsequent commits change documentation only. The final documentation HEAD is
+provided in the delivery response. The branch remains local and unpushed.
+
 ## Incident result
 
 The strongest supported classification is `SEND_UNRESOLVED`. The evidence is:
@@ -56,6 +61,14 @@ crash/restart, preserved history and non-synthetic refusal. Those earlier
 environment and harness-configuration failures remain in verification history.
 The coverage manifest recorded 1,551 tests passed at 92.98% lines. No hosted CI
 run exists for this unpushed branch.
+
+The consolidated acceptance manifest records **28 distinct lanes passed**, with
+repeated runs excluded from unique test counts. The final secret scan checked
+30 changed/untracked files, generated artifacts, 46 validation logs, staged and
+new-commit content, and all reachable history against the existing credential
+values in memory. It reported zero findings; a preexisting fabricated JWT
+negative-test literal was manually identified. No raw credential values were
+printed or committed. Original incident artifacts remain unchanged.
 
 Independent QA reproduced the 31-test offline set and found no functional
 security boundary defect. It also recorded limits: the fixture journal does not

@@ -91,7 +91,7 @@
   "git": {
     "source_sha": "5489ff9546d9e41790368e549d30a82f33b14023",
     "product_tree": "eb8044a0ba4b90b087bd0be4a9b96696651f947e",
-    "documentation_head_before_manifest": "8ad71afccd537af80454f8db20f522e1c0b92975",
+                "documentation_head_before_manifest": "8ad71afccd537af80454f8db20f522e1c0b92975",
     "final_head_resolution": "git rev-parse HEAD at delivery; subsequent commits documentation only",
     "pushed": false,
     "merged": false,
