@@ -10,6 +10,7 @@ const validBase = (value:string) => {
   if (url.protocol !== 'http:' || url.hostname !== '127.0.0.1' || !url.port || url.username || url.password || url.search || url.hash || url.pathname!=='/') throw new Error('LOCAL_PROVIDER_BASE_REQUIRED');
   return url.toString().replace(/\/$/u,'');
 };
+const fixtureToken = (value:string,prefix:'hs'|'meta') => new RegExp(`^${prefix}-fixture(?:-[A-Za-z0-9_-]+)?$`,'u').test(value);
 export class SdkReadError extends Error {
  constructor(readonly code:'AUTH_EXPIRED'|'FORBIDDEN'|'RATE_LIMITED'|'PROVIDER_UNAVAILABLE',readonly status:number|null){super(code);}
 }
@@ -23,7 +24,9 @@ function safeError(error:unknown):never {
 export class HubSpotReadConnector {
   private readonly client:HubSpotClient;
   constructor(basePath:string, accessToken:string) {
-    if (!accessToken || accessToken.length > 4096) throw new Error('HUBSPOT_TOKEN_REQUIRED');
+    if (!fixtureToken(accessToken,'hs')) throw new Error('FABRICATED_FIXTURE_TOKEN_REQUIRED');
+    // The official SDK's Node transport does not expose redirect:'error'. The base
+    // is loopback-pinned and tokens are fabricated-only, so this is emulator-only.
     this.client = new HubSpotClient({basePath:validBase(basePath), accessToken,numberOfApiCallRetries:0});
   }
   async contacts(limit=100, after?:string):Promise<HubSpotRecord[]> {
@@ -52,7 +55,7 @@ export class MetaAdsReadConnector {
   private readonly baseUrl:string;
   constructor(baseUrl:string, accessToken:string, private readonly accountId:string, private readonly currency:string, private readonly timezone:string) {
     if (!/^act_[A-Za-z0-9]+$/u.test(accountId) || !currency || !timezone) throw new Error('META_SCOPE_INVALID');
-    if (!accessToken || accessToken.length > 4096) throw new Error('META_TOKEN_REQUIRED');
+    if (!fixtureToken(accessToken,'meta')) throw new Error('FABRICATED_FIXTURE_TOKEN_REQUIRED');
     this.baseUrl=validBase(baseUrl); this.api=new FacebookAdsApi(accessToken,'en_US',false);
   }
   async insights(dateStart:string,dateStop:string):Promise<MetaInsight[]> {
