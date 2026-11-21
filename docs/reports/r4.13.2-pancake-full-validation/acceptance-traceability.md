@@ -2,13 +2,13 @@
 
 | Requirement / gate | Evidence required | QA status |
 |---|---|---|
-| Source inventory and contracts | Candidate commit, typed interfaces, tests | Pending |
+| Source inventory and contracts | 171-file inventory,13groups/153functional records,32schema-resolved operations,5webhooks,233normalized observed routes | VERIFIED extraction; semantic implementation deferred |
 | Security and secret hygiene | Sanitized artifacts; no credentials/raw payloads | Pending |
-| Focused regression | `npm ci`, Vitest focused suites, typecheck/build | Pending |
+| Focused regression | Pinned Vitest focused suites and mock executor tests | 139focused tests PASS,5recovery cases PASS |
 | Catalog integrity | Counts and exact SHA match runner manifest | Pending |
-| Identity / authorization | Server-owned account?Page?token proof | Blocked until evidence |
-| Mutation admission | Reviewed plan, durable reservation, idempotency, readback/recovery | Blocked; no send authorized |
-| Gate A offline engineering | Reproducible source/test evidence | Pending candidate |
-| Provider gates P1–P5 | Bounded authenticated observations | Not established |
+| Identity / authorization | Official minimal Page metadata and exact history/contact proof | P1 bounded target read PASS |
+| Mutation admission | Reviewed plan, durable reservation, no blind resend, readback/recovery | One POST attempted; SEND_UNRESOLVED, no further mutation |
+| Gate A offline engineering | Exact source `eecd877`,26-lane manifest | PASS locally; hosted NOT_RUN |
+| Provider gates P1–P5 | Bounded authenticated observations | P1/P2 bounded PASS; P3 ambiguous/manual review; P4notrun; P5notapproved |
 
 This matrix records evidence requirements; synthetic or fabricated runner output cannot substitute for provider proof.
