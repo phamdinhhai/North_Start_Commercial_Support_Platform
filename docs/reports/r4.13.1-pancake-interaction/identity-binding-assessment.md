@@ -1,4 +1,4 @@
-﻿# R4.13.1 identity-binding assessment (ID-01)
+# R4.13.1 identity-binding assessment (ID-01)
 
 **Scope.** This is a documentation-only assessment of the authenticated Pancake account → Page → conversation → contact chain. It uses the official local `docs/external-apis/pancake/pancake-api-knowledge-base.yaml`, the R4.13 provider-validation journal, and the implemented offline scope/policy helpers. No provider call, credential, cookie, raw response, URL target, or customer payload was used here.
 

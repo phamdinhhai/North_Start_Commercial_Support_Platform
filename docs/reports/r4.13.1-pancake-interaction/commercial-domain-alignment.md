@@ -1,6 +1,6 @@
 # R4.13.1 commercial-domain alignment
 
-**Scope.** This review is source-only and bounded to the Pancake interaction/domain seam. It uses the checked-out `d990437` baseline, canonical domain invariants, PH3 pilot services, adapter code, migrations `001`–`023`, and read-only GitHub metadata. No provider request, credential, capture, Customer merge, owner assignment, outcome or revenue inference was performed.
+**Scope.** This review is source-only and bounded to the Pancake interaction/domain seam. It uses the checked-out `d990437` baseline, canonical domain invariants, PH3 pilot services, adapter code, migrations `001`â€“`023`, and read-only GitHub metadata. No provider request, credential, capture, Customer merge, owner assignment, outcome or revenue inference was performed.
 
 ## Domain contract
 
@@ -10,7 +10,7 @@ The implemented adapter is disabled by default, validates the connection surface
 
 ## Migration/domain inventory
 
-Forward and down pairs exist for 001–023. The sequence grows the PH3 domain (`001_domain`), telemetry (`002`), pilot loop and envelope/workspace controls (`003`–`005`), ingest/evidence/receipts/provenance (`006`–`009`), membership/governed actions/content digest/closure (`010`–`013`), delivery/lifecycle/assertion/contact (`014`–`017`), source integration and lookup/link guards (`018`–`021`), sync streams (`022`) and fabricated delivery (`023`). Migration tests cover lifecycle, 004 quarantine and 005 consistency; no new migration is justified by this review. Any future live Pancake schema must be additive, preserve raw-before-projection, and have forward/rollback rehearsal.
+Forward and down pairs exist for 001â€“023. The sequence grows the PH3 domain (`001_domain`), telemetry (`002`), pilot loop and envelope/workspace controls (`003`â€“`005`), ingest/evidence/receipts/provenance (`006`â€“`009`), membership/governed actions/content digest/closure (`010`â€“`013`), delivery/lifecycle/assertion/contact (`014`â€“`017`), source integration and lookup/link guards (`018`â€“`021`), sync streams (`022`) and fabricated delivery (`023`). Migration tests cover lifecycle, 004 quarantine and 005 consistency; no new migration is justified by this review. Any future live Pancake schema must be additive, preserve raw-before-projection, and have forward/rollback rehearsal.
 
 ## Alignment findings
 
@@ -35,4 +35,3 @@ Synthetic intake is an explicit admin command: PgSourceIntegrationStore seeds on
 - product/src/adapters/pancake/pancake-adapter.ts; product/src/application/source-integration/source-integration.service.ts
 - product/src/infra/source-integration/pg-source-integration.store.ts; product/migrations/001_domain.up.sql through 023_fabricated_delivery.up.sql and matching down pairs
 - docs/reports/r4.13-pancake-deep-admission/{native-identity-mapping,product-gap-analysis,final-report}.md
-

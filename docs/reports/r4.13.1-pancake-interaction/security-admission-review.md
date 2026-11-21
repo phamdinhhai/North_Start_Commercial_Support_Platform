@@ -1,4 +1,4 @@
-﻿# R4.13.1 security admission review
+# R4.13.1 security admission review
 
 **Baseline:** `d990437` (offline Pancake request policy and sync executor boundaries). **Disposition: BLOCKED for any send or live provider mutation.** This review uses source inspection and offline tests only; no credentials, network calls, or customer data were used.
 

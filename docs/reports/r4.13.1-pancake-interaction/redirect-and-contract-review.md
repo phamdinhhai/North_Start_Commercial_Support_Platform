@@ -37,4 +37,3 @@ QA: fixtures should cover alias mismatch, disallowed page id, 301/302 on read, r
 ## Status and open decisions
 
 This is static/historical evidence only. It does not resolve CE-1, CE-2, MM-1, ID-1, ID-2, PM-1, or LG-1. It does not authorize provider activation or outbound messaging. Keep `// OPEN: CE-1 — see ADR-001` at state/transition seams.
-
