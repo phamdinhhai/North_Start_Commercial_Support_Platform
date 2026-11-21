@@ -27,7 +27,7 @@ If a migration fails, stop at the failing version, preserve the isolated databas
 - **Pilot gate:** human Sales validates scoped context and action behavior; no automated outcome or revenue inference.
 - **Provider gate:** only root-owned sanitized journal may claim provider capability; this document is not provider evidence.
 
-Recommended branch strategy is one writer per worktree: merge domain documentation only after Sync+QA review, then rebase onto the selected release tip and rerun the exact-source suite. Keep PR #1/#2 untouched; a release branch should cherry-pick only reviewed commits and preserve migration order. No merge, push, PR edit or protection change is performed here.
+Use one writer per isolated worktree. The root proposal below selects a descendant release SHA while preserving verified histories and migration dependencies. Keep PR #1/#2 untouched; do not cherry-pick isolated migration/feature commits from the accumulated release chain. No merge, push, PR edit or protection change is performed here.
 
 
 ## Root topology review and proposed protection
