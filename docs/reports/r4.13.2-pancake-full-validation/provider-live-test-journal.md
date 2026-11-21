@@ -10,3 +10,10 @@ Security finding: execution-control deviation; future activity must use the revi
 ## Approved control entrypoint result
 
 The reviewed entrypoint reserved exactly one metadata GET and terminated with WAL state `STOPPED`: `TRANSPORT_OR_PARSE_STOP`; attempts `1`, inflight `false`, terminal `true`, phase `NEW`, mutations `0`. No provider business success evidence was available and no retry or send occurred. The earlier inline-loader incident remains a separate ambiguous read attempt.
+## Final LIVE-01 outcome
+
+Terminal state: **SEND_UNRESOLVED**. No further provider actions are permitted.
+
+The approved Python control run made six credentialed requests total: three read requests verified alias/page mapping, contact match, counts 30 and 13, and zero boundary overlap; one POST attempt was ambiguous; recovery performed fixed history reads but could not resolve the unique marker. No second POST occurred. There is no confirmed provider write, while one POST attempt is recorded. Acceptance, delivery, and read remain UNKNOWN. Page token was not rotated and no cleanup/deletion was attempted.
+
+The earlier controlled Node attempt is a separate one-request GET transport stop. The prior inline incident remains an unverified possible 0–2 GET attempts. Across known credentialed runs there were seven attempts, but provider-completed count is not asserted. This is P3 ambiguous-send manual review; P4 was not run. Raw IDs, tokens, marker text, and response bodies are excluded.
