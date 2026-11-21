@@ -15,10 +15,24 @@ Forward and down pairs exist for 001–023. The sequence grows the PH3 domain (`00
 ## Alignment findings
 
 - **Aligned:** native source identity remains distinct from commercial identity; source receipts and links are auditable and workspace-scoped; synthetic admission cannot claim authenticated provider trust.
-- **Open by design:** CE-1 transition matrix, identity merge thresholds (ID-1), CRM mapping (ID-2), and detailed permissions (PM-1) remain unresolved. No release step may silently resolve them.
+- **Open by design:** CE-1 transition matrix, identity merge thresholds (ID-1), and CRM mapping (ID-2) remain unresolved. Canonical OPEN_DECISIONS records CE-2/PM-1/LG-1/MM-1 as resolved by ADR-005/006/007/008; ADR-006 governs current capability boundaries. No release step may expand those permissions or silently resolve the remaining seams.
 - **Release blocker:** authenticated account/Page/contact binding, minimized retention/erasure policy, and real-data admission are not demonstrated. Existing status is Gate B conditional and Gate C not ready for real customer data.
-- **No defect requiring code change:** offline focused checks and existing source protections support the boundary. Provider capability claims must come from the root execution journal, not this report.
+- **No defect requiring code change identified by source review:** existing source protections support the boundary; this lane did not execute product tests. Provider capability claims must come from the root execution journal, not this report.
 
 ## Safe acceptance assertions
 
 A compliant rehearsal must show: (1) raw envelope persisted before any projection; (2) duplicate replay is idempotent and changed-payload conflict quarantines; (3) malformed and out-of-order records stay UNKNOWN/flagged; (4) cross-workspace and unassigned Lead access is denied; (5) source link/unlink/reject is explicit and audited; (6) no read creates Customer/Lead merge, owner, outcome or revenue state; and (7) rollback leaves prior raw evidence intact. A failed assertion stops the lane and leaves evidence quarantined.
+
+## Important implemented distinction
+
+Synthetic intake is an explicit admin command: PgSourceIntegrationStore seeds one unassigned Lead per previously unmapped native message and can assign responsibility only when claimResponsibility is explicitly true. This fabricated fixture path is not passive provider-read behavior, conversation grouping, Customer merge, or authority for live intake. A review must preserve this distinction when interpreting the no-autonomous-owner assertion.
+
+## Source references
+
+- docs/canonical/{DOMAIN_INVARIANTS,IDENTITY_MODEL,MEASUREMENT_MODEL,TRUST_AND_EVIDENCE,OPEN_DECISIONS}.md
+- docs/implementation-plan/decisions/ADR-003-adapter.md and ADR-005 through ADR-008
+- product/src/domain/lead/lead.ts; product/src/application/pilot/pilot-loop.service.ts
+- product/src/adapters/pancake/pancake-adapter.ts; product/src/application/source-integration/source-integration.service.ts
+- product/src/infra/source-integration/pg-source-integration.store.ts; product/migrations/001_domain.up.sql through 023_fabricated_delivery.up.sql and matching down pairs
+- docs/reports/r4.13-pancake-deep-admission/{native-identity-mapping,product-gap-analysis,final-report}.md
+
