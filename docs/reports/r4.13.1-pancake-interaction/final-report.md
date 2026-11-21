@@ -6,13 +6,13 @@ R4.13.1 closes several engineering gaps but does **not** pass Pancake mutation a
 
 - Base: R4.13 `d990437bd5b8003f1068788538edde69fb3471b6`; its CI #80 (`44842417846`) SUCCESS, product and browser jobs.
 - Branch: `feat/r4131-pancake-identity-interaction`; isolated worktree `D:/AI-for-Enterprise/ns-r4131-pancake-interaction`.
-- Final source will be the local commit recorded at handover; no push/merge/deploy is authorized by this prompt.
+- Final source is the local commit recorded at handover; no push/merge/deploy is authorized by this prompt.
 - Main remains `5d6c20673218f02c0972263126e8654eadee18c9`; unrelated uncommitted files in the primary main worktree were preserved.
 - PR #1 and #2 remain untouched draft/stacked references. Main protection/ruleset endpoint returned no configured protection in the read-only snapshot.
 
 ## Provider evidence
 
-The new bounded ledger used six requests: two history pages (`current_count=0`, `30`), one account `/me` probe, one cookie-authenticated alias HTML read, one candidate Page permission read, and one earlier UI diagnosis read. The history pages returned 30 and 13 scoped messages; all message Page/conversation IDs matched, contact context was present and stable, and no page overlap occurred. The account probe was accepted by a private endpoint. The permission probe returned HTTP 200 with `success=false`, so Account→Page authority is not established. The alias HTML returned HTTP 200 with alias text but no native Page/conversation bootstrap IDs; the earlier no-session request returned 302 and was never followed.
+The R4.13.1 execution used eight bounded read requests: two pagination pages, two repeated identity pages, one account `/me` probe, one cookie-authenticated UI diagnosis, one target UI bootstrap inspection, and one candidate Page permission read. R4.13 used four reads and remains historical evidence. The R4.13.1 history pages returned 30 and 13 scoped messages; all message Page/conversation IDs matched, contact context was present and stable, and no page overlap occurred. The account probe was accepted by a private endpoint. The permission probe returned HTTP 200 with `success=false`, so Account→Page authority is not established. The alias HTML returned HTTP 200 with alias text but no native Page/conversation bootstrap IDs; the earlier no-session request returned 302 and was never followed.
 
 These observations are root-executed and sanitized. Native IDs used for in-memory comparison were removed from temporary journal output before documentation. No raw body, credential, cookie, token, customer message or account identifier entered Git or North Start.
 
@@ -27,7 +27,7 @@ These observations are root-executed and sanitized. Native IDs used for in-memor
 
 Focused R4.13.1 run: 6 files, 83 tests PASS, zero skipped before the send-guard type correction; rerun after correction is required in the final verification manifest. Typecheck, lint and strict architecture pass after correction. R4.13 baseline CI remains evidence only; it is not R4.13.1 CI.
 
-The full baseline suite and a fresh exact-source regression must be run before declaring Gate A. Secret scans must include changed/untracked/staged files, new commits, generated artifacts and temporary journal cleanup. No hosted R4.13.1 CI will be claimed without a separately authorized push.
+The full baseline suite and a fresh exact-source regression are required for Gate A. Secret scans include changed/untracked/staged files, new commits, generated artifacts and temporary journal cleanup. No hosted R4.13.1 CI will be claimed without a separately authorized push.
 
 ## Gates
 
