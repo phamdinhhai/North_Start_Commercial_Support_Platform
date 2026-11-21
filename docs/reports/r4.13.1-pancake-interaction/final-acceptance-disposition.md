@@ -1,5 +1,0 @@
-# Final independent acceptance disposition
-
-I independently inspected the completed exact runner manifest for source `1c035eaaf75e66ff441822023d7a293b709c5b89`. All 26/26 lanes exited zero. Coverage recorded 163 files and 1,520 tests passing, with 92.89% line coverage (5,241/5,642), 88.82% statements, 86.63% branches, and 91.3% functions. The restore lane passed with 23 migrations and replay hashes; sync recovery passed with worker exit 73, restart from page 3, and three durable pages. Product-tree hashes match `47d01594b3d9cae7f93459d97a087c951355250f`; no product or `.github` diff was present.
-
-Disposition: **Gate A engineering PASS** for the frozen offline implementation and regression evidence. This is separate from provider admission: P1 remains blocked, P2 is partial because ordering/completeness is not measured, P3/P4 remain blocked, and P5 was not verified. Gate B is conditional; Gate C is not ready. The eight provider interactions were reads only, with zero mutation. Synthetic runner results and source proof do not constitute live identity or authorization attestation.
