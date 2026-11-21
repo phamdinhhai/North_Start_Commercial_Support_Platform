@@ -1,12 +1,10 @@
-# Machine evidence reconciliation
+# Evidence reconciliation
 
-| Evidence class | Count | Interpretation |
-|---|---:|---|
-| Documented source files | 171 | Present in local corpus; parser/hash verified |
-| Observed runtime behavior | 0 | No runtime/provider calls allowed for this validation |
-| Live provider confirmation | 0 | Deliberately deferred; credentials never emitted |
-| Deferred claims | 171 | Require governed fixture or approved live probe |
+- Source inventory: **171** files (secret-bearing `.env` and cookie export remain withheld; hashes are omitted from public artifacts).
+- Functional catalog: **153** detailed function records from all functional Markdown files.
+- Official operations: **32** exact OpenAPI operations parsed from `pancake_api_document.yaml`.
+- Webhook events/schemas: **5** event payload records parsed from `pancake_webhook_document.yaml`.
+- Local captured observations: **198** sanitized routes from `download.devtools`; this is observed local capture evidence, not live provider validation.
+- Live provider calls: **0**.
 
-All capability records are therefore **documented=true, observed=false, live=false, deferred=true**. YAML/JSON/HAR/devtools files are classified as developer evidence; Markdown files as functional/grouped documentation. North Start mappings are hypothesis mappings for later adapter review and do not assert canonical semantics.
-
-Security handling: `.env`, cookie exports and any token-like material were not copied; only byte length and SHA-256 appear in the inventory.
+Each functional record includes explicit links, endpoint references, group, and North Start mapping; unsupported mappings are `UNKNOWN`. Credentials are never treated as capabilities.
