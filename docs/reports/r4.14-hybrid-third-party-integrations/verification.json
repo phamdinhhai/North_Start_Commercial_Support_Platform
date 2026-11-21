@@ -1,0 +1,10 @@
+{
+  "release": "R4.14",
+  "baseline": {"r4133": "f531fc740fb83f7284410dbc1b9720d52fa835be", "hosted_ci": "44921698030", "hosted_ci_conclusion": "success"},
+  "source": {"branch": "feat/r414-hybrid-third-party-integration", "checkpoint": "a1885609f401dff1bcfd24fd61ca99748d810665", "pushed": false, "merged": false, "deployed": false},
+  "provider": {"calls_r414": 0, "mutations_r414": 0, "pancake_incident": "SEND_UNRESOLVED", "p3": "SEND_UNRESOLVED", "p4": "NOT_TESTED", "p5": "NOT_VERIFIED"},
+  "verification": {"focused_vitest": 57, "browser_node": 18, "postgres_suites": 31, "postgres_tests": 162, "postgres_skipped": 0, "typecheck": "PASS", "lint": "PASS", "build": "PASS", "architecture": "PASS", "registry": "PASS", "security_audit": "PASS", "browser_fixture_smoke": "PASS", "coverage_invocation": {"passed": 1438, "skipped": 162, "lines": 81.64, "status": "PASS_WITH_INTEGRATION_FILTER"}},
+  "gates": {"A": "PASS_LOCAL_SCOPED", "H": "NOT_RUN_R414", "E": "PASS_FIXTURE_SCOPED", "R": "PASS_CONDITIONAL_LICENSE_REVIEW", "I": "PARTIAL_COMBINED_NEST_E2E_PENDING", "S": "PASS_POSTGRES_RECEIPT_SCOPED", "P1": "PASS_PRIOR_BOUNDED_READ", "P2": "PASS_BOUNDED_HISTORY_COMPLETENESS_UNKNOWN", "B": "CONDITIONAL", "C": "NOT_READY"},
+  "security": {"secret_scan": "PASS", "real_data_admission": false, "external_mutations": false, "credential_values_committed": false},
+  "limitations": ["Combined Chromium→Nest→PostgreSQL E2E is pending; current browser smoke uses a local ACK emulator.", "Optional CDP diagnostic native-target completeness is UNKNOWN.", "HubSpot npm metadata/license discrepancy and Meta SDK Platform License require release review.", "No production key custody or provider-side idempotency is claimed."]
+}
