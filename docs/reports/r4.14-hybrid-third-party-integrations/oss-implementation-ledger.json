@@ -1,72 +1,107 @@
-﻿{
-    "policies":  {
-                     "dependencyAdoption":  "requires pinned lockfile, license notice, SBOM and tests",
-                     "providerMutation":  "DISABLED",
-                     "sourceCopy":  "NONE",
-                     "realDataAdmission":  "DISABLED"
-                 },
-    "evaluatedSources":  [
-                             {
-                                 "commit":  "c77cd7bcc4b08355b94f9d745f3e20d72b510782",
-                                 "repository":  "wxt-dev/wxt",
-                                 "paths":  [
-                                               "package.json",
-                                               "packages/wxt"
-                                           ],
-                                 "decision":  "REFERENCE_ONLY",
-                                 "reason":  "WXT toolchain requires Bun/workspace stack; existing companion packager and MV3 sources avoid introducing a second build runtime.",
-                                 "license":  "MIT"
-                             },
-                             {
-                                 "commit":  "568703577905e19a0c2708e1beb06bdc016feb9e",
-                                 "repository":  "HubSpot/hubspot-api-nodejs",
-                                 "paths":  [
-                                               "package.json",
-                                               "src",
-                                               "codegen/crm"
-                                           ],
-                                 "decision":  "REFERENCE_ONLY",
-                                 "reason":  "Official SDK contract inspected; Agent 3 owns any actual SDK dependency adoption with package lock, tests and notice review.",
-                                 "license":  "CONFLICT: package.json ISC; root LICENSE Apache-2.0"
-                             },
-                             {
-                                 "commit":  "3d65b1824b6697f05a5a4584e7062bd23512fc8e",
-                                 "repository":  "standard-webhooks/standard-webhooks",
-                                 "paths":  [
-                                               "spec",
-                                               "libraries"
-                                           ],
-                                 "decision":  "REFERENCE_ONLY",
-                                 "reason":  "Spec and verifier patterns inspected; no provider webhook intake is enabled by R4.14 and no code copied.",
-                                 "license":  "Apache-2.0"
-                             },
-                             {
-                                 "commit":  "7314683af84cf53179ee98fdaa0b24fd9326576a",
-                                 "repository":  "GoogleChrome/chrome-extensions-samples",
-                                 "paths":  [
-                                               "functional-samples/tutorial.service-worker-lifecycle",
-                                               "functional-samples/tutorial.hello-world"
-                                           ],
-                                 "decision":  "REFERENCE_ONLY",
-                                 "reason":  "MV3 lifecycle samples used as behavioral references; no sample code copied.",
-                                 "license":  "Apache-2.0"
-                             }
-                         ],
-    "purpose":  "R4.14 OSS reuse and license triage",
-    "generatedAt":  "2026-11-21T16:06:17.7520784Z",
-    "validation":  {
-                       "dependencyAuditNote":  "npm ci reports 5 moderate advisories in full tree; existing project audit gate reports production clean and no waiver",
-                       "companionPackageTests":  "7/7 PASS",
-                       "securityAudit":  "PASS",
-                       "typecheck":  "PASS",
-                       "upstreamCloneDirectory":  "D:\\AI-for-Enterprise\\third-party-reuse-lab",
-                       "companionPackage":  "PASS",
-                       "networkCalls":  "public Git clone only; no provider calls",
-                       "npmCi":  "PASS",
-                       "secretScan":  "PASS"
-                   },
-    "schemaVersion":  1,
-    "incorporatedSources":  [
-
-                            ]
+{
+  "policies": {
+    "dependencyAdoption": "requires pinned lockfile, license notice, SBOM and tests",
+    "providerMutation": "DISABLED",
+    "sourceCopy": "NONE",
+    "realDataAdmission": "DISABLED"
+  },
+  "evaluatedSources": [
+    {
+      "commit": "c77cd7bcc4b08355b94f9d745f3e20d72b510782",
+      "repository": "wxt-dev/wxt",
+      "paths": [
+        "package.json",
+        "packages/wxt"
+      ],
+      "decision": "REFERENCE_ONLY",
+      "reason": "WXT toolchain requires Bun/workspace stack; existing companion packager and MV3 sources avoid introducing a second build runtime.",
+      "license": "MIT"
+    },
+    {
+      "commit": "568703577905e19a0c2708e1beb06bdc016feb9e",
+      "repository": "HubSpot/hubspot-api-nodejs",
+      "paths": [
+        "package.json",
+        "src",
+        "codegen/crm"
+      ],
+      "decision": "ADOPT_AS_NPM_DEPENDENCY_LOCAL_EMULATOR",
+      "reason": "Official npm SDK 14.1.3 is locked and exercised in read-only local-emulator and webhook signature tests; retain ISC metadata / Apache-2.0 LICENSE discrepancy.",
+      "license": "CONFLICT: package.json ISC; root LICENSE Apache-2.0"
+    },
+    {
+      "commit": "3d65b1824b6697f05a5a4584e7062bd23512fc8e",
+      "repository": "standard-webhooks/standard-webhooks",
+      "paths": [
+        "spec",
+        "libraries"
+      ],
+      "decision": "REFERENCE_ONLY",
+      "reason": "Spec and verifier patterns inspected; no provider webhook intake is enabled by R4.14 and no code copied.",
+      "license": "Apache-2.0"
+    },
+    {
+      "commit": "7314683af84cf53179ee98fdaa0b24fd9326576a",
+      "repository": "GoogleChrome/chrome-extensions-samples",
+      "paths": [
+        "functional-samples/tutorial.service-worker-lifecycle",
+        "functional-samples/tutorial.hello-world"
+      ],
+      "decision": "REFERENCE_ONLY",
+      "reason": "MV3 lifecycle samples used as behavioral references; no sample code copied.",
+      "license": "Apache-2.0"
+    },
+    {
+      "repository": "facebook/facebook-nodejs-business-sdk",
+      "commit": "46fb58375a4cc0858ab435e6a7cf23f9d03e2985",
+      "license": "Meta Platform License",
+      "decision": "ADOPT_AS_NPM_DEPENDENCY_LOCAL_EMULATOR",
+      "reason": "Official SDK 27.0.0 GET insights; Facebook services/API policy restrictions retained."
+    }
+  ],
+  "purpose": "R4.14 OSS reuse and license triage",
+  "generatedAt": "2026-11-21T16:06:17.7520784Z",
+  "validation": {
+    "dependencyAuditNote": "npm ci reports 5 moderate advisories in full tree; existing project audit gate reports production clean and no waiver",
+    "companionPackageTests": "7/7 PASS",
+    "securityAudit": "PASS",
+    "typecheck": "PASS",
+    "upstreamCloneDirectory": "D:\\AI-for-Enterprise\\third-party-reuse-lab",
+    "companionPackage": "PASS",
+    "networkCalls": "public Git clone only; no provider calls",
+    "npmCi": "PASS",
+    "secretScan": "PASS",
+    "rootInstall": "npm ci initially failed ECONNRESET; copied node_modules from completed SDK-agent install after matching lockfile SHA-256, then ran exact-source checks."
+  },
+  "schemaVersion": 1,
+  "incorporatedSources": [
+    {
+      "name": "@hubspot/api-client",
+      "version": "14.1.3",
+      "integrity": "sha512-VXfjMzeDPwXp7DByAwcpqykkzxFQkC+R0teffBgnnmKS4gBZpRNk83nGNaY6M4oNKv7VTRurgwu651UtemgksA==",
+      "registryArtifact": "https://registry.npmjs.org/@hubspot/api-client/-/api-client-14.1.3.tgz",
+      "declaredLicense": "ISC",
+      "shippedLicenseSha256": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4",
+      "scope": "Local emulator SDK reads only; no live credentials",
+      "owner": "North Start integration maintainers",
+      "test": "src/adapters/hybrid-sdk/sdk-connectors.spec.ts"
+    },
+    {
+      "name": "facebook-nodejs-business-sdk",
+      "version": "27.0.0",
+      "integrity": "sha512-WKcUlqCHYXsxgIsi8N2DZiPyxsvUodZK4zVHeRGSiyFI+Cpfa3IdSWDeHVGHIeYfuNOJ1sIi0ERE7cI9gm8Cjw==",
+      "registryArtifact": "https://registry.npmjs.org/facebook-nodejs-business-sdk/-/facebook-nodejs-business-sdk-27.0.0.tgz",
+      "declaredLicense": "Platform License",
+      "shippedLicenseSha256": "48d97b3c936203a750a3288c2b924327769d62327383a1060244b3d3c05ad01f",
+      "scope": "Local emulator SDK reads only; no live credentials",
+      "owner": "North Start integration maintainers",
+      "test": "src/adapters/hybrid-sdk/sdk-connectors.spec.ts"
+    }
+  ],
+  "sbom": {
+    "format": "CycloneDX 1.5",
+    "components": 91,
+    "path": "D:/AI-for-Enterprise/r414-private/production-sbom.cdx.json",
+    "sha256": "b677820f6db8a0a60a18fc85cfd8b7e1bd470711e81f3e7e9d44dcb2e4f91199"
+  }
 }

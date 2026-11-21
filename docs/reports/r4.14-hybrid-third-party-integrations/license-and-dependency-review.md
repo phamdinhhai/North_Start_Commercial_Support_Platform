@@ -15,7 +15,27 @@ erxes, personal Zalo bridges and AIECOS scraping code remain excluded. This
 workstream does not grant provider access or permission to redistribute upstream
 software.
 
-## Dependency/SBOM checks
+## Final integrated dependency/SBOM findings
+
+The final R4.14 branch adopts `@hubspot/api-client@14.1.3` and
+`facebook-nodejs-business-sdk@27.0.0`, with exact registry integrity and shipped
+LICENSE digests in `oss-implementation-ledger.json`. The SDKs perform reads
+against local provider emulators only. No upstream repository source is copied.
+The shipped HubSpot LICENSE contains Apache-2.0 despite ISC npm metadata;
+Meta's Platform License permits SDK use for Facebook services/APIs subject to
+the Facebook Platform Policy. Neither is a general provider authorization.
+
+`npm sbom --omit=dev --sbom-format cyclonedx --sbom-type application` generated
+a CycloneDX 1.5 SBOM with 91 components. The retained private artifact is
+`D:\AI-for-Enterprise\r414-private\production-sbom.cdx.json`, SHA-256
+`b677820f6db8a0a60a18fc85cfd8b7e1bd470711e81f3e7e9d44dcb2e4f91199`.
+Production audit is clean. Five moderate development advisories remain in the
+full dependency tree; no automatic dependency upgrade or waiver was applied.
+
+The following is the earlier isolated OSS specialist's dependency boundary;
+the final adopted package list above supersedes its no-addition status.
+
+## Isolated OSS workstream checks
 
 The R4.14 worktree introduced no npm dependency and no lockfile change in this
 OSS workstream. Existing product dependency audit is the applicable baseline.

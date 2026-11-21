@@ -1,10 +1,240 @@
 {
   "release": "R4.14",
-  "baseline": {"r4133": "f531fc740fb83f7284410dbc1b9720d52fa835be", "hosted_ci": "44921698030", "hosted_ci_conclusion": "success"},
-  "source": {"branch": "feat/r414-hybrid-third-party-integration", "checkpoint": "a1885609f401dff1bcfd24fd61ca99748d810665", "pushed": false, "merged": false, "deployed": false},
-  "provider": {"calls_r414": 0, "mutations_r414": 0, "pancake_incident": "SEND_UNRESOLVED", "p3": "SEND_UNRESOLVED", "p4": "NOT_TESTED", "p5": "NOT_VERIFIED"},
-  "verification": {"focused_vitest": 57, "browser_node": 18, "postgres_suites": 31, "postgres_tests": 162, "postgres_skipped": 0, "typecheck": "PASS", "lint": "PASS", "build": "PASS", "architecture": "PASS", "registry": "PASS", "security_audit": "PASS", "browser_fixture_smoke": "PASS", "coverage_invocation": {"passed": 1438, "skipped": 162, "lines": 81.64, "status": "PASS_WITH_INTEGRATION_FILTER"}},
-  "gates": {"A": "PASS_LOCAL_SCOPED", "H": "NOT_RUN_R414", "E": "PASS_FIXTURE_SCOPED", "R": "PASS_CONDITIONAL_LICENSE_REVIEW", "I": "PARTIAL_COMBINED_NEST_E2E_PENDING", "S": "PASS_POSTGRES_RECEIPT_SCOPED", "P1": "PASS_PRIOR_BOUNDED_READ", "P2": "PASS_BOUNDED_HISTORY_COMPLETENESS_UNKNOWN", "B": "CONDITIONAL", "C": "NOT_READY"},
-  "security": {"secret_scan": "PASS", "real_data_admission": false, "external_mutations": false, "credential_values_committed": false},
-  "limitations": ["Combined Chromium→Nest→PostgreSQL E2E is pending; current browser smoke uses a local ACK emulator.", "Optional CDP diagnostic native-target completeness is UNKNOWN.", "HubSpot npm metadata/license discrepancy and Meta SDK Platform License require release review.", "No production key custody or provider-side idempotency is claimed."]
+  "recorded_at": "2026-11-21T18:45:37.894695+00:00",
+  "git": {
+    "branch": "feat/r414-hybrid-third-party-integration",
+    "baseline_sha": "f531fc740fb83f7284410dbc1b9720d52fa835be",
+    "baseline_product_tree": "de5f3e6df665e8e76cabdff22e99befaaebf5a75",
+    "tested_source_sha": "0162e524cda1a4b8ce886417e80330f950fed37b",
+    "tested_product_tree": "808858b340473d1e74c0c4e2a07703a3673ad4b9",
+    "documentation_head_before_finalization": "0162e524cda1a4b8ce886417e80330f950fed37b",
+    "pushed": false,
+    "merged": false,
+    "deployed": false,
+    "main_preserved": "5d6c20673218f02c0972263126e8654eadee18c9",
+    "migrations_changed": false,
+    "canonical_changed": false,
+    "ci_workflows_changed": false
+  },
+  "hosted": {
+    "baseline_run_id": 44921698030,
+    "baseline_sha": "f531fc740fb83f7284410dbc1b9720d52fa835be",
+    "product": "SUCCESS",
+    "browser_operator_workflow": "SUCCESS",
+    "r414": "NOT_RUN_UNPUSHED"
+  },
+  "environment": {
+    "os": "Windows",
+    "node": "v22.21.0",
+    "python": "Python 3.10.0",
+    "postgres": "17.11; disposable loopback cluster on D",
+    "temporary_root": "D:/AI-for-Enterprise/r414-private",
+    "install": "Initial root npm ci failed ECONNRESET; exact lockfile-matched dependency tree copied from successful SDK specialist install. Later typecheck/build/test/audit used that tree. No lockfile modification outside committed SDK additions."
+  },
+  "run": {
+    "source_sha": "0162e524cda1a4b8ce886417e80330f950fed37b",
+    "manifest": "D:\\AI-for-Enterprise\\r414-private\\north-r47-r414-final-Szoo43\\results.json",
+    "manifest_sha256": "a61eefa2f52b44683a0aa6de64c65d6d458216a95c242f337c8f8b9155b628ff",
+    "distinct_lanes": 31,
+    "passed": 31,
+    "failed": 0,
+    "results": [
+      {"name":"pilot-research-safety","command":["C:\\Program Files\\nodejs\\node.exe","--test","scripts/pilot/safety.test.mjs","scripts/research/validate-observation.test.mjs"],"exit_code":0,"seconds":0,"log":"D:\\AI-for-Enterprise\\r414-private\\north-r47-r414-final-Szoo43\\pilot-research-safety.log","log_sha256":"1d3dbbb0cd3efa26087a58f280346eeda3112da3a243dcf4819dd87c4eb60488"},
+      {"name":"typecheck","command":["C:\\Program Files\\nodejs\\node.exe","C:/Program Files/nodejs/node_modules/npm/bin/npm-cli.js","run","typecheck"],"exit_code":0,"seconds":8,"log":"D:\\AI-for-Enterprise\\r414-private\\north-r47-r414-final-Szoo43\\typecheck.log","log_sha256":"09b9a49f6769e2371ae5cfedc320845c173fe8c1356b69e516cecf3df4a23c7a"},
+      {"name":"lint","command":["C:\\Program Files\\nodejs\\node.exe","C:/Program Files/nodejs/node_modules/npm/bin/npm-cli.js","run","lint"],"exit_code":0,"seconds":6,"log":"D:\\AI-for-Enterprise\\r414-private\\north-r47-r414-final-Szoo43\\lint.log","log_sha256":"ad43281dbc673e71b219a3b5f8bb1351cdbf31f778553f420b51e951f5ce0a46"},
+      {"name":"architecture","command":["C:\\Program Files\\nodejs\\node.exe","C:/Program Files/nodejs/node_modules/npm/bin/npm-cli.js","run","architecture:check:strict"],"exit_code":0,"seconds":1,"log":"D:\\AI-for-Enterprise\\r414-private\\north-r47-r414-final-Szoo43\\architecture.log","log_sha256":"d77621a86ab9943075df85f3191a1cb7bb1df838338d769fe581a2ff13a87c50"},
+      {"name":"registry","command":["C:\\Program Files\\nodejs\\node.exe","C:/Program Files/nodejs/node_modules/npm/bin/npm-cli.js","run","registry:validate"],"exit_code":0,"seconds":0,"log":"D:\\AI-for-Enterprise\\r414-private\\north-r47-r414-final-Szoo43\\registry.log","log_sha256":"9ba0b062f4ecd65b28129862b0b83b76af3684de213382c0d20ffa086be3ab85"},
+      {"name":"integration-ci","command":["C:\\Program Files\\nodejs\\node.exe","C:/Program Files/nodejs/node_modules/npm/bin/npm-cli.js","run","test:integration:ci"],"exit_code":0,"seconds":83,"log":"D:\\AI-for-Enterprise\\r414-private\\north-r47-r414-final-Szoo43\\integration-ci.log","log_sha256":"6ccaa20dfbf5638c327fdc9e9e01e9b30208fccc18df95e9d8b47939748913e8"},
+      {"name":"coverage","command":["C:\\Program Files\\nodejs\\node.exe","C:/Program Files/nodejs/node_modules/npm/bin/npm-cli.js","run","test:cov","--","--no-file-parallelism"],"exit_code":0,"seconds":126,"log":"D:\\AI-for-Enterprise\\r414-private\\north-r47-r414-final-Szoo43\\coverage.log","log_sha256":"59ac3bf2e70c341da3199c911e9244d112c6e9b1aa988b65008ca119ebddbf79"},
+      {"name":"build","command":["C:\\Program Files\\nodejs\\node.exe","C:/Program Files/nodejs/node_modules/npm/bin/npm-cli.js","run","build"],"exit_code":0,"seconds":13,"log":"D:\\AI-for-Enterprise\\r414-private\\north-r47-r414-final-Szoo43\\build.log","log_sha256":"4bc24afec50c327cef250b332ffda2df07d6c6766d549f4ee6b27ea4aaaebc3a"},
+      {"name":"http-e2e","command":["C:\\Program Files\\nodejs\\node.exe","C:/Program Files/nodejs/node_modules/npm/bin/npm-cli.js","run","test:e2e"],"exit_code":0,"seconds":8,"log":"D:\\AI-for-Enterprise\\r414-private\\north-r47-r414-final-Szoo43\\http-e2e.log","log_sha256":"0845626ae42c8ab2c6d2a2ee9692b039fe00dab8a09ffe7463762fd09af0be9f"},
+      {"name":"browser","command":["C:\\Program Files\\nodejs\\node.exe","C:/Program Files/nodejs/node_modules/npm/bin/npm-cli.js","run","test:browser"],"exit_code":0,"seconds":22,"log":"D:\\AI-for-Enterprise\\r414-private\\north-r47-r414-final-Szoo43\\browser.log","log_sha256":"83fa958051bb60290fe9313b1e5b5dc63fb0d52f2bde581b5725d3786338b969"},
+      {"name":"component","command":["C:\\Program Files\\nodejs\\node.exe","node_modules/@playwright/test/cli.js","test","--config","playwright.operator-recovery.config.ts"],"exit_code":0,"seconds":6,"log":"D:\\AI-for-Enterprise\\r414-private\\north-r47-r414-final-Szoo43\\component.log","log_sha256":"8b6388670174615718f470443d317be611a82e2ff33995f07e4c84bf4be002ea"},
+      {"name":"lifecycle-memory","command":["C:\\Program Files\\nodejs\\node.exe","node_modules/@playwright/test/cli.js","test","--config","playwright.lifecycle.config.ts"],"exit_code":0,"seconds":17,"log":"D:\\AI-for-Enterprise\\r414-private\\north-r47-r414-final-Szoo43\\lifecycle-memory.log","log_sha256":"4a4267f1ca36bccf6e5c0f0e45c0ee9fa58516c94eb6eb8ebf7a0253eb7adb51"},
+      {"name":"oidc-ui","command":["C:\\Program Files\\nodejs\\node.exe","node_modules/@playwright/test/cli.js","test","--config","playwright.oidc.config.ts"],"exit_code":0,"seconds":27,"log":"D:\\AI-for-Enterprise\\r414-private\\north-r47-r414-final-Szoo43\\oidc-ui.log","log_sha256":"7f851673edc8195cfdd78b850696ef10966fadd7d1f717b12f39db1b7d137349"},
+      {"name":"companion","command":["C:\\Program Files\\nodejs\\node.exe","C:/Program Files/nodejs/node_modules/npm/bin/npm-cli.js","run","test:companion"],"exit_code":0,"seconds":5,"log":"D:\\AI-for-Enterprise\\r414-private\\north-r47-r414-final-Szoo43\\companion.log","log_sha256":"e641f14df592ca1b949a99ffec918a83d6130ece576a436bc83181c84c44696a"},
+      {"name":"guardrails","command":["C:\\Program Files\\nodejs\\node.exe","--test","scripts/check-architecture.test.mjs","scripts/registry-validation.test.mjs","scripts/security-audit.test.mjs","scripts/backup-verify.test.mjs"],"exit_code":0,"seconds":1,"log":"D:\\AI-for-Enterprise\\r414-private\\north-r47-r414-final-Szoo43\\guardrails.log","log_sha256":"7ff52d8a98affdb9da011af65fb2947debe6403d62b5eda1f4edbf37623661b9"},
+      {"name":"ail-research","command":["C:\\Program Files\\nodejs\\node.exe","C:/Program Files/nodejs/node_modules/npm/bin/npm-cli.js","run","test:ail:research"],"exit_code":0,"seconds":1,"log":"D:\\AI-for-Enterprise\\r414-private\\north-r47-r414-final-Szoo43\\ail-research.log","log_sha256":"6c51923177ca3b2bdf7ffc739bcf062fbea942c2ec7d100286048c06a43c4201"},
+      {"name":"restore","command":["C:\\Program Files\\nodejs\\node.exe","scripts/restore-rehearsal.mjs"],"exit_code":0,"seconds":4,"log":"D:\\AI-for-Enterprise\\r414-private\\north-r47-r414-final-Szoo43\\restore.log","log_sha256":"45f0109be1d92c2c5cba9e4f98ebd0f01f57b76598ea297fbadd593c92adfc0a"},
+      {"name":"audit","command":["C:\\Program Files\\nodejs\\node.exe","C:/Program Files/nodejs/node_modules/npm/bin/npm-cli.js","run","security:audit"],"exit_code":0,"seconds":5,"log":"D:\\AI-for-Enterprise\\r414-private\\north-r47-r414-final-Szoo43\\audit.log","log_sha256":"57e8b10012c380383e853728fe570a8746171dc602003a7af2be5786773033e3"},
+      {"name":"source-ui","command":["C:\\Program Files\\nodejs\\node.exe","node_modules/@playwright/test/cli.js","test","--config","playwright.source-integration.config.ts"],"exit_code":0,"seconds":22,"log":"D:\\AI-for-Enterprise\\r414-private\\north-r47-r414-final-Szoo43\\source-ui.log","log_sha256":"3c6a6b0d15e2e16f6d89c97139199c0aad95e054e7eb883bb97dc0415eaf8d37"},
+      {"name":"r411-browser","command":["C:\\Program Files\\nodejs\\node.exe","node_modules/@playwright/test/cli.js","test","--config","playwright.r411.config.ts"],"exit_code":0,"seconds":21,"log":"D:\\AI-for-Enterprise\\r414-private\\north-r47-r414-final-Szoo43\\r411-browser.log","log_sha256":"3b7f84e3c734280fc3559c7687ae8166af84cff1de276047c57be8880ce18779"},
+      {"name":"r412-browser","command":["C:\\Program Files\\nodejs\\node.exe","node_modules/@playwright/test/cli.js","test","--config","playwright.r412.config.ts"],"exit_code":0,"seconds":20,"log":"D:\\AI-for-Enterprise\\r414-private\\north-r47-r414-final-Szoo43\\r412-browser.log","log_sha256":"19c5eaa122a1267e333ca6647ecd25bab633a590af24905e736fb6600518b35d"},
+      {"name":"packaging","command":["C:\\Program Files\\nodejs\\node.exe","--test","scripts/companion-package.test.mjs"],"exit_code":0,"seconds":1,"log":"D:\\AI-for-Enterprise\\r414-private\\north-r47-r414-final-Szoo43\\packaging.log","log_sha256":"c846f736dbdcd3a47c16db00f9afe0f0ab01ed804ed7f02c8ff4ab59551d26b8"},
+      {"name":"pilot-launcher","command":["C:\\Program Files\\nodejs\\node.exe","C:/Users/admin/AppData/Local/Temp/north-r411-pilot-verify.mjs"],"exit_code":0,"seconds":33,"log":"D:\\AI-for-Enterprise\\r414-private\\north-r47-r414-final-Szoo43\\pilot-launcher.log","log_sha256":"86dc28acdca3fcca64ba3e22d2707d3325603905d5ab565e1b2021708c0fed44"},
+      {"name":"benchmark","command":["C:\\Program Files\\nodejs\\node.exe","scripts/source-integration-benchmark.mjs"],"exit_code":0,"seconds":3,"log":"D:\\AI-for-Enterprise\\r414-private\\north-r47-r414-final-Szoo43\\benchmark.log","log_sha256":"4967af0194aebb9265b265a11202b6505e2269d0cb4c76fc9dea4d4a672e51a6"},
+      {"name":"sync-recovery","command":["C:\\Program Files\\nodejs\\node.exe","scripts/sync-recovery-rehearsal.mjs"],"exit_code":0,"seconds":5,"log":"D:\\AI-for-Enterprise\\r414-private\\north-r47-r414-final-Szoo43\\sync-recovery.log","log_sha256":"a6016c9bec908ffcd0203b92980fa4880605586f7c050fbd6855c887e0dccab1"},
+      {"name":"sync-benchmark","command":["C:\\Program Files\\nodejs\\node.exe","scripts/sync-benchmark.mjs"],"exit_code":0,"seconds":2,"log":"D:\\AI-for-Enterprise\\r414-private\\north-r47-r414-final-Szoo43\\sync-benchmark.log","log_sha256":"c47e2f4e570ff029a1be24e4954afef0cc58c7c6e33f24ffed9a485abe9be12d"},
+      {"name":"forensic-boundary","command":["C:\\Program Files\\nodejs\\node.exe","--test","scripts/pancake-forensics/python-json-boundary.test.mjs","scripts/pancake-forensics/unicode-and-response-parser-tests.mjs"],"exit_code":0,"seconds":1,"log":"D:\\AI-for-Enterprise\\r414-private\\north-r47-r414-final-Szoo43\\forensic-boundary.log","log_sha256":"bc0bf0ac19cbbfa73a0969ce0cba5835df2da4c2f28409d921c00c15d4da92b8"},
+      {"name":"hybrid-runtime-tests","command":["C:\\Program Files\\nodejs\\node.exe","--test","scripts/hybrid-browser/runtime.test.mjs","scripts/hybrid-browser/security.qa.test.mjs"],"exit_code":0,"seconds":0,"log":"D:\\AI-for-Enterprise\\r414-private\\north-r47-r414-final-Szoo43\\hybrid-runtime-tests.log","log_sha256":"cb4bd8a304132dec2312b0f592840373c34bb0123c3659af39ac7e6c3702e820"},
+      {"name":"hybrid-package","command":["C:\\Program Files\\nodejs\\node.exe","scripts/hybrid-browser/package.mjs","D:\\AI-for-Enterprise\\r414-private\\north-r47-r414-final-Szoo43\\hybrid-package","--fixture"],"exit_code":0,"seconds":0,"log":"D:\\AI-for-Enterprise\\r414-private\\north-r47-r414-final-Szoo43\\hybrid-package.log","log_sha256":"c9e7c7806c2eff8452b51cd6973f26157e39efd16381beb2f3ad188915eca35d"},
+      {"name":"hybrid-smoke","command":["C:\\Program Files\\nodejs\\node.exe","scripts/hybrid-browser/smoke.mjs"],"exit_code":0,"seconds":3,"log":"D:\\AI-for-Enterprise\\r414-private\\north-r47-r414-final-Szoo43\\hybrid-smoke.log","log_sha256":"573de566eac5c184dcf2b20a232e250c671b7702da8c12b1a18c5d2d757bb509"},
+      {"name":"hybrid-durable-e2e","command":["C:\\Program Files\\nodejs\\node.exe","scripts/hybrid-browser/durable-e2e.mjs"],"exit_code":0,"seconds":15,"log":"D:\\AI-for-Enterprise\\r414-private\\north-r47-r414-final-Szoo43\\hybrid-durable-e2e.log","log_sha256":"4880a0d73154160fb39722c9f95681458e0d2f4d08debe9191e62ccf0a2c713f"}
+    ]
+  },
+  "tests": {
+    "coverage": {
+      "files": 175,
+      "passed": 1611,
+      "skipped": 0,
+      "lines": 90.82,
+      "statements": 85.5,
+      "branches": 83.58,
+      "functions": 88.38
+    },
+    "postgres": {
+      "suites": 31,
+      "passed": 162,
+      "skipped": 0
+    },
+    "node_browser_security": 18,
+    "node_durable_policy": 2,
+    "webhook_vitest": 6,
+    "focused_sdk_including_additional": 20,
+    "pancake_forensic_boundary": 26,
+    "counting": "Focused tests and PostgreSQL are subsets of the coverage count; repeated runs are not added to unique totals. Node suites reported separately.",
+    "preliminary": {
+      "passed": 1438,
+      "skipped": 162,
+      "line_coverage": 81.64,
+      "acceptance": false,
+      "reason": "Environment-filtered invocation before dedicated acceptance database; not used as zero-skipped proof."
+    }
+  },
+  "extension": {
+    "package": "D:\\AI-for-Enterprise\\r414-private\\north-r47-r414-final-Szoo43\\hybrid-package\\north-start-hybrid-runtime.zip",
+    "zip_sha256": "ce0cb4d261dd9ba0d7f2a186b4ff339c7e34401cb6cff94e23bd4b8f8a014b57",
+    "files": 10,
+    "required_permissions": [
+      "activeTab",
+      "scripting",
+      "storage"
+    ],
+    "optional_permissions": [
+      "debugger"
+    ],
+    "fixture_only_loopback_host": true,
+    "published": false
+  },
+  "combined_e2e": {
+    "result": "PASS",
+    "providerContacted": false,
+    "providerMutations": 0,
+    "customerData": false,
+    "steps": [
+      "REAL_NEST_POSTGRES_READY",
+      "REAL_OIDC_ADMIN_LOGIN",
+      "THREE_SERVER_BOUND_ENROLLMENTS",
+      "THREE_REAL_MV3_TO_POSTGRES_RECEIPTS",
+      "AUTHORIZED_DATA_HEALTH_READBACK",
+      "NO_BODY_OR_COMMERCIAL_PROJECTION",
+      "LOST_ACK_WORKER_RESTART_IDENTICAL_REPLAY",
+      "PARTIAL_ACK_BROWSER_RESTART_PERSISTENCE",
+      "ACTUAL_BACKEND_PROCESS_CRASH_RESTART_RECEIPT",
+      "DUPLICATE_CONFLICT_FOREIGN_WORKSPACE_NATIVE_OBJECT_DENIAL",
+      "ACCOUNT_SWITCH_FAIL_CLOSED",
+      "MISSING_IDENTITY_DOM_SCHEMA_FAIL_CLOSED",
+      "EXPIRED_OIDC_SESSION_ENROLLMENT_DENIED",
+      "FOREIGN_OIDC_PRINCIPAL_SCOPE_DENIAL",
+      "MEMBERSHIP_REVOCATION_DURING_BROWSER_DELIVERY"
+    ],
+    "packageSha256": "ce0cb4d261dd9ba0d7f2a186b4ff339c7e34401cb6cff94e23bd4b8f8a014b57",
+    "providers": [
+      "pancake",
+      "meta-ads",
+      "hubspot"
+    ],
+    "receipts": 7,
+    "uniqueCommercialLeads": 0,
+    "completeness": "UNKNOWN",
+    "sourceSha": "0162e524cda1a4b8ce886417e80330f950fed37b",
+    "historyIncident": "SEND_UNRESOLVED",
+    "log_sha256": "4880a0d73154160fb39722c9f95681458e0d2f4d08debe9191e62ccf0a2c713f",
+    "evidence_scope": "Three browser fixtures -> installed MV3 -> actual OIDC/CSRF enrollment -> Nest AppModule -> PostgreSQL metadata receipts and authorized Data Health",
+    "ack_caveat": "LOST_ACK label uses truncated/invalid ACK injection; complete connection-loss dropAck branch not exercised.",
+    "separate_evidence": "SDK/API fixtures and pure native reconciliation tested separately, not a combined official API/browser correlation pipeline."
+  },
+  "independent_qa": {
+    "tested_source_sha": "0162e524cda1a4b8ce886417e80330f950fed37b",
+    "vitest_files": 6,
+    "vitest_passed": 55,
+    "node_boundary_passed": 20,
+    "prior_postgres": {
+      "suites": 2,
+      "tests": 11,
+      "skipped": 0
+    },
+    "manifest_review": "31/31 lanes and exact source/combined log hash independently checked",
+    "verdict": "PASS_SCOPED_LOCAL",
+    "limits": [
+      "Optional CDP native-target completeness UNKNOWN",
+      "Official SDK redirects follow; fixture tokens only, not egress confinement",
+      "Browser/API native correlation not combined E2E"
+    ]
+  },
+  "provider": {
+    "calls_r414": 0,
+    "mutations_r414": 0,
+    "real_customer_data_ingested": false,
+    "owner_manual_review": "NOT_OBSERVED",
+    "historical_post_attempts": 1,
+    "confirmed_provider_writes": 0,
+    "send_outcome": "SEND_UNRESOLVED",
+    "automatic_retry_allowed": false,
+    "new_mutations_allowed": false,
+    "delivery_status": "UNKNOWN",
+    "read_status": "UNKNOWN"
+  },
+  "reuse": {
+    "packages": [
+      "@hubspot/api-client@14.1.3",
+      "facebook-nodejs-business-sdk@27.0.0"
+    ],
+    "production_audit": "PASS",
+    "full_tree_development_advisories": 5,
+    "sbom_components": 91,
+    "sbom_sha256": "b677820f6db8a0a60a18fc85cfd8b7e1bd470711e81f3e7e9d44dcb2e4f91199",
+    "distribution_review": "HubSpot metadata ISC/shipped LICENSE Apache-2.0 discrepancy retained; Meta Platform License retained; no extension publication or backend redistribution performed."
+  },
+  "gates": {
+    "A": "PASS_LOCAL_EXACT_SOURCE",
+    "H": "NOT_RUN_R414_UNPUSHED",
+    "E": "PASS_LOCAL_THREE_FIXTURE_ADAPTERS",
+    "R": "PASS_LOCAL_SDK_REUSE_DISTRIBUTION_LICENSE_REVIEW_PENDING",
+    "I": "PASS_LOCAL_BROWSER_TO_DURABLE_RECEIPT_SCOPE",
+    "S": "PASS_LOCAL_REPLAY_RESTART_AND_AUTHORIZATION_SCOPE",
+    "P1": "PASS_PRIOR_BOUNDED_READ",
+    "P2": "PASS_PRIOR_BOUNDED_PAGINATION_COMPLETENESS_UNKNOWN",
+    "P3": "SEND_UNRESOLVED",
+    "P4": "NOT_TESTED",
+    "P5": "NOT_VERIFIED",
+    "B": "CONDITIONAL",
+    "C": "NOT_READY"
+  },
+  "failure_history": [
+    {"classification":"INSTALL_NETWORK","outcome":"Initial npm ci ECONNRESET and cleanup EPERM; recovered using identical lockfile dependency tree."},
+    {"classification":"BOUNDARY_TYPING","outcome":"Two TypeScript narrowing errors were corrected before source checkpoint a188560."},
+    {"classification":"MV3_STARTUP","outcome":"Missing channel and optional debugger namespace prevented initial worker startup; corrected and actual Chromium smoke passed."},
+    {"classification":"HARNESS_RESTART","outcome":"First combined run timed out during backend restart due duplicate seeded membership/readiness race; fixture IPC readiness/idempotent seed correction tested in final source."},
+    {"classification":"SHELL_PG_CONTROL","outcome":"PowerShell/PTY PG-control attempt stalled and was interrupted; final Node-owned disposable runner started/stopped its cluster successfully."}
+  ],
+  "security": {
+    "final_secret_scan": "PASS",
+    "credentials_used": "Original Pancake credential values loaded only by local exact-value scanner; no authenticated provider requests",
+    "source_admission": "HYBRID_FIXTURE_ENABLED + local/test research gate + exact server-owned fixture target; no real-data admission",
+    "cleanup": "All final runner-owned apps/databases/cluster stopped. Evidence and local package retained privately; no Owner worktrees deleted.",
+    "scan": {
+      "status": "PASS",
+      "changed_untracked_files": 61,
+      "files_and_streams_scanned": 1971,
+      "credential_values_compared_in_memory": 7,
+      "staged_changed_untracked_generated_new_history_scanned": true,
+      "full_reachable_history_exact_value_scan": true,
+      "manual_allowlist": "Preexisting fabricated JWT negative fixture with subject 1 and literal signature sig",
+      "findings": [
+
+      ],
+      "receipt_sha256": "951deb2921e0b5a891c4849c33403a6854e164c523cc6f2b4ca873db2163569c"
+    }
+  }
 }

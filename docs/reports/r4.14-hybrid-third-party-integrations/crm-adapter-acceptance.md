@@ -10,3 +10,6 @@ claimed as live connectors.
 The upstream HubSpot root LICENSE is Apache-2.0 while its package metadata says
 ISC. This discrepancy is retained in the OSS review and requires release/legal
 approval before redistribution.
+The local base-path check is not a general SDK redirect/egress policy. Provider
+portal/account attestation is not demonstrated by the local emulator, so real
+provider credentials and ingestion remain disabled.

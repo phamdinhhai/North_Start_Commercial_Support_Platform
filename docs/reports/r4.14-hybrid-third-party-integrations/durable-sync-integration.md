@@ -10,3 +10,10 @@ enrollment revocation and issuing-membership revocation.
 
 No Lead, Customer, CommercialEvent, revenue or attribution record is created by
 hybrid observation intake. Completeness remains UNKNOWN.
+
+The final combined Chromium/OIDC/Nest/PostgreSQL proof passed all 15 steps on
+source `0162e524cda1a4b8ce886417e80330f950fed37b`, including service-worker,
+browser and actual backend process restart, invalid ACK replay and revocation.
+Browser-derived native identity candidates are correlated in pure fabricated
+contracts without raising browser authority. Durable combined SDK/API-browser
+reconciliation is not claimed by this receipt-only path.
