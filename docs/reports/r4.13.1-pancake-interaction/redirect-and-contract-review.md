@@ -6,11 +6,11 @@ Date: 2026-11-21  |  Evidence class: historical local capture + checked-in Panca
 
 This review used only the operator-supplied local `D:/Download/Pancake_Document/download.devtools` HAR and checked-in YAML/static evidence. No provider call was made. Credential, cookie, token, account, contact, and customer values were not read or reproduced. The HAR was treated as untrusted historical evidence; it does not establish current availability or authorization.
 
-The target UI alias is `NetDecor.PhongcachsongnguoiViet`. The only permitted page identity for this review is the supplied `allowed_c_id1172702029255664_27910194421914511` scope: page id `1172702029255664` and conversation/customer reference `27910194421914511`. This is a target-scoped assertion, not evidence that page enumeration is allowed.
+The target UI alias is `NetDecor.PhongcachsongnguoiViet`. The permitted target is the supplied conversation id `1172702029255664_27910194421914511`. Its pieces are candidate page/contact references only; the leading piece must not be promoted to a verified Page identity without a target-scoped provider/UI binding. This is a target-scoped assertion, not evidence that page enumeration is allowed.
 
 ## Target-only bootstrap and alias routing
 
-The capture records ordinary UI requests scoped directly to `/api/v1/pages/{page_id}/...`, including settings, conversations, posts, statistics, avatar, permissions, and role reads. It also records `/main/auto?page_id=...` and a page-scoped WebSocket query. No captured request is evidence for a safe `GET /pages` enumeration flow. Therefore an implementation must resolve the alias through an operator-supplied target binding (alias + allowlisted page id), then perform a page-scoped read; it must fail closed on alias mismatch, missing binding, or an id outside the allowlist.
+The capture records ordinary UI requests scoped directly to `/api/v1/pages/{page_id}/...`, including settings, conversations, posts, statistics, avatar, permissions, and role reads. It also records `/main/auto?page_id=...` and a page-scoped WebSocket query. No captured request is evidence for a safe `GET /pages` enumeration flow. Therefore an implementation must resolve the alias through an operator-supplied target binding (alias + allowlisted page id), then perform a page-scoped read after that binding has been verified; it must fail closed on alias mismatch, missing binding, or an id outside the allowlist.
 
 Static page-selection code uses display fields (`name`, `username`, `id`) for local filtering and labels. The request builder receives an already selected page id and access-token context; it does not prove that a username/alias is a canonical provider identifier. URL path pieces are consequently routing hints only, never identity proof. The UI's `/main/auto` and page routes should be treated as ordinary navigation; a redirect status is not authorization.
 
@@ -37,3 +37,4 @@ QA: fixtures should cover alias mismatch, disallowed page id, 301/302 on read, r
 ## Status and open decisions
 
 This is static/historical evidence only. It does not resolve CE-1, CE-2, MM-1, ID-1, ID-2, PM-1, or LG-1. It does not authorize provider activation or outbound messaging. Keep `// OPEN: CE-1 — see ADR-001` at state/transition seams.
+
