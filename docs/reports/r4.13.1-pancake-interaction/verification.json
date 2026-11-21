@@ -1,0 +1,373 @@
+{
+  "schema_version": 1,
+  "recorded_at": "2026-11-21T09:26:45.501088+00:00",
+  "git": {
+    "baseline_sha": "d990437bd5b8003f1068788538edde69fb3471b6",
+    "baseline_ci": {
+      "run": "44842417846",
+      "number": 80,
+      "status": "SUCCESS"
+    },
+    "source_sha": "1c035eaaf75e66ff441822023d7a293b709c5b89",
+    "product_tree": "47d01594b3d9cae7f93459d97a087c951355250f",
+    "branch": "feat/r4131-pancake-identity-interaction",
+    "later_doc_head": "a0d043fedb6f39934860541bb980537489654974",
+    "source_preservation": "Only reports committed during final run; product and .github diff empty from source to later HEAD; identical product tree verified.",
+    "documentation_head": "Documentation-only commit containing this file; exact handover SHA from git log",
+    "pushed": false,
+    "hosted_r4131": "NOT_RUN",
+    "main_unchanged": "5d6c20673218f02c0972263126e8654eadee18c9",
+    "canonical_migrations_runtime_pilot_unchanged": true
+  },
+  "environment": {
+    "os": "Windows",
+    "node": "22.21.0",
+    "npm": "10.9.0",
+    "postgresql": "17.11",
+    "vitest": "5.1.0",
+    "browser": "Playwright bundled Chromium",
+    "CI": "true",
+    "NODE_ENV": "test",
+    "DEPLOYMENT_MODE": "test",
+    "PILOT_STORE_MODE": "memory",
+    "database": "New loopback agent-owned PostgreSQL; fabricated fixtures only",
+    "provider_credentials_in_test_environment": false
+  },
+  "run": {
+    "command": "node C:/Users/admin/AppData/Local/Temp/north-r412-verify.mjs D:/AI-for-Enterprise/ns-r4131-pancake-interaction r4131-final-exact",
+    "runner_sha256": "38d89db90b1d265745c98f88022aeacf1208696428d52b3c10472ab748b7cbd3",
+    "artifacts": "C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r4131-final-exact-gZmGt9",
+    "results_manifest_sha256": "c3f554ca48df234d1ab87aad43de9bedd60b695ef56ceadf70fbe56338b703ff",
+    "passed_lanes": 26,
+    "failed_lanes": 0,
+    "results": [
+      {"name":"pilot-research-safety","command":["C:\\Program Files\\nodejs\\node.exe","--test","scripts/pilot/safety.test.mjs","scripts/research/validate-observation.test.mjs"],"exit_code":0,"seconds":0,"log":"C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r4131-final-exact-gZmGt9\\pilot-research-safety.log","result":"PASS","log_sha256":"9d2ace763daf123d95ad63682c4135a0817b538b5bd4b3dd414b3dfa99a5a04b","summary":["# pass 7","# fail 0","# skipped 0"]},
+      {"name":"typecheck","command":["C:\\Program Files\\nodejs\\node.exe","C:/Program Files/nodejs/node_modules/npm/bin/npm-cli.js","run","typecheck"],"exit_code":0,"seconds":6,"log":"C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r4131-final-exact-gZmGt9\\typecheck.log","result":"PASS","log_sha256":"09b9a49f6769e2371ae5cfedc320845c173fe8c1356b69e516cecf3df4a23c7a","summary":[]},
+      {"name":"lint","command":["C:\\Program Files\\nodejs\\node.exe","C:/Program Files/nodejs/node_modules/npm/bin/npm-cli.js","run","lint"],"exit_code":0,"seconds":4,"log":"C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r4131-final-exact-gZmGt9\\lint.log","result":"PASS","log_sha256":"ad43281dbc673e71b219a3b5f8bb1351cdbf31f778553f420b51e951f5ce0a46","summary":[]},
+      {"name":"architecture","command":["C:\\Program Files\\nodejs\\node.exe","C:/Program Files/nodejs/node_modules/npm/bin/npm-cli.js","run","architecture:check:strict"],"exit_code":0,"seconds":1,"log":"C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r4131-final-exact-gZmGt9\\architecture.log","result":"PASS","log_sha256":"d77621a86ab9943075df85f3191a1cb7bb1df838338d769fe581a2ff13a87c50","summary":[]},
+      {"name":"registry","command":["C:\\Program Files\\nodejs\\node.exe","C:/Program Files/nodejs/node_modules/npm/bin/npm-cli.js","run","registry:validate"],"exit_code":0,"seconds":0,"log":"C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r4131-final-exact-gZmGt9\\registry.log","result":"PASS","log_sha256":"9ba0b062f4ecd65b28129862b0b83b76af3684de213382c0d20ffa086be3ab85","summary":[]},
+      {"name":"integration-ci","command":["C:\\Program Files\\nodejs\\node.exe","C:/Program Files/nodejs/node_modules/npm/bin/npm-cli.js","run","test:integration:ci"],"exit_code":0,"seconds":73,"log":"C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r4131-final-exact-gZmGt9\\integration-ci.log","result":"PASS","log_sha256":"1737639108624adc37b4ece82f10d393016818c07dc6e8ab3bbf98c372abfda8","summary":["Test Files  1 passed (1)","Tests  4 passed (4)","Test Files  1 passed (1)","Tests  5 passed (5)","Test Files  1 passed (1)","Tests  8 passed (8)"]},
+      {"name":"coverage","command":["C:\\Program Files\\nodejs\\node.exe","C:/Program Files/nodejs/node_modules/npm/bin/npm-cli.js","run","test:cov","--","--no-file-parallelism"],"exit_code":0,"seconds":109,"log":"C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r4131-final-exact-gZmGt9\\coverage.log","result":"PASS","log_sha256":"c5c0ae2e28f5b4f0d60ce3452ef8960ca8833705120aa076fbe52136a39e75be","summary":["Test Files  163 passed (163)","Tests  1520 passed (1520)"]},
+      {"name":"build","command":["C:\\Program Files\\nodejs\\node.exe","C:/Program Files/nodejs/node_modules/npm/bin/npm-cli.js","run","build"],"exit_code":0,"seconds":10,"log":"C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r4131-final-exact-gZmGt9\\build.log","result":"PASS","log_sha256":"4bc24afec50c327cef250b332ffda2df07d6c6766d549f4ee6b27ea4aaaebc3a","summary":[]},
+      {"name":"http-e2e","command":["C:\\Program Files\\nodejs\\node.exe","C:/Program Files/nodejs/node_modules/npm/bin/npm-cli.js","run","test:e2e"],"exit_code":0,"seconds":7,"log":"C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r4131-final-exact-gZmGt9\\http-e2e.log","result":"PASS","log_sha256":"67b59438dab0e843c1d7c209caaa630425ccf797ecb07f1ee39c2f24efd0b74c","summary":["Test Files  3 passed (3)","Tests  22 passed (22)"]},
+      {"name":"browser","command":["C:\\Program Files\\nodejs\\node.exe","C:/Program Files/nodejs/node_modules/npm/bin/npm-cli.js","run","test:browser"],"exit_code":0,"seconds":19,"log":"C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r4131-final-exact-gZmGt9\\browser.log","result":"PASS","log_sha256":"78b99556ac9066b3e52138025b7c07414334561b3e642396510acdda1726c4af","summary":["4 passed (18.1s)"]},
+      {"name":"component","command":["C:\\Program Files\\nodejs\\node.exe","node_modules/@playwright/test/cli.js","test","--config","playwright.operator-recovery.config.ts"],"exit_code":0,"seconds":5,"log":"C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r4131-final-exact-gZmGt9\\component.log","result":"PASS","log_sha256":"6e4ec500a987e3a44d280caab49fc1f926d70ead2b2b62236a2539ba3fe256ba","summary":["10 passed (4.4s)"]},
+      {"name":"lifecycle-memory","command":["C:\\Program Files\\nodejs\\node.exe","node_modules/@playwright/test/cli.js","test","--config","playwright.lifecycle.config.ts"],"exit_code":0,"seconds":13,"log":"C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r4131-final-exact-gZmGt9\\lifecycle-memory.log","result":"PASS","log_sha256":"fd0f7f1784b8cc90863c388c03e6d53d3f92ff210312befd55eb3751c371d21a","summary":["1 passed (12.9s)"]},
+      {"name":"oidc-ui","command":["C:\\Program Files\\nodejs\\node.exe","node_modules/@playwright/test/cli.js","test","--config","playwright.oidc.config.ts"],"exit_code":0,"seconds":24,"log":"C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r4131-final-exact-gZmGt9\\oidc-ui.log","result":"PASS","log_sha256":"661848e9ccb8c169278fda39b104faadb44679291dca7d3a28bf45e6c264fc2e","summary":["6 passed (23.7s)"]},
+      {"name":"source-ui","command":["C:\\Program Files\\nodejs\\node.exe","node_modules/@playwright/test/cli.js","test","--config","playwright.source-integration.config.ts"],"exit_code":0,"seconds":21,"log":"C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r4131-final-exact-gZmGt9\\source-ui.log","result":"PASS","log_sha256":"ab1341f1bb399e609df1b490ebbb86a391e345d1df48579c1b2b9251782e7c04","summary":["1 passed (20.5s)"]},
+      {"name":"companion","command":["C:\\Program Files\\nodejs\\node.exe","C:/Program Files/nodejs/node_modules/npm/bin/npm-cli.js","run","test:companion"],"exit_code":0,"seconds":5,"log":"C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r4131-final-exact-gZmGt9\\companion.log","result":"PASS","log_sha256":"e641f14df592ca1b949a99ffec918a83d6130ece576a436bc83181c84c44696a","summary":[]},
+      {"name":"packaging","command":["C:\\Program Files\\nodejs\\node.exe","--test","scripts/companion-package.test.mjs"],"exit_code":0,"seconds":1,"log":"C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r4131-final-exact-gZmGt9\\packaging.log","result":"PASS","log_sha256":"348224a2ff9bd799091843abca8e318a4c50f84bafce9d2f989722911e83b629","summary":["# pass 7","# fail 0","# skipped 0"]},
+      {"name":"guardrails","command":["C:\\Program Files\\nodejs\\node.exe","--test","scripts/check-architecture.test.mjs","scripts/registry-validation.test.mjs","scripts/security-audit.test.mjs","scripts/backup-verify.test.mjs"],"exit_code":0,"seconds":1,"log":"C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r4131-final-exact-gZmGt9\\guardrails.log","result":"PASS","log_sha256":"e5af23692b06d06ec4041aa4b1b7abf54e117befb532f8d4c7eebe5524f6b1a3","summary":["# pass 44","# fail 0","# skipped 0"]},
+      {"name":"ail-research","command":["C:\\Program Files\\nodejs\\node.exe","C:/Program Files/nodejs/node_modules/npm/bin/npm-cli.js","run","test:ail:research"],"exit_code":0,"seconds":1,"log":"C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r4131-final-exact-gZmGt9\\ail-research.log","result":"PASS","log_sha256":"0b3d2e74a82c23bf47ae03a4e0be979ec5271ed04dff2dd5e2814fc76be2a12d","summary":["# pass 14","# fail 0","# skipped 0"]},
+      {"name":"restore","command":["C:\\Program Files\\nodejs\\node.exe","scripts/restore-rehearsal.mjs"],"exit_code":0,"seconds":7,"log":"C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r4131-final-exact-gZmGt9\\restore.log","result":"PASS","log_sha256":"9ca222fbf9a769bfcda1c6ea8699ea14fc00c29aa836c2af11ad4dedb1ceb812","summary":[]},
+      {"name":"audit","command":["C:\\Program Files\\nodejs\\node.exe","C:/Program Files/nodejs/node_modules/npm/bin/npm-cli.js","run","security:audit"],"exit_code":0,"seconds":4,"log":"C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r4131-final-exact-gZmGt9\\audit.log","result":"PASS","log_sha256":"57e8b10012c380383e853728fe570a8746171dc602003a7af2be5786773033e3","summary":[]},
+      {"name":"r411-browser","command":["C:\\Program Files\\nodejs\\node.exe","node_modules/@playwright/test/cli.js","test","--config","playwright.r411.config.ts"],"exit_code":0,"seconds":21,"log":"C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r4131-final-exact-gZmGt9\\r411-browser.log","result":"PASS","log_sha256":"dd211c6bec88a643e85e0b3018bcef307a876e1dcd9336c0d3a1f8e2bc626433","summary":["2 passed (20.2s)"]},
+      {"name":"pilot-launcher","command":["C:\\Program Files\\nodejs\\node.exe","C:/Users/admin/AppData/Local/Temp/north-r411-pilot-verify.mjs"],"exit_code":0,"seconds":36,"log":"C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r4131-final-exact-gZmGt9\\pilot-launcher.log","result":"PASS","log_sha256":"3b194557bd624e82e721e4649c9289fe3956700bb1c8a307f7ee1bd3090940fa","summary":[]},
+      {"name":"benchmark","command":["C:\\Program Files\\nodejs\\node.exe","scripts/source-integration-benchmark.mjs"],"exit_code":0,"seconds":3,"log":"C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r4131-final-exact-gZmGt9\\benchmark.log","result":"PASS","log_sha256":"364e5b455ba56dab8258ee2d8fbed0da01c21c1bffe2a976ef59403c49879805","summary":[]},
+      {"name":"r412-browser","command":["C:\\Program Files\\nodejs\\node.exe","node_modules/@playwright/test/cli.js","test","--config","playwright.r412.config.ts"],"exit_code":0,"seconds":18,"log":"C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r4131-final-exact-gZmGt9\\r412-browser.log","result":"PASS","log_sha256":"6b4413758046ebb6bb59678b544a5531c9d2e6417a023e7a76ae5285cd973b61","summary":["1 passed (17.6s)"]},
+      {"name":"sync-recovery","command":["C:\\Program Files\\nodejs\\node.exe","scripts/sync-recovery-rehearsal.mjs"],"exit_code":0,"seconds":3,"log":"C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r4131-final-exact-gZmGt9\\sync-recovery.log","result":"PASS","log_sha256":"25b96d11130e65389d009042f5cef029e71fea2e76f8beb14607ccf04ad6f2f5","summary":[]},
+      {"name":"sync-benchmark","command":["C:\\Program Files\\nodejs\\node.exe","scripts/sync-benchmark.mjs"],"exit_code":0,"seconds":2,"log":"C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r4131-final-exact-gZmGt9\\sync-benchmark.log","result":"PASS","log_sha256":"40ced8b79ae32f1f82745d7f7b4a488ac53c7a28162ca385f6cf97a5fe0b93dd","summary":[]}
+    ]
+  },
+  "vitest": {
+    "passed": 1520,
+    "failed": 0,
+    "skipped": 0,
+    "files": 163,
+    "postgresql_tests_included": 157,
+    "postgresql_suites": 30,
+    "separate_reruns_not_added_to_total": true
+  },
+  "coverage": {
+    "lines": 92.89,
+    "statements": 88.82,
+    "branches": 86.63,
+    "functions": 91.3,
+    "lcov_sha256": "b6ab18d3a4ac276e26c3db26806f7b72184ba3dc3fa7dc8bdc82533f29ef8ce8",
+    "new_modules": {
+      "src\\adapters\\pancake\\pancake-history-overlap.ts": {
+        "LF": 5,
+        "LH": 5,
+        "FNF": 3,
+        "FNH": 3,
+        "BRF": 21,
+        "BRH": 21
+      },
+      "src\\adapters\\pancake\\pancake-history-response.ts": {
+        "LF": 13,
+        "LH": 13,
+        "FNF": 2,
+        "FNH": 2,
+        "BRF": 22,
+        "BRH": 22
+      },
+      "src\\adapters\\pancake\\pancake-send-guard.ts": {
+        "LF": 11,
+        "LH": 11,
+        "FNF": 5,
+        "FNH": 5,
+        "BRF": 15,
+        "BRH": 15
+      }
+    },
+    "focused_new_modules_tests": 27,
+    "focused_new_modules_metrics_percent": 100
+  },
+  "independent_qa": {
+    "own_pinned_vitest_tests": 107,
+    "files": 8,
+    "skipped": 0,
+    "typecheck": "PASS",
+    "final_full_manifest_and_logs_review": "PASS",
+    "runtime_provider_results": "Root-executed observations; QA inspected sanitized journals/source, not credentials/raw records"
+  },
+  "provider": {
+    "actual_requests": 8,
+    "ceiling": 25,
+    "mutations": 0,
+    "outbound_sends": 0,
+    "other_conversation_requests": 0,
+    "page_or_account_enumeration": false,
+    "token_generation_or_rotation": false,
+    "raw_provider_bodies_persisted": false,
+    "native_ids_temporarily_persisted_then_removed": true,
+    "north_start_ingestion": false,
+    "old_r413_four_request_terminal_run_preserved": true,
+    "prototype_ledgers": "First two scripts had separate counters; retired without resetting. Aggregate count carried forward; later phases retained as separate completed read plans. All eight requests sequential below global ceiling. Prototype missing false-business/scope terminal classification recorded as limitation; new pure response gate is not retroactively claimed as live transport.",
+    "ledger": [
+      {
+        "step": "PAGINATION_READ_0",
+        "route": "/api/public_api/v1/pages/{allowed_page}/conversations/{allowed_conversation}/messages",
+        "current_count": 0,
+        "method": "GET",
+        "time_utc": "2026-11-21T08:43:01.604975+00:00",
+        "http_status": 200,
+        "provider_success": true,
+        "conversation_id_match": true,
+        "message_count": 30,
+        "all_message_scope": true,
+        "contact_object_present": true,
+        "global_request_number": 1,
+        "mutation": false,
+        "proof": "BOUNDED_OBSERVATION_ONLY"
+      },
+      {
+        "step": "PAGINATION_READ_30",
+        "route": "/api/public_api/v1/pages/{allowed_page}/conversations/{allowed_conversation}/messages",
+        "current_count": 30,
+        "method": "GET",
+        "time_utc": "2026-11-21T08:43:02.607217+00:00",
+        "http_status": 200,
+        "provider_success": true,
+        "conversation_id_match": true,
+        "message_count": 13,
+        "all_message_scope": true,
+        "contact_object_present": true,
+        "global_request_number": 2,
+        "mutation": false,
+        "proof": "BOUNDED_OBSERVATION_ONLY"
+      },
+      {
+        "step": "IDENTITY_HISTORY_0",
+        "method": "GET",
+        "route": "/api/public_api/v1/pages/{allowed_page}/conversations/{allowed_conversation}/messages",
+        "current_count": 0,
+        "time_utc": "2026-11-21T08:44:31.594647+00:00",
+        "http_status": 200,
+        "provider_success": true,
+        "conversation_id_match": true,
+        "message_count": 30,
+        "all_message_scope": true,
+        "contact_id_present": true,
+        "message_ids_unique": true,
+        "raw_identifiers_temporarily_persisted_then_removed": true,
+        "global_request_number": 3,
+        "mutation": false,
+        "proof": "BOUNDED_OBSERVATION_ONLY"
+      },
+      {
+        "step": "IDENTITY_HISTORY_30",
+        "method": "GET",
+        "route": "/api/public_api/v1/pages/{allowed_page}/conversations/{allowed_conversation}/messages",
+        "current_count": 30,
+        "time_utc": "2026-11-21T08:44:32.599911+00:00",
+        "http_status": 200,
+        "provider_success": true,
+        "conversation_id_match": true,
+        "message_count": 13,
+        "all_message_scope": true,
+        "contact_id_present": true,
+        "message_ids_unique": true,
+        "raw_identifiers_temporarily_persisted_then_removed": true,
+        "global_request_number": 4,
+        "mutation": false,
+        "proof": "BOUNDED_OBSERVATION_ONLY"
+      },
+      {
+        "step": "ACCOUNT_TOKEN_IDENTITY",
+        "method": "GET",
+        "route": "/api/v1/me",
+        "classification": "PRIVATE_OBSERVED_AUTH_PROBE",
+        "time_utc": "2026-11-21T09:02:05.872080+00:00",
+        "http_status": 200,
+        "provider_success": true,
+        "account_object_present": true,
+        "session_object_present": true,
+        "global_request_number": 5,
+        "mutation": false,
+        "proof": "BOUNDED_OBSERVATION_ONLY"
+      },
+      {
+        "step": "UI_REDIRECT_DIAGNOSIS",
+        "method": "GET",
+        "route": "/{allowed_alias}?c_id={allowed_conversation}",
+        "classification": "PRIVATE_UI_DOCUMENT",
+        "time_utc": "2026-11-21T09:02:29.592937+00:00",
+        "http_status": 200,
+        "content_type": "text/html",
+        "redirected": false,
+        "location_present": false,
+        "global_request_number": 6,
+        "mutation": false,
+        "proof": "BOUNDED_OBSERVATION_ONLY"
+      },
+      {
+        "step": "UI_BOOTSTRAP_TARGET_INSPECTION",
+        "method": "GET",
+        "route": "/{allowed_alias}?c_id={allowed_conversation}",
+        "classification": "PRIVATE_UI_DOCUMENT",
+        "time_utc": "2026-11-21T09:03:31.896179+00:00",
+        "http_status": 200,
+        "content_type": "text/html",
+        "redirected": false,
+        "html_alias_present": true,
+        "html_page_candidate_present": false,
+        "html_conversation_candidate_present": false,
+        "global_request_number": 7,
+        "mutation": false,
+        "proof": "BOUNDED_OBSERVATION_ONLY"
+      },
+      {
+        "step": "PAGE_PERMISSION_BINDING",
+        "method": "GET",
+        "route": "/api/v1/pages/{candidate_page}/get_user_role_permissions",
+        "classification": "PRIVATE_OBSERVED_PAGE_SCOPED_READ",
+        "time_utc": "2026-11-21T09:05:22.944202+00:00",
+        "http_status": 200,
+        "provider_success": false,
+        "target_page_permission_response": false,
+        "account_user_match": false,
+        "global_request_number": 8,
+        "mutation": false,
+        "proof": "BOUNDED_OBSERVATION_ONLY",
+        "disposition": "BUSINESS_FAILURE_NO_ADMISSION"
+      }
+    ],
+    "journal_hashes": {
+      "journal.json": "4028569c4a9b27e47503bc84d07e5b78e966c8fe5cf497b8bb5b7b7ed64031c5",
+      "identity-journal.json": "be84f57a69e508313fdb23ff004e69a1d2e2cf88c1ac2eb8dcaaf667f0388efa",
+      "account-journal.json": "0ee5bf4a0f16e34764c7daade3ffbe6f148833e549f24eec2a68cd41729796af",
+      "redirect-journal.json": "cee49f3f522b0717511f74c7aa1d73fad7dec7c5ecfcc8cdac55c54e3ba1e813",
+      "ui-bootstrap-journal.json": "effe3e25fb4096bb4d2e9ea0ab766336606bee0e54c297011adda29a92cd80f5",
+      "page-permission-journal.json": "26b47685197b06a556ece779db73c2f55597266268b46799bc3c78e36b905b84"
+    }
+  },
+  "recovery": {
+    "restore_tables": 16,
+    "checkpoint_source_context_delivery_replay": "PASS",
+    "actual_worker_exit": 73,
+    "restart_from_page": 3,
+    "durable_pages": 3,
+    "source_receipts": 3,
+    "unassigned_leads": 3,
+    "network_calls": 0,
+    "owner_pilot_resources": "UNTOUCHED",
+    "agent_owned_pg_stopped": true,
+    "production_sla": "NOT_ESTABLISHED"
+  },
+  "benchmark": {
+    "source_same_connection_different_message": {
+      "count": 64,
+      "p50Ms": 17.793299999999817,
+      "p95Ms": 23.21539999999959
+    },
+    "durable_sync": {
+      "sequentialSameStream": {
+        "samples": 32,
+        "workers": 1,
+        "p50Ms": 6.478900000000067,
+        "p95Ms": 9.23879999999997,
+        "elapsedMs": 220.48050000000012,
+        "maxObservedPoolQueue": 0
+      },
+      "parallelEightStreams": {
+        "samples": 64,
+        "workers": 8,
+        "p50Ms": 17.480099999999993,
+        "p95Ms": 73.34709999999995,
+        "elapsedMs": 185.13929999999982,
+        "maxObservedPoolQueue": 0
+      },
+      "samePageReplay": {
+        "samples": 32,
+        "workers": 1,
+        "p50Ms": 2.15930000000003,
+        "p95Ms": 3.2169000000001233,
+        "elapsedMs": 72.95830000000001,
+        "maxObservedPoolQueue": 0
+      }
+    },
+    "durable_receipts": 96,
+    "deadlocks": 0,
+    "limitations": "Single local run,32/64samples,claim+commit latency,8workers; no production throughput/SLO or p99 claim"
+  },
+  "failure_history": [
+    {
+      "scope": "send_guard_typecheck",
+      "failure": "Two TypeScript optional reservation narrowing errors",
+      "resolution": "Local snapshot and explicit return deny; final typecheck PASS"
+    },
+    {
+      "scope": "independent_qa_initial_run",
+      "failure": "Missing node_modules / Vitest config dependency and command flag issues",
+      "resolution": "npm ci, own pinned Vitest5.1.0 107tests/8files and typecheck PASS"
+    },
+    {
+      "scope": "first_full_run",
+      "source": "f3652e8b29dc02ed66a4ed9f7a41df44034d0ba0",
+      "results": "26 lanes exit0,1502tests",
+      "disposition": "Not final acceptance: response gate added during late lanes; final exact run at1c035ea supersedes"
+    },
+    {
+      "scope": "live_private_Page_permission",
+      "result": "HTTP200 provider successfalse; no mutation/no account-Page proof"
+    },
+    {
+      "scope": "private_native_identifier_journal",
+      "result": "Native ID comparison fields briefly persisted, removed before reports; no token or raw message body persisted"
+    },
+    {
+      "scope": "redirect_investigation",
+      "result": "Historical no-cookie302; current cookie200; exact oldLocation/cause remains UNKNOWN"
+    }
+  ],
+  "security": {
+    "exact_credential_value_scan": "PASS across changed/untracked/staged/history/generated/private-script artifacts",
+    "generic_secret_and_manual_report_review": "PASS",
+    "new_credentials_or_packages": false,
+    "dependency_audit": "PASS,production high/critical gate,zero dev-only waivers",
+    "sensitive_provider_fixtures_committed": false,
+    "limitations": "Exact-value and pattern checks are complementary, not proof of universal absence of PII; no raw provider content used in automated suite"
+  },
+  "gates": {
+    "A_engineering": "PASS_LOCAL_EXACT_SOURCE_26_LANES",
+    "hosted": "NOT_RUN_NO_PUSH",
+    "P1_identity": "BLOCKED",
+    "P2_history": "PARTIAL:30then13 scoped; order/overlap/empty/concurrent behavior UNKNOWN",
+    "P3_send": "BLOCKED_ZERO_SEND",
+    "P4_mutation": "BLOCKED_NOT_TESTED",
+    "P5_north_start_provider_e2e": "NOT_VERIFIED",
+    "B_human_sales": "CONDITIONAL_NOT_RUN",
+    "C_real_data": "NOT_READY_FOR_REAL_CUSTOMER_DATA"
+  }
+}

@@ -6,7 +6,7 @@ R4.13.1 closes several engineering gaps but does **not** pass Pancake mutation a
 
 - Base: R4.13 `d990437bd5b8003f1068788538edde69fb3471b6`; its CI #80 (`44842417846`) SUCCESS, product and browser jobs.
 - Branch: `feat/r4131-pancake-identity-interaction`; isolated worktree `D:/AI-for-Enterprise/ns-r4131-pancake-interaction`.
-- Final source is the local commit recorded at handover; no push/merge/deploy is authorized by this prompt.
+- Final source/test commit is `1c035eaaf75e66ff441822023d7a293b709c5b89`; final documentation HEAD is recorded at handover. No push/merge/deploy is authorized by this prompt.
 - Main remains `5d6c20673218f02c0972263126e8654eadee18c9`; unrelated uncommitted files in the primary main worktree were preserved.
 - PR #1 and #2 remain untouched draft/stacked references. Main protection/ruleset endpoint returned no configured protection in the read-only snapshot.
 
@@ -25,9 +25,9 @@ These observations are root-executed and sanitized. Native IDs used for in-memor
 
 ## Verification
 
-Focused R4.13.1 run: 6 files, 83 tests PASS, zero skipped before the send-guard type correction; rerun after correction is required in the final verification manifest. Typecheck, lint and strict architecture pass after correction. R4.13 baseline CI remains evidence only; it is not R4.13.1 CI.
+Focused R4.13.1 run after the final correction: 8 files, 107 tests PASS, zero skipped under pinned Vitest 5.1.0; the earlier 83-test run is retained only as failure chronology. Typecheck, lint and strict architecture pass. R4.13 baseline CI remains evidence only; it is not R4.13.1 CI.
 
-The full baseline suite and a fresh exact-source regression are required for Gate A. Secret scans include changed/untracked/staged files, new commits, generated artifacts and temporary journal cleanup. No hosted R4.13.1 CI will be claimed without a separately authorized push.
+The exact-source full regression passed: 26/26 lanes, 1,520 Vitest tests across 163 files, 157 PostgreSQL tests in 30 suites, zero skipped, 92.89% line coverage (88.82% statements, 86.63% branches, 91.30% functions). Independent QA ran 107 focused tests across eight files with pinned Vitest 5.1.0 and typecheck PASS. Secret scans include changed/untracked/staged files, new commits, generated artifacts and temporary journal cleanup. No hosted R4.13.1 CI will be claimed without a separately authorized push.
 
 ## Gates
 
@@ -38,7 +38,7 @@ The full baseline suite and a fresh exact-source regression are required for Gat
 | P3 controlled send | **BLOCKED**; zero outbound requests |
 | P4 conversation mutations | **BLOCKED / NOT TESTED** |
 | P5 North Start provider E2E | **NOT VERIFIED**; synthetic-only remains active |
-| Gate A engineering | Pending fresh exact-source R4.13.1 regression; baseline R4.13 CI is separate |
+| Gate A engineering | **PASS locally** for exact source `1c035ea`; hosted R4.13.1 CI NOT RUN |
 | Gate B human Sales | CONDITIONAL; not run |
 | Gate C real customer data | NOT READY |
 
