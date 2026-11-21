@@ -1,6 +1,6 @@
 # Source inventory and coverage
 
-Generated from every file under `D:/Download/Pancake_Document` using local parsers. Secret-bearing files were hashed and metadata-only; values, PII, cookies, tokens and message bodies are intentionally excluded. No provider network calls were made.
+Generated from every file under `D:/Download/Pancake_Document` using local parsers. Secret-bearing files were inspected locally and withheld from committed hashes; values, PII, cookies, tokens and message bodies are intentionally excluded. No provider network calls were made.
 
 Total files: **171**; capability records: **171**.
 
