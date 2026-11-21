@@ -66,4 +66,3 @@ license separately. No source from this clone was incorporated here.
 - `npm run security:audit`: PASS; production dependency set clean.
 - `node --test scripts/companion-package.test.mjs: 7/7 PASS.
 - `npm run companion:package`: PASS; deterministic MV3 archive, 9 files.
-
