@@ -8,4 +8,5 @@ Source: `D:\Download\Pancake_Document\pancake_api_document.yaml` (offline only).
 - `POST /pages/{page_id}/generate_page_access_token` uses the account `access_token`; documentation says generation/refresh invalidates a previous token. Reuse an existing captured PageToken where available; do not generate during validation.
 - No additional HTML/attestation requirement is specified by this source.
 
-Sanitized capture correlation: page id was observed in local DevTools records; page alias URL was observed as a provider record. Token values and personal data were not copied.
+Sanitized capture correlation: page id was observed in local DevTools records; page alias was observed in URL/referrer only; provider page metadata correlation remains unproven. Token values and personal data were not copied.
+
