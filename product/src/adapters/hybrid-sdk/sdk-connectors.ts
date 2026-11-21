@@ -4,6 +4,7 @@ import {FacebookAdsApi} from 'facebook-nodejs-business-sdk';
 export interface HubSpotRecord {readonly id:string;readonly properties:Record<string,string|undefined>}
 export interface HubSpotReadPage {readonly records:HubSpotRecord[];readonly nextCursor:string|null;readonly completeness:'UNKNOWN'}
 export interface MetaInsight {readonly accountId:string;readonly dateStart:string;readonly dateStop:string;readonly impressions:number;readonly spend:number;readonly currency:string;readonly timezone:string}
+export interface MetaReadPage {readonly records:MetaInsight[];readonly nextCursor:string|null;readonly completeness:'UNKNOWN';readonly timezoneSource:'caller-supplied'}
 
 const validBase = (value:string) => {
   const url = new URL(value);
@@ -44,8 +45,14 @@ export class HubSpotReadConnector {
     const props={contacts:['email','firstname','lastname'],companies:['name','domain'],deals:['dealname','dealstage','amount']}[kind];
     let values;
     try{values=await this.client.crm[kind].basicApi.getPage(limit,after,props);}catch(error){return safeError(error);}
-    const records=values.results.map(value=>({id:String(value.id),properties:Object.fromEntries(Object.entries(value.properties??{}).filter(([key])=>props.includes(key)).map(([key,item])=>[key,item===null?undefined:String(item)]))}));
-    return {records,nextCursor:values.paging?.next?.after??null,completeness:'UNKNOWN'};
+    if(!values||!Array.isArray(values.results))throw new Error('HUBSPOT_SCHEMA_INVALID');
+    const cursor=values.paging?.next?.after??null;
+    if(cursor!==null&&(typeof cursor!=='string'||cursor.length>512))throw new Error('HUBSPOT_SCHEMA_INVALID');
+    const records=values.results.map(value=>{
+      if(!value||typeof value!=='object'||typeof value.id!=='string'||!value.id||value.id==='undefined'||value.id.length>256||!value.properties||typeof value.properties!=='object'||Array.isArray(value.properties))throw new Error('HUBSPOT_SCHEMA_INVALID');
+      return {id:value.id,properties:Object.fromEntries(Object.entries(value.properties).filter(([key])=>props.includes(key)).map(([key,item])=>[key,item===null?undefined:String(item)]))};
+    });
+    return {records,nextCursor:cursor,completeness:'UNKNOWN'};
   }
 }
 
@@ -59,14 +66,22 @@ export class MetaAdsReadConnector {
     this.baseUrl=validBase(baseUrl); this.api=new FacebookAdsApi(accessToken,'en_US',false);
   }
   async insights(dateStart:string,dateStop:string):Promise<MetaInsight[]> {
+    return (await this.readPage(dateStart,dateStop)).records;
+  }
+  /** Single bounded SDK page only; no claim about permanent history completeness. */
+  async readPage(dateStart:string,dateStop:string):Promise<MetaReadPage> {
     if (!/^\d{4}-\d{2}-\d{2}$/u.test(dateStart) || !/^\d{4}-\d{2}-\d{2}$/u.test(dateStop) || dateStart > dateStop) throw new Error('DATE_RANGE_INVALID');
-    let value:{data?:Array<Record<string,unknown>>};
+    let value:{data?:Array<Record<string,unknown>>;paging?:{cursors?:{after?:unknown}}};
     try{value=await this.api.call('GET',[this.accountId,'insights'],{fields:'account_id,account_currency,date_start,date_stop,impressions,spend',time_range:JSON.stringify({since:dateStart,until:dateStop})},{},false,this.baseUrl) as typeof value;}catch(error){return safeError(error);}
     if (!Array.isArray(value?.data)) throw new Error('META_SCHEMA_INVALID');
-    return value.data.map(row=>{
+    const cursor=value.paging?.cursors?.after??null;
+    if(cursor!==null&&(typeof cursor!=='string'||cursor.length>512))throw new Error('META_SCHEMA_INVALID');
+    const records=value.data.map(row=>{
+      if(!row||typeof row!=='object'||Array.isArray(row))throw new Error('META_SCHEMA_INVALID');
       if(String(row.account_id)!==this.accountId.slice(4)||row.account_currency!==this.currency)throw new Error('META_SCOPE_MISMATCH');
       if(!/^\d{4}-\d{2}-\d{2}$/u.test(String(row.date_start))||!/^\d{4}-\d{2}-\d{2}$/u.test(String(row.date_stop))||!Number.isSafeInteger(Number(row.impressions))||Number(row.impressions)<0||!Number.isFinite(Number(row.spend))||Number(row.spend)<0)throw new Error('META_SCHEMA_INVALID');
       return {accountId:this.accountId,dateStart:String(row.date_start),dateStop:String(row.date_stop),impressions:Number(row.impressions),spend:Number(row.spend),currency:this.currency,timezone:this.timezone};
     });
+    return {records,nextCursor:cursor,completeness:'UNKNOWN',timezoneSource:'caller-supplied'};
   }
 }
