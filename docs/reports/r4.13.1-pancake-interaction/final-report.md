@@ -1,6 +1,6 @@
 # R4.13.1 Pancake interaction — final report
 
-R4.13.1 closes several engineering gaps but does **not** pass Pancake mutation admission. It verifies two bounded official history pages for the exact authorized native conversation, diagnoses the earlier 302 as session-dependent rather than proof of denial, adds positional overlap planning and a single-send guard, and preserves synthetic-only North Start ingestion. The independent QA agent rejects P1/P3 because fresh Account→Page permission returned `success=false` and the alias page supplied no native bootstrap identity. No outbound message or conversation mutation was made.
+R4.13.1 closes several engineering gaps but does **not** pass Pancake mutation admission. It verifies two bounded official history pages for the exact authorized native conversation, narrows the earlier 302 investigation without claiming an exact cause, adds positional overlap planning and a single-send guard, and preserves synthetic-only North Start ingestion. The independent QA agent rejects P1/P3 because fresh Account→Page permission returned `success=false` and the alias page supplied no native bootstrap identity. No outbound message or conversation mutation was made.
 
 ## Exact Git and CI
 
@@ -34,7 +34,7 @@ The full baseline suite and a fresh exact-source regression are required for Gat
 | Gate | Status |
 |---|---|
 | P1 identity | **BLOCKED** — Account→Page permission failed; alias native binding absent |
-| P2 history readback | **AUTHORIZED PROVIDER TESTED** for two bounded pages; completeness UNKNOWN |
+| P2 history readback | **PARTIAL**: two bounded pages tested; order/overlap/empty-page/concurrent-insert behavior not verified; completeness UNKNOWN |
 | P3 controlled send | **BLOCKED**; zero outbound requests |
 | P4 conversation mutations | **BLOCKED / NOT TESTED** |
 | P5 North Start provider E2E | **NOT VERIFIED**; synthetic-only remains active |

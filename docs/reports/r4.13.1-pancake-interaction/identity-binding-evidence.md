@@ -15,6 +15,6 @@ The native contact ID and message IDs were compared only in process memory. Sani
 
 ## Proof decision
 
-P1 authenticated chain: **FAIL / BLOCKED**. P2 bounded history scope: **PASS**. P3 mutation-ready identity: **BLOCKED**. The permission response failure and missing alias bootstrap prevent a send. URL components, JWT shape, `success=true`, contact field presence and stable conversation reads are insufficient substitutes for Account→Page authority.
+Gate P1 authenticated chain: **BLOCKED**. Native history scope: **AUTHORIZED PROVIDER TESTED**. Gate P2 full requested pagination/order acceptance: **PARTIAL**, because timestamp order, overlap read, terminal empty page and concurrent change behavior were not tested. Gate P3 controlled send: **BLOCKED**. The permission response failure and missing alias bootstrap prevent a send. URL components, JWT shape, `success=true`, contact field presence and stable conversation reads are insufficient substitutes for Account→Page authority.
 
 Required next proof is a fresh provider-attested Account→Page response that matches the account principal and grants the required capability, or an equivalent target-scoped official binding. Do not enumerate Pages or generate/rotate tokens to obtain it.
