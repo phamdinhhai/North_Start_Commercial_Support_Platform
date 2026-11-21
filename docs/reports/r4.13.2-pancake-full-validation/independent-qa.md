@@ -29,3 +29,7 @@ After `npm ci --no-audit --no-fund`, Vitest completed 133 files (1,363 passed; 3
 ## Refreshed executor review
 
 Reviewed private executor SHA-256 `26FF8470AA178FCBD6989651C84E031080014306261C54C19A3EA151723904EF`; its accompanying Node tests passed **7/7**. Persisted terminal/inflight WAL state, schema and lock validation, exact account/history routes, content-type/body/business checks, and proof/readback scope checks are present. QA conditionally approves only the bounded read-only metadata/history plan. Send remains blocked pending final UTF-8 marker, entries/result ledger, and fresh identity evidence. No network was used.
+
+## Standalone read entrypoint review
+
+Reviewed exact SHA-256 `10B108A9E82037BB79842B143E9B602F72398478F5B482581F87717D573A53F6`. Source review found fixed metadata/history routes, account alias mapping, history page/conversation/contact validation, atomic fsync WAL, lock, persisted inflight/terminal fail-stop, and no send absent a separate approval artifact. An offline copied fixture with mocked `fetch` (credentials stubbed, no network) executed exactly three GETs: metadata and history offsets 0 and 30. It produced `READ_VERIFIED` with three accepted non-mutating entries and `completeness: UNKNOWN`. QA approves READ mode for this exact SHA only; send remains separately blocked.
