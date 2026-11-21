@@ -27,7 +27,7 @@ for(const workspace of ['qa-browser-a','qa-browser-b'])await db.query('INSERT IN
 const idp=await startIdp(idpPort,origin);
 const app=await NestFactory.create(AppModule,new FastifyAdapter({forceCloseConnections:true}),{logger:false});app.setGlobalPrefix('v1');await app.listen(appPort,'127.0.0.1');
 const members=app.get(MEMBERSHIP_STORE);
-for(const account of ['admin','viewer','foreign'])await members.grant({workspaceId:account==='foreign'?'qa-browser-b':'qa-browser-a',issuer,subject:account,baseRole:account==='viewer'?'viewer':'admin'});
+for(const account of ['admin','viewer','foreign'])try{await members.grant({workspaceId:account==='foreign'?'qa-browser-b':'qa-browser-a',issuer,subject:account,baseRole:account==='viewer'?'viewer':'admin'});}catch(error){if(error.code!=='MEMBERSHIP_EXISTS')throw error;}
 const control=createServer(async(req,res)=>{
  if(req.method!=='POST'||req.headers['x-qa-control']!==process.env.QA_CONTROL_SECRET){res.writeHead(403);return res.end();}
  if(req.url==='/expire-sessions'){for(const [key,value]of app.get(BROWSER_SESSION).sessions)app.get(BROWSER_SESSION).sessions.set(key,{...value,expires:0});return res.end('expired');}
@@ -37,3 +37,4 @@ const control=createServer(async(req,res)=>{
 async function close(){control.closeAllConnections();control.close();await app.close();await db.onModuleDestroy();idp.closeAllConnections();idp.close();process.exit(0);}
 process.on('SIGTERM',close);process.on('SIGINT',close);
 console.log(JSON.stringify({ready:true,fixtureOnly:true}));
+process.send?.({ready:true});
