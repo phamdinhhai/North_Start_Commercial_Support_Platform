@@ -1,5 +1,5 @@
 /**
- * Append-only state machine for outbound provider sends.
+ * Technical fixture state machine; not a canonical CommercialEvent, Lead state or Owner approval.
  * The ledger is authoritative for intent and outcomes; provider idempotency is a
  * separate capability and must never be inferred from a request key.
  */
@@ -9,7 +9,7 @@ export interface SendEvent { readonly requestId: string; readonly event: SendEve
 export interface SendRecord { readonly requestId: string; readonly state: SendState; readonly events: readonly SendEvent[]; }
 
 const transitions: Readonly<Record<SendState, readonly SendState[]>> = {
-  PLANNED: ['RESERVED'], RESERVED: ['DISPATCH_STARTED'], DISPATCH_STARTED: ['RESPONSE_CONFIRMED', 'PROVIDER_REJECTED', 'AMBIGUOUS', 'MANUAL_REVIEW_REQUIRED'],
+  PLANNED: ['RESERVED'], RESERVED: ['DISPATCH_STARTED','MANUAL_REVIEW_REQUIRED'], DISPATCH_STARTED: ['RESPONSE_CONFIRMED', 'PROVIDER_REJECTED', 'AMBIGUOUS', 'MANUAL_REVIEW_REQUIRED'],
   RESPONSE_CONFIRMED: ['CLOSED_WITH_EVIDENCE'], PROVIDER_REJECTED: ['CLOSED_WITH_EVIDENCE'], AMBIGUOUS: ['MANUAL_REVIEW_REQUIRED'], MANUAL_REVIEW_REQUIRED: ['CLOSED_WITH_EVIDENCE'], CLOSED_WITH_EVIDENCE: [],
 };
 const valid = (v: string) => typeof v === 'string' && v.length > 0 && v.length <= 256 && !/[\r\n]/u.test(v);
@@ -36,8 +36,8 @@ export class SendLedger {
   dispatchStarted(requestId: string): SendRecord { return this.append({requestId, event: 'DISPATCH_STARTED', at: now()}); }
   outcome(requestId: string, event: Extract<SendEventType, 'RESPONSE_CONFIRMED'|'PROVIDER_REJECTED'|'AMBIGUOUS'>, evidence?: string): SendRecord { return this.append({requestId, event, at: now(), evidence}); }
   recover(requestId: string): SendRecord {
-    const record = this.get(requestId); if (record.state !== 'DISPATCH_STARTED') return record;
-    return this.append({requestId, event: 'MANUAL_REVIEW_REQUIRED', at: now(), evidence: 'restart-after-dispatch; GET-only readback required'});
+    const record = this.get(requestId); if (record.state !== 'DISPATCH_STARTED' && record.state !== 'RESERVED') return record;
+    return this.append({requestId, event: 'MANUAL_REVIEW_REQUIRED', at: now(), evidence: 'interrupted-operation; separate review required before any provider request'});
   }
   get(requestId: string): SendRecord { const record = this.records.get(requestId); if (!record) throw new Error('SEND_NOT_FOUND'); return record; }
   snapshot(): readonly SendRecord[] { return [...this.records.values()]; }
