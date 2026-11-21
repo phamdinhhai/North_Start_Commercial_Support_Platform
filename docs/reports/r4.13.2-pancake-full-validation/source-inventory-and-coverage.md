@@ -14,8 +14,8 @@ Total files: **171**; capability records: **171**.
 
 | Path | Type | Bytes | SHA-256 | Lines | URL signals | Endpoint signals |
 |---|---|---:|---|---:|---:|---:|
-| `.env` | `<none>` | 616 | `397ac8454034f44e8e2f1bdd34919c435252d5be0988aca62a86cbc3f3d240f3` | 1 | 0 | 0 |
-| `cookies_pancake_account_for_testing.json` | `.json` | 2293 | `7ed0c85e28876b01cbba99c0c846df43b25f4f82fca733fbcbb7b8e0b220cc9a` | 66 | 0 | 0 |
+| `.env` | `<none>` | 616 | `REDACTED_SENSITIVE_FILE_HASH` | 1 | 0 | 0 |
+| `cookies_pancake_account_for_testing.json` | `.json` | 2293 | `REDACTED_SENSITIVE_FILE_HASH` | 66 | 0 | 0 |
 | `download.devtools` | `.devtools` | 22694635 | `8ca251a3805ca63a51e2d2286d8f69667c97b3a09db4e1b764f838d3d654ec1c` | 110175 | 8022 | 0 |
 | `pancake_api_document.yaml` | `.yaml` | 186487 | `798bd7be798c01832af3c50cbca66d07fa6020e3c9bade04b3a5d34c35699d73` | 5208 | 120 | 44 |
 | `Pancake_Docs_Theo_Chức_Năng/Bài viết.md` | `.md` | 9751 | `171101714b6294b1f42186fdba17066d2f42d21612ef847991af4b3a0acb849e` | 144 | 9 | 0 |
