@@ -30,7 +30,8 @@
     "full_vitest": {
       "passed": 1394,
       "skipped": 157,
-      "status": "PASS_WITH_ENVIRONMENT_SKIPS"
+      "status": "PASS_WITH_ENVIRONMENT_SKIPS",
+      "note": "Unconfigured preliminary invocation; superseded for acceptance by exact-source coverage 1551 passed, 0 skipped."
     },
     "postgres_integration": {
       "suites": 30,
@@ -85,11 +86,7 @@
     "p4": "NOT_TESTED",
     "p5": "NOT_VERIFIED"
   },
-  "notes": [
-    "No hosted CI result exists for this unpushed branch.",
-    "The ordinary full Vitest invocation skips integration files by environment; the dedicated isolated PostgreSQL gate ran all 30 suites and 157 tests with zero skips.",
-    "The offline journal is a fixture control and does not provide provider-side exactly-once delivery."
-  ],
+  "notes": ["No hosted CI result exists for this unpushed branch.", "The ordinary full Vitest invocation skips integration files by environment; the dedicated isolated PostgreSQL gate ran all 30 suites and 157 tests with zero skips.", "The offline journal is a fixture control and does not provide provider-side exactly-once delivery."],
   "recorded_at": "2026-11-21T15:33:09.876141+00:00",
   "git": {
     "source_sha": "5489ff9546d9e41790368e549d30a82f33b14023",
@@ -118,543 +115,49 @@
     "passed": 28,
     "failed_final": 0,
     "artifacts": [
-      {
-        "directory": "C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r4133-final-tjqDoH",
-        "manifest_sha256": "debf6bdcc3f4ec2939cb75b2bb6abfa7ea6ef15f00ca75e932b9ed4e646ba647"
-      },
-      {
-        "directory": "C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r4133-supplement-HACmzz",
-        "manifest_sha256": "7ebdd88475b7ef22127300b54ae814858f4d0e3a9cb5bfc9ce79715e7552c607"
-      },
-      {
-        "directory": "C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r4133-supplement2-HI4uZP",
-        "manifest_sha256": "db82efacaa2fd9920cff8e949dd946a532872bd0497deaf9d5cf4b422dcf71d2"
-      }
+      {"directory":"C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r4133-final-tjqDoH","manifest_sha256":"debf6bdcc3f4ec2939cb75b2bb6abfa7ea6ef15f00ca75e932b9ed4e646ba647"},
+      {"directory":"C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r4133-supplement-HACmzz","manifest_sha256":"7ebdd88475b7ef22127300b54ae814858f4d0e3a9cb5bfc9ce79715e7552c607"},
+      {"directory":"C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r4133-supplement2-HI4uZP","manifest_sha256":"db82efacaa2fd9920cff8e949dd946a532872bd0497deaf9d5cf4b422dcf71d2"}
     ],
     "results": [
-      {
-        "name": "pilot-research-safety",
-        "command": [
-          "C:\\Program Files\\nodejs\\node.exe",
-          "--test",
-          "scripts/pilot/safety.test.mjs",
-          "scripts/research/validate-observation.test.mjs"
-        ],
-        "exit_code": 0,
-        "seconds": 0,
-        "log": "C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r4133-final-tjqDoH\\pilot-research-safety.log",
-        "log_sha256": "e7dfce3a4e2b2c7da6e280a4d8634029b8d80bfbc080b1db6cdb607520234c02",
-        "result": "PASS"
-      },
-      {
-        "name": "typecheck",
-        "command": [
-          "C:\\Program Files\\nodejs\\node.exe",
-          "C:/Program Files/nodejs/node_modules/npm/bin/npm-cli.js",
-          "run",
-          "typecheck"
-        ],
-        "exit_code": 0,
-        "seconds": 7,
-        "log": "C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r4133-final-tjqDoH\\typecheck.log",
-        "log_sha256": "09b9a49f6769e2371ae5cfedc320845c173fe8c1356b69e516cecf3df4a23c7a",
-        "result": "PASS"
-      },
-      {
-        "name": "lint",
-        "command": [
-          "C:\\Program Files\\nodejs\\node.exe",
-          "C:/Program Files/nodejs/node_modules/npm/bin/npm-cli.js",
-          "run",
-          "lint"
-        ],
-        "exit_code": 0,
-        "seconds": 4,
-        "log": "C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r4133-final-tjqDoH\\lint.log",
-        "log_sha256": "ad43281dbc673e71b219a3b5f8bb1351cdbf31f778553f420b51e951f5ce0a46",
-        "result": "PASS"
-      },
-      {
-        "name": "architecture",
-        "command": [
-          "C:\\Program Files\\nodejs\\node.exe",
-          "C:/Program Files/nodejs/node_modules/npm/bin/npm-cli.js",
-          "run",
-          "architecture:check:strict"
-        ],
-        "exit_code": 0,
-        "seconds": 1,
-        "log": "C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r4133-final-tjqDoH\\architecture.log",
-        "log_sha256": "d77621a86ab9943075df85f3191a1cb7bb1df838338d769fe581a2ff13a87c50",
-        "result": "PASS"
-      },
-      {
-        "name": "registry",
-        "command": [
-          "C:\\Program Files\\nodejs\\node.exe",
-          "C:/Program Files/nodejs/node_modules/npm/bin/npm-cli.js",
-          "run",
-          "registry:validate"
-        ],
-        "exit_code": 0,
-        "seconds": 0,
-        "log": "C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r4133-final-tjqDoH\\registry.log",
-        "log_sha256": "9ba0b062f4ecd65b28129862b0b83b76af3684de213382c0d20ffa086be3ab85",
-        "result": "PASS"
-      },
-      {
-        "name": "integration-ci",
-        "command": [
-          "C:\\Program Files\\nodejs\\node.exe",
-          "C:/Program Files/nodejs/node_modules/npm/bin/npm-cli.js",
-          "run",
-          "test:integration:ci"
-        ],
-        "exit_code": 0,
-        "seconds": 73,
-        "log": "C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r4133-final-tjqDoH\\integration-ci.log",
-        "log_sha256": "3be025d86641657f22bbbda22778f4766b2a5225c0b74966f6c64e72ee99543a",
-        "result": "PASS"
-      },
-      {
-        "name": "coverage",
-        "command": [
-          "C:\\Program Files\\nodejs\\node.exe",
-          "C:/Program Files/nodejs/node_modules/npm/bin/npm-cli.js",
-          "run",
-          "test:cov",
-          "--",
-          "--no-file-parallelism"
-        ],
-        "exit_code": 0,
-        "seconds": 124,
-        "log": "C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r4133-final-tjqDoH\\coverage.log",
-        "log_sha256": "18f3e7d225be52d22aba68c503f4eb4bed27b23e88585d474d8eb3ee28559089",
-        "result": "PASS"
-      },
-      {
-        "name": "build",
-        "command": [
-          "C:\\Program Files\\nodejs\\node.exe",
-          "C:/Program Files/nodejs/node_modules/npm/bin/npm-cli.js",
-          "run",
-          "build"
-        ],
-        "exit_code": 0,
-        "seconds": 11,
-        "log": "C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r4133-final-tjqDoH\\build.log",
-        "log_sha256": "4bc24afec50c327cef250b332ffda2df07d6c6766d549f4ee6b27ea4aaaebc3a",
-        "result": "PASS"
-      },
-      {
-        "name": "http-e2e",
-        "command": [
-          "C:\\Program Files\\nodejs\\node.exe",
-          "C:/Program Files/nodejs/node_modules/npm/bin/npm-cli.js",
-          "run",
-          "test:e2e"
-        ],
-        "exit_code": 0,
-        "seconds": 8,
-        "log": "C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r4133-final-tjqDoH\\http-e2e.log",
-        "log_sha256": "210d91a66015a3dc0dcb510365335b5fc43833e7be27bed5217e390c065c2e1a",
-        "result": "PASS"
-      },
-      {
-        "name": "browser",
-        "command": [
-          "C:\\Program Files\\nodejs\\node.exe",
-          "C:/Program Files/nodejs/node_modules/npm/bin/npm-cli.js",
-          "run",
-          "test:browser"
-        ],
-        "exit_code": 0,
-        "seconds": 20,
-        "log": "C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r4133-final-tjqDoH\\browser.log",
-        "log_sha256": "7c04f043d64b346c53aedbd98583e626e0cd9474ab308a269797e388f1ef706f",
-        "result": "PASS"
-      },
-      {
-        "name": "component",
-        "command": [
-          "C:\\Program Files\\nodejs\\node.exe",
-          "node_modules/@playwright/test/cli.js",
-          "test",
-          "--config",
-          "playwright.operator-recovery.config.ts"
-        ],
-        "exit_code": 0,
-        "seconds": 6,
-        "log": "C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r4133-final-tjqDoH\\component.log",
-        "log_sha256": "376eb19d7a04567bfb9ab327e2027cfb9dc3f6d87629fb2763c5da5e7703b260",
-        "result": "PASS"
-      },
-      {
-        "name": "lifecycle-memory",
-        "command": [
-          "C:\\Program Files\\nodejs\\node.exe",
-          "node_modules/@playwright/test/cli.js",
-          "test",
-          "--config",
-          "playwright.lifecycle.config.ts"
-        ],
-        "exit_code": 0,
-        "seconds": 15,
-        "log": "C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r4133-final-tjqDoH\\lifecycle-memory.log",
-        "log_sha256": "512accf7b2c40958ce3a8942b7a90ec42ebcebbc062f548e70442c0793d3c752",
-        "result": "PASS"
-      },
-      {
-        "name": "oidc-ui",
-        "command": [
-          "C:\\Program Files\\nodejs\\node.exe",
-          "node_modules/@playwright/test/cli.js",
-          "test",
-          "--config",
-          "playwright.oidc.config.ts"
-        ],
-        "exit_code": 0,
-        "seconds": 27,
-        "log": "C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r4133-final-tjqDoH\\oidc-ui.log",
-        "log_sha256": "8dc9b8cc1a3d14067bd365a25e57aaffe77ad26a3296de418533592f30853799",
-        "result": "PASS"
-      },
-      {
-        "name": "companion",
-        "command": [
-          "C:\\Program Files\\nodejs\\node.exe",
-          "C:/Program Files/nodejs/node_modules/npm/bin/npm-cli.js",
-          "run",
-          "test:companion"
-        ],
-        "exit_code": 0,
-        "seconds": 5,
-        "log": "C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r4133-final-tjqDoH\\companion.log",
-        "log_sha256": "e641f14df592ca1b949a99ffec918a83d6130ece576a436bc83181c84c44696a",
-        "result": "PASS"
-      },
-      {
-        "name": "guardrails",
-        "command": [
-          "C:\\Program Files\\nodejs\\node.exe",
-          "--test",
-          "scripts/check-architecture.test.mjs",
-          "scripts/registry-validation.test.mjs",
-          "scripts/security-audit.test.mjs",
-          "scripts/backup-verify.test.mjs"
-        ],
-        "exit_code": 0,
-        "seconds": 1,
-        "log": "C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r4133-final-tjqDoH\\guardrails.log",
-        "log_sha256": "2c4d3dcf3f6b3f33cf1d6b7732c1f8dd03d637ca0fa866265a676cad0d4b9d9a",
-        "result": "PASS"
-      },
-      {
-        "name": "ail-research",
-        "command": [
-          "C:\\Program Files\\nodejs\\node.exe",
-          "C:/Program Files/nodejs/node_modules/npm/bin/npm-cli.js",
-          "run",
-          "test:ail:research"
-        ],
-        "exit_code": 0,
-        "seconds": 2,
-        "log": "C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r4133-final-tjqDoH\\ail-research.log",
-        "log_sha256": "de764a5cb00a27570359b1bed3f31aae0b5bc9ce0a69b9c7f22c0918de621eea",
-        "result": "PASS"
-      },
-      {
-        "name": "restore",
-        "command": [
-          "C:\\Program Files\\nodejs\\node.exe",
-          "scripts/restore-rehearsal.mjs"
-        ],
-        "exit_code": 0,
-        "seconds": 4,
-        "log": "C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r4133-final-tjqDoH\\restore.log",
-        "log_sha256": "e23e01d4ef5af654064c03cc360f323127cdad01539333a5d25f695fe785a552",
-        "result": "PASS"
-      },
-      {
-        "name": "audit",
-        "command": [
-          "C:\\Program Files\\nodejs\\node.exe",
-          "C:/Program Files/nodejs/node_modules/npm/bin/npm-cli.js",
-          "run",
-          "security:audit"
-        ],
-        "exit_code": 0,
-        "seconds": 7,
-        "log": "C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r4133-final-tjqDoH\\audit.log",
-        "log_sha256": "57e8b10012c380383e853728fe570a8746171dc602003a7af2be5786773033e3",
-        "result": "PASS"
-      },
-      {
-        "name": "source-ui",
-        "command": [
-          "C:\\Program Files\\nodejs\\node.exe",
-          "node_modules/@playwright/test/cli.js",
-          "test",
-          "--config",
-          "playwright.source-integration.config.ts"
-        ],
-        "exit_code": 0,
-        "seconds": 26,
-        "log": "C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r4133-supplement2-HI4uZP\\source-ui.log",
-        "log_sha256": "b0d1e37ad9702d57db2cc56acbd09d7f49efe06c3143216b9c32a1a1065309a4",
-        "result": "PASS"
-      },
-      {
-        "name": "r411-browser",
-        "command": [
-          "C:\\Program Files\\nodejs\\node.exe",
-          "node_modules/@playwright/test/cli.js",
-          "test",
-          "--config",
-          "playwright.r411.config.ts"
-        ],
-        "exit_code": 0,
-        "seconds": 29,
-        "log": "C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r4133-supplement2-HI4uZP\\r411-browser.log",
-        "log_sha256": "6d12a276c2bc5c518ce3736135ec5944bf6ef1c15e2c72f6489f6812bdd9fed7",
-        "result": "PASS"
-      },
-      {
-        "name": "r412-browser",
-        "command": [
-          "C:\\Program Files\\nodejs\\node.exe",
-          "node_modules/@playwright/test/cli.js",
-          "test",
-          "--config",
-          "playwright.r412.config.ts"
-        ],
-        "exit_code": 0,
-        "seconds": 30,
-        "log": "C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r4133-supplement2-HI4uZP\\r412-browser.log",
-        "log_sha256": "991da80010e3af7b4d0962b9f4ac7a25dc57cf995e0aceaba480dae643717d4e",
-        "result": "PASS"
-      },
-      {
-        "name": "packaging",
-        "command": [
-          "C:\\Program Files\\nodejs\\node.exe",
-          "--test",
-          "scripts/companion-package.test.mjs"
-        ],
-        "exit_code": 0,
-        "seconds": 1,
-        "log": "C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r4133-supplement2-HI4uZP\\packaging.log",
-        "log_sha256": "d66c2bf7731568c590ec17921492a03082c39e21e60912017c35e855df1617a9",
-        "result": "PASS"
-      },
-      {
-        "name": "benchmark",
-        "command": [
-          "C:\\Program Files\\nodejs\\node.exe",
-          "scripts/source-integration-benchmark.mjs"
-        ],
-        "exit_code": 0,
-        "seconds": 5,
-        "log": "C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r4133-supplement2-HI4uZP\\benchmark.log",
-        "log_sha256": "9278c3560999428eb3ba63e0967163f17d63a47e1527b835849cb64fa2243f88",
-        "result": "PASS"
-      },
-      {
-        "name": "sync-recovery",
-        "command": [
-          "C:\\Program Files\\nodejs\\node.exe",
-          "scripts/sync-recovery-rehearsal.mjs"
-        ],
-        "exit_code": 0,
-        "seconds": 12,
-        "log": "C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r4133-supplement2-HI4uZP\\sync-recovery.log",
-        "log_sha256": "c5af58a36b3e5aa2bd4c19622cc17909d03e0935fb2e01a3bc45b29d19a7fd96",
-        "result": "PASS"
-      },
-      {
-        "name": "sync-benchmark",
-        "command": [
-          "C:\\Program Files\\nodejs\\node.exe",
-          "scripts/sync-benchmark.mjs"
-        ],
-        "exit_code": 0,
-        "seconds": 3,
-        "log": "C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r4133-supplement2-HI4uZP\\sync-benchmark.log",
-        "log_sha256": "fad0c9d2c5a9f5991c4e25e4a705f6e9e096a6221cb9fb7b76258c50099a25af",
-        "result": "PASS"
-      },
-      {
-        "name": "forensics-focused",
-        "command": [
-          "C:\\Program Files\\nodejs\\node.exe",
-          "node_modules/vitest/vitest.mjs",
-          "run",
-          "src/domain/send-ledger/send-ledger.spec.ts",
-          "src/adapters/pancake-forensics/offline-http.spec.ts",
-          "src/application/send-forensics/run-offline-send.spec.ts",
-          "src/infra/send-forensics/offline-send-journal.spec.ts",
-          "src/infra/send-forensics/offline-send-crash.spec.ts"
-        ],
-        "exit_code": 0,
-        "seconds": 3,
-        "log": "C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r4133-supplement2-HI4uZP\\forensics-focused.log",
-        "log_sha256": "c023795c1c1d906ccc0758bcfbe911c080d15c60be47ab428361d270a8424ccb",
-        "result": "PASS"
-      },
-      {
-        "name": "forensics-boundary",
-        "command": [
-          "C:\\Program Files\\nodejs\\node.exe",
-          "--test",
-          "scripts/pancake-forensics/python-json-boundary.test.mjs",
-          "scripts/pancake-forensics/unicode-and-response-parser-tests.mjs"
-        ],
-        "exit_code": 0,
-        "seconds": 1,
-        "log": "C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r4133-supplement2-HI4uZP\\forensics-boundary.log",
-        "log_sha256": "f82734671a95f435cd30ed68ed58fa867ed809cf1e23984f3f81191567c25f66",
-        "result": "PASS"
-      },
-      {
-        "name": "pilot-launcher",
-        "command": [
-          "node",
-          "C:\\Users\\admin\\AppData\\Local\\Temp\\north-r411-pilot-verify.mjs"
-        ],
-        "environment_override": {
-          "TEMP": "D:\\AI-for-Enterprise\\r4133-validation-private",
-          "TMP": "D:\\AI-for-Enterprise\\r4133-validation-private"
-        },
-        "exit_code": 0,
-        "result": "PASS",
-        "log": "D:\\AI-for-Enterprise\\r4133-validation-private\\pilot-final-tool-receipt.json",
-        "log_sha256": "869b80041fd2a2e49b51bc8a4c7b48f223ca4d51fd5a6d24c20e0936dbf5a311",
-        "evidence_type": "ROOT_TOOL_RECEIPT"
-      }
+      {"name":"pilot-research-safety","command":["C:\\Program Files\\nodejs\\node.exe","--test","scripts/pilot/safety.test.mjs","scripts/research/validate-observation.test.mjs"],"exit_code":0,"seconds":0,"log":"C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r4133-final-tjqDoH\\pilot-research-safety.log","log_sha256":"e7dfce3a4e2b2c7da6e280a4d8634029b8d80bfbc080b1db6cdb607520234c02","result":"PASS"},
+      {"name":"typecheck","command":["C:\\Program Files\\nodejs\\node.exe","C:/Program Files/nodejs/node_modules/npm/bin/npm-cli.js","run","typecheck"],"exit_code":0,"seconds":7,"log":"C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r4133-final-tjqDoH\\typecheck.log","log_sha256":"09b9a49f6769e2371ae5cfedc320845c173fe8c1356b69e516cecf3df4a23c7a","result":"PASS"},
+      {"name":"lint","command":["C:\\Program Files\\nodejs\\node.exe","C:/Program Files/nodejs/node_modules/npm/bin/npm-cli.js","run","lint"],"exit_code":0,"seconds":4,"log":"C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r4133-final-tjqDoH\\lint.log","log_sha256":"ad43281dbc673e71b219a3b5f8bb1351cdbf31f778553f420b51e951f5ce0a46","result":"PASS"},
+      {"name":"architecture","command":["C:\\Program Files\\nodejs\\node.exe","C:/Program Files/nodejs/node_modules/npm/bin/npm-cli.js","run","architecture:check:strict"],"exit_code":0,"seconds":1,"log":"C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r4133-final-tjqDoH\\architecture.log","log_sha256":"d77621a86ab9943075df85f3191a1cb7bb1df838338d769fe581a2ff13a87c50","result":"PASS"},
+      {"name":"registry","command":["C:\\Program Files\\nodejs\\node.exe","C:/Program Files/nodejs/node_modules/npm/bin/npm-cli.js","run","registry:validate"],"exit_code":0,"seconds":0,"log":"C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r4133-final-tjqDoH\\registry.log","log_sha256":"9ba0b062f4ecd65b28129862b0b83b76af3684de213382c0d20ffa086be3ab85","result":"PASS"},
+      {"name":"integration-ci","command":["C:\\Program Files\\nodejs\\node.exe","C:/Program Files/nodejs/node_modules/npm/bin/npm-cli.js","run","test:integration:ci"],"exit_code":0,"seconds":73,"log":"C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r4133-final-tjqDoH\\integration-ci.log","log_sha256":"3be025d86641657f22bbbda22778f4766b2a5225c0b74966f6c64e72ee99543a","result":"PASS"},
+      {"name":"coverage","command":["C:\\Program Files\\nodejs\\node.exe","C:/Program Files/nodejs/node_modules/npm/bin/npm-cli.js","run","test:cov","--","--no-file-parallelism"],"exit_code":0,"seconds":124,"log":"C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r4133-final-tjqDoH\\coverage.log","log_sha256":"18f3e7d225be52d22aba68c503f4eb4bed27b23e88585d474d8eb3ee28559089","result":"PASS"},
+      {"name":"build","command":["C:\\Program Files\\nodejs\\node.exe","C:/Program Files/nodejs/node_modules/npm/bin/npm-cli.js","run","build"],"exit_code":0,"seconds":11,"log":"C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r4133-final-tjqDoH\\build.log","log_sha256":"4bc24afec50c327cef250b332ffda2df07d6c6766d549f4ee6b27ea4aaaebc3a","result":"PASS"},
+      {"name":"http-e2e","command":["C:\\Program Files\\nodejs\\node.exe","C:/Program Files/nodejs/node_modules/npm/bin/npm-cli.js","run","test:e2e"],"exit_code":0,"seconds":8,"log":"C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r4133-final-tjqDoH\\http-e2e.log","log_sha256":"210d91a66015a3dc0dcb510365335b5fc43833e7be27bed5217e390c065c2e1a","result":"PASS"},
+      {"name":"browser","command":["C:\\Program Files\\nodejs\\node.exe","C:/Program Files/nodejs/node_modules/npm/bin/npm-cli.js","run","test:browser"],"exit_code":0,"seconds":20,"log":"C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r4133-final-tjqDoH\\browser.log","log_sha256":"7c04f043d64b346c53aedbd98583e626e0cd9474ab308a269797e388f1ef706f","result":"PASS"},
+      {"name":"component","command":["C:\\Program Files\\nodejs\\node.exe","node_modules/@playwright/test/cli.js","test","--config","playwright.operator-recovery.config.ts"],"exit_code":0,"seconds":6,"log":"C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r4133-final-tjqDoH\\component.log","log_sha256":"376eb19d7a04567bfb9ab327e2027cfb9dc3f6d87629fb2763c5da5e7703b260","result":"PASS"},
+      {"name":"lifecycle-memory","command":["C:\\Program Files\\nodejs\\node.exe","node_modules/@playwright/test/cli.js","test","--config","playwright.lifecycle.config.ts"],"exit_code":0,"seconds":15,"log":"C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r4133-final-tjqDoH\\lifecycle-memory.log","log_sha256":"512accf7b2c40958ce3a8942b7a90ec42ebcebbc062f548e70442c0793d3c752","result":"PASS"},
+      {"name":"oidc-ui","command":["C:\\Program Files\\nodejs\\node.exe","node_modules/@playwright/test/cli.js","test","--config","playwright.oidc.config.ts"],"exit_code":0,"seconds":27,"log":"C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r4133-final-tjqDoH\\oidc-ui.log","log_sha256":"8dc9b8cc1a3d14067bd365a25e57aaffe77ad26a3296de418533592f30853799","result":"PASS"},
+      {"name":"companion","command":["C:\\Program Files\\nodejs\\node.exe","C:/Program Files/nodejs/node_modules/npm/bin/npm-cli.js","run","test:companion"],"exit_code":0,"seconds":5,"log":"C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r4133-final-tjqDoH\\companion.log","log_sha256":"e641f14df592ca1b949a99ffec918a83d6130ece576a436bc83181c84c44696a","result":"PASS"},
+      {"name":"guardrails","command":["C:\\Program Files\\nodejs\\node.exe","--test","scripts/check-architecture.test.mjs","scripts/registry-validation.test.mjs","scripts/security-audit.test.mjs","scripts/backup-verify.test.mjs"],"exit_code":0,"seconds":1,"log":"C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r4133-final-tjqDoH\\guardrails.log","log_sha256":"2c4d3dcf3f6b3f33cf1d6b7732c1f8dd03d637ca0fa866265a676cad0d4b9d9a","result":"PASS"},
+      {"name":"ail-research","command":["C:\\Program Files\\nodejs\\node.exe","C:/Program Files/nodejs/node_modules/npm/bin/npm-cli.js","run","test:ail:research"],"exit_code":0,"seconds":2,"log":"C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r4133-final-tjqDoH\\ail-research.log","log_sha256":"de764a5cb00a27570359b1bed3f31aae0b5bc9ce0a69b9c7f22c0918de621eea","result":"PASS"},
+      {"name":"restore","command":["C:\\Program Files\\nodejs\\node.exe","scripts/restore-rehearsal.mjs"],"exit_code":0,"seconds":4,"log":"C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r4133-final-tjqDoH\\restore.log","log_sha256":"e23e01d4ef5af654064c03cc360f323127cdad01539333a5d25f695fe785a552","result":"PASS"},
+      {"name":"audit","command":["C:\\Program Files\\nodejs\\node.exe","C:/Program Files/nodejs/node_modules/npm/bin/npm-cli.js","run","security:audit"],"exit_code":0,"seconds":7,"log":"C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r4133-final-tjqDoH\\audit.log","log_sha256":"57e8b10012c380383e853728fe570a8746171dc602003a7af2be5786773033e3","result":"PASS"},
+      {"name":"source-ui","command":["C:\\Program Files\\nodejs\\node.exe","node_modules/@playwright/test/cli.js","test","--config","playwright.source-integration.config.ts"],"exit_code":0,"seconds":26,"log":"C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r4133-supplement2-HI4uZP\\source-ui.log","log_sha256":"b0d1e37ad9702d57db2cc56acbd09d7f49efe06c3143216b9c32a1a1065309a4","result":"PASS"},
+      {"name":"r411-browser","command":["C:\\Program Files\\nodejs\\node.exe","node_modules/@playwright/test/cli.js","test","--config","playwright.r411.config.ts"],"exit_code":0,"seconds":29,"log":"C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r4133-supplement2-HI4uZP\\r411-browser.log","log_sha256":"6d12a276c2bc5c518ce3736135ec5944bf6ef1c15e2c72f6489f6812bdd9fed7","result":"PASS"},
+      {"name":"r412-browser","command":["C:\\Program Files\\nodejs\\node.exe","node_modules/@playwright/test/cli.js","test","--config","playwright.r412.config.ts"],"exit_code":0,"seconds":30,"log":"C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r4133-supplement2-HI4uZP\\r412-browser.log","log_sha256":"991da80010e3af7b4d0962b9f4ac7a25dc57cf995e0aceaba480dae643717d4e","result":"PASS"},
+      {"name":"packaging","command":["C:\\Program Files\\nodejs\\node.exe","--test","scripts/companion-package.test.mjs"],"exit_code":0,"seconds":1,"log":"C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r4133-supplement2-HI4uZP\\packaging.log","log_sha256":"d66c2bf7731568c590ec17921492a03082c39e21e60912017c35e855df1617a9","result":"PASS"},
+      {"name":"benchmark","command":["C:\\Program Files\\nodejs\\node.exe","scripts/source-integration-benchmark.mjs"],"exit_code":0,"seconds":5,"log":"C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r4133-supplement2-HI4uZP\\benchmark.log","log_sha256":"9278c3560999428eb3ba63e0967163f17d63a47e1527b835849cb64fa2243f88","result":"PASS"},
+      {"name":"sync-recovery","command":["C:\\Program Files\\nodejs\\node.exe","scripts/sync-recovery-rehearsal.mjs"],"exit_code":0,"seconds":12,"log":"C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r4133-supplement2-HI4uZP\\sync-recovery.log","log_sha256":"c5af58a36b3e5aa2bd4c19622cc17909d03e0935fb2e01a3bc45b29d19a7fd96","result":"PASS"},
+      {"name":"sync-benchmark","command":["C:\\Program Files\\nodejs\\node.exe","scripts/sync-benchmark.mjs"],"exit_code":0,"seconds":3,"log":"C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r4133-supplement2-HI4uZP\\sync-benchmark.log","log_sha256":"fad0c9d2c5a9f5991c4e25e4a705f6e9e096a6221cb9fb7b76258c50099a25af","result":"PASS"},
+      {"name":"forensics-focused","command":["C:\\Program Files\\nodejs\\node.exe","node_modules/vitest/vitest.mjs","run","src/domain/send-ledger/send-ledger.spec.ts","src/adapters/pancake-forensics/offline-http.spec.ts","src/application/send-forensics/run-offline-send.spec.ts","src/infra/send-forensics/offline-send-journal.spec.ts","src/infra/send-forensics/offline-send-crash.spec.ts"],"exit_code":0,"seconds":3,"log":"C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r4133-supplement2-HI4uZP\\forensics-focused.log","log_sha256":"c023795c1c1d906ccc0758bcfbe911c080d15c60be47ab428361d270a8424ccb","result":"PASS"},
+      {"name":"forensics-boundary","command":["C:\\Program Files\\nodejs\\node.exe","--test","scripts/pancake-forensics/python-json-boundary.test.mjs","scripts/pancake-forensics/unicode-and-response-parser-tests.mjs"],"exit_code":0,"seconds":1,"log":"C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r4133-supplement2-HI4uZP\\forensics-boundary.log","log_sha256":"f82734671a95f435cd30ed68ed58fa867ed809cf1e23984f3f81191567c25f66","result":"PASS"},
+      {"name":"pilot-launcher","command":["node","C:\\Users\\admin\\AppData\\Local\\Temp\\north-r411-pilot-verify.mjs"],"environment_override":{"TEMP":"D:\\AI-for-Enterprise\\r4133-validation-private","TMP":"D:\\AI-for-Enterprise\\r4133-validation-private"},"exit_code":0,"result":"PASS","log":"D:\\AI-for-Enterprise\\r4133-validation-private\\pilot-final-tool-receipt.json","log_sha256":"869b80041fd2a2e49b51bc8a4c7b48f223ca4d51fd5a6d24c20e0936dbf5a311","evidence_type":"ROOT_TOOL_RECEIPT"}
     ]
   },
   "failure_history": [
-    {
-      "run": "supplement-initial",
-      "result": {
-        "name": "source-ui",
-        "command": [
-          "C:\\Program Files\\nodejs\\node.exe",
-          "node_modules/@playwright/test/cli.js",
-          "test",
-          "--config",
-          "playwright.source-integration.config.ts"
-        ],
-        "exit_code": 1,
-        "seconds": 14,
-        "log": "C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r4133-supplement-HACmzz\\source-ui.log",
-        "log_sha256": "b0e93ccf69494474d091d43eae2cee6d9d76c56aad838cc92185102fe15fdacb",
-        "result": "FAIL"
-      },
-      "cause": "Browser database names did not satisfy qa_browser_* guard"
-    },
-    {
-      "run": "supplement-initial",
-      "result": {
-        "name": "r411-browser",
-        "command": [
-          "C:\\Program Files\\nodejs\\node.exe",
-          "node_modules/@playwright/test/cli.js",
-          "test",
-          "--config",
-          "playwright.r411.config.ts"
-        ],
-        "exit_code": 1,
-        "seconds": 13,
-        "log": "C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r4133-supplement-HACmzz\\r411-browser.log",
-        "log_sha256": "b607f9b52113736f4f97da71679e9c559085c6d5bf168977428865ff0b98544f",
-        "result": "FAIL"
-      },
-      "cause": "Browser database names did not satisfy qa_browser_* guard"
-    },
-    {
-      "run": "supplement-initial",
-      "result": {
-        "name": "r412-browser",
-        "command": [
-          "C:\\Program Files\\nodejs\\node.exe",
-          "node_modules/@playwright/test/cli.js",
-          "test",
-          "--config",
-          "playwright.r412.config.ts"
-        ],
-        "exit_code": 1,
-        "seconds": 14,
-        "log": "C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r4133-supplement-HACmzz\\r412-browser.log",
-        "log_sha256": "faaa88da1da6c3e582e378792a1424fd03011bc51decd642b798788c1c2d3058",
-        "result": "FAIL"
-      },
-      "cause": "Browser database names did not satisfy qa_browser_* guard"
-    },
-    {
-      "run": "supplement-initial",
-      "result": {
-        "name": "pilot-launcher",
-        "command": [
-          "C:\\Program Files\\nodejs\\node.exe",
-          "C:/Users/admin/AppData/Local/Temp/north-r411-pilot-verify.mjs"
-        ],
-        "exit_code": 1,
-        "seconds": 61,
-        "log": "C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r4133-supplement-HACmzz\\pilot-launcher.log",
-        "log_sha256": "6a87bb095c5879e8244f5c34ffa05db6eaba744f7ae47c81c851016c1962c417",
-        "result": "FAIL"
-      },
-      "cause": "Concurrent build/output and disk exhaustion context; rerun sequentially on same source"
-    },
-    {
-      "run": "supplement-initial",
-      "result": {
-        "name": "sync-recovery",
-        "command": [
-          "C:\\Program Files\\nodejs\\node.exe",
-          "scripts/sync-recovery-rehearsal.mjs"
-        ],
-        "exit_code": 1,
-        "seconds": 1,
-        "log": "C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r4133-supplement-HACmzz\\sync-recovery.log",
-        "log_sha256": "8c56d7b92c5257bdd370825e0c1845c9035bb15ce363fcf9c3a9c5c476df73a0",
-        "result": "FAIL"
-      },
-      "cause": "Concurrent build/output and disk exhaustion context; rerun sequentially on same source"
-    },
-    {
-      "run": "supplement-initial",
-      "result": {
-        "name": "sync-benchmark",
-        "command": [
-          "C:\\Program Files\\nodejs\\node.exe",
-          "scripts/sync-benchmark.mjs"
-        ],
-        "exit_code": 1,
-        "seconds": 0,
-        "log": "C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r4133-supplement-HACmzz\\sync-benchmark.log",
-        "log_sha256": "24f7b6a53c0152fa09773af74555b2fd0eabfe6150cc2fe007af34d119680075",
-        "result": "FAIL"
-      },
-      "cause": "Concurrent build/output and disk exhaustion context; rerun sequentially on same source"
-    },
-    {
-      "run": "supplement-corrected-database-names",
-      "result": {
-        "name": "pilot-launcher",
-        "command": [
-          "C:\\Program Files\\nodejs\\node.exe",
-          "C:/Users/admin/AppData/Local/Temp/north-r411-pilot-verify.mjs"
-        ],
-        "exit_code": 1,
-        "seconds": 25,
-        "log": "C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r4133-supplement2-HI4uZP\\pilot-launcher.log",
-        "log_sha256": "dd1ba872fb857eb48dbf6f57f66446ec22122665c2eb15daba4a750f2c651fc9",
-        "result": "FAIL"
-      },
-      "cause": "PostgreSQL PANIC: no space left on C drive, followed by recovery mode; final pilot rerun uses dedicated D TEMP/TMP"
-    }
+    {"run":"supplement-initial","result":{"name":"source-ui","command":["C:\\Program Files\\nodejs\\node.exe","node_modules/@playwright/test/cli.js","test","--config","playwright.source-integration.config.ts"],"exit_code":1,"seconds":14,"log":"C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r4133-supplement-HACmzz\\source-ui.log","log_sha256":"b0e93ccf69494474d091d43eae2cee6d9d76c56aad838cc92185102fe15fdacb","result":"FAIL"},"cause":"Browser database names did not satisfy qa_browser_* guard"},
+    {"run":"supplement-initial","result":{"name":"r411-browser","command":["C:\\Program Files\\nodejs\\node.exe","node_modules/@playwright/test/cli.js","test","--config","playwright.r411.config.ts"],"exit_code":1,"seconds":13,"log":"C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r4133-supplement-HACmzz\\r411-browser.log","log_sha256":"b607f9b52113736f4f97da71679e9c559085c6d5bf168977428865ff0b98544f","result":"FAIL"},"cause":"Browser database names did not satisfy qa_browser_* guard"},
+    {"run":"supplement-initial","result":{"name":"r412-browser","command":["C:\\Program Files\\nodejs\\node.exe","node_modules/@playwright/test/cli.js","test","--config","playwright.r412.config.ts"],"exit_code":1,"seconds":14,"log":"C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r4133-supplement-HACmzz\\r412-browser.log","log_sha256":"faaa88da1da6c3e582e378792a1424fd03011bc51decd642b798788c1c2d3058","result":"FAIL"},"cause":"Browser database names did not satisfy qa_browser_* guard"},
+    {"run":"supplement-initial","result":{"name":"pilot-launcher","command":["C:\\Program Files\\nodejs\\node.exe","C:/Users/admin/AppData/Local/Temp/north-r411-pilot-verify.mjs"],"exit_code":1,"seconds":61,"log":"C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r4133-supplement-HACmzz\\pilot-launcher.log","log_sha256":"6a87bb095c5879e8244f5c34ffa05db6eaba744f7ae47c81c851016c1962c417","result":"FAIL"},"cause":"Concurrent build/output and disk exhaustion context; rerun sequentially on same source"},
+    {"run":"supplement-initial","result":{"name":"sync-recovery","command":["C:\\Program Files\\nodejs\\node.exe","scripts/sync-recovery-rehearsal.mjs"],"exit_code":1,"seconds":1,"log":"C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r4133-supplement-HACmzz\\sync-recovery.log","log_sha256":"8c56d7b92c5257bdd370825e0c1845c9035bb15ce363fcf9c3a9c5c476df73a0","result":"FAIL"},"cause":"Concurrent build/output and disk exhaustion context; rerun sequentially on same source"},
+    {"run":"supplement-initial","result":{"name":"sync-benchmark","command":["C:\\Program Files\\nodejs\\node.exe","scripts/sync-benchmark.mjs"],"exit_code":1,"seconds":0,"log":"C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r4133-supplement-HACmzz\\sync-benchmark.log","log_sha256":"24f7b6a53c0152fa09773af74555b2fd0eabfe6150cc2fe007af34d119680075","result":"FAIL"},"cause":"Concurrent build/output and disk exhaustion context; rerun sequentially on same source"},
+    {"run":"supplement-corrected-database-names","result":{"name":"pilot-launcher","command":["C:\\Program Files\\nodejs\\node.exe","C:/Users/admin/AppData/Local/Temp/north-r411-pilot-verify.mjs"],"exit_code":1,"seconds":25,"log":"C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r4133-supplement2-HI4uZP\\pilot-launcher.log","log_sha256":"dd1ba872fb857eb48dbf6f57f66446ec22122665c2eb15daba4a750f2c651fc9","result":"FAIL"},"cause":"PostgreSQL PANIC: no space left on C drive, followed by recovery mode; final pilot rerun uses dedicated D TEMP/TMP"}
   ],
   "incident_evidence": {
     "owner_verdict_append": "C:\\Users\\admin\\AppData\\Local\\Temp\\north-r4132-control\\owner-manual-review-r4133.jsonl",
@@ -706,5 +209,18 @@
     "supplement_manifest_lanes": 10,
     "final_pilot": "Root-observed; QA inspected private PostgreSQL ready/fast-stop cycles, did not rerun pilot",
     "provider_acceptance": "NOT_ESTABLISHED"
+  },
+  "secret_scan": {
+    "result": "PASS",
+    "changed_and_untracked_files": 30,
+    "files_and_streams_scanned": 1849,
+    "validation_log_files": 46,
+    "credential_values_compared_in_memory": 7,
+    "changed_staged_untracked_generated_new_history_scanned": true,
+    "full_reachable_history_exact_credential_scan": true,
+    "generic_pattern_manual_allowlist": ["Existing fabricated JWT negative-test literal with subject 1 and signature sig"],
+    "findings": [],
+    "result_sha256": "e459d1c1e23c7f98bc31133ec00612b94be5e2b3f796064e7c9d4e3afada7c86",
+    "manual_review": "Credential-keyword hits reviewed as route placeholders and fabricated negative-test inputs; no actual tokens/customer bodies in changed files."
   }
 }
