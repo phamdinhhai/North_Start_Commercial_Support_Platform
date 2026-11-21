@@ -45,6 +45,13 @@ export class PgIntegrationStore implements IntegrationStore {
             const valid = await tx.query('SELECT id FROM integration_enrollment WHERE id=$1 AND revoked_at IS NULL AND expires_at>clock_timestamp() AND scope=$2::jsonb AND expires_at=$3::timestamptz', [e.id, JSON.stringify(e.scope), e.expiresAt]);
             if (!row || !valid.rows.length)
                 throw new IntegrationError('ENROLLMENT_INACTIVE', 401);
+            if(e.scope.target) {
+                const active=await tx.query(`SELECT m.id FROM memberships m JOIN platform_user u ON u.id=m.user_id
+                  WHERE m.workspace_id=$1 AND m.status='active' AND m.revoked_at IS NULL AND m.base_role='admin' AND u.status='active'
+                  AND m.user_id::text=(SELECT actor FROM audit_record WHERE entity_type='integration-enrollment' AND entity_id=$2
+                    AND event_type='integration.enrollment.issued' ORDER BY timestamp LIMIT 1) FOR SHARE OF m,u`,[e.scope.workspaceId,e.id]);
+                if(!active.rows.length)throw new IntegrationError('ENROLLMENT_PRINCIPAL_INACTIVE',401);
+            }
             const existing = await tx.query<{
                 id: string;
                 fingerprint: string;

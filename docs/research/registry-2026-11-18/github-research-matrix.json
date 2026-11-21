@@ -20,8 +20,13 @@
     "Forks/community bridges are never official SDKs; official_provider_repo=true only for repositories owned by the provider organisation."
   ],
   "approved_dependencies": {
-    "source": "product/package.json (this branch)",
+    "source": "product/package.json (R4.14 branch)",
     "packages": [
+      {
+        "name": "@hubspot/api-client",
+        "range": "14.1.3",
+        "scope": "dependency"
+      },
       {
         "name": "@nestjs/cli",
         "range": "^11.0.0",
@@ -91,6 +96,11 @@
         "name": "eslint",
         "range": "9.39.1",
         "scope": "devDependency"
+      },
+      {
+        "name": "facebook-nodejs-business-sdk",
+        "range": "27.0.0",
+        "scope": "dependency"
       },
       {
         "name": "jose",

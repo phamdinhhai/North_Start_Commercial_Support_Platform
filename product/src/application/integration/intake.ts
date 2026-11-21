@@ -4,6 +4,7 @@ import type { Enrollment, EnrollmentActor, IntegrationScope, IntegrationStore } 
 import { fail, isId, isObject, loadConfig, type IntakeConfig } from './config';
 import { CAPABILITY, sign, verify } from './token';
 import { validateUpload } from './upload-validation';
+import { validateHybridUpload } from './hybrid-upload';
 export { validateUpload } from './upload-validation';
 
 const TTL_MS = 900000;
@@ -111,10 +112,19 @@ export class IntegrationIntake {
         return { revoked: true };
     }
 
-    async append(auth: unknown, body: unknown) {
+    async append(auth: unknown, body: unknown, expectedEnrollmentId?: string) {
         const claim = verify(auth, loadConfig(this.env));
+        if(claim.scope.target)return fail('HYBRID_ROUTE_REQUIRED',403);
+        if (expectedEnrollmentId !== undefined && (typeof expectedEnrollmentId !== 'string' || claim.id !== expectedEnrollmentId)) return fail('ENROLLMENT_MISMATCH', 401);
         const upload = validateUpload(body, claim.scope);
         const fingerprint = createHash('sha256').update(JSON.stringify(upload)).digest('hex');
         return this.store.append({ id: claim.id, scope: claim.scope, expiresAt: claim.expiresAt }, upload, fingerprint);
+    }
+    async appendHybrid(auth:unknown,body:unknown) {
+        if(this.env.HYBRID_FIXTURE_ENABLED!=='true')return fail('HYBRID_DISABLED',404);
+        const claim=verify(auth,loadConfig(this.env));
+        const upload=validateHybridUpload(body,claim);
+        const fingerprint=createHash('sha256').update(JSON.stringify(upload)).digest('hex');
+        return this.store.append({id:claim.id,scope:claim.scope,expiresAt:claim.expiresAt},upload,fingerprint);
     }
 }

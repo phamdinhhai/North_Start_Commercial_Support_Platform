@@ -13,7 +13,7 @@ export function appendContext(state, context, at = new Date().toISOString(), cap
     native: {...context.native}, method: 'browser-dom', authenticity: 'CLIENT_OBSERVED', completeness: 'UNKNOWN', observedAt: at,
     sourceRevision: 'north-start-hybrid-browser/0.1.0'};
   const appended = appendRecord(state,observation,at);
-  return {...appended.state, ...(appended.stop ? {session:null,lastStop:'outbox-full'} : {})};
+  return {...appended.state, session: appended.stop ? null : {...state.session, lastContext: context}, ...(appended.stop ? {lastStop:'outbox-full'} : {})};
 }
 export function reserve(state, at = Date.now()) {
   if (!state.enrollment?.token || ['blocked','unauthorized','expired','disconnected'].includes(state.delivery)) throw new Error('ENROLLMENT_REQUIRED');

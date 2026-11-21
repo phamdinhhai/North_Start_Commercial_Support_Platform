@@ -9,7 +9,7 @@ export async function packageHybrid(outDir=resolve(product,'dist/hybrid-browser-
  const manifest=JSON.parse(await readFile(resolve(source,'hybrid-browser-runtime/manifest.json'),'utf8'));
  if(manifest.manifest_version!==3||JSON.stringify(manifest.permissions)!==JSON.stringify(['activeTab','scripting','storage'])||manifest.host_permissions?.length)throw Error('UNREVIEWED_PERMISSION');
  manifest.background.service_worker='hybrid-browser-runtime/worker.mjs';manifest.action.default_popup='hybrid-browser-runtime/popup.html';
- if(fixture)manifest.optional_host_permissions.push('http://127.0.0.1/*');
+ if(fixture){manifest.optional_host_permissions.push('http://127.0.0.1/*');manifest.host_permissions=['http://127.0.0.1/*'];}
  const files=new Map([['manifest.json',Buffer.from(JSON.stringify(manifest,null,2)+'\n')]]);
  const pending=[manifest.background.service_worker,manifest.action.default_popup,'hybrid-browser-runtime/dom-observer.js'];
  while(pending.length){const name=posix.normalize(pending.pop());if(files.has(name))continue;

@@ -28,8 +28,8 @@ export interface IntakeConfig {
 }
 
 /** Canonical key order keeps signed claims and comparisons stable. */
-export function canonicalScope(s: Pick<IntegrationScope, 'workspaceId' | 'connectionId' | 'accountId' | 'pageId'>): IntegrationScope {
-    return { workspaceId: s.workspaceId, connectionId: s.connectionId, accountId: s.accountId, providerSurface: 'pancake-conversations', pageId: s.pageId };
+export function canonicalScope(s: Pick<IntegrationScope, 'workspaceId' | 'connectionId' | 'accountId' | 'pageId'> & Partial<Pick<IntegrationScope, 'providerSurface' | 'target'>>): IntegrationScope {
+    return { workspaceId: s.workspaceId, connectionId: s.connectionId, accountId: s.accountId, providerSurface: s.providerSurface ?? 'pancake-conversations', pageId: s.pageId, ...(s.target ? { target: { ...s.target } } : {}) };
 }
 
 function json(raw: string): unknown {
@@ -74,8 +74,11 @@ function allowlist(env: NodeJS.ProcessEnv): IntegrationScope[] {
         : [{ workspaceId: env.AIL_WORKSPACE_ID, connectionId: env.AIL_CONNECTION_ID, accountId: env.AIL_ACCOUNT_ID, pageId: env.AIL_PAGE_ID }];
     if (!entries.length || entries.length > MAX_SCOPES) return misconfigured();
     const scopes = entries.map((e) => {
-        if (!isObject(e) || Object.keys(e).sort().join() !== 'accountId,connectionId,pageId,workspaceId') return misconfigured();
+        const keys = isObject(e) ? Object.keys(e).sort().join() : '';
+        if (!isObject(e) || !['accountId,connectionId,pageId,workspaceId', 'accountId,connectionId,pageId,providerSurface,workspaceId', 'accountId,connectionId,pageId,providerSurface,target,workspaceId', 'accountId,connectionId,pageId,target,workspaceId'].includes(keys)) return misconfigured();
         if (![e.workspaceId, e.connectionId, e.accountId, e.pageId].every(isId)) return misconfigured();
+        if (e.providerSurface !== undefined && !['pancake-conversations', 'meta-ads', 'hubspot-crm'].includes(e.providerSurface as string)) return misconfigured();
+        if (e.target !== undefined && (!isObject(e.target) || Object.keys(e.target).some(k => !['pageId', 'conversationId', 'campaignId', 'adsetId', 'adId', 'contactId', 'companyId', 'dealId'].includes(k)) || Object.values(e.target).some(v => !isId(v)))) return misconfigured();
         return canonicalScope(e as unknown as IntegrationScope);
     });
     if (new Set(scopes.map((s) => JSON.stringify(s))).size !== scopes.length) return misconfigured();

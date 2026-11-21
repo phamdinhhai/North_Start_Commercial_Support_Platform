@@ -1,0 +1,72 @@
+﻿{
+    "policies":  {
+                     "dependencyAdoption":  "requires pinned lockfile, license notice, SBOM and tests",
+                     "providerMutation":  "DISABLED",
+                     "sourceCopy":  "NONE",
+                     "realDataAdmission":  "DISABLED"
+                 },
+    "evaluatedSources":  [
+                             {
+                                 "commit":  "c77cd7bcc4b08355b94f9d745f3e20d72b510782",
+                                 "repository":  "wxt-dev/wxt",
+                                 "paths":  [
+                                               "package.json",
+                                               "packages/wxt"
+                                           ],
+                                 "decision":  "REFERENCE_ONLY",
+                                 "reason":  "WXT toolchain requires Bun/workspace stack; existing companion packager and MV3 sources avoid introducing a second build runtime.",
+                                 "license":  "MIT"
+                             },
+                             {
+                                 "commit":  "568703577905e19a0c2708e1beb06bdc016feb9e",
+                                 "repository":  "HubSpot/hubspot-api-nodejs",
+                                 "paths":  [
+                                               "package.json",
+                                               "src",
+                                               "codegen/crm"
+                                           ],
+                                 "decision":  "REFERENCE_ONLY",
+                                 "reason":  "Official SDK contract inspected; Agent 3 owns any actual SDK dependency adoption with package lock, tests and notice review.",
+                                 "license":  "CONFLICT: package.json ISC; root LICENSE Apache-2.0"
+                             },
+                             {
+                                 "commit":  "3d65b1824b6697f05a5a4584e7062bd23512fc8e",
+                                 "repository":  "standard-webhooks/standard-webhooks",
+                                 "paths":  [
+                                               "spec",
+                                               "libraries"
+                                           ],
+                                 "decision":  "REFERENCE_ONLY",
+                                 "reason":  "Spec and verifier patterns inspected; no provider webhook intake is enabled by R4.14 and no code copied.",
+                                 "license":  "Apache-2.0"
+                             },
+                             {
+                                 "commit":  "7314683af84cf53179ee98fdaa0b24fd9326576a",
+                                 "repository":  "GoogleChrome/chrome-extensions-samples",
+                                 "paths":  [
+                                               "functional-samples/tutorial.service-worker-lifecycle",
+                                               "functional-samples/tutorial.hello-world"
+                                           ],
+                                 "decision":  "REFERENCE_ONLY",
+                                 "reason":  "MV3 lifecycle samples used as behavioral references; no sample code copied.",
+                                 "license":  "Apache-2.0"
+                             }
+                         ],
+    "purpose":  "R4.14 OSS reuse and license triage",
+    "generatedAt":  "2026-11-21T16:06:17.7520784Z",
+    "validation":  {
+                       "dependencyAuditNote":  "npm ci reports 5 moderate advisories in full tree; existing project audit gate reports production clean and no waiver",
+                       "companionPackageTests":  "7/7 PASS",
+                       "securityAudit":  "PASS",
+                       "typecheck":  "PASS",
+                       "upstreamCloneDirectory":  "D:\\AI-for-Enterprise\\third-party-reuse-lab",
+                       "companionPackage":  "PASS",
+                       "networkCalls":  "public Git clone only; no provider calls",
+                       "npmCi":  "PASS",
+                       "secretScan":  "PASS"
+                   },
+    "schemaVersion":  1,
+    "incorporatedSources":  [
+
+                            ]
+}

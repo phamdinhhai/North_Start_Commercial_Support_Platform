@@ -6,12 +6,14 @@ export function backendOrigin(raw, fixture = false) {
   return url.origin;
 }
 export function validateEnrollment(input, fixture = false, at = Date.now()) {
-  const e = input?.enrollment, scope = e?.scope;
+  const e = input?.enrollment, supplied = e?.scope;
+  const provider = supplied?.provider ?? ({'pancake-conversations':'pancake','meta-ads':'meta-ads','hubspot-crm':'hubspot'}[supplied?.providerSurface]);
+  const scope = supplied && {...supplied, provider};
   if (!e || !scope || !PLATFORMS[scope.provider] || !['workspaceId','connectionId','accountId'].every(key => validId(scope[key])) ||
     !validId(e.enrollmentId) || typeof e.token !== 'string' || e.token.length < 32 || e.token.length > 8192 || /\s/.test(e.token) ||
     !Number.isFinite(Date.parse(e.expiresAt)) || Date.parse(e.expiresAt) <= at) throw new Error('INVALID_ENROLLMENT');
   const target = scope.target ?? {};
-  if (Object.keys(target).some(key => !['pageId','conversationId','campaignId','adsetId','adId','contactId','companyId','dealId'].includes(key) || !validId(target[key]))) throw new Error('INVALID_ENROLLMENT');
+  if (!Object.keys(target).length || Object.keys(target).some(key => !['pageId','conversationId','campaignId','adsetId','adId','contactId','companyId','dealId'].includes(key) || !validId(target[key]))) throw new Error('INVALID_ENROLLMENT');
   return {origin: backendOrigin(input.origin, fixture), enrollmentId: e.enrollmentId, token: e.token, expiresAt: e.expiresAt,
     scope: {workspaceId: scope.workspaceId, connectionId: scope.connectionId, provider: scope.provider, accountId: scope.accountId, target: {...target}}, fixture};
 }

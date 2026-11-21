@@ -3,9 +3,11 @@ export interface IntegrationScope {
     workspaceId: string;
     connectionId: string;
     accountId: string;
-    providerSurface: 'pancake-conversations';
+    providerSurface: IntegrationProviderSurface;
     pageId: string;
+    target?: Readonly<Record<string, string>>;
 }
+export type IntegrationProviderSurface = 'pancake-conversations' | 'meta-ads' | 'hubspot-crm';
 export interface Enrollment {
     id: string;
     scope: IntegrationScope;

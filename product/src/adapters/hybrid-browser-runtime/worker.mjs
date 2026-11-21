@@ -33,6 +33,7 @@ async function startDiagnostic(){
  const s=await load();if(!s.session)throw Error('CAPTURE_REQUIRED');
  if(!await chrome.permissions.contains({permissions:['debugger']}))throw Error('DIAGNOSTIC_PERMISSION_REQUIRED');
  const tab=await chrome.tabs.get(s.session.tabId);if(new URL(tab.url).origin!==s.session.origin)throw Error('TARGET_SCOPE_MISMATCH');
+ if(!matchesEnrollment(s.session.lastContext,s.enrollment))throw Error('TARGET_SCOPE_MISMATCH');
  await chrome.debugger.attach({tabId:s.session.tabId},'1.3');
  try{await chrome.debugger.sendCommand({tabId:s.session.tabId},'Network.enable');await save({...s,diagnostic:{tabId:s.session.tabId,events:[],startedAt:new Date().toISOString()}});}catch{await chrome.debugger.detach({tabId:s.session.tabId});throw Error('DIAGNOSTIC_UNAVAILABLE');}
 }
@@ -58,13 +59,13 @@ chrome.runtime.onMessage.addListener((message,sender,respond)=>{
   return health(await load());
  }).then(result=>respond({ok:true,result}),()=>respond({ok:false,code:'ACTION_REFUSED'}));return true;
 });
-chrome.debugger.onEvent.addListener((source,method,params)=>{enqueue(async()=>{
- const s=await load();if(s.diagnostic?.tabId!==source.tabId)return;
+chrome.debugger?.onEvent.addListener((source,method,params)=>{enqueue(async()=>{
+ const s=await load();if(s.diagnostic?.tabId!==source.tabId||!matchesEnrollment(s.session?.lastContext,s.enrollment))return stopCapture('diagnostic-target-changed');
  const tab=await chrome.tabs.get(source.tabId);if(new URL(tab.url).origin!==s.session?.origin)return stopCapture('diagnostic-origin-changed');
  const observation=method==='Network.responseReceived'?inspectNetwork(params.response?.url,params.response?.status):method==='Network.requestWillBeSent'?inspectGraphQL(params.request?.postData):method==='Network.webSocketFrameReceived'?inspectRealtime(params.response?.payloadData):null;
  if(observation)await save({...s,diagnostic:{...s.diagnostic,events:[...s.diagnostic.events,observation].slice(-50)}});
 }).catch(()=>stopCapture('diagnostic-failed'));});
-chrome.debugger.onDetach.addListener(source=>{enqueue(async()=>{const s=await load();if(s.diagnostic?.tabId===source.tabId)await save({...s,diagnostic:null});}).catch(()=>{});});
+chrome.debugger?.onDetach.addListener(source=>{enqueue(async()=>{const s=await load();if(s.diagnostic?.tabId===source.tabId)await save({...s,diagnostic:null});}).catch(()=>{});});
 chrome.tabs.onRemoved.addListener(tabId=>{enqueue(async()=>{if((await load()).session?.tabId===tabId)await stopCapture('tab-closed');}).catch(()=>{});});
 chrome.permissions.onRemoved.addListener(()=>{enqueue(()=>stopCapture('permission-revoked')).catch(()=>{});});
 chrome.runtime.onStartup.addListener(()=>{enqueue(()=>stopCapture('browser-restarted')).catch(()=>{});});
