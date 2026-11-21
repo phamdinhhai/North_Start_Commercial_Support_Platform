@@ -17,3 +17,11 @@ Worktree was created from commit `70b058c` on branch `work/r4132-qa`. Existing R
 ## Current disposition
 
 No R4.13.2 implementation or live-run artifact is present at this baseline. No acceptance or provider authorization is granted.
+
+## Executor source review (2026-11-21)
+
+Private `bounded-executor.mjs` SHA-256 `5DBBDAEB9AF71AC17179F8643FBB2123295FBE377DEF697A8720D15FA2645DD2` was reviewed without execution or network access. The design includes exact `pages.fm` routes, redirect rejection, 20-second timeout, 2 MiB stream cap, one-second pacing, 25-operation budget, and write-ahead file locking. It is **not approved**: `send()` invokes `op('send',...)` while the allowlist only permits the conversation route for `kind === 'messages'`, so sends are rejected; failures are terminal only in process memory (`this.stopped`) and are not persisted for restart safety; the ledger schema does not validate count/timestamps/flags; and response page/conversation scope plus duplicate/readback proof are absent. No read or send is authorized.
+
+## Local regression
+
+After `npm ci --no-audit --no-fund`, Vitest completed 133 files (1,363 passed; 30 files skipped, 157 tests skipped). These are offline product tests and do not establish provider identity or authorization.
