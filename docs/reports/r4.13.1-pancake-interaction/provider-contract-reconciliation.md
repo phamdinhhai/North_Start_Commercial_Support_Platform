@@ -5,7 +5,8 @@ Official REST YAML, historical DevTools metadata and current scoped reads agree 
 Current provider evidence:
 
 - Account private probe: accepted, but private/unstable and not Page entitlement.
-- Page permission private probe: HTTP 200 with `success=false`; no capability grant.
+- Cookie-only Page permission private probe: HTTP 200 with `success=false`; no conclusion about user-token rights.
+- Later user-token Page-role probe: HTTP 200/success; user ID matched fresh `/me.uid`, role present, explicit matching-user permission map absent. Mutation capability remains UNKNOWN.
 - Official history route: two successful bounded reads, 30 then 13 scoped messages.
 - UI alias: cookie-authenticated HTML 200 with alias text but no native identity bootstrap; earlier no-session 302.
 - Send, webhook, rate-limit, lifecycle, attachment and mutation behavior: UNKNOWN or BLOCKED.

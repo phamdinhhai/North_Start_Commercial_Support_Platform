@@ -122,7 +122,7 @@
     "runtime_provider_results": "Root-executed observations; QA inspected sanitized journals/source, not credentials/raw records"
   },
   "provider": {
-    "actual_requests": 8,
+    "actual_requests": 10,
     "ceiling": 25,
     "mutations": 0,
     "outbound_sends": 0,
@@ -261,6 +261,39 @@
         "mutation": false,
         "proof": "BOUNDED_OBSERVATION_ONLY",
         "disposition": "BUSINESS_FAILURE_NO_ADMISSION"
+      },
+      {
+        "step": "ACCOUNT_USER_TOKEN",
+        "method": "GET",
+        "route": "/api/v1/me",
+        "classification": "PRIVATE_OBSERVED_AUTH_PROBE",
+        "time_utc": "2026-11-21T09:30:10.545989+00:00",
+        "http_status": 200,
+        "provider_success": true,
+        "account_object_present": true,
+        "session_object_present": true,
+        "raw_data_persisted": false,
+        "global_request_number": 9,
+        "mutation": false,
+        "proof": "ACCOUNT_PAGE_OBSERVATION_ONLY"
+      },
+      {
+        "step": "PAGE_ROLE_USER_TOKEN",
+        "method": "GET",
+        "route": "/api/v1/pages/{candidate_page}/get_user_role_permissions",
+        "classification": "PRIVATE_OBSERVED_AUTH_PROBE",
+        "time_utc": "2026-11-21T09:30:11.548189+00:00",
+        "http_status": 200,
+        "provider_success": true,
+        "users_array": true,
+        "account_user_match": true,
+        "matching_user_role_present": true,
+        "matching_user_page_permissions_present": false,
+        "page_response_success": true,
+        "raw_data_persisted": false,
+        "global_request_number": 10,
+        "mutation": false,
+        "proof": "ACCOUNT_PAGE_OBSERVATION_ONLY"
       }
     ],
     "journal_hashes": {
@@ -269,8 +302,11 @@
       "account-journal.json": "0ee5bf4a0f16e34764c7daade3ffbe6f148833e549f24eec2a68cd41729796af",
       "redirect-journal.json": "cee49f3f522b0717511f74c7aa1d73fad7dec7c5ecfcc8cdac55c54e3ba1e813",
       "ui-bootstrap-journal.json": "effe3e25fb4096bb4d2e9ea0ab766336606bee0e54c297011adda29a92cd80f5",
-      "page-permission-journal.json": "26b47685197b06a556ece779db73c2f55597266268b46799bc3c78e36b905b84"
-    }
+      "page-permission-journal.json": "26b47685197b06a556ece779db73c2f55597266268b46799bc3c78e36b905b84",
+      "account-page-token-journal.json": "3dfcb41075a70ae5041050c8a9705ffa0b53adca721a6d5bf402a2b4ae74a21e"
+    },
+    "page_permission_probe": "COOKIE_ONLY_SUCCESS_FALSE",
+    "user_token_page_role_probe": "SUCCESS_ACCOUNT_UID_MATCH_ROLE_PRESENT_PERMISSION_MAP_ABSENT"
   },
   "recovery": {
     "restore_tables": 16,
@@ -349,6 +385,10 @@
     {
       "scope": "redirect_investigation",
       "result": "Historical no-cookie302; current cookie200; exact oldLocation/cause remains UNKNOWN"
+    },
+    {
+      "scope": "user_token_page_role_probe",
+      "result": "success, account principal matched scoped Page role; explicit matching-user permission map absent; mutation remains blocked"
     }
   ],
   "security": {
@@ -362,7 +402,7 @@
   "gates": {
     "A_engineering": "PASS_LOCAL_EXACT_SOURCE_26_LANES",
     "hosted": "NOT_RUN_NO_PUSH",
-    "P1_identity": "BLOCKED",
+    "P1_identity": "BLOCKED_ROLE_OBSERVED_CAPABILITY_ALIAS_TOKEN_ATTESTATION_UNKNOWN",
     "P2_history": "PARTIAL:30then13 scoped; order/overlap/empty/concurrent behavior UNKNOWN",
     "P3_send": "BLOCKED_ZERO_SEND",
     "P4_mutation": "BLOCKED_NOT_TESTED",

@@ -1,6 +1,6 @@
 # R4.13.1 Pancake interaction — final report
 
-R4.13.1 closes several engineering gaps but does **not** pass Pancake mutation admission. It verifies two bounded official history pages for the exact authorized native conversation, narrows the earlier 302 investigation without claiming an exact cause, adds positional overlap planning and a single-send guard, and preserves synthetic-only North Start ingestion. The independent QA agent rejects P1/P3 because fresh Account→Page permission returned `success=false` and the alias page supplied no native bootstrap identity. No outbound message or conversation mutation was made.
+R4.13.1 closes several engineering gaps but does **not** pass Pancake mutation admission. It verifies two bounded official history pages for the exact authorized native conversation, narrows the earlier 302 investigation without claiming an exact cause, adds positional overlap planning and a single-send guard, and preserves synthetic-only North Start ingestion. Account-to-Page role observation was strengthened with a user-token probe, but required mutation capability, Page-token attestation and alias/native binding remain unverified. No outbound message or conversation mutation was made.
 
 ## Exact Git and CI
 
@@ -12,7 +12,7 @@ R4.13.1 closes several engineering gaps but does **not** pass Pancake mutation a
 
 ## Provider evidence
 
-The R4.13.1 execution used eight bounded read requests: two pagination pages, two repeated identity pages, one account `/me` probe, one cookie-authenticated UI diagnosis, one target UI bootstrap inspection, and one candidate Page permission read. R4.13 used four reads and remains historical evidence. The R4.13.1 history pages returned 30 and 13 scoped messages; all message Page/conversation IDs matched, contact context was present and stable, and no page overlap occurred. The account probe was accepted by a private endpoint. The permission probe returned HTTP 200 with `success=false`, so Account→Page authority is not established. The alias HTML returned HTTP 200 with alias text but no native Page/conversation bootstrap IDs; the earlier no-session request returned 302 and was never followed.
+The R4.13.1 execution used ten bounded read requests: four history reads, two account `/me` probes, two cookie-authenticated UI reads, one cookie-only Page-permission probe and one user-token Page-role probe. R4.13 used four reads and remains historical evidence. History returned 30 and 13 messages with exact native scope, stable contact reference and no inter-page ID overlap. The cookie-only permission probe failed; the later user-token probe succeeded and matched the fresh account principal to a Page-role record. Role presence is not proof of the required mutation capability; no explicit matching-user permission map was returned. The alias HTML contained the alias but no native Page/conversation bootstrap IDs. The earlier no-session302 was not followed and its exact cause remains unresolved.
 
 These observations are root-executed and sanitized. Native IDs used for in-memory comparison were removed from temporary journal output before documentation. No raw body, credential, cookie, token, customer message or account identifier entered Git or North Start.
 
@@ -33,7 +33,7 @@ The exact-source full regression passed: 26/26 lanes, 1,520 Vitest tests across 
 
 | Gate | Status |
 |---|---|
-| P1 identity | **BLOCKED** — Account→Page permission failed; alias native binding absent |
+| P1 identity | **BLOCKED** — account/Page role observed, but mutation capability, token attestation and alias/native binding not established |
 | P2 history readback | **PARTIAL**: two bounded pages tested; order/overlap/empty-page/concurrent-insert behavior not verified; completeness UNKNOWN |
 | P3 controlled send | **BLOCKED**; zero outbound requests |
 | P4 conversation mutations | **BLOCKED / NOT TESTED** |
