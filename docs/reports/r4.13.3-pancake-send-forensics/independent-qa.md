@@ -64,4 +64,3 @@ durability and production key custody are not established; existing journals
 reopen read-only; local reservations do not create provider-side idempotency.
 Neither test suite nor manifest establishes live provider acceptance, delivery,
 or read state. `SEND_UNRESOLVED`, retry false and mutations false remain required.
-

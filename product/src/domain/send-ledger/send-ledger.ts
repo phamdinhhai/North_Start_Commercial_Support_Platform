@@ -42,4 +42,3 @@ export class SendLedger {
   get(requestId: string): SendRecord { const record = this.records.get(requestId); if (!record) throw new Error('SEND_NOT_FOUND'); return record; }
   snapshot(): readonly SendRecord[] { return [...this.records.values()]; }
 }
-
