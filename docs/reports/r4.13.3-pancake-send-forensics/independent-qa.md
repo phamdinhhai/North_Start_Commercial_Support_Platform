@@ -28,7 +28,7 @@ These tests are offline and synthetic. They do not elevate the provider result b
 
 ## Boundary findings
 
-The private Python/Node harness validates bounded parsing, scoped readbacks, durable local WAL writes, and no blind retry after an ambiguous send. The observed failure is a parser/transport stop, not proof of provider rejection or delivery. A marker appearing in a source fixture or local artifact must not be treated as a provider readback. Recovery remains unresolved until an exact, scoped, stable provider message identity is observed twice.
+The private Python/Node harness validates bounded parsing, scoped readbacks, local WAL writes, and no blind retry after an ambiguous send. The observed failure is a parser/transport stop, not proof of provider rejection or delivery. A marker appearing in a source fixture or local artifact must not be treated as provider readback. The current instruction prohibits further provider requests; reconciliation requires a separate Owner-reviewed plan and evidence sufficient to close the incident.
 
 ## Traceability
 
@@ -40,4 +40,28 @@ The private Python/Node harness validates bounded parsing, scoped readbacks, dur
 | Recovery resolved marker | `failure=RECOVERY_MARKER_UNRESOLVED` | **Not observed** |
 | Automatic retry permitted | control state and harness policy | No |
 | New mutation permitted | unresolved terminal state | No |
+
+## Final integrated-source review
+
+The independent agent reran the integrated source
+`5489ff9546d9e41790368e549d30a82f33b14023`: **31/31 Vitest tests in five files**
+and **26/26 Node boundary tests** passed. The corrected Unicode fixture uses
+explicit Vietnamese/emoji code points and compares exact received JSON bytes
+and Content-Type. It also verifies explicit binary UTF-8 under a cp1258 locale,
+malformed/truncated responses, timeouts, and killed-child metadata loss.
+
+QA counted **18/18 passing lanes** in the main manifest and independently
+inspected the supplemental manifest: **9/10 passed**, with only the pilot
+launcher failing. Root traced that failure to disk exhaustion on C and ran the
+pilot again with task-specific TEMP/TMP on D; the execution tool returned exit
+0. This final pilot rerun is root-observed evidence, separately identified from
+the QA-inspected manifest. QA inspected the private pilot PostgreSQL readiness
+and fast-shutdown cycles without printing sensitive values.
+
+No functional security-boundary defect was found in the offline coordinator,
+loopback transport, and HMAC journal. Limits: directory-entry power-loss
+durability and production key custody are not established; existing journals
+reopen read-only; local reservations do not create provider-side idempotency.
+Neither test suite nor manifest establishes live provider acceptance, delivery,
+or read state. `SEND_UNRESOLVED`, retry false and mutations false remain required.
 
