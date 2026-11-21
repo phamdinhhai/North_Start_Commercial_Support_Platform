@@ -25,3 +25,7 @@ Private `bounded-executor.mjs` SHA-256 `5DBBDAEB9AF71AC17179F8643FBB2123295FBE37
 ## Local regression
 
 After `npm ci --no-audit --no-fund`, Vitest completed 133 files (1,363 passed; 30 files skipped, 157 tests skipped). These are offline product tests and do not establish provider identity or authorization.
+
+## Refreshed executor review
+
+Reviewed private executor SHA-256 `26FF8470AA178FCBD6989651C84E031080014306261C54C19A3EA151723904EF`; its accompanying Node tests passed **7/7**. Persisted terminal/inflight WAL state, schema and lock validation, exact account/history routes, content-type/body/business checks, and proof/readback scope checks are present. QA conditionally approves only the bounded read-only metadata/history plan. Send remains blocked pending final UTF-8 marker, entries/result ledger, and fresh identity evidence. No network was used.
