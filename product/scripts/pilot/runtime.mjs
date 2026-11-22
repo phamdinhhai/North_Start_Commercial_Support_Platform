@@ -8,22 +8,20 @@ import { startIdp } from '../../e2e/oidc/fixture-idp.mjs';
 import { NestFactory } from '@nestjs/core';
 import { FastifyAdapter } from '@nestjs/platform-fastify';
 import { registerFrontend } from './frontend.mjs';
+import { previewConfiguration } from '../hybrid-browser/preview-runtime.mjs';
+import { previewProof } from '../hybrid-browser/preview-policy.mjs';
 const m = validateManifest(process.argv[2]);
 const ownerCheck = new pg.Client({ connectionString: connection(m, true, 'postgres'), connectionTimeoutMillis: 5000 });
 await ownerCheck.connect();
 try { await assertOwnedServer(ownerCheck, m); } finally { await ownerCheck.end(); }
 const origin = `http://127.0.0.1:${m.appPort}`, issuer = `http://127.0.0.1:${m.idpPort}`;
+const preview=previewConfiguration(m);
 const inherited = cleanEnvironment();
 for (const key of Object.keys(process.env)) delete process.env[key];
 Object.assign(process.env, inherited, { DATABASE_URL: connection(m), NODE_ENV: 'test', DEPLOYMENT_MODE: 'local',
   SYNTHETIC_PILOT_ONLY: 'true', PILOT_STORE_MODE: 'postgres', AUTH_MODE: 'oidc', AUTH_DEV_UNSIGNED_TOKENS: 'false',
-  DEMO_WORKSPACES: 'false', SOURCE_INTEGRATION_SYNTHETIC_ENABLED: 'true', AIL_RESEARCH_ENABLED: 'true',
-  HYBRID_FIXTURE_ENABLED: 'true', AIL_SIGNING_SECRET: m.control,
-  AIL_SCOPE_ALLOWLIST: JSON.stringify([
-    {workspaceId:m.workspace,connectionId:'fixture-connection-pancake',accountId:'fixture-account-pancake',providerSurface:'pancake-conversations',pageId:'fixture-page-pancake',target:{pageId:'fixture-page-pancake',conversationId:'fixture-conversation-pancake'}},
-    {workspaceId:m.workspace,connectionId:'fixture-connection-ads',accountId:'act_123',providerSurface:'meta-ads',pageId:'fixture-page-ads',target:{campaignId:'fixture-campaign-ads'}},
-    {workspaceId:m.workspace,connectionId:'fixture-connection-crm',accountId:'fixture-account-crm',providerSurface:'hubspot-crm',pageId:'fixture-page-crm',target:{contactId:'fixture-contact-crm'}}
-  ]), OIDC_BROWSER_ENABLED: 'true', OIDC_BROWSER_ORIGIN: origin,
+  DEMO_WORKSPACES: 'false', SOURCE_INTEGRATION_SYNTHETIC_ENABLED: 'true',
+  ...(preview?.env??{}), OIDC_BROWSER_ENABLED: 'true', OIDC_BROWSER_ORIGIN: origin,
   OIDC_AUTHORIZATION_ENDPOINT: `${issuer}/authorize`, OIDC_TOKEN_ENDPOINT: `${issuer}/token`, OIDC_CLIENT_ID: 'qa-browser',
   OIDC_ISSUER: issuer, OIDC_JWKS_URI: `${issuer}/jwks`, OIDC_AUDIENCE: 'qa-api', CONTENT_DIGEST_KEYS_JSON: JSON.stringify(m.digestKeys) });
 const require = createRequire(import.meta.url);
@@ -59,6 +57,10 @@ idp = await startIdp(m.idpPort, origin);
 async function start() {
   app = await NestFactory.create(AppModule, new FastifyAdapter({ forceCloseConnections: true }), { logger: false });
   registerFrontend(app.getHttpAdapter().getInstance());
+  if(preview){const http=app.getHttpAdapter().getInstance();
+    http.get('/v1/hybrid-preview',async(_req,res)=>res.header('cache-control','no-store').type('text/html; charset=utf-8').send(preview.html));
+    http.get('/v1/hybrid-preview/status',async(req,res)=>{const challenge=req.query?.challenge;if(!/^[a-f0-9]{64}$/.test(challenge??''))return res.code(400).send({code:'CHALLENGE_REQUIRED'});return {id:m.id,syntheticOnly:true,proof:previewProof(m.hybridPreview.signingSecret,'app',m.id,challenge)};});
+  }
   app.setGlobalPrefix('v1'); await app.listen(m.appPort, '127.0.0.1');
 }
 await start();
