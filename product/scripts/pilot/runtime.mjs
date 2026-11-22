@@ -7,6 +7,7 @@ import pg from 'pg';
 import { startIdp } from '../../e2e/oidc/fixture-idp.mjs';
 import { NestFactory } from '@nestjs/core';
 import { FastifyAdapter } from '@nestjs/platform-fastify';
+import { registerFrontend } from './frontend.mjs';
 const m = validateManifest(process.argv[2]);
 const ownerCheck = new pg.Client({ connectionString: connection(m, true, 'postgres'), connectionTimeoutMillis: 5000 });
 await ownerCheck.connect();
@@ -57,6 +58,7 @@ if (Number(unsafe.rows[0].n) !== 0) { console.error('PILOT_NON_SYNTHETIC_HISTORY
 idp = await startIdp(m.idpPort, origin);
 async function start() {
   app = await NestFactory.create(AppModule, new FastifyAdapter({ forceCloseConnections: true }), { logger: false });
+  registerFrontend(app.getHttpAdapter().getInstance());
   app.setGlobalPrefix('v1'); await app.listen(m.appPort, '127.0.0.1');
 }
 await start();
