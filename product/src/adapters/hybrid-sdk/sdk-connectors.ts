@@ -19,7 +19,7 @@ const fixtureToken = (value:string,prefix:'hs'|'meta') => new RegExp(`^${prefix}
 export function validateSdkEndpoint(value:string, allowedHttpsHosts:readonly string[]=[]):string {
   const url=new URL(value);
   if(url.protocol==='http:') return validBase(value);
-  if(url.protocol!=='https:'||url.username||url.password||url.search||url.hash||url.pathname!=='/'||!allowedHttpsHosts.includes(url.hostname)) throw new Error('PROVIDER_BASE_NOT_ALLOWLISTED');
+  if(url.protocol!=='https:'||url.port&&url.port!=='443'||url.hostname==='localhost'||!/[a-z]/iu.test(url.hostname)||url.hostname.includes(':')||url.username||url.password||url.search||url.hash||url.pathname!=='/'||!allowedHttpsHosts.includes(url.hostname)) throw new Error('PROVIDER_BASE_NOT_ALLOWLISTED');
   return url.toString().replace(/\/$/u,'');
 }
 export function redactCredential(value:string):string { return value.replace(/([?&](?:access_token|page_access_token|api_key|token)=)[^&]*/giu,'$1[REDACTED]').replace(/Bearer\s+[^\s]+/giu,'Bearer [REDACTED]'); }
@@ -57,7 +57,7 @@ export class HubSpotReadConnector {
     const props={contacts:['email','firstname','lastname'],companies:['name','domain'],deals:['dealname','dealstage','amount']}[kind];
     let values;
     try{values=await withBoundedFixtureRelay(this.basePath,basePath=>new HubSpotClient({basePath,accessToken:this.accessToken,numberOfApiCallRetries:0}).crm[kind].basicApi.getPage(limit,after,props));}catch(error){return safeError(error);}
-    if(!values||!Array.isArray(values.results))throw new Error('HUBSPOT_SCHEMA_INVALID');
+    if(!values||!Array.isArray(values.results)||values.results.length>limit)throw new Error('HUBSPOT_SCHEMA_INVALID');
     const cursor=values.paging?.next?.after??null;
     if(cursor!==null&&(typeof cursor!=='string'||cursor.length>512))throw new Error('HUBSPOT_SCHEMA_INVALID');
     const records=values.results.map(value=>{
@@ -85,7 +85,7 @@ export class MetaAdsReadConnector {
     if (!/^\d{4}-\d{2}-\d{2}$/u.test(dateStart) || !/^\d{4}-\d{2}-\d{2}$/u.test(dateStop) || dateStart > dateStop) throw new Error('DATE_RANGE_INVALID');
     let value:{data?:Array<Record<string,unknown>>;paging?:{cursors?:{after?:unknown}}};
     try{value=await withBoundedFixtureRelay(this.baseUrl,baseUrl=>this.api.call('GET',[this.accountId,'insights'],{level:'campaign',fields:'campaign_id,account_id,account_currency,date_start,date_stop,impressions,spend',time_range:JSON.stringify({since:dateStart,until:dateStop})},{},false,baseUrl)) as typeof value;}catch(error){return safeError(error);}
-    if (!Array.isArray(value?.data)) throw new Error('META_SCHEMA_INVALID');
+    if (!Array.isArray(value?.data)||value.data.length>100) throw new Error('META_SCHEMA_INVALID');
     const cursor=value.paging?.cursors?.after??null;
     if(cursor!==null&&(typeof cursor!=='string'||cursor.length>512))throw new Error('META_SCHEMA_INVALID');
     const records=value.data.map(row=>{
