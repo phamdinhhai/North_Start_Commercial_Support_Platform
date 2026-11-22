@@ -382,6 +382,3 @@ export const OPERATOR_SCRIPT = String.raw`
     init();
 })();
 `;
-
-
-

@@ -40,4 +40,3 @@ export class PgLeadExportStore implements LeadExportStore {
     });
   }
 }
-
