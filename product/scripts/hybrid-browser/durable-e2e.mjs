@@ -85,8 +85,9 @@ try{
  // A second independently authenticated path reads each local provider emulator.
  // Both paths persist through the same scoped backend receipt transaction.
  for(let i=0;i<3;i++){
-  const grant=grants[i];const headers={authorization:'Bearer '+grant.token,'content-type':'application/json'};
-  const request={enrollmentId:grant.enrollmentId,captureId:'fixture-api-capture-'+i,sequence:2};
+  const issued=await api('/v1/integration/enrollments',{connectionId:scopes[i].connectionId});assert.equal(issued.status,201);
+  const grant=issued.body;const headers={authorization:'Bearer '+grant.token,'content-type':'application/json'};
+  const request={enrollmentId:grant.enrollmentId,captureId:'fixture-api-capture-'+i,sequence:1};
   const response=await fetch(appOrigin+'/v1/hybrid/provider-read',{method:'POST',headers,body:JSON.stringify(request)});
   assert.equal(response.status,201,'provider fixture read must persist');
   const reconciliation=await fetch(appOrigin+'/v1/hybrid/reconciliation',{headers});assert.equal(reconciliation.status,200);
@@ -98,18 +99,17 @@ try{
  }
  assert.equal(await receiptCount(),6);assert.deepEqual([...new Set(providerCalls.map(c=>c.kind))].sort(),[0,1,2]);
  step('THREE_BROWSER_API_PAIRS_DURABLE_RECONCILIATION');
- let health=await api('/v1/integration/health');assert.equal(health.status,200);assert.equal(health.body.completeness,'UNKNOWN');assert.equal(health.body.enrollments.length,3);assert.equal(health.body.enrollments.reduce((n,e)=>n+e.delivery.receiptCount,0),6);step('AUTHORIZED_DATA_HEALTH_READBACK');
+ let health=await api('/v1/integration/health');assert.equal(health.status,200);assert.equal(health.body.completeness,'UNKNOWN');assert.equal(health.body.enrollments.length,6);assert.equal(health.body.enrollments.reduce((n,e)=>n+e.delivery.receiptCount,0),6);step('AUTHORIZED_DATA_HEALTH_READBACK');
  // Altered and deleted browser facts stay as append-only competing evidence.
  for(let i=0;i<3;i++){
   const fresh=await api('/v1/integration/enrollments',{connectionId:scopes[i].connectionId});assert.equal(fresh.status,201);
   const freshGrant={...fresh.body,scope:{...fresh.body.scope,provider:grants[i].scope.provider}};
   const freshHeaders={authorization:'Bearer '+freshGrant.token,'content-type':'application/json'};
-  const freshRead=await fetch(appOrigin+'/v1/hybrid/provider-read',{method:'POST',headers:freshHeaders,body:JSON.stringify({enrollmentId:freshGrant.enrollmentId,captureId:'fixture-altered-api-'+i,sequence:1})});assert.equal(freshRead.status,201);
   await configureGrant(freshGrant);const page=await context.newPage();await page.goto(siteOrigin+paths[i]);
   await page.evaluate(()=>{const node=document.querySelector('[data-ns-context]');node.dataset.fixtureLabel='fixture-altered-label';node.dataset.fixtureLifecycle='deleted';});
   await capture(page);await upload();
   const view=await(await fetch(appOrigin+'/v1/hybrid/reconciliation',{headers:freshHeaders})).json();
-  assert.equal(view.conflict,true);assert.equal(view.identityStatus,'VERIFIED');assert.equal(view.observations.length,2);
+  assert.equal(view.conflict,true);assert.equal(view.identityStatus,'VERIFIED');assert.equal(view.observations.length,3);
   assert.ok(view.observations.some(o=>o.payload.facts?.lifecycle==='deleted'));assert.ok(view.observations.some(o=>o.authority==='official_api'&&!o.payload.facts));
   await page.close();
  }
@@ -123,8 +123,17 @@ try{
  // A truncated ACK is untrusted even when its real intake transaction committed.
  grant=await freshGrant();await configureGrant(grant);provider=await pancakePage();await capture(provider);partialAck=true;const beforePartial=await receiptCount();await upload('retry-required');const partialPending=structuredClone((await state()).pending);assert.equal(await receiptCount(),beforePartial+1);await context.close();extensionId=await launch();popup=await context.newPage();await popup.goto(popupURL());await send({kind:'status'});assert.deepEqual((await state()).pending,partialPending);assert.equal((await state()).session,null);await upload();assert.equal(await receiptCount(),beforePartial+1);step('PARTIAL_ACK_BROWSER_RESTART_PERSISTENCE');
  auth=await context.newPage();await login();
- // Kill the actual application process. The queued upload fails locally and remains identical.
- grant=await freshGrant();await configureGrant(grant);provider=await pancakePage();await capture(provider);const beforeCrash=await receiptCount();await stopBackend('SIGKILL');await upload('retry-required');const crashPending=structuredClone((await state()).pending);await startBackend();await upload();assert.equal(await receiptCount(),beforeCrash+1);assert.equal(proxyRequests.at(-1).captureId,crashPending.captureId);step('ACTUAL_BACKEND_PROCESS_CRASH_RESTART_RECEIPT');
+ // Block inside the real receipt INSERT transaction, then kill both app and its
+ // disposable PostgreSQL session. The uncommitted row must roll back before replay.
+ grant=await freshGrant();await configureGrant(grant);provider=await pancakePage();await capture(provider);const beforeCrash=await receiptCount();
+ await db.query(`CREATE FUNCTION qa_receipt_precommit_pause() RETURNS trigger LANGUAGE plpgsql AS $$ BEGIN PERFORM pg_sleep(45); RETURN NEW; END $$`);
+ await db.query('CREATE TRIGGER qa_receipt_precommit_pause BEFORE INSERT ON integration_receipt FOR EACH ROW EXECUTE FUNCTION qa_receipt_precommit_pause()');
+ const inFlight=upload('retry-required');
+ const blockedPid=await wait(async()=>{const r=await db.query("SELECT pid FROM pg_stat_activity WHERE datname=current_database() AND pid<>pg_backend_pid() AND wait_event='PgSleep' AND query ILIKE '%integration_receipt%'");return r.rows[0]?.pid;},'RECEIPT_TRANSACTION_PAUSED');
+ assert.equal(await receiptCount(),beforeCrash);await stopBackend('SIGKILL');await db.query('SELECT pg_terminate_backend($1)',[blockedPid]);await inFlight;
+ const crashPending=structuredClone((await state()).pending);assert.ok(crashPending);assert.equal(await receiptCount(),beforeCrash);
+ await db.query('DROP TRIGGER qa_receipt_precommit_pause ON integration_receipt');await db.query('DROP FUNCTION qa_receipt_precommit_pause()');
+ await startBackend();await upload();assert.equal(await receiptCount(),beforeCrash+1);assert.equal(proxyRequests.at(-1).captureId,crashPending.captureId);step('IN_TRANSACTION_BACKEND_CRASH_ROLLBACK_IDENTICAL_REPLAY');
  auth=await context.newPage();await login();
  // Existing enrollment capability authorizes only its exact scope and immutable request.
  const valid=JSON.parse(proxyRequests.at(-1).raw);const sendRaw=body=>fetch(appOrigin+'/v1/hybrid/observations',{method:'POST',headers:{authorization:'Bearer '+grant.token,'content-type':'application/json'},body:JSON.stringify(body)});
