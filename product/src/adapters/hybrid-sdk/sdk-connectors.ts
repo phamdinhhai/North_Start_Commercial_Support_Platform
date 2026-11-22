@@ -12,6 +12,16 @@ const validBase = (value:string) => {
   return url.toString().replace(/\/$/u,'');
 };
 const fixtureToken = (value:string,prefix:'hs'|'meta') => new RegExp(`^${prefix}-fixture(?:-[A-Za-z0-9_-]+)?$`,'u').test(value);
+/** Validate an SDK endpoint before constructing an official client. Real egress
+ * remains disabled in this acceptance slice; HTTPS hosts must be explicitly
+ * allowlisted by the caller and loopback is reserved for fabricated fixtures. */
+export function validateSdkEndpoint(value:string, allowedHttpsHosts:readonly string[]=[]):string {
+  const url=new URL(value);
+  if(url.protocol==='http:') return validBase(value);
+  if(url.protocol!=='https:'||url.username||url.password||url.search||url.hash||url.pathname!=='/'||!allowedHttpsHosts.includes(url.hostname)) throw new Error('PROVIDER_BASE_NOT_ALLOWLISTED');
+  return url.toString().replace(/\/$/u,'');
+}
+export function redactCredential(value:string):string { return value.replace(/([?&](?:access_token|page_access_token|api_key|token)=)[^&]*/giu,'$1[REDACTED]').replace(/Bearer\s+[^\s]+/giu,'Bearer [REDACTED]'); }
 export class SdkReadError extends Error {
  constructor(readonly code:'AUTH_EXPIRED'|'FORBIDDEN'|'RATE_LIMITED'|'PROVIDER_UNAVAILABLE',readonly status:number|null){super(code);}
 }
