@@ -38,15 +38,15 @@ async function startBackend(){const log=openSync(privateLog,'a');let ready=false
 async function stopBackend(signal='SIGTERM'){if(!child||child.exitCode!==null)return;const exited=new Promise(done=>child.once('exit',done));child.kill(signal);await Promise.race([exited,delay(5000)]);}
 async function closeServer(server){if(!server)return;server.closeAllConnections();await new Promise(done=>server.close(done));}
 const admin=new Client({connectionString:adminUrl.href});await admin.connect();await admin.query('CREATE DATABASE '+database);await admin.end();
-let dropAck=false,partialAck=false;const proxyRequests=[];
+let dropAck=false,partialAck=false;const proxyRequests=[],proxyResponses=[];
 try{
  await startBackend();db=new Client({connectionString:databaseUrl.href});await db.connect();step('REAL_NEST_POSTGRES_READY');
  proxy=createServer(async(req,res)=>{
   if(req.method!=='POST'||req.url!=='/v1/hybrid/observations'){res.writeHead(404);return res.end();}
   let raw='';for await(const bytes of req){raw+=bytes;if(Buffer.byteLength(raw)>8192){res.writeHead(413);return res.end();}}
   const parsed=JSON.parse(raw);proxyRequests.push({captureId:parsed.captureId,sequence:parsed.sequence,raw});
-  try{const upstream=await fetch(appOrigin+req.url,{method:'POST',headers:{authorization:req.headers.authorization,'content-type':'application/json'},body:raw});const body=await upstream.text();
-   if(dropAck){dropAck=false;res.destroy();return;}res.writeHead(upstream.status,{'content-type':'application/json'});if(partialAck){partialAck=false;res.end('{"receiptId":');return;}res.end(body);
+  try{const upstream=await fetch(appOrigin+req.url,{method:'POST',headers:{authorization:req.headers.authorization,'content-type':'application/json'},body:raw});const body=await upstream.text();proxyResponses.push({status:upstream.status,body});
+   if(dropAck){dropAck=false;assert.equal(upstream.status,201);assert.equal(JSON.parse(body).disposition,'stored');res.destroy();return;}res.writeHead(upstream.status,{'content-type':'application/json'});if(partialAck){partialAck=false;res.end('{"receiptId":');return;}res.end(body);
   }catch{res.writeHead(503);res.end('{"code":"FIXTURE_BACKEND_UNAVAILABLE"}');}
  });await new Promise(done=>proxy.listen(0,'127.0.0.1',done));const uploadOrigin=`http://127.0.0.1:${proxy.address().port}`;
  site=createServer((req,res)=>{const path=new URL(req.url,'http://127.0.0.1').pathname;const kind=path.split('/')[1];const account=({pancake:'pancake',ads:'ads',crm:'crm'})[kind];if(!account){res.writeHead(404);return res.end();}const pageAttr=kind==='pancake'?' data-page-id="fixture-page-pancake"':'';res.writeHead(200,{'content-type':'text/html'});res.end(`<!doctype html><title>Fabricated ${account}</title><div data-ns-context data-account-id="fixture-account-${account}"${pageAttr}></div><p>Fabricated private text must not enter receipt</p>`);});await new Promise(done=>site.listen(0,'127.0.0.1',done));const siteOrigin=`http://127.0.0.1:${site.address().port}`;
@@ -75,7 +75,7 @@ try{
  async function pancakePage(){const page=await context.newPage();await page.goto(siteOrigin+paths[0]);return page;}
  // A loopback proxy loses the ACK only after the actual PostgreSQL transaction committed.
  let grant=await freshGrant();await configureGrant(grant);let provider=await pancakePage();await capture(provider);const beforeLost=await receiptCount();dropAck=true;await upload('retry-required');assert.equal(await receiptCount(),beforeLost+1);const pending=structuredClone((await state()).pending),lostRequest=proxyRequests.at(-1).raw;
- const cdp=await context.newCDPSession(provider);const target=(await cdp.send('Target.getTargets')).targetInfos.find(t=>t.type==='service_worker'&&t.url.startsWith('chrome-extension://'+extensionId));assert.ok(target);await cdp.send('Target.closeTarget',{targetId:target.targetId});await delay(200);await send({kind:'status'});await wait(async()=>(await state()).lastStop==='worker-restarted','WORKER_RESTARTED');assert.deepEqual((await state()).pending,pending);await upload();assert.deepEqual(JSON.parse(proxyRequests.at(-1).raw),JSON.parse(lostRequest));assert.equal(await receiptCount(),beforeLost+1);step('LOST_ACK_WORKER_RESTART_IDENTICAL_REPLAY');await provider.close();
+ const cdp=await context.newCDPSession(provider);const target=(await cdp.send('Target.getTargets')).targetInfos.find(t=>t.type==='service_worker'&&t.url.startsWith('chrome-extension://'+extensionId));assert.ok(target);await cdp.send('Target.closeTarget',{targetId:target.targetId});await delay(200);await send({kind:'status'});await wait(async()=>(await state()).lastStop==='worker-restarted','WORKER_RESTARTED');assert.deepEqual((await state()).pending,pending);await upload();assert.deepEqual(JSON.parse(proxyRequests.at(-1).raw),JSON.parse(lostRequest));assert.equal(await receiptCount(),beforeLost+1);assert.equal(JSON.parse(proxyResponses.at(-1).body).disposition,'duplicate');step('POST_COMMIT_SOCKET_DROP_WORKER_RESTART_IDENTICAL_REPLAY');await provider.close();
  // A truncated ACK is untrusted even when its real intake transaction committed.
  grant=await freshGrant();await configureGrant(grant);provider=await pancakePage();await capture(provider);partialAck=true;const beforePartial=await receiptCount();await upload('retry-required');const partialPending=structuredClone((await state()).pending);assert.equal(await receiptCount(),beforePartial+1);await context.close();extensionId=await launch();popup=await context.newPage();await popup.goto(popupURL());await send({kind:'status'});assert.deepEqual((await state()).pending,partialPending);assert.equal((await state()).session,null);await upload();assert.equal(await receiptCount(),beforePartial+1);step('PARTIAL_ACK_BROWSER_RESTART_PERSISTENCE');
  auth=await context.newPage();await login();
@@ -84,7 +84,7 @@ try{
  auth=await context.newPage();await login();
  // Existing enrollment capability authorizes only its exact scope and immutable request.
  const valid=JSON.parse(proxyRequests.at(-1).raw);const sendRaw=body=>fetch(appOrigin+'/v1/hybrid/observations',{method:'POST',headers:{authorization:'Bearer '+grant.token,'content-type':'application/json'},body:JSON.stringify(body)});
- assert.equal((await sendRaw(valid)).status,201);assert.equal(await receiptCount(),beforeCrash+1);
+ const concurrent=await Promise.all([sendRaw(valid),sendRaw(valid)]);assert.deepEqual(concurrent.map(r=>r.status),[201,201]);assert.deepEqual(await Promise.all(concurrent.map(async r=>(await r.json()).disposition)),['duplicate','duplicate']);assert.equal(await receiptCount(),beforeCrash+1);step('CONCURRENT_REPLAY_ONE_DURABLE_RECEIPT');
  const conflict=structuredClone(valid);conflict.observation.observedAt='2026-11-22T00:00:00.000Z';assert.equal((await sendRaw(conflict)).status,409);
  const foreign=structuredClone(valid);foreign.observation.scope.workspaceId='qa-browser-b';assert.equal((await sendRaw(foreign)).status,403);
  const changed=structuredClone(valid);changed.observation.native.conversationId='fixture-foreign-conversation';assert.equal((await sendRaw(changed)).status,403);step('DUPLICATE_CONFLICT_FOREIGN_WORKSPACE_NATIVE_OBJECT_DENIAL');
