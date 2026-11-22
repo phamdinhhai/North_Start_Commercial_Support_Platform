@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {backendOrigin,validateEnrollment,matchesEnrollment} from '../../src/adapters/hybrid-browser-runtime/permission-policy.mjs';
 import {resolveSiteContext,minimizeDOM} from '../../src/adapters/hybrid-browser-runtime/platform-registry.mjs';
 import {initialState,configure,appendContext,reserve,acknowledge,recover,health} from '../../src/adapters/hybrid-browser-runtime/outbox.mjs';
-import {inspectGraphQL,inspectNetwork,inspectRealtime} from '../../src/adapters/hybrid-browser-runtime/diagnostics.mjs';
+import {inspectGraphQL,inspectNetwork,inspectRealtime,createDiagnosticSession} from '../../src/adapters/hybrid-browser-runtime/diagnostics.mjs';
 
 const expiresAt='2099-01-01T00:00:00.000Z';
 const token='fabricated-capability-'.repeat(3);
@@ -68,4 +68,12 @@ test('diagnostics retain only approved operation/event categories, never variabl
  const network=inspectNetwork('https://provider.example/path?access_token=fabricated',403);assert.deepEqual(network,{kind:'http',status:403,authorization:'DENIED',completeness:'UNKNOWN'});
  assert.equal(JSON.stringify(network).includes('access_token'),false);
  assert.equal(inspectRealtime(JSON.stringify({event:'send-message',body:'fabricated'})),null);
+});
+test('privileged diagnostics require explicit activation and exact tab/origin scope',()=>{
+ assert.throws(()=>createDiagnosticSession({tabId:1,origin:'https://pancake.vn',allowedOrigins:['https://pancake.vn']}),/ACTIVATION/);
+ assert.throws(()=>createDiagnosticSession({activated:true,tabId:1,origin:'https://evil.example',allowedOrigins:['https://pancake.vn']}),/ORIGIN/);
+ const session=createDiagnosticSession({activated:true,tabId:7,origin:'https://pancake.vn',allowedOrigins:['https://pancake.vn']});
+ assert.equal(session.accept(7,'https://pancake.vn'),true);
+ assert.equal(session.accept(8,'https://pancake.vn'),false);
+ session.stop();assert.equal(session.isActive(),false);assert.equal(session.accept(7,'https://pancake.vn'),false);
 });

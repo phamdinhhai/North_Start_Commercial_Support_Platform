@@ -1,4 +1,19 @@
 const operations = new Set(['ConversationQuery','ConversationMessages','AdsInsights','CRMRecord']);
+export function createDiagnosticSession({activated=false,tabId,origin,allowedOrigins=[]}={}) {
+  if (activated !== true || !Number.isInteger(tabId) || tabId < 0) throw new Error('DIAGNOSTIC_ACTIVATION_REQUIRED');
+  const parsed = (() => { try { return new URL(origin); } catch { return null; } })();
+  if (!parsed || !allowedOrigins.includes(parsed.origin)) throw new Error('DIAGNOSTIC_ORIGIN_DENIED');
+  let active = true;
+  return Object.freeze({
+    tabId, origin: parsed.origin,
+    isActive: () => active,
+    stop: () => { active = false; },
+    accept: (candidateTabId, candidateOrigin) => {
+      if (!active || candidateTabId !== tabId || candidateOrigin !== parsed.origin) return false;
+      return true;
+    },
+  });
+}
 export function inspectGraphQL(raw) {
   if (typeof raw !== 'string' || raw.length > 8192) return null;
   try { const parsed=JSON.parse(raw);return operations.has(parsed?.operationName) ? {kind:'graphql',operationName:parsed.operationName,authority:'PRIVATE_OBSERVED',completeness:'UNKNOWN'} : null; } catch { return null; }
