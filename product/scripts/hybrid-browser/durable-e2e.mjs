@@ -47,10 +47,10 @@ try{
   const kind=url.pathname.includes('/insights')?1:url.pathname.includes('/crm/v3/objects/contacts')?2:0;
   if(req.method!=='GET'||token!==fixtureTokens[kind]){res.writeHead(403);return res.end('{}');}
   providerCalls.push({kind,method:req.method});res.writeHead(200,{'content-type':'application/json'});
-  if(kind===1)return res.end(JSON.stringify({data:[{account_id:'123',account_currency:'USD',campaign_id:'fixture-campaign-ads',date_start:'2026-11-01',date_stop:'2026-11-20',impressions:'12',spend:'3.50'}]}));
-  if(kind===2)return res.end(JSON.stringify({results:[{id:'fixture-contact-crm',properties:{}}]}));
+  if(kind===1)return res.end(JSON.stringify({data:[{account_id:'123',account_currency:'USD',campaign_id:'fixture-campaign-ads',campaign_name:'fixture-label-v1',date_start:'2026-11-01',date_stop:'2026-11-20',impressions:'12',spend:'3.50'}]}));
+  if(kind===2)return res.end(JSON.stringify({results:[{id:'fixture-contact-crm',properties:{firstname:'fixture-label-v1'}}]}));
   if(url.pathname!=='/api/public_api/v1/pages/fixture-page-pancake/conversations/fixture-conversation-pancake/messages'){res.statusCode=404;return res.end('{}');}
-  return res.end(JSON.stringify({success:true,conversation_id:'fixture-conversation-pancake',page_id:'fixture-page-pancake',messages:[]}));
+  return res.end(JSON.stringify({success:true,conversation_id:'fixture-conversation-pancake',page_id:'fixture-page-pancake',fixture_label:'fixture-label-v1',messages:[]}));
  });await new Promise(done=>providerApi.listen(0,'127.0.0.1',done));
  childEnv.HYBRID_API_FIXTURES_JSON=JSON.stringify(scopes.map((s,i)=>({workspaceId:s.workspaceId,connectionId:s.connectionId,accountId:s.accountId,baseUrl:`http://127.0.0.1:${providerApi.address().port}`,accessToken:fixtureTokens[i],expiresAt:new Date(Date.now()+3600000).toISOString(),...(i===1?{currency:'USD',timezone:'UTC'}:{})})));
  await startBackend();db=new Client({connectionString:databaseUrl.href});await db.connect();step('REAL_NEST_POSTGRES_READY');
@@ -62,7 +62,7 @@ try{
    if(dropAck||parsed.captureId===droppedCapture){if(dropAck){dropAck=false;droppedCapture=parsed.captureId;assert.equal(JSON.parse(body).disposition,'stored');}else assert.equal(JSON.parse(body).disposition,'duplicate');assert.equal(upstream.status,201);res.destroy();return;}res.writeHead(upstream.status,{'content-type':'application/json'});if(partialAck){partialAck=false;res.end('{"receiptId":');return;}res.end(body);
   }catch{res.writeHead(503);res.end('{"code":"FIXTURE_BACKEND_UNAVAILABLE"}');}
  });await new Promise(done=>proxy.listen(0,'127.0.0.1',done));const uploadOrigin=`http://127.0.0.1:${proxy.address().port}`;
- site=createServer((req,res)=>{const path=new URL(req.url,'http://127.0.0.1').pathname;const kind=path.split('/')[1];const account=({pancake:'pancake',ads:'ads',crm:'crm'})[kind];if(!account){res.writeHead(404);return res.end();}const pageAttr=kind==='pancake'?' data-page-id="fixture-page-pancake"':'';res.writeHead(200,{'content-type':'text/html'});res.end(`<!doctype html><title>Fabricated ${account}</title><div data-ns-context data-account-id="${kind==='ads'?'act_123':'fixture-account-'+account}"${pageAttr}></div><p>Fabricated private text must not enter receipt</p>`);});await new Promise(done=>site.listen(0,'127.0.0.1',done));const siteOrigin=`http://127.0.0.1:${site.address().port}`;
+ site=createServer((req,res)=>{const path=new URL(req.url,'http://127.0.0.1').pathname;const kind=path.split('/')[1];const account=({pancake:'pancake',ads:'ads',crm:'crm'})[kind];if(!account){res.writeHead(404);return res.end();}const pageAttr=kind==='pancake'?' data-page-id="fixture-page-pancake"':'';res.writeHead(200,{'content-type':'text/html'});res.end(`<!doctype html><title>Fabricated ${account}</title><div data-ns-context data-fixture-label="fixture-label-v1" data-account-id="${kind==='ads'?'act_123':'fixture-account-'+account}"${pageAttr}></div><p>Fabricated private text must not enter receipt</p>`);});await new Promise(done=>site.listen(0,'127.0.0.1',done));const siteOrigin=`http://127.0.0.1:${site.address().port}`;
  const extension=join(root,'extension');const packaged=await packageHybrid(extension,true);proof.packageSha256=packaged.zipSha256;
  const profile=join(root,'profile');const browserOptions={channel:'chromium',headless:true,args:[`--disable-extensions-except=${extension}`,`--load-extension=${extension}`]};
  async function launch(){context=await chromium.launchPersistentContext(profile,browserOptions);context.setDefaultTimeout(15000);await context.route('**/*',route=>{const u=new URL(route.request().url());return u.hostname==='127.0.0.1'||u.protocol==='chrome-extension:'?route.continue():route.abort();});const worker=context.serviceWorkers()[0]??await context.waitForEvent('serviceworker');return new URL(worker.url()).host;}
@@ -94,8 +94,8 @@ try{
   const view=await reconciliation.json();assert.equal(view.identityStatus,'VERIFIED');assert.equal(view.completeness,'UNKNOWN');assert.equal(view.conflict,false);assert.equal(view.observations.length,2);
   assert.ok(view.authorities.includes('browser_dom'));assert.ok(view.authorities.includes('official_api'));
   const browser=view.observations.find(o=>o.authority==='browser_dom');assert.equal(browser.trust,'UNVERIFIED');
-  const api=view.observations.find(o=>o.authority==='official_api');assert.notEqual(api.trust,'UNVERIFIED');
-  assert.deepEqual(browser.native,api.native);
+  const apiEnvelope=view.observations.find(o=>o.authority==='official_api');assert.notEqual(apiEnvelope.trust,'UNVERIFIED');
+  assert.deepEqual(browser.native,apiEnvelope.native);assert.equal(browser.payload.facts.label,'fixture-label-v1');assert.equal(apiEnvelope.payload.facts.label,'fixture-label-v1');
  }
  assert.equal(await receiptCount(),6);assert.deepEqual([...new Set(providerCalls.map(c=>c.kind))].sort(),[0,1,2]);
  step('THREE_BROWSER_API_PAIRS_DURABLE_RECONCILIATION');
@@ -106,11 +106,11 @@ try{
   const freshGrant={...fresh.body,scope:{...fresh.body.scope,provider:grants[i].scope.provider}};
   const freshHeaders={authorization:'Bearer '+freshGrant.token,'content-type':'application/json'};
   await configureGrant(freshGrant);const page=await context.newPage();await page.goto(siteOrigin+paths[i]);
-  await page.evaluate(()=>{const node=document.querySelector('[data-ns-context]');node.dataset.fixtureLabel='fixture-altered-label';node.dataset.fixtureLifecycle='deleted';});
+  await page.evaluate(()=>{const node=document.querySelector('[data-ns-context]');node.dataset.fixtureLabel='fixture-label-v2';node.dataset.fixtureLifecycle='deleted';});
   await capture(page);await upload();
   const view=await(await fetch(appOrigin+'/v1/hybrid/reconciliation',{headers:freshHeaders})).json();
   assert.equal(view.conflict,true);assert.equal(view.identityStatus,'VERIFIED');assert.equal(view.observations.length,3);
-  assert.ok(view.observations.some(o=>o.payload.facts?.lifecycle==='deleted'));assert.ok(view.observations.some(o=>o.authority==='official_api'&&!o.payload.facts));
+  assert.ok(view.observations.some(o=>o.payload.facts?.lifecycle==='deleted'));assert.ok(view.observations.some(o=>o.authority==='official_api'&&o.payload.facts?.label==='fixture-label-v1'));assert.ok(view.observations.some(o=>o.authority==='browser_dom'&&o.payload.facts?.label==='fixture-label-v2'));
   await page.close();
  }
  step('ALTERED_DELETED_FACTS_RETAINED_WITHOUT_OVERWRITE');
