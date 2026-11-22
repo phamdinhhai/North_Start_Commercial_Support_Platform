@@ -5,7 +5,7 @@ import {metaReportingFacts} from './provider-fact-quality';
 
 export interface HubSpotRecord {readonly id:string;readonly properties:Record<string,string|undefined>}
 export interface HubSpotReadPage {readonly records:HubSpotRecord[];readonly nextCursor:string|null;readonly completeness:'UNKNOWN'}
-export interface MetaInsight {readonly accountId:string;readonly campaignId?:string;readonly dateStart:string;readonly dateStop:string;readonly impressions:number;readonly spend:number;readonly currency:string;readonly timezone:string;readonly reportingFacts:ReturnType<typeof metaReportingFacts>}
+export interface MetaInsight {readonly accountId:string;readonly campaignId?:string;readonly campaignName?:string;readonly dateStart:string;readonly dateStop:string;readonly impressions:number;readonly spend:number;readonly currency:string;readonly timezone:string;readonly reportingFacts:ReturnType<typeof metaReportingFacts>}
 export interface MetaReadPage {readonly records:MetaInsight[];readonly nextCursor:string|null;readonly completeness:'UNKNOWN';readonly timezoneSource:'caller-supplied'}
 
 const validBase = (value:string) => {
@@ -85,7 +85,7 @@ export class MetaAdsReadConnector {
   async readPage(dateStart:string,dateStop:string):Promise<MetaReadPage> {
     if (!/^\d{4}-\d{2}-\d{2}$/u.test(dateStart) || !/^\d{4}-\d{2}-\d{2}$/u.test(dateStop) || dateStart > dateStop) throw new Error('DATE_RANGE_INVALID');
     let value:{data?:Array<Record<string,unknown>>;paging?:{cursors?:{after?:unknown}}};
-    try{value=await withBoundedFixtureRelay(this.baseUrl,baseUrl=>this.api.call('GET',[this.accountId,'insights'],{level:'campaign',fields:'campaign_id,account_id,account_currency,date_start,date_stop,impressions,spend',time_range:JSON.stringify({since:dateStart,until:dateStop})},{},false,baseUrl)) as typeof value;}catch(error){return safeError(error);}
+    try{value=await withBoundedFixtureRelay(this.baseUrl,baseUrl=>this.api.call('GET',[this.accountId,'insights'],{level:'campaign',fields:'campaign_id,campaign_name,account_id,account_currency,date_start,date_stop,impressions,spend',time_range:JSON.stringify({since:dateStart,until:dateStop})},{},false,baseUrl)) as typeof value;}catch(error){return safeError(error);}
     if (!Array.isArray(value?.data)||value.data.length>100) throw new Error('META_SCHEMA_INVALID');
     const cursor=value.paging?.cursors?.after??null;
     if(cursor!==null&&(typeof cursor!=='string'||cursor.length>512))throw new Error('META_SCHEMA_INVALID');
@@ -96,7 +96,8 @@ export class MetaAdsReadConnector {
       if(row.campaign_id!==undefined&&(typeof row.campaign_id!=='string'||!/^[A-Za-z0-9_-]{1,128}$/u.test(row.campaign_id)))throw new Error('META_SCHEMA_INVALID');
       if(String(row.date_start)<dateStart||String(row.date_stop)>dateStop||String(row.date_start)>String(row.date_stop))throw new Error('META_WINDOW_MISMATCH');
       const reportingFacts=metaReportingFacts({providerCurrency:String(row.account_currency),configuredCurrency:this.currency,configuredTimezone:this.timezone,since:String(row.date_start),until:String(row.date_stop)});
-      return {accountId:this.accountId,...(row.campaign_id?{campaignId:String(row.campaign_id)}:{}),dateStart:String(row.date_start),dateStop:String(row.date_stop),impressions:Number(row.impressions),spend:Number(row.spend),currency:String(row.account_currency),timezone:this.timezone,reportingFacts};
+      if(row.campaign_name!==undefined&&(typeof row.campaign_name!=='string'||row.campaign_name.length>256||/[\x00-\x1f]/u.test(row.campaign_name)))throw new Error('META_SCHEMA_INVALID');
+      return {accountId:this.accountId,...(row.campaign_id?{campaignId:String(row.campaign_id)}:{}),...(row.campaign_name?{campaignName:String(row.campaign_name)}:{}),dateStart:String(row.date_start),dateStop:String(row.date_stop),impressions:Number(row.impressions),spend:Number(row.spend),currency:String(row.account_currency),timezone:this.timezone,reportingFacts};
     });
     return {records,nextCursor:cursor,completeness:'UNKNOWN',timezoneSource:'caller-supplied'};
   }
