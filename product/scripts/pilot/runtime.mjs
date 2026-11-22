@@ -16,7 +16,13 @@ const inherited = cleanEnvironment();
 for (const key of Object.keys(process.env)) delete process.env[key];
 Object.assign(process.env, inherited, { DATABASE_URL: connection(m), NODE_ENV: 'test', DEPLOYMENT_MODE: 'local',
   SYNTHETIC_PILOT_ONLY: 'true', PILOT_STORE_MODE: 'postgres', AUTH_MODE: 'oidc', AUTH_DEV_UNSIGNED_TOKENS: 'false',
-  DEMO_WORKSPACES: 'false', SOURCE_INTEGRATION_SYNTHETIC_ENABLED: 'true', OIDC_BROWSER_ENABLED: 'true', OIDC_BROWSER_ORIGIN: origin,
+  DEMO_WORKSPACES: 'false', SOURCE_INTEGRATION_SYNTHETIC_ENABLED: 'true', AIL_RESEARCH_ENABLED: 'true',
+  HYBRID_FIXTURE_ENABLED: 'true', AIL_SIGNING_SECRET: m.control,
+  AIL_SCOPE_ALLOWLIST: JSON.stringify([
+    {workspaceId:m.workspace,connectionId:'fixture-connection-pancake',accountId:'fixture-account-pancake',providerSurface:'pancake-conversations',pageId:'fixture-page-pancake',target:{pageId:'fixture-page-pancake',conversationId:'fixture-conversation-pancake'}},
+    {workspaceId:m.workspace,connectionId:'fixture-connection-ads',accountId:'act_123',providerSurface:'meta-ads',pageId:'fixture-page-ads',target:{campaignId:'fixture-campaign-ads'}},
+    {workspaceId:m.workspace,connectionId:'fixture-connection-crm',accountId:'fixture-account-crm',providerSurface:'hubspot-crm',pageId:'fixture-page-crm',target:{contactId:'fixture-contact-crm'}}
+  ]), OIDC_BROWSER_ENABLED: 'true', OIDC_BROWSER_ORIGIN: origin,
   OIDC_AUTHORIZATION_ENDPOINT: `${issuer}/authorize`, OIDC_TOKEN_ENDPOINT: `${issuer}/token`, OIDC_CLIENT_ID: 'qa-browser',
   OIDC_ISSUER: issuer, OIDC_JWKS_URI: `${issuer}/jwks`, OIDC_AUDIENCE: 'qa-api', CONTENT_DIGEST_KEYS_JSON: JSON.stringify(m.digestKeys) });
 const require = createRequire(import.meta.url);
