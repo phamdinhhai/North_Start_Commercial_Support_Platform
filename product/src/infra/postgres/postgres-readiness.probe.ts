@@ -20,6 +20,12 @@ const REQUIRED_MIGRATIONS = [
   '015_data_lifecycle',
   '016_contact_attempt',
   '017_assertion_ops',
+  '018_source_integration',
+  '019_source_receipt_lookup_indexes',
+  '020_source_episode_link',
+  '021_source_link_receipt_guard',
+  '022_sync_stream',
+  '023_fabricated_delivery',
 ] as const;
 
 @Injectable()
