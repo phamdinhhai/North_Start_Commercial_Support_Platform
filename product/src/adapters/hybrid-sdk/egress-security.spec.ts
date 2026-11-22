@@ -3,7 +3,7 @@ import {afterEach,expect,it} from 'vitest';
 import {HubSpotReadConnector,MetaAdsReadConnector,redactCredential,validateSdkEndpoint} from './sdk-connectors';
 import {FixtureCredentialRegistry} from './fixture-credentials';
 const servers:Server[]=[];
-async function fixture(handler:Parameters<typeof createServer>[0]){const server=createServer(handler);servers.push(server);await new Promise<void>(resolve=>server.listen(0,'127.0.0.1',resolve));const address=server.address();return `http://127.0.0.1:${typeof address==='object'&&address?address.port:0}`;}
+async function fixture(handler:(req:import('node:http').IncomingMessage,res:import('node:http').ServerResponse)=>void){const server=createServer(handler);servers.push(server);await new Promise<void>(resolve=>server.listen(0,'127.0.0.1',resolve));const address=server.address();return `http://127.0.0.1:${typeof address==='object'&&address?address.port:0}`;}
 afterEach(async()=>{for(const server of servers.splice(0)){server.closeAllConnections();await new Promise<void>(resolve=>server.close(()=>resolve()));}});
 it('rejects DNS loopback aliases, userinfo, metadata and unallowlisted HTTPS',()=>{for(const value of ['http://localhost:123','http://169.254.169.254','https://evil.test','https://u:p@api.hubapi.com'])expect(()=>validateSdkEndpoint(value,['api.hubapi.com'])).toThrow();expect(validateSdkEndpoint('https://api.hubapi.com',['api.hubapi.com'])).toBe('https://api.hubapi.com');});
 it('redacts query and bearer credentials',()=>expect(redactCredential('https://fixture/?access_token=secret&page_access_token=other Bearer hidden')).not.toMatch(/secret|other|hidden/u));
@@ -11,3 +11,4 @@ it('selects only exact workspace/connection and enforces revoke/expiry',()=>{con
 it('rejects oversized provider responses',async()=>{const base=await fixture((_,res)=>res.end('x'.repeat(1024*1024+1)));await expect(new HubSpotReadConnector(base,'hs-fixture').contacts()).rejects.toBeTruthy();});
 it('bounds a stalled provider response',async()=>{const base=await fixture(()=>{});await expect(new HubSpotReadConnector(base,'hs-fixture').contacts()).rejects.toBeTruthy();},5000);
 it('never forwards credentials to redirect receiver for either SDK',async()=>{let received=0;const target=await fixture((_,res)=>{received++;res.end('{}');});const base=await fixture((_,res)=>res.writeHead(302,{location:target}).end());await expect(new HubSpotReadConnector(base,'hs-fixture').contacts()).rejects.toBeTruthy();await expect(new MetaAdsReadConnector(base,'meta-fixture','act_123','USD','UTC').insights('2026-01-01','2026-01-02')).rejects.toBeTruthy();expect(received).toBe(0);});
+
