@@ -14,7 +14,7 @@ const AUDIT_SQL = `INSERT INTO audit_record(entity_type,entity_id,workspace_id,a
 
 export class PgIntegrationStore implements IntegrationStore {
     constructor(private readonly db: PostgresService) { }
-    async readHybrid(e:Enrollment,acrossConnection=false):Promise<readonly Upload[]> {
+    async readHybrid(e:Enrollment,acrossConnection=false):Promise<readonly (Upload & {receiptId?:string;fingerprint?:string})[]> {
         return this.db.withTransaction(async tx=>{
             const active=await tx.query(`SELECT e.id FROM integration_enrollment e WHERE e.id=$1 AND e.scope=$2::jsonb
               AND e.expires_at=$3::timestamptz AND e.revoked_at IS NULL AND e.expires_at>clock_timestamp() FOR SHARE`,[e.id,JSON.stringify(e.scope),e.expiresAt]);
@@ -24,9 +24,9 @@ export class PgIntegrationStore implements IntegrationStore {
               AND m.user_id::text=(SELECT actor FROM audit_record WHERE entity_type='integration-enrollment' AND entity_id=$2
                 AND event_type='integration.enrollment.issued' ORDER BY timestamp LIMIT 1) FOR SHARE OF m,u`,[e.scope.workspaceId,e.id]);
             if(!principal.rows.length)throw new IntegrationError('ENROLLMENT_PRINCIPAL_INACTIVE',401);
-            const rows=await tx.query<{metadata:Upload}>(acrossConnection?'SELECT r.metadata FROM integration_receipt r JOIN integration_enrollment e ON e.id=r.enrollment_id WHERE e.scope=$1::jsonb ORDER BY r.received_at,r.id LIMIT 101':'SELECT metadata FROM integration_receipt WHERE enrollment_id=$1 ORDER BY sequence LIMIT 101',[acrossConnection?JSON.stringify(e.scope):e.id]);
+            const rows=await tx.query<{metadata:Upload;id:string;fingerprint:string}>(acrossConnection?'SELECT r.metadata,r.id,r.fingerprint FROM integration_receipt r JOIN integration_enrollment e ON e.id=r.enrollment_id WHERE e.scope=$1::jsonb ORDER BY r.received_at,r.id LIMIT 101':'SELECT metadata,id,fingerprint FROM integration_receipt WHERE enrollment_id=$1 ORDER BY sequence LIMIT 101',[acrossConnection?JSON.stringify(e.scope):e.id]);
             if(rows.rows.length>100)throw new IntegrationError('RECONCILIATION_CAPACITY_REACHED',409);
-            return rows.rows.map(r=>r.metadata);
+            return rows.rows.map(r=>({...r.metadata,receiptId:r.id,fingerprint:r.fingerprint}));
         });
     }
     async enroll(e: Enrollment, audit: IssuanceAudit): Promise<void> {

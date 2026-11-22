@@ -145,7 +145,9 @@ export class IntegrationIntake {
         const existing=prior.find(u=>u.captureId===body.captureId);
         if(existing) {
             if(existing.sequence!==body.sequence||existing.observation.method!=='official-api')return fail('RECEIPT_CONFLICT',409);
-            return this.store.append(claim,existing,createHash('sha256').update(JSON.stringify(existing)).digest('hex'));
+            // JSONB reorders object keys. Replay the persisted fingerprint rather than
+            // hashing its decoded metadata with a different property order.
+            return this.store.append(claim,existing,existing.fingerprint??createHash('sha256').update(JSON.stringify(existing)).digest('hex'));
         }
         const result=await reader.read(claim.scope);
         if(result.native.accountId!==claim.scope.accountId||Object.entries(claim.scope.target!).some(([k,v])=>result.native[k]!==v))return fail('TARGET_SCOPE_MISMATCH',403);
