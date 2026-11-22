@@ -37,6 +37,47 @@ export interface HybridObservationReceipt {
   readonly disposition: 'stored' | 'duplicate' | 'conflict' | 'scope_rejected';
   readonly completeness: 'UNKNOWN';
 }
+
+/** A read-only cross-source view. It deliberately retains each source's
+ * evidence; it is not a canonical commercial entity or a merge operation. */
+export interface HybridSourceReconciliation {
+  readonly nativeKey: string | null;
+  readonly identity: HybridNativeIdentity | null;
+  readonly observations: readonly HybridObservationEnvelope[];
+  readonly authorities: readonly ObservationAuthority[];
+  readonly conflict: boolean;
+  readonly identityStatus: 'VERIFIED' | 'UNKNOWN';
+  readonly completeness: 'UNKNOWN';
+}
+
+/**
+ * Correlate browser and provider observations only when their complete native
+ * identity tuple matches inside one workspace/connection. Values are never
+ * overwritten and a differing payload is retained as a conflict. Records
+ * from another scope, or records without a matching identity, remain UNKNOWN.
+ */
+export function reconcileHybridSources(
+  observations: readonly HybridObservationEnvelope[],
+  scope: { workspaceId: string; connectionId: string },
+): HybridSourceReconciliation {
+  const checked = observations.map((item) => validateHybridObservation(item, scope));
+  if (checked.length === 0) return {
+    nativeKey: null, identity: null, observations: [], authorities: [],
+    conflict: false, identityStatus: 'UNKNOWN', completeness: 'UNKNOWN',
+  };
+  const keys = new Set(checked.map((item) => nativeObservationKey(item.native)));
+  if (keys.size !== 1) return {
+    nativeKey: null, identity: null, observations: checked, authorities: [...new Set(checked.map((item) => item.authority))],
+    conflict: true, identityStatus: 'UNKNOWN', completeness: 'UNKNOWN',
+  };
+  const [nativeKey] = [...keys];
+  const digests = new Set(checked.map((item) => item.payloadDigest));
+  return {
+    nativeKey, identity: checked[0].native, observations: checked,
+    authorities: [...new Set(checked.map((item) => item.authority))],
+    conflict: digests.size > 1, identityStatus: 'VERIFIED', completeness: 'UNKNOWN',
+  };
+}
 const authorities: readonly ObservationAuthority[] = ['browser_dom', 'browser_network', 'official_api', 'official_webhook', 'user_export'];
 const providers: readonly HybridProvider[] = ['pancake', 'meta_ads', 'hubspot'];
 const objectTypes: readonly HybridNativeIdentity['objectType'][] = ['conversation', 'message', 'campaign', 'adset', 'ad', 'contact', 'company', 'deal'];
