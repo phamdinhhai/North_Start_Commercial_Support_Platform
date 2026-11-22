@@ -13,4 +13,4 @@
 
 No known release-blocking failure remains in the tested synthetic paths. Owner acceptance is still required before merging to `main`.
 
-The final secret scan has a manual allowlist for pre-existing fabricated negative-test sentinels (`eyJ...sig` and `sk-abcdefghijklmnopqrstuvwxyz`); no actual credential value or newly changed secret was found.
+The final secret scan has a manual allowlist for pre-existing fabricated negative-test sentinels (a dummy JWT and a dummy `sk-` text fixture); no actual credential value or newly changed secret was found.
