@@ -103,16 +103,25 @@ export class PostgresService implements OnModuleDestroy, SqlExecutor {
   /** Chạy `fn` trong một transaction; lỗi bất kỳ → ROLLBACK và ném lại (fail closed). */
   async withTransaction<T>(fn: (tx: SqlExecutor) => Promise<T>): Promise<T> {
     const client: PoolClient = await this.getPool().connect();
+    // A checked-out pg client emits connection errors outside query rejection.
+    // Keep a listener until release transfers ownership back to the pool.
+    let connectionError: Error | undefined;
+    const onError = (error: Error) => { connectionError = error; };
+    client.on('error', onError);
     try {
       await client.query('BEGIN');
       const result = await fn(client);
       await client.query('COMMIT');
       return result;
     } catch (err) {
-      await client.query('ROLLBACK');
+      try { await client.query('ROLLBACK'); } catch {
+        // Preserve the operation failure; a failed rollback makes this client unsafe.
+        connectionError ??= new Error('PostgreSQL transaction connection failed');
+      }
       throw err;
     } finally {
-      client.release();
+      client.release(connectionError);
+      client.removeListener('error', onError);
     }
   }
 

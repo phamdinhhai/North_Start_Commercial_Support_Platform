@@ -1,0 +1,57 @@
+import {beforeAll,afterAll,describe,it,expect} from 'vitest';
+import {randomUUID} from 'node:crypto';
+import {PostgresService} from './postgres.service';
+import {Migrator,loadMigrations} from './migrator';
+import {PgPilotStore} from './pg-pilot.store';
+import {PgContactAttemptStore} from './pg-contact-attempt.store';
+import {PgLeadExportStore} from './pg-lead-export.store';
+import {PilotLoopService} from '../../application/pilot/pilot-loop.service';
+import {PilotClosureService} from '../../application/pilot/pilot-closure.service';
+import {ContactAttemptService} from '../../application/pilot/contact-attempt.service';
+import {ManualAdapter} from '../../adapters/manual/manual-adapter';
+import {RbacService} from '../rbac/rbac.service';
+import {configuredContentDigester} from '../crypto/configured-content-digester';
+const suite=process.env.TEST_DATABASE_URL?describe:describe.skip;
+suite('R4.6 manual contact PostgreSQL history',()=>{
+ let db:PostgresService;const ctx={workspaceId:'contact-'+randomUUID(),userId:'owner',role:'sales' as const,isDemo:false};
+ const input={expectedVersion:1,idempotencyKey:'one',occurredAt:'unknown',channel:'phone' as const,claimedResult:'no-answer' as const,followUpImplication:'Synthetic follow-up only',reason:'synthetic claim'};
+ beforeAll(async()=>{db=new PostgresService({connectionString:process.env.TEST_DATABASE_URL});await new Migrator(db,loadMigrations()).up();});afterAll(async()=>{await db?.onModuleDestroy();});
+ async function fixture(){const store=new PgPilotStore(db),digester=configuredContentDigester({NODE_ENV:'test'});const loop=new PilotLoopService(store,new ManualAdapter());const s=await loop.ingestScenario({workspaceId:ctx.workspaceId,ownerUserId:ctx.userId,displayName:'Synthetic contact',utterance:'synthetic original',speaker:'customer',connection:'manual',externalRecordId:randomUUID(),isSynthetic:true});return {store,s,service:new ContactAttemptService(store,new RbacService(),digester,new PgContactAttemptStore(db)),closure:new PilotClosureService(store,new RbacService(),digester)};}
+ it('commits claimed attempt/audit/receipt/version and fresh store history, rejects rewrite/delete, exports scoped record',async()=>{const f=await fixture();const r=await f.service.record(ctx,f.s.lead.id,{...input,evidenceRef:f.s.sourceEnvelopeId});const fresh=new ContactAttemptService(new PgPilotStore(db),new RbacService(),configuredContentDigester({NODE_ENV:'test'}),new PgContactAttemptStore(db));expect((await fresh.list(ctx,f.s.lead.id)).items[0]).toMatchObject({id:r.attemptId,occurredAt:'unknown',assertionStatus:'claimed',actor:'owner'});for(const query of ['UPDATE pilot_contact_attempt SET reason=reason WHERE id=$1','DELETE FROM pilot_contact_attempt WHERE id=$1'])await expect(db.query(query,[r.attemptId])).rejects.toThrow('append-only');const exportStore=new PgLeadExportStore(db);expect(await exportStore.exportLead('foreign',f.s.lead.id,'admin')).toBeUndefined();const artifact=await exportStore.exportLead(ctx.workspaceId,f.s.lead.id,'admin');expect(artifact?.records.pilot_contact_attempt).toHaveLength(1);expect(artifact?.records.audit_record.some(a=>a.event_type==='contact_attempt_recorded')).toBe(true);const s=await f.store.load(f.s.lead.id);expect(s?.lead).toEqual(f.s.lead);expect(s?.version).toBe(2);expect(s?.workItems).toEqual([]);expect(JSON.stringify(s?.closureCommands)).not.toContain(input.followUpImplication);});
+ it('deduplicates concurrent identical commands and refuses stale/changed/key collision',async()=>{const f=await fixture();const r=await Promise.all([f.service.record(ctx,f.s.lead.id,input),f.service.record(ctx,f.s.lead.id,input)]);expect(r[0]).toEqual(r[1]);expect((await f.service.list(ctx,f.s.lead.id)).items).toHaveLength(1);await expect(f.service.record(ctx,f.s.lead.id,{...input,claimedResult:'reached'})).rejects.toMatchObject({code:'IDEMPOTENCY_CONFLICT'});await expect(f.service.record(ctx,f.s.lead.id,{...input,idempotencyKey:'stale'})).rejects.toMatchObject({code:'STALE_VERSION'});await f.closure.execute(ctx,f.s.lead.id,'context',{expectedVersion:2,idempotencyKey:'context',text:'synthetic',reason:'test'});await expect(f.service.record(ctx,f.s.lead.id,{...input,expectedVersion:3,idempotencyKey:'context'})).rejects.toMatchObject({code:'IDEMPOTENCY_CONFLICT'});});
+ it('rolls back attempt/version/receipt on audit failure',async()=>{const f=await fixture();await db.query(`CREATE FUNCTION fail_contact_test() RETURNS trigger LANGUAGE plpgsql AS $$ BEGIN IF NEW.event_type='contact_attempt_recorded' THEN RAISE EXCEPTION 'contact audit unavailable'; END IF; RETURN NEW; END $$`);await db.query('CREATE TRIGGER fail_contact_test BEFORE INSERT ON audit_record FOR EACH ROW EXECUTE FUNCTION fail_contact_test()');try{await expect(f.service.record(ctx,f.s.lead.id,input)).rejects.toThrow('contact audit unavailable');}finally{await db.query('DROP TRIGGER fail_contact_test ON audit_record');await db.query('DROP FUNCTION fail_contact_test()');}expect((await f.service.list(ctx,f.s.lead.id)).items).toEqual([]);expect((await f.store.load(f.s.lead.id))?.version).toBe(1);expect(await new PgContactAttemptStore(db).receipt(ctx.workspaceId,f.s.lead.id,input.idempotencyKey)).toBeUndefined();});
+ it('denies foreign workspace and mismatched evidence/classification',async()=>{const f=await fixture();const other=await fixture();await expect(f.service.list({...ctx,workspaceId:'foreign'},f.s.lead.id)).rejects.toMatchObject({status:404});await expect(f.service.record(ctx,f.s.lead.id,{...input,evidenceRef:other.s.sourceEnvelopeId})).rejects.toMatchObject({code:'EVIDENCE_NOT_RELATED'});await expect(db.query(`INSERT INTO pilot_contact_attempt(id,lead_id,workspace_id,actor,recorded_at,occurred_at,channel,claimed_result,follow_up_implication,reason,acquisition_mode,assertion_status) VALUES($1,$2,'foreign','owner',now(),'unknown','phone','unknown','test','test','claimed','claimed')`,[randomUUID(),f.s.lead.id])).rejects.toThrow();});
+ it('blocks truncate and nonempty rollback without losing contact history', async () => {
+  const f=await fixture(); await f.service.record(ctx,f.s.lead.id,input);
+  await expect(db.withTransaction(tx=>tx.query('TRUNCATE pilot_contact_attempt'))).rejects.toThrow('append-only');
+  const down=loadMigrations().find(m=>m.version==='016_contact_attempt')!.down;
+  await expect(db.withTransaction(tx=>tx.query(down))).rejects.toThrow('nonempty contact history');
+  expect((await f.service.list(ctx,f.s.lead.id)).items).toHaveLength(1);
+ });
+ it('orders recorded history chronologically and binds the page cursor to the current lead', async () => {
+  const f=await fixture(), other=await fixture();
+  const [low,high]=[randomUUID(),randomUUID()].sort();
+  for(const [id,time] of [[high,'2020-01-01T00:00:00Z'],[low,'2020-01-02T00:00:00Z']]) {
+   await db.query(`INSERT INTO pilot_contact_attempt(id,lead_id,workspace_id,actor,recorded_at,occurred_at,channel,claimed_result,follow_up_implication,reason,acquisition_mode,assertion_status)
+    VALUES($1,$2,$3,'owner',$4,'unknown','phone','unknown','Synthetic follow-up','synthetic','claimed','claimed')`,[id,f.s.lead.id,ctx.workspaceId,time]);
+  }
+  const first=await f.service.list(ctx,f.s.lead.id,1);
+  expect(first.items.map(a=>a.id)).toEqual([high]); expect(first.nextCursor).toBe(high);
+  expect((await f.service.list(ctx,f.s.lead.id,1,first.nextCursor)).items.map(a=>a.id)).toEqual([low]);
+  expect((await f.service.list(ctx,other.s.lead.id,1,high)).items).toEqual([]);
+ });
+ it('shares the command-key namespace across operations and serializes competing effects', async () => {
+  const f=await fixture(); await f.service.record(ctx,f.s.lead.id,input);
+  await expect(f.closure.execute(ctx,f.s.lead.id,'context',{expectedVersion:2,idempotencyKey:input.idempotencyKey,text:'Synthetic',reason:'test'})).rejects.toMatchObject({code:'IDEMPOTENCY_CONFLICT'});
+  const competing=await fixture();
+  const results=await Promise.allSettled([
+   competing.service.record(ctx,competing.s.lead.id,input),
+   competing.closure.execute(ctx,competing.s.lead.id,'context',{expectedVersion:1,idempotencyKey:input.idempotencyKey,text:'Synthetic',reason:'test'}),
+  ]);
+  expect(results.filter(r=>r.status==='fulfilled')).toHaveLength(1);
+  expect((await competing.store.load(competing.s.lead.id))?.version).toBe(2);
+  const state=(await competing.store.load(competing.s.lead.id))!;
+  const attempts=(await competing.service.list(ctx,competing.s.lead.id)).items;
+  expect(attempts.length+(state.contextRevisions?.length??0)).toBe(1);
+ });
+});

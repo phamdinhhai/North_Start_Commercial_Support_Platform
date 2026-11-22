@@ -1,0 +1,214 @@
+{
+  "schema_version": 1,
+  "recorded_at": "2026-11-20T17:14:57.877148+00:00",
+  "git": {
+    "base_sha": "197d6ec4c766d4528d1cbc9e024d6e2454d22bd3",
+    "source_sha": "6aa1533e204d29c99c3350f457210685b01397e6",
+    "branch": "feat/r413-pancake-deep-admission",
+    "product_tree": "06597e388504b966cc3fd15e40fa9ca08265624b",
+    "run_start_head": "6aa1533e204d29c99c3350f457210685b01397e6",
+    "subprocess_later_head": "0ebf0f3fcc122d9c9a708104403e563654ac6197",
+    "chronology": "Only independent QA documentation committed during run; identical product tree verified. Final reports follow. No source/test/config changed during full run.",
+    "documentation_head": "Final documentation-only commit containing this report; exact HEAD in handover and git log",
+    "pushed": false,
+    "hosted_r413": "NOT_RUN",
+    "baseline_hosted": {
+      "run_id": "44761896200",
+      "number": 79,
+      "sha": "197d6ec4c766d4528d1cbc9e024d6e2454d22bd3",
+      "conclusion": "SUCCESS"
+    },
+    "historical_migrations_canonical_pilot_workflow_unchanged": true
+  },
+  "environment": {
+    "os": "Windows",
+    "node": "22.21.0",
+    "npm": "10.9.0",
+    "postgresql": "17.11",
+    "vitest": "5.1.0",
+    "browser": "Playwright bundled Chromium",
+    "database": "New agent-owned loopback PG cluster and separate fabricated databases",
+    "CI": "true",
+    "NODE_ENV": "test",
+    "DEPLOYMENT_MODE": "test",
+    "PILOT_STORE_MODE": "memory",
+    "DEMO_WORKSPACES": "false",
+    "credentials_in_regression_environment": false
+  },
+  "run": {
+    "command": "node C:/Users/admin/AppData/Local/Temp/north-r412-verify.mjs D:/AI-for-Enterprise/ns-r413-pancake r413-final",
+    "runner_sha256": "38d89db90b1d265745c98f88022aeacf1208696428d52b3c10472ab748b7cbd3",
+    "artifact_directory": "C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r413-final-mta6XB",
+    "lanes_passed": 26,
+    "lanes_failed": 0,
+    "results": [
+      {"name":"pilot-research-safety","command":["C:\\Program Files\\nodejs\\node.exe","--test","scripts/pilot/safety.test.mjs","scripts/research/validate-observation.test.mjs"],"exit_code":0,"seconds":0,"log":"C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r413-final-mta6XB\\pilot-research-safety.log","result":"PASS","log_sha256":"42c37fb0febc680506b89f8f16134d8a62013b3354f6a02b8b81b6481a2f7c73","test_summary":["# pass 7","# fail 0","# skipped 0"]},
+      {"name":"typecheck","command":["C:\\Program Files\\nodejs\\node.exe","C:/Program Files/nodejs/node_modules/npm/bin/npm-cli.js","run","typecheck"],"exit_code":0,"seconds":6,"log":"C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r413-final-mta6XB\\typecheck.log","result":"PASS","log_sha256":"09b9a49f6769e2371ae5cfedc320845c173fe8c1356b69e516cecf3df4a23c7a","test_summary":[]},
+      {"name":"lint","command":["C:\\Program Files\\nodejs\\node.exe","C:/Program Files/nodejs/node_modules/npm/bin/npm-cli.js","run","lint"],"exit_code":0,"seconds":4,"log":"C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r413-final-mta6XB\\lint.log","result":"PASS","log_sha256":"ad43281dbc673e71b219a3b5f8bb1351cdbf31f778553f420b51e951f5ce0a46","test_summary":[]},
+      {"name":"architecture","command":["C:\\Program Files\\nodejs\\node.exe","C:/Program Files/nodejs/node_modules/npm/bin/npm-cli.js","run","architecture:check:strict"],"exit_code":0,"seconds":1,"log":"C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r413-final-mta6XB\\architecture.log","result":"PASS","log_sha256":"d77621a86ab9943075df85f3191a1cb7bb1df838338d769fe581a2ff13a87c50","test_summary":[]},
+      {"name":"registry","command":["C:\\Program Files\\nodejs\\node.exe","C:/Program Files/nodejs/node_modules/npm/bin/npm-cli.js","run","registry:validate"],"exit_code":0,"seconds":0,"log":"C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r413-final-mta6XB\\registry.log","result":"PASS","log_sha256":"9ba0b062f4ecd65b28129862b0b83b76af3684de213382c0d20ffa086be3ab85","test_summary":[]},
+      {"name":"integration-ci","command":["C:\\Program Files\\nodejs\\node.exe","C:/Program Files/nodejs/node_modules/npm/bin/npm-cli.js","run","test:integration:ci"],"exit_code":0,"seconds":77,"log":"C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r413-final-mta6XB\\integration-ci.log","result":"PASS","log_sha256":"22ae003b18558a876a464e58263a3dbbaf0b05dda7b4868ecb458cd27bb6863e","test_summary":["Test Files  1 passed (1)","Tests  4 passed (4)","Test Files  1 passed (1)","Tests  5 passed (5)","Test Files  1 passed (1)","Tests  8 passed (8)"]},
+      {"name":"coverage","command":["C:\\Program Files\\nodejs\\node.exe","C:/Program Files/nodejs/node_modules/npm/bin/npm-cli.js","run","test:cov","--","--no-file-parallelism"],"exit_code":0,"seconds":109,"log":"C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r413-final-mta6XB\\coverage.log","result":"PASS","log_sha256":"ace5e0520692b9ebada45c7ef96c2d42ab5ef6bc7ba56993e7e4171ac265c2df","test_summary":["Test Files  159 passed (159)","Tests  1483 passed (1483)"]},
+      {"name":"build","command":["C:\\Program Files\\nodejs\\node.exe","C:/Program Files/nodejs/node_modules/npm/bin/npm-cli.js","run","build"],"exit_code":0,"seconds":10,"log":"C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r413-final-mta6XB\\build.log","result":"PASS","log_sha256":"4bc24afec50c327cef250b332ffda2df07d6c6766d549f4ee6b27ea4aaaebc3a","test_summary":[]},
+      {"name":"http-e2e","command":["C:\\Program Files\\nodejs\\node.exe","C:/Program Files/nodejs/node_modules/npm/bin/npm-cli.js","run","test:e2e"],"exit_code":0,"seconds":7,"log":"C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r413-final-mta6XB\\http-e2e.log","result":"PASS","log_sha256":"8c0b973e002b61216093bbbf9bbbc93d74108a7b191eec01dfed70d89a26713b","test_summary":["Test Files  3 passed (3)","Tests  22 passed (22)"]},
+      {"name":"browser","command":["C:\\Program Files\\nodejs\\node.exe","C:/Program Files/nodejs/node_modules/npm/bin/npm-cli.js","run","test:browser"],"exit_code":0,"seconds":20,"log":"C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r413-final-mta6XB\\browser.log","result":"PASS","log_sha256":"90b0c2aaa5c92bc08f8e05eaeaedda0534da6ca3e934d45a7cc9fc7de9e08286","test_summary":["4 passed (19.3s)"]},
+      {"name":"component","command":["C:\\Program Files\\nodejs\\node.exe","node_modules/@playwright/test/cli.js","test","--config","playwright.operator-recovery.config.ts"],"exit_code":0,"seconds":6,"log":"C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r413-final-mta6XB\\component.log","result":"PASS","log_sha256":"cb99521411d7ab3eda3d6894e2853a749a01819bac523c234bcc055e7e7f6a3b","test_summary":["10 passed (5.5s)"]},
+      {"name":"lifecycle-memory","command":["C:\\Program Files\\nodejs\\node.exe","node_modules/@playwright/test/cli.js","test","--config","playwright.lifecycle.config.ts"],"exit_code":0,"seconds":15,"log":"C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r413-final-mta6XB\\lifecycle-memory.log","result":"PASS","log_sha256":"667009ca70d01894367de907a4ca7496a7a76b2a0000f34abd1e34ace6d0a176","test_summary":["1 passed (13.8s)"]},
+      {"name":"oidc-ui","command":["C:\\Program Files\\nodejs\\node.exe","node_modules/@playwright/test/cli.js","test","--config","playwright.oidc.config.ts"],"exit_code":0,"seconds":26,"log":"C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r413-final-mta6XB\\oidc-ui.log","result":"PASS","log_sha256":"e3e6da12acfc139548292b3c063dcdde3da24254f7230fbcf8a366f1705c1342","test_summary":["6 passed (25.0s)"]},
+      {"name":"source-ui","command":["C:\\Program Files\\nodejs\\node.exe","node_modules/@playwright/test/cli.js","test","--config","playwright.source-integration.config.ts"],"exit_code":0,"seconds":22,"log":"C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r413-final-mta6XB\\source-ui.log","result":"PASS","log_sha256":"7dbd00607e3c1e9db0f547c4e94e43aadb186857d90d9da07b85ab36ed117d56","test_summary":["1 passed (21.5s)"]},
+      {"name":"companion","command":["C:\\Program Files\\nodejs\\node.exe","C:/Program Files/nodejs/node_modules/npm/bin/npm-cli.js","run","test:companion"],"exit_code":0,"seconds":5,"log":"C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r413-final-mta6XB\\companion.log","result":"PASS","log_sha256":"e641f14df592ca1b949a99ffec918a83d6130ece576a436bc83181c84c44696a","test_summary":[]},
+      {"name":"packaging","command":["C:\\Program Files\\nodejs\\node.exe","--test","scripts/companion-package.test.mjs"],"exit_code":0,"seconds":1,"log":"C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r413-final-mta6XB\\packaging.log","result":"PASS","log_sha256":"5082258cb2e2670053525203030677754110b0c11cdcaae28674db423522a1ba","test_summary":["# pass 7","# fail 0","# skipped 0"]},
+      {"name":"guardrails","command":["C:\\Program Files\\nodejs\\node.exe","--test","scripts/check-architecture.test.mjs","scripts/registry-validation.test.mjs","scripts/security-audit.test.mjs","scripts/backup-verify.test.mjs"],"exit_code":0,"seconds":1,"log":"C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r413-final-mta6XB\\guardrails.log","result":"PASS","log_sha256":"173d4bb0b6972092de58fd89eba8c71cf886240e040c5b23e05ac8f5df65760c","test_summary":["# pass 44","# fail 0","# skipped 0"]},
+      {"name":"ail-research","command":["C:\\Program Files\\nodejs\\node.exe","C:/Program Files/nodejs/node_modules/npm/bin/npm-cli.js","run","test:ail:research"],"exit_code":0,"seconds":2,"log":"C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r413-final-mta6XB\\ail-research.log","result":"PASS","log_sha256":"58186c525f6ddcf9a4c45eff261e423fd63009597b22629bbb97957c0f63c87e","test_summary":["# pass 14","# fail 0","# skipped 0"]},
+      {"name":"restore","command":["C:\\Program Files\\nodejs\\node.exe","scripts/restore-rehearsal.mjs"],"exit_code":0,"seconds":6,"log":"C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r413-final-mta6XB\\restore.log","result":"PASS","log_sha256":"c73f594d5c7ca0699ebe1d16fc9b8d775d804fd5d20969be7bbaa54f478df7cf","test_summary":[]},
+      {"name":"audit","command":["C:\\Program Files\\nodejs\\node.exe","C:/Program Files/nodejs/node_modules/npm/bin/npm-cli.js","run","security:audit"],"exit_code":0,"seconds":17,"log":"C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r413-final-mta6XB\\audit.log","result":"PASS","log_sha256":"57e8b10012c380383e853728fe570a8746171dc602003a7af2be5786773033e3","test_summary":[]},
+      {"name":"r411-browser","command":["C:\\Program Files\\nodejs\\node.exe","node_modules/@playwright/test/cli.js","test","--config","playwright.r411.config.ts"],"exit_code":0,"seconds":21,"log":"C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r413-final-mta6XB\\r411-browser.log","result":"PASS","log_sha256":"88e39f727c1043417af92af07ec290fc47d97354a052a79e74e9037171b13bfd","test_summary":["2 passed (19.9s)"]},
+      {"name":"pilot-launcher","command":["C:\\Program Files\\nodejs\\node.exe","C:/Users/admin/AppData/Local/Temp/north-r411-pilot-verify.mjs"],"exit_code":0,"seconds":34,"log":"C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r413-final-mta6XB\\pilot-launcher.log","result":"PASS","log_sha256":"71c63489811b712f049230e8d306e8b010e7993f850ed9c21e3e40481b78a7d1","test_summary":[]},
+      {"name":"benchmark","command":["C:\\Program Files\\nodejs\\node.exe","scripts/source-integration-benchmark.mjs"],"exit_code":0,"seconds":3,"log":"C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r413-final-mta6XB\\benchmark.log","result":"PASS","log_sha256":"30464966d48934a0823a8c714dd177865da2ce2ef21816eed70ad62630f09ac4","test_summary":[]},
+      {"name":"r412-browser","command":["C:\\Program Files\\nodejs\\node.exe","node_modules/@playwright/test/cli.js","test","--config","playwright.r412.config.ts"],"exit_code":0,"seconds":19,"log":"C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r413-final-mta6XB\\r412-browser.log","result":"PASS","log_sha256":"bed4bdf56e840923be5bcc25c5b43b668fc55320067c7be36ee72a0743ea08eb","test_summary":["1 passed (17.7s)"]},
+      {"name":"sync-recovery","command":["C:\\Program Files\\nodejs\\node.exe","scripts/sync-recovery-rehearsal.mjs"],"exit_code":0,"seconds":4,"log":"C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r413-final-mta6XB\\sync-recovery.log","result":"PASS","log_sha256":"194a491ab6072b1d5aaeb205a3de51ca38cb9f3a89d533b3def73215a6fb8e6f","test_summary":[]},
+      {"name":"sync-benchmark","command":["C:\\Program Files\\nodejs\\node.exe","scripts/sync-benchmark.mjs"],"exit_code":0,"seconds":1,"log":"C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r413-final-mta6XB\\sync-benchmark.log","result":"PASS","log_sha256":"d57ba046ada852ae5f3156655c522c676a2f405daff4f664562c29b4103f53f6","test_summary":[]}
+    ]
+  },
+  "vitest": {
+    "test_files": 159,
+    "passed": 1483,
+    "failed": 0,
+    "skipped": 0,
+    "postgresql_tests_included": 157,
+    "postgresql_suites": 30,
+    "additional_node_playwright_runs_not_added_to_vitest_total": true
+  },
+  "coverage": {
+    "lines": 92.85,
+    "statements": 88.71,
+    "branches": 86.48,
+    "functions": 91.25,
+    "lcov_sha256": "cf201592014bc92eb3b7aa2d0a8665dc4f67c86cf004fe7fab58b7520ba457d9",
+    "new_modules": {
+      "pancake-request-policy": {
+        "lines": "36/36",
+        "branches": "74/74",
+        "functions": "12/12"
+      },
+      "pancake-history-readback": {
+        "lines": "9/9",
+        "branches": "51/51",
+        "functions": "4/4"
+      },
+      "pancake-message-scope": {
+        "lines": "14/14",
+        "branches": "34/34",
+        "functions": "4/4"
+      }
+    },
+    "focused_new_tests": 70,
+    "focused_modules_all_metrics_percent": 100
+  },
+  "benchmark": {
+    "synthetic_only": true,
+    "source_claims": {
+      "samples": 64,
+      "workers": 8,
+      "same_connection_different_messages_p50_ms": 19.52330000000029,
+      "same_connection_different_messages_p95_ms": 111.28269999999975,
+      "seed_receipts": 1200,
+      "deadlocks": 0,
+      "max_sampled_pool_queue": 0
+    },
+    "durable_sync": {
+      "sequentialSameStream": {
+        "samples": 32,
+        "workers": 1,
+        "p50Ms": 6.163900000000012,
+        "p95Ms": 8.992299999999886,
+        "elapsedMs": 209.15519999999992,
+        "maxObservedPoolQueue": 0
+      },
+      "parallelEightStreams": {
+        "samples": 64,
+        "workers": 8,
+        "p50Ms": 14.129400000000032,
+        "p95Ms": 70.50099999999998,
+        "elapsedMs": 190.15739999999983,
+        "maxObservedPoolQueue": 0
+      },
+      "samePageReplay": {
+        "samples": 32,
+        "workers": 1,
+        "p50Ms": 2.1473000000000866,
+        "p95Ms": 2.8777999999999793,
+        "elapsedMs": 72.11859999999979,
+        "maxObservedPoolQueue": 0
+      }
+    },
+    "durable_receipts": 96,
+    "durable_deadlocks": 0,
+    "limits": "One bounded local synthetic run,32/64 latency samples. No production p99,throughput,SLO or performance improvement claim."
+  },
+  "recovery": {
+    "restore_tables": 16,
+    "source_link_checkpoint_delivery_replay_after_restore": "PASS",
+    "worker_crash_exit": 73,
+    "restarted_from_page": 3,
+    "durable_pages": 3,
+    "unassigned_leads": 3,
+    "worker_network_calls": 0,
+    "owner_pilot_resources": "UNTOUCHED",
+    "agent_owned_pg_stopped": true
+  },
+  "provider_validation": {
+    "account_or_target_requests": 4,
+    "request_ceiling": 25,
+    "mutations": 0,
+    "other_conversation_requests": 0,
+    "token_generation_rotation": false,
+    "raw_responses_persisted": false,
+    "provider_data_ingested_into_north_start": false,
+    "account_token_probe": "HTTP200_PROVIDER_SUCCESS_PRIVATE_ENDPOINT",
+    "cookie_only_probe": "HTTP200_PROVIDER_SUCCESS_FALSE",
+    "history_read": "HTTP200_PROVIDER_SUCCESS_EXACT_NATIVE_CONVERSATION_30_SCOPED_MESSAGES",
+    "page_alias_document": "HTTP302_REDIRECT_NOT_FOLLOWED_TERMINAL_STOP",
+    "page_alias_contact_owner_identity": "NOT_VERIFIED",
+    "live_integration_e2e": "NOT_RUN",
+    "live_request_journal_sha256": "29fabbba91103eeede82076fd0dc6e825e02d1cdf6824d20c07c9d47acac04ef",
+    "provider_request_terminal": true
+  },
+  "failure_history": [
+    {
+      "scope": "independent_policy_redirect_negatives",
+      "before_fix": "7 failed /4 passed",
+      "after_fix": "same11 cases passed"
+    },
+    {
+      "scope": "root_required_target_keys",
+      "before_fix": "5 failed /11 passed",
+      "after_fix": "same5 cases passed; finalfocused70passed"
+    },
+    {
+      "scope": "root_OpenAPI_validator",
+      "before_fix": "User-site jsonschema import incompatibility before validation",
+      "resolution": "Existing isolated validator0.9.0 ran; local/currentREST21diagnostics each,webhook2each; originals preserved"
+    },
+    {
+      "scope": "live_read_attempts",
+      "result": "Cookie-only verification failed; PageUI302 terminal stop. Neither hidden nor claimed PASS."
+    }
+  ],
+  "security": {
+    "exact_secret_scans": "PASS:changed,untracked,staged,new_history,generated_artifacts,private_harness; no matching credential values",
+    "generic_pattern_scans": "Specialist scans plus root staged content review; actualtarget IDs/rawproviderdata absent from committed fixtures",
+    "secret_source_copied_into_worktree": false,
+    "credential_hashes_published": false,
+    "dependency_audit": "PASS: production high/critical gate,zero dev-only waivers",
+    "limitations": "No scanner establishes universal absence of PII; root reviewed changed docs/fixtures. PG binary artifacts are fabricated-only and excluded from text scan."
+  },
+  "release": {
+    "gate_a": "PASS_LOCAL_EXACT_SOURCE_26_LANES",
+    "gate_b": "CONDITIONAL_HUMAN_SALES_NOT_RUN",
+    "provider": "AUTHORIZED_PROVIDER_TESTED_NARROW_HISTORY_READ_ONLY; FULL_ADMISSION_BLOCKED_PENDING_IDENTITY_BINDING",
+    "gate_c": "NOT_READY_FOR_REAL_CUSTOMER_DATA",
+    "hosted_ci": "R413_NOT_RUN_NO_PUSH",
+    "production_approval": false
+  }
+}

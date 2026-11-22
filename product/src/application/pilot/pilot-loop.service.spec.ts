@@ -139,7 +139,7 @@ describe('PilotLoopService — P0 education B2C loop (durable store port)', () =
     const done = await svc.completeWork(accepted.lead.id, {
       workId,
       actor: 'sales-hung',
-      evidence: 'declared',
+      evidence: 'declared', declaration: 'Operator confirmed completion', confirmed: true,
       occurredAt: '2026-10-09T15:05:00+07:00',
       reason: 'Đã gọi, phụ huynh hẹn cuối tuần đăng ký',
     });
@@ -232,8 +232,21 @@ describe('PilotLoopService — P0 education B2C loop (durable store port)', () =
       status: 422,
     });
 
-    const declared = await svc.completeWork(state.lead.id, { workId, actor: 'sales-hung', evidence: 'declared', reason: 'nhân viên báo đã gửi qua Zalo' });
+    const declared = await svc.completeWork(state.lead.id, { workId, actor: 'sales-hung', evidence: 'declared', declaration: 'Operator confirmed completion', confirmed: true, reason: 'nhân viên báo đã gửi qua Zalo' });
     expect(declared.workItems[0].completionEvidence).toBe('declared');
+  });
+
+  it('refuses declared completion without declaration and confirmation before persistence', async () => {
+    const state = await svc.ingestScenario(base);
+    const handed = await svc.handoffToSales(state.lead.id, {
+      context: 'c', proposedAction: 'a', responsibleParty: 'internal', origin: 'explicit-request',
+      actor: 'marketing-lan', recipientUserId: 'sales-hung',
+    });
+    const workId = handed.workItems[0].id;
+    await svc.salesAccept(state.lead.id, { workId, actor: 'sales-hung', reason: 'B nhận' });
+    await expect(svc.completeWork(state.lead.id, { workId, actor: 'sales-hung', evidence: 'declared' }))
+      .rejects.toMatchObject({ code: 'INPUT_INVALID', status: 422 });
+    expect((await svc.get(state.lead.id))!.workItems[0].status).toBe('accepted');
   });
 
   it('refuses AI/inferred evidence closing work (I-03, V2 §9.6)', async () => {
@@ -293,7 +306,7 @@ describe('PilotLoopService — P0 education B2C loop (durable store port)', () =
     });
     const workId = handed.workItems[0].id;
     await svc.salesAccept(state.lead.id, { workId, actor: 'sales-hung', reason: 'nhận' });
-    await svc.completeWork(state.lead.id, { workId, actor: 'sales-hung', evidence: 'declared', reason: 'đã gọi' });
+    await svc.completeWork(state.lead.id, { workId, actor: 'sales-hung', evidence: 'declared', declaration: 'Operator confirmed completion', confirmed: true, reason: 'đã gọi' });
     await expect(
       svc.rescheduleWork(state.lead.id, { workId, actor: 'sales-hung', newDueAt: '2026-10-12T16:00:00+07:00', reason: 'lỡ tay' }),
     ).rejects.toMatchObject({ code: 'WORK_ALREADY_CLOSED', status: 409 });
@@ -316,7 +329,7 @@ describe('PilotLoopService — P0 education B2C loop (durable store port)', () =
     expect(marked.workItems[0].status).toBe('awaiting-external');
     expect(marked.workItems[0].completionEvidence).toBe('absent');
     expect(await svc.openInternalWorkDueBefore(state.lead.id, '2026-10-10T00:00:00+07:00')).toHaveLength(0);
-    await expect(svc.completeWork(state.lead.id, { workId, actor: 'sales-hung', evidence: 'declared' })).rejects.toMatchObject({
+    await expect(svc.completeWork(state.lead.id, { workId, actor: 'sales-hung', evidence: 'declared', declaration: 'Operator confirmed completion', confirmed: true })).rejects.toMatchObject({
       code: 'EXTERNAL_NOT_DECLAREABLE',
       status: 422,
     });
@@ -337,7 +350,7 @@ describe('PilotLoopService — P0 education B2C loop (durable store port)', () =
     const done = await svc.completeWork(state.lead.id, {
       workId,
       actor: 'sales-hung',
-      evidence: 'declared',
+      evidence: 'declared', declaration: 'Operator confirmed completion', confirmed: true,
       reason: 'nhập muộn hôm sau',
     });
     expect(done.workItems[0].occurredAt).toBe(UNKNOWN_SENTINEL);
@@ -416,7 +429,7 @@ describe('P1-2 — mutation authorization is per work item and handoff state', (
     expect(view?.ownerUserId).toBe('marketing-lan');
 
     // mutations trước khi nhận → 403, và state KHÔNG đổi
-    await expect(svc.completeWork(state.lead.id, { workId, actor: 'sales-b', evidence: 'declared' })).rejects.toMatchObject({ code: 'NOT_OWNER', status: 403 });
+    await expect(svc.completeWork(state.lead.id, { workId, actor: 'sales-b', evidence: 'declared', declaration: 'Operator confirmed completion', confirmed: true })).rejects.toMatchObject({ code: 'NOT_OWNER', status: 403 });
     await expect(
       svc.rescheduleWork(state.lead.id, { workId, actor: 'sales-b', newDueAt: '2026-10-12T09:00:00+07:00', reason: 'x' }),
     ).rejects.toMatchObject({ code: 'NOT_OWNER', status: 403 });
@@ -433,7 +446,7 @@ describe('P1-2 — mutation authorization is per work item and handoff state', (
     const accepted = await svc.salesAccept(state.lead.id, { workId, actor: 'sales-b', reason: 'B nhận' });
     expect(accepted.ownerUserId).toBe('sales-b');
     // sau khi nhận, B mutate hợp lệ
-    const done = await svc.completeWork(state.lead.id, { workId, actor: 'sales-b', evidence: 'declared', reason: 'đã gọi' });
+    const done = await svc.completeWork(state.lead.id, { workId, actor: 'sales-b', evidence: 'declared', declaration: 'Operator confirmed completion', confirmed: true, reason: 'đã gọi' });
     expect(done.workItems[0].status).toBe('completed');
   });
 
@@ -443,7 +456,7 @@ describe('P1-2 — mutation authorization is per work item and handoff state', (
       code: 'NOT_ASSIGNED_RECIPIENT',
       status: 403,
     });
-    await expect(svc.completeWork(state.lead.id, { workId, actor: 'sales-c', evidence: 'declared' })).rejects.toMatchObject({
+    await expect(svc.completeWork(state.lead.id, { workId, actor: 'sales-c', evidence: 'declared', declaration: 'Operator confirmed completion', confirmed: true })).rejects.toMatchObject({
       code: 'NOT_OWNER',
       status: 403,
     });
@@ -507,7 +520,7 @@ describe('P1-2 — mutation authorization is per work item and handoff state', (
     const stateB = await svc.ingestScenario({ ...base, displayName: 'Phụ huynh B', externalRecordId: 'msg-009' });
     // Owner hợp lệ của lead B, nhưng workId thuộc lead A → 404, không mutate chéo lead.
     await expect(
-      svc.completeWork(stateB.lead.id, { workId: a.workId, actor: 'marketing-lan', evidence: 'declared' }),
+      svc.completeWork(stateB.lead.id, { workId: a.workId, actor: 'marketing-lan', evidence: 'declared', declaration: 'Operator confirmed completion', confirmed: true }),
     ).rejects.toMatchObject({ code: 'WORK_NOT_FOUND', status: 404 });
     await expect(
       svc.rescheduleWork(stateB.lead.id, { workId: a.workId, actor: 'marketing-lan', newDueAt: '2026-10-20T09:00:00+07:00', reason: 'x' }),
@@ -524,7 +537,7 @@ describe('P1-2 — mutation authorization is per work item and handoff state', (
 
     // (b) Owner A cannot complete or reschedule workB addressed to sales-b
     await expect(
-      svc.completeWork(state.lead.id, { workId: workB, actor: 'marketing-lan', evidence: 'declared', reason: 'A tự đóng hộ B' }),
+      svc.completeWork(state.lead.id, { workId: workB, actor: 'marketing-lan', evidence: 'declared', declaration: 'Operator confirmed completion', confirmed: true, reason: 'A tự đóng hộ B' }),
     ).rejects.toMatchObject({ code: 'NOT_ASSIGNED_RECIPIENT', status: 403 });
     await expect(
       svc.rescheduleWork(state.lead.id, { workId: workB, actor: 'marketing-lan', newDueAt: '2026-10-20T09:00:00+07:00', reason: 'A tự dời hộ B' }),
@@ -600,7 +613,7 @@ describe('P1-3 — superseded items are not actionable; callers get replacementI
     const { leadId, oldId, replacementId } = await rescheduledChain();
 
     let caught: unknown;
-    await svc.completeWork(leadId, { workId: oldId, actor: 'sales-b', evidence: 'declared' }).catch((e) => (caught = e));
+    await svc.completeWork(leadId, { workId: oldId, actor: 'sales-b', evidence: 'declared', declaration: 'Operator confirmed completion', confirmed: true }).catch((e) => (caught = e));
     expect(caught).toMatchObject({ code: 'WORK_SUPERSEDED', status: 409 });
     expect((caught as { details?: Record<string, unknown> }).details).toMatchObject({
       workId: oldId,
@@ -618,7 +631,7 @@ describe('P1-3 — superseded items are not actionable; callers get replacementI
 
   it('completing the replacement closes the chain and leaves no active item behind', async () => {
     const { leadId, oldId, replacementId } = await rescheduledChain();
-    const done = await svc.completeWork(leadId, { workId: replacementId, actor: 'sales-b', evidence: 'declared', reason: 'đã gọi hôm thứ Hai' });
+    const done = await svc.completeWork(leadId, { workId: replacementId, actor: 'sales-b', evidence: 'declared', declaration: 'Operator confirmed completion', confirmed: true, reason: 'đã gọi hôm thứ Hai' });
 
     const old = done.workItems.find((w) => w.id === oldId)!;
     const current = done.workItems.find((w) => w.id === replacementId)!;
@@ -695,7 +708,7 @@ describe('P1-3 — superseded items are not actionable; callers get replacementI
     // refuse the old ID from persisted status and point at the persisted successor.
     const svcB = new PilotLoopService(store, new ManualAdapter());
     let caught: unknown;
-    await svcB.completeWork(state.lead.id, { workId: oldId, actor: 'sales-b', evidence: 'declared' }).catch((e) => (caught = e));
+    await svcB.completeWork(state.lead.id, { workId: oldId, actor: 'sales-b', evidence: 'declared', declaration: 'Operator confirmed completion', confirmed: true }).catch((e) => (caught = e));
     expect(caught).toMatchObject({ code: 'WORK_SUPERSEDED', status: 409 });
     expect((caught as { details?: Record<string, unknown> }).details).toMatchObject({ workId: oldId, replacementId });
   });

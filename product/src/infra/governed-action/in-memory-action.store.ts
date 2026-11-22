@@ -1,0 +1,80 @@
+import { deepFreeze } from '../../domain/governed-action/canonical-json';
+import {
+  GovernedActionError, type ActionEvent, type ActionProposal, type ActionRefusal, type ProposalRefusal, type Transition,
+} from '../../domain/governed-action/governed-action.types';
+import type { ActionStore, CreateResult } from '../../ports/governed-action';
+
+const key = (workspaceId: string, id: string) => `${workspaceId}\u0000${id}`;
+const clone = <T>(value: T): T => deepFreeze(structuredClone(value));
+
+/**
+ * In-memory ActionStore for tests / local synthetic runs. Same contract as the PostgreSQL
+ * store: workspace-scoped reads, (workspace, requestKey) uniqueness, CAS on version,
+ * append-only events and refusals (no API exists to update or delete either).
+ */
+export class InMemoryActionStore implements ActionStore {
+  private readonly proposals = new Map<string, ActionProposal>();
+  private readonly requestKeys = new Map<string, string>();
+  private readonly log = new Map<string, ActionEvent[]>();
+  private readonly refusalLog = new Map<string, ActionRefusal[]>();
+  private readonly proposeRefusalLog = new Map<string, ProposalRefusal[]>();
+
+  async create(t: Transition): Promise<CreateResult> {
+    const { proposal, event } = t;
+    if (proposal.version !== 1 || event.sequence !== 1) throw new GovernedActionError('INVALID_INPUT', 'new proposals start at version 1');
+    const existingId = this.requestKeys.get(key(proposal.workspaceId, proposal.requestKey));
+    if (existingId) return { created: false, proposal: clone(this.proposals.get(key(proposal.workspaceId, existingId))!) };
+    if (this.proposals.has(key(proposal.workspaceId, proposal.id))) throw new GovernedActionError('INVALID_INPUT', 'duplicate proposal id');
+    this.proposals.set(key(proposal.workspaceId, proposal.id), clone(proposal));
+    this.requestKeys.set(key(proposal.workspaceId, proposal.requestKey), proposal.id);
+    this.log.set(key(proposal.workspaceId, proposal.id), [clone(event)]);
+    return { created: true, proposal: clone(proposal) };
+  }
+
+  async get(workspaceId: string, proposalId: string): Promise<ActionProposal | undefined> {
+    const p = this.proposals.get(key(workspaceId, proposalId));
+    return p ? clone(p) : undefined;
+  }
+
+  async transition(expectedVersion: number, t: Transition): Promise<void> {
+    const k = key(t.proposal.workspaceId, t.proposal.id);
+    const current = this.proposals.get(k);
+    if (!current) throw new GovernedActionError('NOT_FOUND', 'proposal not found');
+    if (current.version !== expectedVersion || t.proposal.version !== expectedVersion + 1 || t.event.sequence !== t.proposal.version) {
+      throw new GovernedActionError('CONCURRENT_MODIFICATION', 'proposal was modified concurrently');
+    }
+    if (current.argumentDigest !== t.proposal.argumentDigest || current.canonicalArguments !== t.proposal.canonicalArguments) {
+      throw new GovernedActionError('DIGEST_MISMATCH', 'frozen arguments are immutable');
+    }
+    this.proposals.set(k, clone(t.proposal));
+    this.log.get(k)!.push(clone(t.event));
+  }
+
+  async events(workspaceId: string, proposalId: string): Promise<ActionEvent[]> {
+    return (this.log.get(key(workspaceId, proposalId)) ?? []).map(clone);
+  }
+
+  /** Append-only and outside the proposal CAS: never touches the proposal version (A-m1). */
+  async appendRefusal(refusal: ActionRefusal): Promise<void> {
+    const k = key(refusal.workspaceId, refusal.proposalId);
+    if (!this.proposals.has(k)) throw new GovernedActionError('NOT_FOUND', 'proposal not found');
+    const list = this.refusalLog.get(k) ?? [];
+    list.push(clone(refusal));
+    this.refusalLog.set(k, list);
+  }
+
+  async refusals(workspaceId: string, proposalId: string): Promise<ActionRefusal[]> {
+    return (this.refusalLog.get(key(workspaceId, proposalId)) ?? []).map(clone);
+  }
+
+  /** Refused PROPOSE commands (ADR-005 R2-P-01); append-only, workspace scoped. */
+  async appendProposalRefusal(refusal: ProposalRefusal): Promise<void> {
+    const list = this.proposeRefusalLog.get(refusal.workspaceId) ?? [];
+    list.push(clone(refusal));
+    this.proposeRefusalLog.set(refusal.workspaceId, list);
+  }
+
+  async proposalRefusals(workspaceId: string): Promise<ProposalRefusal[]> {
+    return (this.proposeRefusalLog.get(workspaceId) ?? []).map(clone);
+  }
+}

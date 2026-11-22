@@ -1,0 +1,189 @@
+{
+  "schema": "north-star.pancake-read-contract-research.v1",
+  "status": "working_non_canonical",
+  "as_of": "2026-11-15",
+  "source": {
+    "harSha256": "bcb58184278c4407cc8e2a117461e74dc41dea6c2247fc296cdaf30c23932640",
+    "assetOrdinal": 42,
+    "assetSha256": "32e282685b4f6ea1e302827c23e12c9ebff25ebe3c865c48ff83c289a21c25af",
+    "offsetUnit": "UTF-16 source string offsets",
+    "offsets": {
+      "conversationRequestBuilder": 818000,
+      "toggleTag": 116756,
+      "batchTagHandler": 114262,
+      "tagHistory": 126437,
+      "messageInitial": 159224,
+      "messagePagingPreview": 213206,
+      "crmAutomation": 143735
+    }
+  },
+  "evidence": [
+    "ev_faffcbc1884c0068764f1a716146b25fe597553e295fc9c65044c4a04f3c7588",
+    "ev_afe60fe63932138a9251d69015e326d460ad91eb94ccebbcd613e0fa1d977fac",
+    "ev_ef19c079e7eb7b72cd30642af103c1d12ba4e11dbef0e6be0bf130c2f2c9b655",
+    "ev_0b34e8a01c49729fd4514fc10c0eae560b21f71221bf23da2f4798fa02abef68"
+  ],
+  "auth": "Existing local browser session on same origin; not a verified official backend credential",
+  "contracts": [
+    {
+      "surface": "list conversations",
+      "method": "GET",
+      "path": "/api/v1/pages/:page/conversations",
+      "queryKeys": [
+        "unread_first",
+        "mode",
+        "tags",
+        "except_tags",
+        "cursor_mode",
+        "from_platform",
+        "current_count",
+        "next_cursor"
+      ],
+      "sourceMoreMode": "current_count and optional next_cursor; filtered or multi-page cases may use POST",
+      "observed": {
+        "initial": 2,
+        "offset2": 0,
+        "nextCursorReturned": false,
+        "status": 200,
+        "success": true
+      },
+      "unknowns": [
+        "concurrent inserts/deletes",
+        "large accounts",
+        "stable cursor retention",
+        "rate limits"
+      ]
+    },
+    {
+      "surface": "known conversation snapshot",
+      "method": "GET",
+      "path": "/api/v1/pages/:page/conversations",
+      "queryKeys": [
+        "take_conversation_ids[]",
+        "request_source"
+      ],
+      "observed": {
+        "count": 1,
+        "status": 200,
+        "success": true
+      },
+      "unknowns": [
+        "deleted objects/tombstones",
+        "historical event coverage"
+      ]
+    },
+    {
+      "surface": "single conversation",
+      "method": "GET",
+      "path": "/api/v1/pages/:page/conversations/:conversation",
+      "observed": {
+        "status": 200,
+        "success": true
+      },
+      "schemaFields": [
+        "id",
+        "page_id",
+        "tags",
+        "seen",
+        "updated_at",
+        "message_count",
+        "thread_id",
+        "thread_key",
+        "from_psid",
+        "customers"
+      ],
+      "semantics": "Provider object identity remains separate from North Star Customer and Lead"
+    },
+    {
+      "surface": "message pages",
+      "method": "GET",
+      "path": "/api/v1/pages/:page/conversations/:conversation/messages",
+      "queryKeys": [
+        "customer_id",
+        "is_new_api",
+        "separate_pos",
+        "current_count"
+      ],
+      "observed": {
+        "initial25": 25,
+        "offset25": 16,
+        "uniqueAcrossFirstTwoPages": 41,
+        "overlap": 0,
+        "reportedConversationMessageCount": 41,
+        "offset41": 0,
+        "repeatedOffset0": 25,
+        "status": 200,
+        "success": true
+      },
+      "unknowns": [
+        "concurrent mutation stability",
+        "deleted-message history",
+        "full provider-side archive",
+        "cross-account invariance"
+      ]
+    },
+    {
+      "surface": "tag history",
+      "method": "GET",
+      "path": "/api/v1/pages/:page/conversations/:conversation/tags_update_histories",
+      "observed": {
+        "status": 200,
+        "success": true,
+        "entriesAtSample": 5
+      },
+      "schemaFields": [
+        "id",
+        "editor",
+        "action",
+        "source",
+        "inserted_at",
+        "page_id",
+        "conversation_id",
+        "editor_id",
+        "user_name",
+        "tag_id"
+      ],
+      "unknowns": [
+        "pagination",
+        "retention",
+        "full event completeness",
+        "stable ordering"
+      ]
+    },
+    {
+      "surface": "linked POS shop",
+      "method": "GET",
+      "path": "/pos-api/api/v1/shops/:shop",
+      "observed": {
+        "status": 200,
+        "success": true,
+        "webhookEnable": null,
+        "webhookUrlConfigured": false,
+        "webhookHeadersConfigured": false,
+        "webhookTypes": null,
+        "syncConversationTagsPancake": false
+      },
+      "unknowns": [
+        "official API credential scope",
+        "webhook delivery",
+        "write permission and app policy"
+      ]
+    },
+    {
+      "surface": "CRM automation",
+      "method": "GET",
+      "path": "/pos-api/api/v1/shops/:shop/crm/automation",
+      "observed": {
+        "status": 200,
+        "success": true,
+        "ruleCount": 0,
+        "crmWorkspaceOverridePresent": false
+      },
+      "unknowns": [
+        "external integrations not represented by this endpoint"
+      ]
+    }
+  ],
+  "termination": "Empty page observed for this bounded sample; not a global event gap closure",
+  "production_approved": false
+}

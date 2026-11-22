@@ -1,8 +1,9 @@
 import { randomUUID } from 'node:crypto';
 import type { LeadId } from '../lead/lead';
 
-// OPEN: CE-2 — see ADR-003 — inferred-only interim; observed/claimed/imported → Assertion envelope (§2.3 RFC)
-// OPEN: CE-1 — see ADR-001 — event types are hypothesis, not frozen enum.
+// ADR-005 (resolves CE-2) — Commercial Assertion umbrella: CommercialEvent = the `inferred`
+// assertion; AssertionEnvelope = observed/claimed/imported/user_confirmed. Shared AssertionId + provenance.
+// OPEN: CE-1 — see ADR-001 — event types are hypothesis, not frozen enum; no transition table here.
 
 /** CommercialEvent ID — stable, immutable. */
 export type CommercialEventId = string & { readonly __brand: 'CommercialEventId' };
@@ -22,7 +23,12 @@ export type CommercialEventType =
   | 'SALES_CONTACTED'
   | 'OPPORTUNITY_AT_RISK'
   | 'WON'
-  | 'LOST';
+  | 'LOST'
+  /**
+   * ADR-005 R2-P-02 — a provider readback observed the effect (or non-effect) of a verified
+   * governed action. Evidence only: it never moves Commercial State (OPEN: CE-1).
+   */
+  | 'ACTION_OUTCOME_OBSERVED';
 
 /** Confidence metadata — only for inferred (I-04, R-16). */
 export interface ConfidenceMeta {
@@ -68,7 +74,7 @@ export interface ProvenanceEnvelope {
 }
 
 /**
- * CommercialEvent — inferred-only in LVP (CE-2 interim, ADR-003).
+ * CommercialEvent — the `inferred` Commercial Assertion (ADR-005 §2; CE-2 resolved).
  * Pipeline: Interaction → AI → CE → Evidence → Policy → Action (I-03, I-04).
  */
 export interface CommercialEvent {
@@ -93,14 +99,24 @@ export interface CommercialEvent {
 }
 
 /**
- * AssertionEnvelope — non-inferred path (§2.3 RFC, CE-2 scope boundary).
+ * Subject of a non-inferred assertion. `external_resource` (ADR-005 R2-P-02) is the provider
+ * resource addressed by a governed action that is not linked to a lead; its id is an opaque
+ * `provider/account/resourceType/resourceId` reference, never a display name.
+ */
+export type AssertionSubjectType = 'lead' | 'customer' | 'handoff' | 'external_resource';
+
+/** Small, PII-free summary of the evidence behind an assertion (e.g. a readback result). */
+export type AssertionEvidenceSummary = { readonly [key: string]: string | number | boolean | null };
+
+/**
+ * AssertionEnvelope — non-inferred path (ADR-005 §3, CE-2 scope boundary).
  * For observed/claimed/imported facts; does NOT carry inferredMeaning/confidence.
  * Shares provenance shape but acquisitionMode is observed/claimed/imported.
  */
 export interface AssertionEnvelope {
   readonly assertionId: AssertionId;
   readonly workspaceId: string;
-  readonly subjectType: 'lead' | 'customer' | 'handoff';
+  readonly subjectType: AssertionSubjectType;
   readonly subjectId: string;
   readonly eventType: CommercialEventType;
   readonly value: string;
@@ -117,6 +133,8 @@ export interface AssertionEnvelope {
   readonly createdBy: string;
   readonly supersedesAssertionId?: AssertionId;
   readonly createdAt: string;
+  /** Optional evidence summary (ADR-005 R2-P-02: the readback behind an observed action outcome). */
+  readonly evidenceSummary?: AssertionEvidenceSummary;
 }
 
 // ---- Factory inputs ----
@@ -150,10 +168,18 @@ export interface CreateAssertionInput {
   readonly createdBy: string;
   readonly rawEvidencePointer?: string;
   readonly supersedesAssertionId?: AssertionId;
+  /** Deterministic id for idempotent producers; defaults to a random UUID. */
+  readonly assertionId?: AssertionId;
+  /** When the fact was observed at the source; defaults to now. */
+  readonly capturedAt?: string;
+  /** When the platform captured it; defaults to now. */
+  readonly ingestedAt?: string;
+  readonly rawPayloadHash?: string;
+  readonly evidenceSummary?: AssertionEvidenceSummary;
 }
 
 /**
- * Create a CommercialEvent — inferred-only (CE-2 interim).
+ * Create a CommercialEvent — the `inferred` Commercial Assertion (ADR-005 §2).
  * Throws if inferredMeaning or confidence missing (I-04).
  */
 export function createCommercialEvent(input: CreateCommercialEventInput): CommercialEvent {
@@ -205,7 +231,7 @@ export function createCommercialEvent(input: CreateCommercialEventInput): Commer
 }
 
 /**
- * Create an AssertionEnvelope — non-inferred path (§2.3 RFC).
+ * Create an AssertionEnvelope — non-inferred path (ADR-005 §3).
  * No inferredMeaning/confidence; carries provenance for observed/claimed/imported.
  */
 export function createAssertion(input: CreateAssertionInput): AssertionEnvelope {
@@ -213,9 +239,9 @@ export function createAssertion(input: CreateAssertionInput): AssertionEnvelope 
   if (input.acquisitionMode === 'inferred' as unknown as string) {
     throw new Error('AssertionEnvelope must not use inferred — use CommercialEvent (CE-2 boundary)');
   }
-  const now = new Date().toISOString();
+  const now = input.ingestedAt ?? new Date().toISOString();
   return {
-    assertionId: randomUUID() as AssertionId,
+    assertionId: input.assertionId ?? (randomUUID() as AssertionId),
     workspaceId: input.workspaceId,
     subjectType: input.subjectType,
     subjectId: input.subjectId,
@@ -226,14 +252,16 @@ export function createAssertion(input: CreateAssertionInput): AssertionEnvelope 
     sourceSystem: input.sourceSystem ?? 'manual',
     ...(input.sourceRecordId !== undefined && { sourceRecordId: input.sourceRecordId }),
     sourceActor: input.sourceActor,
-    capturedAt: now,
+    capturedAt: input.capturedAt ?? now,
     ingestedAt: now,
     ...(input.rawEvidencePointer !== undefined && { rawEvidencePointer: input.rawEvidencePointer }),
+    ...(input.rawPayloadHash !== undefined && { rawPayloadHash: input.rawPayloadHash }),
     schemaVersion: 1,
     createdBy: input.createdBy,
     ...(input.supersedesAssertionId !== undefined && {
       supersedesAssertionId: input.supersedesAssertionId,
     }),
     createdAt: now,
+    ...(input.evidenceSummary !== undefined && { evidenceSummary: Object.freeze({ ...input.evidenceSummary }) }),
   };
 }

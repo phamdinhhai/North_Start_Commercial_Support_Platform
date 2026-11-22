@@ -1,0 +1,9 @@
+{
+  "success": true,
+  "numTotalTests": 1021,
+  "numPassedTests": 1021,
+  "numFailedTests": 0,
+  "numPendingTests": 0,
+  "scope": "Historical integrated non-PostgreSQL checkpoint; superseded by verification.json at ce4ee13 (1,102 total tests, including 80 PG).",
+  "files": 89
+}

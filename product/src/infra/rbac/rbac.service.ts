@@ -5,8 +5,13 @@ export type { Resource } from '../../ports/rbac';
 
 /**
  * RBAC — PH3 T3-04 (I-09 lead-scoped, deny-by-default).
- * // OPEN: PM-1 — Manager/Admin capability matrix chi tiết chờ RFC (QA-30/32/58).
- * Hiện enforce frozen boundary: workspace-scoped + lead assignment.
+ * // ADR-006 capability matrix rows expressed here (no behaviour change):
+ * - Lead/context read: admin = workspace; manager = "scope quản lý" = whole workspace in the LVP
+ *   (to be narrowed by a `ManagerScope` resolver when a Team entity exists, same API);
+ *   sales = assigned lead or recipient of active work (I-09); viewer = like sales, read-only.
+ * - Export / delete: admin only.
+ * Other rows (membership, enrollment, connector health, governed actions) are enforced at their
+ * own seams (MembershipAdminService, IntegrationIntake, ConnectorHealthQuery, ActionPolicy).
  */
 const PRIVILEGED_ROLES = new Set<AuthContext['role']>(['admin', 'manager']);
 const SCOPED_ROLES = new Set<AuthContext['role']>(['sales', 'viewer']);
@@ -29,12 +34,12 @@ export class RbacService implements LeadAccessPolicy {
   canAccessLead(ctx: AuthContext, lead: Resource): boolean {
     if (!isUsableContext(ctx) || !lead || !hasIdentity(lead.workspaceId) || !hasIdentity(lead.id)) return false;
     if (ctx.workspaceId !== lead.workspaceId) return false; // cross-workspace → invisible (404)
-    if (PRIVILEGED_ROLES.has(ctx.role)) return true; // workspace-wide — QA-58 thu hẹp ở RFC sau, hiện allow
+    if (PRIVILEGED_ROLES.has(ctx.role)) return true; // ADR-006: admin workspace; manager scope = workspace (LVP)
     // sales / viewer: phải được assign (owner) hoặc được bàn giao tới (recipient)
     if (lead.assignedTo === ctx.userId) return true;
     // Recipient có item đang actionable (proposed/accepted/open/awaiting-external) giữ quyền
     // XEM + NHẬN gói addressed to them (derived từ workItems — P1-2, I-09 lead-scoped,
-    // deny-by-default). // OPEN: PM-1 — capability matrix đầy đủ cho manager/admin chờ RFC.
+    // deny-by-default). // ADR-006 — sales/viewer row unchanged (I-09 frozen).
     return lead.recipients?.includes(ctx.userId) ?? false;
   }
 

@@ -1,0 +1,68 @@
+{
+  "release": "R4.15",
+  "branch": "release/r415-consolidated-owner-acceptance",
+  "head": "8aa7d55e7585b66e9d6d579b0e86171322cac130",
+  "testedSource": "d7410b108dbe668b2c45d4e485b7abc3db1373e7",
+  "base": "7cb21ce9a2b361cb417fd520705d6b7cdd68e5cf",
+  "productTreeAtBase": "0467316f0ccfb9396af948b252dc21f5b1cb66c8",
+  "main": "5d6c20673218f02c0972263126e8654eadee18c9",
+  "hostedCi": {
+    "r414Baseline": "44966931141",
+    "r415": "NOT_RUN_UNPUSHED"
+  },
+  "runtime": {
+    "salesOperator": "http://127.0.0.1:51135/v1/operator",
+    "hybridFixture": "http://127.0.0.1:54582",
+    "hybridOperator": "http://127.0.0.1:54567/v1/operator",
+    "salesManifest": "D:/AI-for-Enterprise/r415-private/north-synthetic-pilot-c931fe4908db530c709cbec3d6fc8c40/manifest.json",
+    "hybridManifest": "D:/AI-for-Enterprise/r415-private/hybrid-preview/manifest.json",
+    "syntheticOnly": true,
+    "providerCalls": 0,
+    "providerMutations": 0
+  },
+  "smoke": {
+    "result": "PASS",
+    "steps": 10,
+    "lead": "DEMO - Studio La Xanh (FABRICATED)",
+    "leadId": "c12430d7-10c0-4304-b35f-5a7c0f0c3e33",
+    "workspace": "synthetic-c931fe4908db530c709cbec3d6fc8c40",
+    "artifact": "D:/AI-for-Enterprise/r415-private/owner-sales-smoke.json"
+  },
+  "checks": {
+    "npmCi": "PASS",
+    "typecheck": "PASS",
+    "lint": "PASS",
+    "build": "PASS",
+    "safety": "5/5 PASS",
+    "healthReadiness": "HTTP 200",
+    "operator": "HTTP 200",
+    "sourceIntegrationFlag": true,
+    "integrationCi": "PASS (31 suites / 166 tests / 0 skipped)",
+    "focused": "111 passed / 14 skipped (integration files require dedicated PG gate)",
+    "hybridPackage": "PASS",
+    "secretScan": "PASS (fabricated negative-test allowlist only)",
+    "fullRunner": "PASS (31/31 lanes, 1643 coverage tests, 0 skips)",
+    "coverage": "1643 tests / 178 files / 0 skipped / 90.28% lines",
+    "migrationReadiness": "001-023"
+  },
+  "gates": {
+    "A": "PENDING_FINAL_RC_REGRESSION",
+    "H": "NOT_RUN_UNPUSHED",
+    "E": "PASS_LOCAL_MV3_AND_RUNTIME",
+    "I": "PASS_LOCAL_FIXTURE_COMBINED_E2E_PRIOR; PERSISTENT_PREVIEW_RUNNING",
+    "S": "PASS_PRIOR_R4141",
+    "R": "CONDITIONAL",
+    "P1": "PASS_PRIOR_BOUNDED_READ",
+    "P2": "PASS_PRIOR_BOUNDED_PAGINATION_UNKNOWN",
+    "P3": "SEND_UNRESOLVED",
+    "P4": "NOT_TESTED",
+    "P5": "NOT_VERIFIED",
+    "B": "CONDITIONAL",
+    "C": "NOT_READY"
+  },
+  "releaseApproved": false,
+  "merged": false,
+  "deployed": false,
+  "published": false,
+  "productTree": "70df244657b61b0b49e3895f4a82e3002796f69b"
+}

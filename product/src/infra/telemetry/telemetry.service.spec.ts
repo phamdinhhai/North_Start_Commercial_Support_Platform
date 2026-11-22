@@ -3,6 +3,16 @@ import { redactTelemetryPayload, TelemetryService } from './telemetry.service';
 import type { PostgresService } from '../postgres/postgres.service';
 
 describe('TelemetryService — PH3 T3-06 (R-21/R-22)', () => {
+  it('records reviewed evidence learning events for verified membership workspace IDs, preserving strict public tags', async () => {
+    const db = { query: async (_sql: string, p: unknown[]) => ({ rows: [{ id: 'fixture', workspace_id: p[0], event_type: p[1],
+      payload: JSON.parse(p[2] as string), release_version: p[3], flag_exposure: JSON.parse(p[4] as string), created_at: new Date() }] }) } as unknown as PostgresService;
+    const service = new TelemetryService(db);
+    expect(await service.recordLearning({ workspaceId: 'qa-browser-a', eventType: 'evidence_viewed', payload: { safe: 'ok', evidence: 'must redact' } }))
+      .toMatchObject({ eventType: 'evidence_viewed', payload: { safe: 'ok' } });
+    await expect(service.record({ workspaceId: 'qa-browser-a', eventType: 'lead_viewed' })).rejects.toThrow('workspaceId');
+    await expect(service.recordLearning({ workspaceId: 'alice@example.com', eventType: 'evidence_viewed' })).rejects.toThrow('workspaceId');
+    await expect(service.recordLearning({ workspaceId: 'qa-browser-a', eventType: 'unreviewed_evidence_event' })).rejects.toThrow('eventType');
+  });
   it('tags product events with release version and flag exposure', async () => {
     const calls: Array<{ text: string; params?: unknown[] }> = [];
     const db = {

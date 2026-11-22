@@ -1,0 +1,284 @@
+{
+  "schema": "north-star.har-metadata-review.v1",
+  "evidenceType": "historical-user-capture",
+  "source": {
+    "filename": "download.devtools",
+    "sha256": "bcb58184278c4407cc8e2a117461e74dc41dea6c2247fc296cdaf30c23932640",
+    "bytes": 53386113
+  },
+  "totalEntries": 589,
+  "totalPages": 1,
+  "methods": {
+    "GET": 563,
+    "POST": 24,
+    "OPTIONS": 2
+  },
+  "statuses": {
+    "0": 5,
+    "101": 5,
+    "200": 488,
+    "204": 1,
+    "301": 13,
+    "302": 34,
+    "304": 13,
+    "307": 28,
+    "404": 2
+  },
+  "socketRecords": [
+    {
+      "sourceOrdinal": 82,
+      "origin": "wss://pancake.vn",
+      "path": "/socket/websocket",
+      "status": 101,
+      "queryNames": [
+        "vsn"
+      ],
+      "frameCount": 36,
+      "parsedPhoenixTuples": 36,
+      "unclassifiedFrames": 0,
+      "directions": {
+        "send": 17,
+        "receive": 19
+      },
+      "events": {
+        "phx_join": 4,
+        "phx_reply": 14,
+        "get_online_status": 3,
+        "online_status": 3,
+        "phx_leave": 2,
+        "phx_close": 2,
+        "heartbeat": 8
+      },
+      "topics": {
+        "users": 2,
+        "pages": 18,
+        "phoenix": 16
+      },
+      "replyStatuses": {
+        "ok": 14
+      },
+      "payloadFieldNames": [
+        "clientSession",
+        "pageId",
+        "page_id",
+        "platform",
+        "response",
+        "status",
+        "success",
+        "userId",
+        "value"
+      ],
+      "heartbeatIntervalsSeconds": [
+        30.149,
+        30.135,
+        30.134,
+        30.163,
+        30.13,
+        30.135,
+        30.186
+      ]
+    },
+    {
+      "sourceOrdinal": 97,
+      "origin": "wss://pages.fm",
+      "path": "/socket/websocket",
+      "status": 101,
+      "queryNames": [
+        "pke_chat_plugin_page_id",
+        "vsn"
+      ],
+      "frameCount": 18,
+      "parsedPhoenixTuples": 18,
+      "unclassifiedFrames": 0,
+      "directions": {
+        "send": 9,
+        "receive": 9
+      },
+      "events": {
+        "phx_join": 1,
+        "phx_reply": 9,
+        "heartbeat": 8
+      },
+      "topics": {
+        "pke_chat_plugin": 2,
+        "phoenix": 16
+      },
+      "replyStatuses": {
+        "ok": 9
+      },
+      "payloadFieldNames": [
+        "client_session",
+        "page_id",
+        "path",
+        "response",
+        "status",
+        "user_id"
+      ],
+      "heartbeatIntervalsSeconds": [
+        30.093,
+        30.117,
+        30.091,
+        30.135,
+        30.098,
+        30.169,
+        30.102
+      ]
+    },
+    {
+      "sourceOrdinal": 197,
+      "origin": "wss://pages.fm",
+      "path": "/socket/websocket",
+      "status": 101,
+      "queryNames": [
+        "pke_chat_plugin_page_id",
+        "vsn"
+      ],
+      "frameCount": 18,
+      "parsedPhoenixTuples": 18,
+      "unclassifiedFrames": 0,
+      "directions": {
+        "send": 9,
+        "receive": 9
+      },
+      "events": {
+        "phx_join": 1,
+        "phx_reply": 9,
+        "heartbeat": 8
+      },
+      "topics": {
+        "pke_chat_plugin": 2,
+        "phoenix": 16
+      },
+      "replyStatuses": {
+        "ok": 9
+      },
+      "payloadFieldNames": [
+        "client_session",
+        "page_id",
+        "path",
+        "response",
+        "status",
+        "user_id"
+      ],
+      "heartbeatIntervalsSeconds": [
+        30.115,
+        30.1,
+        30.108,
+        30.102,
+        30.111,
+        30.144,
+        30.152
+      ]
+    },
+    {
+      "sourceOrdinal": 243,
+      "origin": "wss://pages.fm",
+      "path": "/socket/websocket",
+      "status": 101,
+      "queryNames": [
+        "pke_chat_plugin_page_id",
+        "vsn"
+      ],
+      "frameCount": 18,
+      "parsedPhoenixTuples": 18,
+      "unclassifiedFrames": 0,
+      "directions": {
+        "send": 9,
+        "receive": 9
+      },
+      "events": {
+        "phx_join": 1,
+        "phx_reply": 9,
+        "heartbeat": 8
+      },
+      "topics": {
+        "pke_chat_plugin": 2,
+        "phoenix": 16
+      },
+      "replyStatuses": {
+        "ok": 9
+      },
+      "payloadFieldNames": [
+        "client_session",
+        "page_id",
+        "path",
+        "response",
+        "status",
+        "user_id"
+      ],
+      "heartbeatIntervalsSeconds": [
+        30.105,
+        30.15,
+        30.12,
+        30.123,
+        30.123,
+        30.123,
+        30.12
+      ]
+    },
+    {
+      "sourceOrdinal": 429,
+      "origin": "wss://pages.fm",
+      "path": "/socket/websocket",
+      "status": 101,
+      "queryNames": [
+        "pke_chat_plugin_page_id",
+        "vsn"
+      ],
+      "frameCount": 14,
+      "parsedPhoenixTuples": 14,
+      "unclassifiedFrames": 0,
+      "directions": {
+        "send": 7,
+        "receive": 7
+      },
+      "events": {
+        "phx_join": 1,
+        "phx_reply": 7,
+        "heartbeat": 6
+      },
+      "topics": {
+        "pke_chat_plugin": 2,
+        "phoenix": 12
+      },
+      "replyStatuses": {
+        "ok": 7
+      },
+      "payloadFieldNames": [
+        "client_session",
+        "page_id",
+        "path",
+        "response",
+        "status",
+        "user_id"
+      ],
+      "heartbeatIntervalsSeconds": [
+        30.103,
+        30.121,
+        30.105,
+        30.175,
+        30.107
+      ]
+    }
+  ],
+  "pageInventory": [
+    {
+      "sourceOrdinal": 68,
+      "count": 4,
+      "platforms": {
+        "tiktok_business_messaging": 3,
+        "facebook": 1
+      },
+      "allAdminister": true
+    }
+  ],
+  "limitations": [
+    "Local JSON extraction; not a live replay. HAR has no independently established capture completeness.",
+    "Headers, cookies, query values, payload values, account IDs, customer data and response text are excluded.",
+    "The REA derivative contains selected WebSocket handshake metadata only; bodies and frame records are omitted.",
+    "A successful join or heartbeat is not evidence of business-event delivery or replay guarantees.",
+    "Page membership/role fields are historical provider assertions, not current North Star authorization."
+  ],
+  "totalWebsocketFrames": 104,
+  "businessEventFrames": 0
+}

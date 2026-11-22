@@ -1,0 +1,9 @@
+{
+  "result": "PASS",
+  "scope": "Consecutive builds same checkout/lockfile/toolchain on Windows; not cross-platform attestation",
+  "source_sha": "6e6cd79bafb2dc77fadf1b4c520bfdc6ac8e16c0",
+  "files": 842,
+  "manifest_sha256": "9496d572f4636fb4ddd62db6b6b1d6f04ddb969cc07be1c5e991c188232af740",
+  "log": "C:\\Users\\admin\\AppData\\Local\\Temp\\north-r46-build-final-bounded-reproducibility.log",
+  "log_sha256": "4bc24afec50c327cef250b332ffda2df07d6c6766d549f4ee6b27ea4aaaebc3a"
+}

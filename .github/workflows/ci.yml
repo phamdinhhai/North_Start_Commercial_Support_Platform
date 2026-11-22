@@ -1,4 +1,4 @@
-name: CI / release gate
+name: CI / validation gate
 
 on:
   push:
@@ -35,20 +35,66 @@ jobs:
       DEPLOYMENT_MODE: test
       PILOT_STORE_MODE: memory
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
         with:
           node-version: '22'
           cache: npm
           cache-dependency-path: product/package-lock.json
       - name: Install locked dependencies
         run: npm ci
+      - name: Dependency audit gate tests
+        run: npm run test:security-audit
+      - name: Dependency audit (high and critical; production never waived)
+        run: npm run security:audit
+      - name: Repository diff and secret-pattern check
+        working-directory: .
+        env:
+          PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          EVENT_BEFORE_SHA: ${{ github.event.before }}
+          CURRENT_SHA: ${{ github.sha }}
+        run: |
+          set -eu
+          base_sha="$PR_BASE_SHA"
+          if [ -z "$base_sha" ]; then
+            base_sha="$EVENT_BEFORE_SHA"
+          fi
+
+          if [ -n "$base_sha" ] && [ "$base_sha" != "0000000000000000000000000000000000000000" ] && git cat-file -e "$base_sha^{commit}" 2>/dev/null; then
+            git diff --check "$base_sha" "$CURRENT_SHA"
+            changed_lines="$(git diff --unified=0 "$base_sha" "$CURRENT_SHA")"
+          elif git rev-parse "$CURRENT_SHA^" >/dev/null 2>&1; then
+            parent_sha="$(git rev-parse "$CURRENT_SHA^")"
+            git diff --check "$parent_sha" "$CURRENT_SHA"
+            changed_lines="$(git diff --unified=0 "$parent_sha" "$CURRENT_SHA")"
+          else
+            git diff-tree --check --root "$CURRENT_SHA"
+            changed_lines="$(git diff-tree --unified=0 --root --no-commit-id -r "$CURRENT_SHA")"
+          fi
+
+          if printf '%s\n' "$changed_lines" | grep -nE '^\+[^+].*(AKIA[0-9A-Z]{16}|ASIA[0-9A-Z]{16}|-----BEGIN (RSA|OPENSSH|EC|DSA|PGP) PRIVATE KEY-----|gh[pousr]_[A-Za-z0-9_]{20,}|sk-[A-Za-z0-9]{20,})'; then
+            echo 'Potential credential pattern detected in added lines.' >&2
+            exit 1
+          fi
+      - name: Registry validation
+        run: npm run registry:validate
       - name: Typecheck
         run: npm run typecheck
       - name: Lint
         run: npm run lint
       - name: Architecture checker tests
         run: npm run test:architecture
+      - name: Companion packaging tests
+        run: node --test scripts/companion-package.test.mjs
+      - name: Synthetic pilot safety and anonymous research format tests
+        run: node --test scripts/pilot/safety.test.mjs scripts/research/validate-observation.test.mjs
+      - name: Install Chromium for AIL research guards
+        run: npx playwright install --with-deps chromium
+      - name: AIL research guard tests
+        run: npm run test:ail:research
       - name: Strict architecture check
         run: npm run architecture:check:strict
       - name: Unit and domain tests
@@ -59,5 +105,128 @@ jobs:
         run: npm run test:cov -- --no-file-parallelism
       - name: Build
         run: npm run build
+      - name: Disposable PostgreSQL backup and restore rehearsal
+        run: node scripts/restore-rehearsal.mjs
+      - name: Fabricated worker process crash and checkpoint resume
+        run: node scripts/sync-recovery-rehearsal.mjs
+      - name: Bounded synthetic synchronization benchmark
+        run: node scripts/sync-benchmark.mjs
       - name: E2E HTTP smoke
         run: npm run test:e2e
+
+  browser:
+    name: Browser operator workflow
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: north_browser
+          POSTGRES_PASSWORD: browser_ci_only
+          POSTGRES_DB: qa_browser_ci
+        ports:
+          - 127.0.0.1:5432:5432
+        options: >-
+          --health-cmd "pg_isready -U north_browser -d qa_browser_ci"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+    defaults:
+      run:
+        working-directory: product
+    env:
+      CI: 'true'
+      DEPLOYMENT_MODE: test
+      NODE_ENV: test
+      PILOT_STORE_MODE: memory
+      AUTH_DEV_UNSIGNED_TOKENS: 'true'
+      DEMO_WORKSPACES: 'false'
+      # Let the OS choose an unused port; Playwright passes it to the Nest server.
+      BROWSER_PORT: '0'
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: product/package-lock.json
+      - name: Install locked dependencies
+        run: npm ci
+      - name: Install Chromium and Linux dependencies
+        run: npx playwright install --with-deps chromium
+      - name: Select ephemeral browser port
+        shell: bash
+        run: |
+          set -eu
+          port="$(node -e "const net=require('net'); const s=net.createServer(); s.listen(0,'127.0.0.1',()=>{console.log(s.address().port);s.close();});")"
+          test -n "$port"
+          echo "BROWSER_PORT=$port" >> "$GITHUB_ENV"
+      - name: Run Playwright operator workflow
+        run: npm run test:browser
+        env:
+          PLAYWRIGHT_HTML_OUTPUT_DIR: playwright-report
+      - name: Operator component regressions
+        run: npx playwright test --config playwright.operator-recovery.config.ts
+      - name: Lifecycle refuses non-durable storage
+        run: npx playwright test --config playwright.lifecycle.config.ts
+      - name: OIDC and PostgreSQL UI-only LVP journey
+        run: npx playwright test --config playwright.oidc.config.ts
+        env:
+          QA_DATABASE_URL: postgresql://north_browser:browser_ci_only@127.0.0.1:5432/qa_browser_ci
+      - name: Create separate synthetic source acceptance database
+        run: >-
+          node -e "const {Client}=require('pg'); const c=new Client({connectionString:process.env.QA_SOURCE_ADMIN_URL});
+          (async()=>{await c.connect();try{await c.query('CREATE DATABASE qa_browser_source_ci');}finally{await c.end();}})().catch(()=>process.exit(1));"
+        env:
+          QA_SOURCE_ADMIN_URL: postgresql://north_browser:browser_ci_only@127.0.0.1:5432/postgres
+      - name: Synthetic Pancake and Meta signed UI reconciliation
+        run: npx playwright test --config playwright.source-integration.config.ts
+        env:
+          QA_DATABASE_URL: postgresql://north_browser:browser_ci_only@127.0.0.1:5432/qa_browser_source_ci
+      - name: Chromium MV3 synthetic capture and restart
+        # Keep this independent acceptance signal even when an earlier suite fails.
+        if: ${{ !cancelled() }}
+        run: npm run test:companion
+      - name: Create separate synthetic continuity acceptance database
+        run: >-
+          node -e "const {Client}=require('pg'); const c=new Client({connectionString:process.env.QA_CONTINUITY_ADMIN_URL});
+          (async()=>{await c.connect();try{await c.query('CREATE DATABASE qa_browser_r411_ci');}finally{await c.end();}})().catch(()=>process.exit(1));"
+        env:
+          QA_CONTINUITY_ADMIN_URL: postgresql://north_browser:browser_ci_only@127.0.0.1:5432/postgres
+      - name: Signed synthetic continuity, source access and pagination
+        run: npx playwright test --config playwright.r411.config.ts
+        env:
+          QA_DATABASE_URL: postgresql://north_browser:browser_ci_only@127.0.0.1:5432/qa_browser_r411_ci
+      - name: Create separate synthetic synchronization health database
+        run: >-
+          node -e "const {Client}=require('pg'); const c=new Client({connectionString:process.env.QA_SYNC_ADMIN_URL});
+          (async()=>{await c.connect();try{await c.query('CREATE DATABASE qa_browser_r412_ci');}finally{await c.end();}})().catch(()=>process.exit(1));"
+        env:
+          QA_SYNC_ADMIN_URL: postgresql://north_browser:browser_ci_only@127.0.0.1:5432/postgres
+      - name: Signed synthetic synchronization health and operator controls
+        run: npx playwright test --config playwright.r412.config.ts
+        env:
+          QA_DATABASE_URL: postgresql://north_browser:browser_ci_only@127.0.0.1:5432/qa_browser_r412_ci
+      - name: Upload Playwright report
+        if: always()
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
+        with:
+          name: playwright-report
+          path: |
+            product/playwright-report
+            product/test-results
+          retention-days: 7
+          if-no-files-found: warn
+      - name: Upload browser server diagnostics
+        if: always()
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
+        with:
+          name: browser-server-diagnostics
+          path: |
+            product/*.log
+            product/test-results/**/*.log
+          retention-days: 7
+          if-no-files-found: warn

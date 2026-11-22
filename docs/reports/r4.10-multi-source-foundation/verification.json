@@ -1,0 +1,415 @@
+{
+  "schemaVersion": 1,
+  "phase": "R4.10",
+  "date": "2026-11-20",
+  "baseSha": "9ffae600447950c9edcec2d823153aa6fe202684",
+  "branch": "feat/multi-source-integration-foundation",
+  "sourceSha": "1df0eeba9b2c7b4d86653430940acdbc4d7f44af",
+  "documentationHead": "Documentation-only commit follows tested source; actual HEAD identified in handover.",
+  "environment": {
+    "os": "Windows",
+    "node": "22.21.0",
+    "npm": "10.9.0",
+    "postgres": "17 private disposable clusters",
+    "browser": "Chromium Playwright",
+    "realCustomerData": false,
+    "providerContacted": false
+  },
+  "baseline": {
+    "unchangedDetachedWorktree": true,
+    "lanes": 18,
+    "vitestTests": 1209,
+    "postgresTests": 112,
+    "coverageLines": 91.98,
+    "skipped": 0,
+    "resultsFile": "baseline-verification.json"
+  },
+  "final": {
+    "lanes": 20,
+    "allPassed": true,
+    "vitestFiles": 132,
+    "vitestTests": 1297,
+    "postgresSuites": 23,
+    "postgresTests": 122,
+    "postgresIncludedInVitestTotal": true,
+    "httpTests": 22,
+    "legacyBrowserTests": 4,
+    "componentRecoveryTests": 10,
+    "oidcUiTests": 6,
+    "sourceUiTests": 1,
+    "memoryLifecycleTests": 1,
+    "skipped": 0,
+    "coverage": {
+      "lines": 92.14,
+      "statements": 88.16,
+      "branches": 85.69,
+      "functions": 90.44,
+      "lineDeltaPercentagePoints": 0.16
+    },
+    "results": [
+      {
+        "name": "pilot-research-safety",
+        "command": "C:\\Program Files\\nodejs\\node.exe --test scripts/pilot/safety.test.mjs scripts/research/validate-observation.test.mjs",
+        "exit_code": 0,
+        "seconds": 0,
+        "log": "C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r410-accepted-0mxEoJ\\pilot-research-safety.log",
+        "logSha256": "4af585c1806c7b13d67ec3f0c56adf38cec1792a37de1b9c4adb42f9a76d9c6a",
+        "status": "PASS",
+        "workingDirectory": "D:\\AI-for-Enterprise\\ns-r410-foundation\\product"
+      },
+      {
+        "name": "typecheck",
+        "command": "C:\\Program Files\\nodejs\\node.exe C:/Program Files/nodejs/node_modules/npm/bin/npm-cli.js run typecheck",
+        "exit_code": 0,
+        "seconds": 9,
+        "log": "C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r410-accepted-0mxEoJ\\typecheck.log",
+        "logSha256": "09b9a49f6769e2371ae5cfedc320845c173fe8c1356b69e516cecf3df4a23c7a",
+        "status": "PASS",
+        "workingDirectory": "D:\\AI-for-Enterprise\\ns-r410-foundation\\product"
+      },
+      {
+        "name": "lint",
+        "command": "C:\\Program Files\\nodejs\\node.exe C:/Program Files/nodejs/node_modules/npm/bin/npm-cli.js run lint",
+        "exit_code": 0,
+        "seconds": 5,
+        "log": "C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r410-accepted-0mxEoJ\\lint.log",
+        "logSha256": "ad43281dbc673e71b219a3b5f8bb1351cdbf31f778553f420b51e951f5ce0a46",
+        "status": "PASS",
+        "workingDirectory": "D:\\AI-for-Enterprise\\ns-r410-foundation\\product"
+      },
+      {
+        "name": "architecture",
+        "command": "C:\\Program Files\\nodejs\\node.exe C:/Program Files/nodejs/node_modules/npm/bin/npm-cli.js run architecture:check:strict",
+        "exit_code": 0,
+        "seconds": 2,
+        "log": "C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r410-accepted-0mxEoJ\\architecture.log",
+        "logSha256": "d77621a86ab9943075df85f3191a1cb7bb1df838338d769fe581a2ff13a87c50",
+        "status": "PASS",
+        "workingDirectory": "D:\\AI-for-Enterprise\\ns-r410-foundation\\product"
+      },
+      {
+        "name": "registry",
+        "command": "C:\\Program Files\\nodejs\\node.exe C:/Program Files/nodejs/node_modules/npm/bin/npm-cli.js run registry:validate",
+        "exit_code": 0,
+        "seconds": 0,
+        "log": "C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r410-accepted-0mxEoJ\\registry.log",
+        "logSha256": "9ba0b062f4ecd65b28129862b0b83b76af3684de213382c0d20ffa086be3ab85",
+        "status": "PASS",
+        "workingDirectory": "D:\\AI-for-Enterprise\\ns-r410-foundation\\product"
+      },
+      {
+        "name": "integration-ci",
+        "command": "C:\\Program Files\\nodejs\\node.exe C:/Program Files/nodejs/node_modules/npm/bin/npm-cli.js run test:integration:ci",
+        "exit_code": 0,
+        "seconds": 61,
+        "log": "C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r410-accepted-0mxEoJ\\integration-ci.log",
+        "logSha256": "1829898e4d94ff4649adbe33e8d35a2c09540abb98bf8050aa228fdc29053fbd",
+        "status": "PASS",
+        "workingDirectory": "D:\\AI-for-Enterprise\\ns-r410-foundation\\product"
+      },
+      {
+        "name": "coverage",
+        "command": "C:\\Program Files\\nodejs\\node.exe C:/Program Files/nodejs/node_modules/npm/bin/npm-cli.js run test:cov -- --no-file-parallelism",
+        "exit_code": 0,
+        "seconds": 115,
+        "log": "C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r410-accepted-0mxEoJ\\coverage.log",
+        "logSha256": "7b6bc729269f972dd46107394bba671e2618ab0a8749772bf7d24c06f3015068",
+        "status": "PASS",
+        "workingDirectory": "D:\\AI-for-Enterprise\\ns-r410-foundation\\product"
+      },
+      {
+        "name": "build",
+        "command": "C:\\Program Files\\nodejs\\node.exe C:/Program Files/nodejs/node_modules/npm/bin/npm-cli.js run build",
+        "exit_code": 0,
+        "seconds": 12,
+        "log": "C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r410-accepted-0mxEoJ\\build.log",
+        "logSha256": "4bc24afec50c327cef250b332ffda2df07d6c6766d549f4ee6b27ea4aaaebc3a",
+        "status": "PASS",
+        "workingDirectory": "D:\\AI-for-Enterprise\\ns-r410-foundation\\product"
+      },
+      {
+        "name": "http-e2e",
+        "command": "C:\\Program Files\\nodejs\\node.exe C:/Program Files/nodejs/node_modules/npm/bin/npm-cli.js run test:e2e",
+        "exit_code": 0,
+        "seconds": 8,
+        "log": "C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r410-accepted-0mxEoJ\\http-e2e.log",
+        "logSha256": "52fb8444c036137bea5c435370a691d77a8068aa6da63e9fb0aea7098c28d959",
+        "status": "PASS",
+        "workingDirectory": "D:\\AI-for-Enterprise\\ns-r410-foundation\\product"
+      },
+      {
+        "name": "browser",
+        "command": "C:\\Program Files\\nodejs\\node.exe C:/Program Files/nodejs/node_modules/npm/bin/npm-cli.js run test:browser",
+        "exit_code": 0,
+        "seconds": 23,
+        "log": "C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r410-accepted-0mxEoJ\\browser.log",
+        "logSha256": "08b0f86ffdf1b2ef78e9ab182b4cf305a636ed302351a27eb702cf1e76aa9116",
+        "status": "PASS",
+        "workingDirectory": "D:\\AI-for-Enterprise\\ns-r410-foundation\\product"
+      },
+      {
+        "name": "component",
+        "command": "C:\\Program Files\\nodejs\\node.exe node_modules/@playwright/test/cli.js test --config playwright.operator-recovery.config.ts",
+        "exit_code": 0,
+        "seconds": 7,
+        "log": "C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r410-accepted-0mxEoJ\\component.log",
+        "logSha256": "dbab97c5c5db3380b0d4ced630902cb0acdaa5eee2b689eea46a957650dea175",
+        "status": "PASS",
+        "workingDirectory": "D:\\AI-for-Enterprise\\ns-r410-foundation\\product"
+      },
+      {
+        "name": "lifecycle-memory",
+        "command": "C:\\Program Files\\nodejs\\node.exe node_modules/@playwright/test/cli.js test --config playwright.lifecycle.config.ts",
+        "exit_code": 0,
+        "seconds": 32,
+        "log": "C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r410-accepted-0mxEoJ\\lifecycle-memory.log",
+        "logSha256": "ca682b3aaa9e1e4cc389872f1d5f7014fa29bf098e589e28fc9e3cc57e9c1cf6",
+        "status": "PASS",
+        "workingDirectory": "D:\\AI-for-Enterprise\\ns-r410-foundation\\product"
+      },
+      {
+        "name": "oidc-ui",
+        "command": "C:\\Program Files\\nodejs\\node.exe node_modules/@playwright/test/cli.js test --config playwright.oidc.config.ts",
+        "exit_code": 0,
+        "seconds": 31,
+        "log": "C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r410-accepted-0mxEoJ\\oidc-ui.log",
+        "logSha256": "76e74d9836984ab1b117e7638cbe7abeeb0c2faf30a7031fe3ad101d37d1e411",
+        "status": "PASS",
+        "workingDirectory": "D:\\AI-for-Enterprise\\ns-r410-foundation\\product"
+      },
+      {
+        "name": "source-ui",
+        "command": "C:\\Program Files\\nodejs\\node.exe node_modules/@playwright/test/cli.js test --config playwright.source-integration.config.ts",
+        "exit_code": 0,
+        "seconds": 21,
+        "log": "C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r410-accepted-0mxEoJ\\source-ui.log",
+        "logSha256": "18ba0d1f370e0c3821da24081cda174e123f1c2f15cb8d5930487e3952e171bf",
+        "status": "PASS",
+        "workingDirectory": "D:\\AI-for-Enterprise\\ns-r410-foundation\\product"
+      },
+      {
+        "name": "companion",
+        "command": "C:\\Program Files\\nodejs\\node.exe C:/Program Files/nodejs/node_modules/npm/bin/npm-cli.js run test:companion",
+        "exit_code": 0,
+        "seconds": 6,
+        "log": "C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r410-accepted-0mxEoJ\\companion.log",
+        "logSha256": "e641f14df592ca1b949a99ffec918a83d6130ece576a436bc83181c84c44696a",
+        "status": "PASS",
+        "workingDirectory": "D:\\AI-for-Enterprise\\ns-r410-foundation\\product"
+      },
+      {
+        "name": "packaging",
+        "command": "C:\\Program Files\\nodejs\\node.exe --test scripts/companion-package.test.mjs",
+        "exit_code": 0,
+        "seconds": 1,
+        "log": "C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r410-accepted-0mxEoJ\\packaging.log",
+        "logSha256": "53969f539c090ebd3ee7e87e28fcb0e3f448cbdcf7fbd8109e1abba27e70c298",
+        "status": "PASS",
+        "workingDirectory": "D:\\AI-for-Enterprise\\ns-r410-foundation\\product"
+      },
+      {
+        "name": "guardrails",
+        "command": "C:\\Program Files\\nodejs\\node.exe --test scripts/check-architecture.test.mjs scripts/registry-validation.test.mjs scripts/security-audit.test.mjs scripts/backup-verify.test.mjs",
+        "exit_code": 0,
+        "seconds": 1,
+        "log": "C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r410-accepted-0mxEoJ\\guardrails.log",
+        "logSha256": "4e201743b4f99146cd31c7512cab664e3e9ee377fc65a78886750b0b69cc05d7",
+        "status": "PASS",
+        "workingDirectory": "D:\\AI-for-Enterprise\\ns-r410-foundation\\product"
+      },
+      {
+        "name": "ail-research",
+        "command": "C:\\Program Files\\nodejs\\node.exe C:/Program Files/nodejs/node_modules/npm/bin/npm-cli.js run test:ail:research",
+        "exit_code": 0,
+        "seconds": 2,
+        "log": "C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r410-accepted-0mxEoJ\\ail-research.log",
+        "logSha256": "f8e41931e5edfbad4354cd42bc388d4319b34c5b1b4d5f29619d8b44a0ea36bb",
+        "status": "PASS",
+        "workingDirectory": "D:\\AI-for-Enterprise\\ns-r410-foundation\\product"
+      },
+      {
+        "name": "restore",
+        "command": "C:\\Program Files\\nodejs\\node.exe scripts/restore-rehearsal.mjs",
+        "exit_code": 0,
+        "seconds": 5,
+        "log": "C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r410-accepted-0mxEoJ\\restore.log",
+        "logSha256": "f9390aa40a7e7a79d0f3eaec0071de72e444353413f0c11e21befd779654bd13",
+        "status": "PASS",
+        "workingDirectory": "D:\\AI-for-Enterprise\\ns-r410-foundation\\product"
+      },
+      {
+        "name": "audit",
+        "command": "C:\\Program Files\\nodejs\\node.exe C:/Program Files/nodejs/node_modules/npm/bin/npm-cli.js run security:audit",
+        "exit_code": 0,
+        "seconds": 6,
+        "log": "C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r410-accepted-0mxEoJ\\audit.log",
+        "logSha256": "57e8b10012c380383e853728fe570a8746171dc602003a7af2be5786773033e3",
+        "status": "PASS",
+        "workingDirectory": "D:\\AI-for-Enterprise\\ns-r410-foundation\\product"
+      }
+    ]
+  },
+  "sourceSyntheticAcceptance": {
+    "revision": "1df0eeba9b2c7b4d86653430940acdbc4d7f44af",
+    "test": "product/e2e/source-integration/journey.browser.spec.ts",
+    "testSetup": "only identities/workspaces via fixture; connections and business records created through UI synthetic lab",
+    "providerPayloads": "fabricated restricted contract examples; not real webhooks",
+    "assertedStableCounts": {
+      "leads": 3,
+      "sourceReceipts": 4,
+      "envelopes": 4,
+      "outcomes": 0
+    },
+    "cases": [
+      "Pancake standalone",
+      "Meta standalone",
+      "dual-path same native object one Lead/two observations",
+      "signed receipt replay no extra effects",
+      "app and pool restart/replay",
+      "explicit creation responsibility then UI handoff",
+      "Sales lead-scoped two-source inspector",
+      "anonymous401",
+      "missingCSRF403",
+      "viewer403",
+      "foreign workspace admin connection/lead404",
+      "revoked connection403",
+      "revoked membership403"
+    ],
+    "nativeEventDistinctness": "Decoders preserve unknown native event ID; PG suite separately tests explicit equal-event cross-route evidence, semantic collisions, same event in another workspace, unknown IDs and out-of-order append labels. Same message is not automatically proof same provider event."
+  },
+  "additionalPilotRegression": {
+    "scope": "NEWagent-owned fixture; ownerpilot never accessed",
+    "applicationBehaviorRevision": "4cdfcde9155bba5f00c7bf8811002c1cb78ba6f6",
+    "relationshipToFinal": "later changes tests and research only; production application/launcher behavior unchanged",
+    "manifest": "C:/Users/admin/AppData/Local/Temp/north-synthetic-pilot-ae87a08264bce3d68fb29a7e6d723ea6/manifest.json",
+    "manifestContents": "PRIVATE NOT READ/PRINTED in reports",
+    "commands": [
+      "node scripts/pilot/local.mjs init",
+      "node scripts/pilot/verify.mjs <NEW-owned-manifest>",
+      "node scripts/pilot/local.mjs stop <NEW-owned-manifest>"
+    ],
+    "result": "PASS",
+    "checks": [
+      "UI synthetic lead",
+      "app restart durable",
+      "six memberships/four roles",
+      "restricted database role",
+      "independent owner/foreign contexts"
+    ],
+    "ownedServices": "STOPPED"
+  },
+  "restore": {
+    "command": "node scripts/restore-rehearsal.mjs",
+    "result": "PASS",
+    "tableCount": 11,
+    "schemaMigrations": 18,
+    "sourceReplayAfterRestore": true,
+    "snapshotDigest": "random-key HMAC-SHA256 in rehearsal process, key never printed",
+    "scope": "fresh generated disposable source/target databases; no ownerpilot",
+    "productionRpoRto": "NOT ESTABLISHED"
+  },
+  "research": {
+    "upstreamReuseRepoPins": 13,
+    "upstreamPublicFilesHashed": 80,
+    "upstreamTests": "READ NOT EXECUTED",
+    "firstPartySdkPins": [
+      "meta/facebook-nodejs-business-sdk@46fb58375a4cc0858ab435e6a7cf23f9d03e2985",
+      "tiktok/tiktok-business-api-sdk@f809c396520df2d7b201a9ccc5378d822b728ed3"
+    ],
+    "additionalCommunityPins": "personal-account-feasibility.md",
+    "pancakePublicSpecIndependentRefetch": "two HTTP200 bodies matched agentSHA256",
+    "fullOpenApiValidation": "FAIL BOTH upstream originals; restricted synthetic subsets pass",
+    "openSourceCopied": false,
+    "dependenciesAdded": false,
+    "catalogSha256": "74d3e73c873fbcfb81d05453109b5ee7c041bcb6c6a0319f3a6c5bbbeeb28e92",
+    "unverified": [
+      "HubSpot403",
+      "OneChatambiguous",
+      "someTikTokportalrenderedcontent",
+      "realproviderpermissions/plan/quotas/accounts"
+    ]
+  },
+  "failureHistory": [
+    {
+      "directory": "C:/Users/admin/AppData/Local/Temp/north-r47-r410-final-K1rrQS",
+      "sourceSha": "4cdfcde9155bba5f00c7bf8811002c1cb78ba6f6",
+      "result": "19/20lanesPASS; coveragelane1295pass1fail",
+      "cause": "old ordered migration inventory expected17, new018 deliberately required by corrected test; no runtime source defect or skipped test"
+    },
+    {
+      "scope": "earlier baseline",
+      "directory": "C:/Users/admin/AppData/Local/Temp/north-r47-r410-baseline-db5OlW",
+      "result": "18lanespass but evolving tree",
+      "disposition": "superseded by unchanged detached9ffae60 baseline"
+    },
+    {
+      "scope": "workerQA authoring",
+      "details": "wrong SQL table, ambiguous test locator, revoked membership expected401 vs actual correct403; fixed in tests, independent report retains provenance"
+    },
+    {
+      "scope": "pre-acceptance source review",
+      "details": "draftSQLplaceholder mismatch, transport/native scope collapse, impossible date acceptance corrected before accepted tests"
+    }
+  ],
+  "hostedCi": {
+    "baseline": {
+      "runId": 44642189786,
+      "sha": "9ffae600447950c9edcec2d823153aa6fe202684",
+      "status": "completed",
+      "conclusion": "success",
+      "jobs": [
+        "product:success",
+        "Browser operator workflow:success"
+      ]
+    },
+    "current": {
+      "status": "completed",
+      "conclusion": "success",
+      "runId": 44664427195,
+      "sha": "a2f1ca89a6c2fc04dd72304ae82a1ae7c5b00998",
+      "url": "https://github.com/phamdinhhai/North_Start_Commercial_Support_Platform/actions/runs/44664427195",
+      "evidence": "hosted-ci-verification.json"
+    },
+    "reason": "User explicitly approved R4.10 push and CI monitoring; exact source-equivalent hosted revision passed both jobs."
+  },
+  "readiness": {
+    "PancakeSynthetic": "SYNTHETIC E2E VERIFIED on tested subset",
+    "MetaSynthetic": "SYNTHETIC E2E VERIFIED on tested subset",
+    "dualPath": "SYNTHETIC native object/event scoped tests VERIFIED",
+    "providerAuthorized": false,
+    "authorizedSandboxVerified": false,
+    "liveVerified": false,
+    "productionApproved": false,
+    "humanValidation": "NOT RUN",
+    "businessValidation": "NOT VALIDATED",
+    "gateA": "PASS at exact hosted source-equivalent a2f1ca8 / run44664427195",
+    "gateB": "CONDITIONAL",
+    "gateC": "NOT READY FOR REAL CUSTOMER DATA"
+  },
+  "repositoryProtection": {
+    "previousMigrationsModified": false,
+    "canonicalModified": false,
+    "pilotScriptsModified": false,
+    "ownerPilotManifestModified": false,
+    "ownerPilotDatabaseUsed": false,
+    "originalUntrackedCatalogCommitted": false,
+    "lockfileModified": false,
+    "forcePush": false,
+    "mainMerged": false,
+    "productionDeployed": false,
+    "r410Pushed": true
+  },
+  "remainingLimits": [
+    "no live transport/OAuth/vault/signature receiver",
+    "no polling/backfill/provider checkpoint/backoff worker or retry-exhaustion operations",
+    "receipt replay is bounded recovery, not exactly-once delivery",
+    "evidence/list100; scoped fixture lookup limited first100",
+    "health aggregates and sameobject history can scan growing tenant history",
+    "local app/pool restart and controlled restore do not certify KMS/OSloss/productionDR",
+    "Pancake native→Meta mapping fabricated explicit fixture only",
+    "full provider schemas/authenticatedrights and finance payloads not verified",
+    "data lifecycle/governance/productionIdP blockers remain",
+    "upstream tests read only and license/security audits bounded",
+    "no humanSales results"
+  ]
+}

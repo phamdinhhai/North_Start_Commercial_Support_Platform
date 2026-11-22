@@ -1,0 +1,83 @@
+{
+  "schema": "north-star.pancake-conversation-static-evidence.v1",
+  "as_of": "2026-11-15",
+  "status": "historical-source-only",
+  "source": {
+    "file": "user-supplied download.devtools (private)",
+    "sha256": "bcb58184278c4407cc8e2a117461e74dc41dea6c2247fc296cdaf30c23932640",
+    "ordinalBase": 0
+  },
+  "artifact": {
+    "harOrdinal": 42,
+    "sha256": "32e282685b4f6ea1e302827c23e12c9ebff25ebe3c865c48ff83c289a21c25af",
+    "markers": [
+      {
+        "term": "p.on(\"pages:update_messages\"",
+        "utf8ByteOffset": 88405,
+        "utf16Offset": 88386
+      },
+      {
+        "term": "p.on(\"pages:update_conversation\"",
+        "utf8ByteOffset": 87666,
+        "utf16Offset": 87647
+      },
+      {
+        "term": "p.on(\"messages:mark_as_deleted\"",
+        "utf8ByteOffset": 93659,
+        "utf16Offset": 93630
+      },
+      {
+        "term": "this.reconnectAfterMs=e=>",
+        "utf8ByteOffset": 68291,
+        "utf16Offset": 68291
+      },
+      {
+        "term": "this.rejoinAfterMs=e=>",
+        "utf8ByteOffset": 68210,
+        "utf16Offset": 68210
+      },
+      {
+        "term": "async function tr(e,t)",
+        "utf8ByteOffset": 100260,
+        "utf16Offset": 100231
+      },
+      {
+        "term": "function ej(e)",
+        "utf8ByteOffset": 95064,
+        "utf16Offset": 95035
+      }
+    ]
+  },
+  "findings": [
+    {
+      "event": "pages:update_messages",
+      "observed": "Handler reads payload.page_id, payload.conversation_id and payload.messages; only updates current/preview conversation when matching selected page."
+    },
+    {
+      "event": "pages:update_conversation",
+      "observed": "Handler reads payload.conversation, can copy conversation.page_id into missing outer page_id, and skips hidden from identity."
+    },
+    {
+      "event": "messages:mark_as_deleted",
+      "observed": "Handler reads payload.message.id and payload.message.conversation_id, not only outer conversation_id."
+    },
+    {
+      "capability": "reconnect",
+      "observed": "Bundled Phoenix client defines reconnect/rejoin backoff defaults and rejoin on socket open. Runtime options can override defaults."
+    },
+    {
+      "capability": "refresh",
+      "observed": "Page/multiple-pages refresh helper calls current-filter conversation fetch, then applies at most first 60 returned conversations. This is not complete history/replay proof."
+    }
+  ],
+  "implementationChanges": [
+    "Reject contradictory payload page references against scoped topic in backend and companion.",
+    "Read nested deletion conversation reference, keep source-relay outer-field compatibility, reject conflicting references.",
+    "Companion capture revision incremented to 0.1.1."
+  ],
+  "limitations": [
+    "No actual provider message deletion, new-message delivery or conversation mutation exercised.",
+    "Do not infer replay, provider event IDs or complete backfill from these handlers.",
+    "Static inspection is local source analysis; live reconnection evidence is in continuity-experiment.json."
+  ]
+}

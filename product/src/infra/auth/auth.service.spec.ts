@@ -5,7 +5,7 @@ function b64(o: unknown): string {
   return Buffer.from(JSON.stringify(o)).toString('base64');
 }
 
-describe('AuthService — PH3 T3-03 (1-A stub, OPEN: PM-1)', () => {
+describe('AuthService — PH3 T3-03 (1-A stub, ADR-006 legacy mode)', () => {
   const svc = new AuthService();
   const prev = process.env.AUTH_DEV_UNSIGNED_TOKENS;
   const prevDemo = process.env.DEMO_WORKSPACES;

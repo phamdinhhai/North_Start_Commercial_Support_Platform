@@ -1,0 +1,444 @@
+{
+  "schema": "north-star.protocol-intelligence-evidence.v1",
+  "as_of": "2026-11-17",
+  "status": "research-only-non-canonical",
+  "scope": "Public source inspection plus official documentation; no private browser/capture/account actions",
+  "state_rules": {
+    "source-inspected": "Exact repository bytes inspected; does not establish provider authorization or live behavior",
+    "inherited-live-authorized": "Prior bounded authorized observations only, never widened to standalone connector rights",
+    "private-unavailable": "No private payload reacquisition in this run; not evidence of absence",
+    "production_approved": "Always false in this research"
+  },
+  "sources": [
+    {
+      "id": "rea",
+      "repository": "https://github.com/morluto/rea",
+      "revision": "54e3918d1c09991970aadf8f0eb1ab6bcf6f83fb",
+      "license_observed": "MIT",
+      "evidence_status": "source-inspected",
+      "provider_rights": "UNKNOWN",
+      "live_test_status": "not-run",
+      "production_approved": false,
+      "files": [
+        {
+          "path": "LICENSE",
+          "sha256": "798f9e4d18e49b30bf2f12696c8ced73dc4e1413da375a333d01281543a1ea8b",
+          "url": "https://github.com/morluto/rea/blob/54e3918d1c09991970aadf8f0eb1ab6bcf6f83fb/LICENSE"
+        },
+        {
+          "path": "package.json",
+          "sha256": "5d6835e8cc5d1fd022ca7878cec80d470f244450007fa52b1ffa13a61de30355",
+          "url": "https://github.com/morluto/rea/blob/54e3918d1c09991970aadf8f0eb1ab6bcf6f83fb/package.json"
+        },
+        {
+          "path": ".github/workflows/ci.yml",
+          "sha256": "3987e09aac67ca2fac5e7408d5dd33213503da819bf458e1af5e0d9a7803781d",
+          "url": "https://github.com/morluto/rea/blob/54e3918d1c09991970aadf8f0eb1ab6bcf6f83fb/.github/workflows/ci.yml"
+        },
+        {
+          "path": "src/composition/webNetworkCaptures.ts",
+          "sha256": "46254542f873621e5983fc712d54a1fa88ac7b7f5e2ab411041a3cfd3da24f74",
+          "url": "https://github.com/morluto/rea/blob/54e3918d1c09991970aadf8f0eb1ab6bcf6f83fb/src/composition/webNetworkCaptures.ts"
+        },
+        {
+          "path": "src/composition/browserScenario.ts",
+          "sha256": "436c17464e4f59c87022205b27a6bce3996193624982600cfc0cb6fec72306c0",
+          "url": "https://github.com/morluto/rea/blob/54e3918d1c09991970aadf8f0eb1ab6bcf6f83fb/src/composition/browserScenario.ts"
+        },
+        {
+          "path": "src/domain/javascript/javascriptApplicationAnalysis.ts",
+          "sha256": "38224db0797145a0f2cdff074799e6e840d3abcce3ee9ff61e02244425628d81",
+          "url": "https://github.com/morluto/rea/blob/54e3918d1c09991970aadf8f0eb1ab6bcf6f83fb/src/domain/javascript/javascriptApplicationAnalysis.ts"
+        },
+        {
+          "path": "src/domain/webNetworkCapture.ts",
+          "sha256": "863f8541c89c5cb9803231199482240df102d193bd6c0c70d21dae621aa1a6e6",
+          "url": "https://github.com/morluto/rea/blob/54e3918d1c09991970aadf8f0eb1ab6bcf6f83fb/src/domain/webNetworkCapture.ts"
+        }
+      ]
+    },
+    {
+      "id": "meta",
+      "repository": "https://github.com/mautrix/meta",
+      "revision": "f806b8053b2dbf212ae6622e730441c499f767bd",
+      "license_observed": "AGPL-3.0; see LICENSE.exceptions",
+      "evidence_status": "source-inspected",
+      "provider_rights": "UNKNOWN",
+      "live_test_status": "not-run",
+      "production_approved": false,
+      "files": [
+        {
+          "path": "LICENSE",
+          "sha256": "0d96a4ff68ad6d4b6f1f30f713b18d5184912ba8dd389f86aa7710db079abcb0",
+          "url": "https://github.com/mautrix/meta/blob/f806b8053b2dbf212ae6622e730441c499f767bd/LICENSE"
+        },
+        {
+          "path": "LICENSE.exceptions",
+          "sha256": "a56bcda19734125bbe29a47d1db61f662c8c3c02ce64ebaee911817faa4743de",
+          "url": "https://github.com/mautrix/meta/blob/f806b8053b2dbf212ae6622e730441c499f767bd/LICENSE.exceptions"
+        },
+        {
+          "path": "pkg/messagix/client.go",
+          "sha256": "19f4a737035d56da726345a3fe4162c684326a0e7dbd540c0a62c9475cf7456a",
+          "url": "https://github.com/mautrix/meta/blob/f806b8053b2dbf212ae6622e730441c499f767bd/pkg/messagix/client.go"
+        },
+        {
+          "path": "pkg/messagix/socket.go",
+          "sha256": "673d6671479a067d28c037ccf1a987ed2943ccca0707e604f63f9f9769a6dd7d",
+          "url": "https://github.com/mautrix/meta/blob/f806b8053b2dbf212ae6622e730441c499f767bd/pkg/messagix/socket.go"
+        },
+        {
+          "path": "pkg/messagix/endpoints/facebook.go",
+          "sha256": "0e6dfae4b3fb5d7500bfa0209cb55d666fce704fe3d695a3d549dad9f3249e75",
+          "url": "https://github.com/mautrix/meta/blob/f806b8053b2dbf212ae6622e730441c499f767bd/pkg/messagix/endpoints/facebook.go"
+        },
+        {
+          "path": "pkg/messagix/httpclient/graphql.go",
+          "sha256": "d0eaa0e096315a1807f98efdf819e2964ce5ec1adac5edeee8e95f844607ce19",
+          "url": "https://github.com/mautrix/meta/blob/f806b8053b2dbf212ae6622e730441c499f767bd/pkg/messagix/httpclient/graphql.go"
+        },
+        {
+          "path": "pkg/messagix/graphql/docs.go",
+          "sha256": "a09a7affa36304dc27ef1f4c108e06107a88f5b12af37fc33ba012ca19535926",
+          "url": "https://github.com/mautrix/meta/blob/f806b8053b2dbf212ae6622e730441c499f767bd/pkg/messagix/graphql/docs.go"
+        }
+      ]
+    },
+    {
+      "id": "tiktoklive",
+      "repository": "https://github.com/isaackogan/TikTokLive",
+      "revision": "4158e6a0a55ee1dabb9a8495ae86ec9e4116c42e",
+      "license_observed": "AGPL-3.0",
+      "evidence_status": "source-inspected",
+      "provider_rights": "UNKNOWN",
+      "live_test_status": "not-run",
+      "production_approved": false,
+      "files": [
+        {
+          "path": "LICENSE",
+          "sha256": "dcf7980cd048cf1d9ec1177cdf73d5c3e363150653f43b8ef8eafd28c83928e2",
+          "url": "https://github.com/isaackogan/TikTokLive/blob/4158e6a0a55ee1dabb9a8495ae86ec9e4116c42e/LICENSE"
+        },
+        {
+          "path": "TikTokLive/client/client.py",
+          "sha256": "68a0593a0261f7a03edb3a2e1c33b239436b565922bdc00074715d8a744a6a1a",
+          "url": "https://github.com/isaackogan/TikTokLive/blob/4158e6a0a55ee1dabb9a8495ae86ec9e4116c42e/TikTokLive/client/client.py"
+        },
+        {
+          "path": "TikTokLive/client/ws/ws_client.py",
+          "sha256": "430c3637bf9f36813f65c20a29c81eab4bc8917fec3f73c923b7bb4d79714dd4",
+          "url": "https://github.com/isaackogan/TikTokLive/blob/4158e6a0a55ee1dabb9a8495ae86ec9e4116c42e/TikTokLive/client/ws/ws_client.py"
+        },
+        {
+          "path": "TikTokLive/client/web/routes/fetch_signed_websocket.py",
+          "sha256": "a946caeffa65f35e3467f0bedbda45567ac324e9f6e16ed406ac4e051b5b557f",
+          "url": "https://github.com/isaackogan/TikTokLive/blob/4158e6a0a55ee1dabb9a8495ae86ec9e4116c42e/TikTokLive/client/web/routes/fetch_signed_websocket.py"
+        }
+      ]
+    },
+    {
+      "id": "connector",
+      "repository": "https://github.com/zerodytrash/TikTok-Live-Connector",
+      "revision": "58c8d5a5806dc4fc6633458cf820be324fc527c6",
+      "license_observed": "AGPL-3.0",
+      "evidence_status": "source-inspected",
+      "provider_rights": "UNKNOWN",
+      "live_test_status": "not-run",
+      "production_approved": false,
+      "files": [
+        {
+          "path": "LICENSE",
+          "sha256": "dcf7980cd048cf1d9ec1177cdf73d5c3e363150653f43b8ef8eafd28c83928e2",
+          "url": "https://github.com/zerodytrash/TikTok-Live-Connector/blob/58c8d5a5806dc4fc6633458cf820be324fc527c6/LICENSE"
+        },
+        {
+          "path": "src/lib/client/index.ts",
+          "sha256": "7f06e3a173df3dd03c0c53ed2fd2b68999ea23b2eb24c769c70a2f1409ba05f6",
+          "url": "https://github.com/zerodytrash/TikTok-Live-Connector/blob/58c8d5a5806dc4fc6633458cf820be324fc527c6/src/lib/client/index.ts"
+        },
+        {
+          "path": "src/lib/ws/lib/ws-client.ts",
+          "sha256": "046a78fd097d32a01a7d7b46a359319f66261fcea403316fbc1c744f94cd9ec7",
+          "url": "https://github.com/zerodytrash/TikTok-Live-Connector/blob/58c8d5a5806dc4fc6633458cf820be324fc527c6/src/lib/ws/lib/ws-client.ts"
+        },
+        {
+          "path": "src/lib/ws/lib/proto-utils.ts",
+          "sha256": "ea3a20424535215fd4798078e22c1f8b99367b2c6227596e983a27bfde66759d",
+          "url": "https://github.com/zerodytrash/TikTok-Live-Connector/blob/58c8d5a5806dc4fc6633458cf820be324fc527c6/src/lib/ws/lib/proto-utils.ts"
+        },
+        {
+          "path": "src/lib/web/routes/euler/fetch-signed-websocket-euler.ts",
+          "sha256": "0da257ad30ffb08a3a6841ec9cb4ba43ac29eb6581e9e0e2cb3a2e232633268e",
+          "url": "https://github.com/zerodytrash/TikTok-Live-Connector/blob/58c8d5a5806dc4fc6633458cf820be324fc527c6/src/lib/web/routes/euler/fetch-signed-websocket-euler.ts"
+        }
+      ]
+    },
+    {
+      "id": "fb-sdk",
+      "repository": "https://github.com/facebook/facebook-nodejs-business-sdk",
+      "revision": "246c937eb5c1272ed743db41a944900bee449be9",
+      "license_observed": "Custom Meta SDK license; use with Facebook web services/APIs",
+      "evidence_status": "source-inspected",
+      "provider_rights": "UNKNOWN",
+      "live_test_status": "not-run",
+      "production_approved": false,
+      "files": [
+        {
+          "path": "LICENSE",
+          "sha256": "48d97b3c936203a750a3288c2b924327769d62327383a1060244b3d3c05ad01f",
+          "url": "https://github.com/facebook/facebook-nodejs-business-sdk/blob/246c937eb5c1272ed743db41a944900bee449be9/LICENSE"
+        },
+        {
+          "path": "src/api.js",
+          "sha256": "2ec2ce9544b20a72f16b97d565fe26914a6d6ca8121a47dc9676b0bff88934f0",
+          "url": "https://github.com/facebook/facebook-nodejs-business-sdk/blob/246c937eb5c1272ed743db41a944900bee449be9/src/api.js"
+        }
+      ]
+    },
+    {
+      "id": "tt-sdk",
+      "repository": "https://github.com/tiktok/tiktok-business-api-sdk",
+      "revision": "f809c396520df2d7b201a9ccc5378d822b728ed3",
+      "license_observed": "MIT",
+      "evidence_status": "source-inspected",
+      "provider_rights": "UNKNOWN",
+      "live_test_status": "not-run",
+      "production_approved": false,
+      "files": [
+        {
+          "path": "LICENSE.md",
+          "sha256": "991c218ea2332d85698a9f2bae9e15a035492db91e7b4b2ffba18c8c8863ca03",
+          "url": "https://github.com/tiktok/tiktok-business-api-sdk/blob/f809c396520df2d7b201a9ccc5378d822b728ed3/LICENSE.md"
+        },
+        {
+          "path": "js_sdk/src/ApiClient.js",
+          "sha256": "1e8dbed842d076964846334c84a893267131dbf3bc002b6f4b8dc0542ddb54f1",
+          "url": "https://github.com/tiktok/tiktok-business-api-sdk/blob/f809c396520df2d7b201a9ccc5378d822b728ed3/js_sdk/src/ApiClient.js"
+        }
+      ]
+    },
+    {
+      "id": "meta-mqtt-v0.5.3",
+      "repository": "https://github.com/mautrix/meta",
+      "revision": "d32c6dcf9cec27edb2bdbb525a7b04abfc264737",
+      "tag": "v0.5.3",
+      "evidence_status": "source-inspected-historical-revision",
+      "provider_rights": "UNKNOWN",
+      "live_test_status": "not-run",
+      "production_approved": false,
+      "files": [
+        {
+          "path": "pkg/messagix/topics.go",
+          "sha256": "d8289823d1a5ff891a1c82b0325686c5f77a4cf8f32f6faa5cf8397fc7a74fc4",
+          "url": "https://github.com/mautrix/meta/blob/d32c6dcf9cec27edb2bdbb525a7b04abfc264737/pkg/messagix/topics.go"
+        },
+        {
+          "path": "pkg/messagix/events.go",
+          "sha256": "757686f12ed17c172b2e64c575d0d859a3177ad5b155b6318c633bd1e62213ed",
+          "url": "https://github.com/mautrix/meta/blob/d32c6dcf9cec27edb2bdbb525a7b04abfc264737/pkg/messagix/events.go"
+        },
+        {
+          "path": "pkg/messagix/client.go",
+          "sha256": "4b28ae71647a6147086963ecf3ce394161b869c2bf8b8961000f518d7d754619",
+          "url": "https://github.com/mautrix/meta/blob/d32c6dcf9cec27edb2bdbb525a7b04abfc264737/pkg/messagix/client.go"
+        }
+      ]
+    }
+  ],
+  "official_documentation": [
+    {
+      "url": "https://developers.facebook.com/documentation/business-messaging/messenger-platform/overview",
+      "retrieved_on": "2026-11-17",
+      "status": "documented",
+      "finding": "Page access token, permissions, scoped IDs and access-level review; authorization for this platform UNKNOWN"
+    },
+    {
+      "url": "https://business-api.tiktok.com/portal/docs/business-messaging-api-get-started/v1.3",
+      "retrieved_on": "2026-11-17",
+      "status": "documented",
+      "finding": "Business Messaging API requires developer app, obtained access, authorization, authentication, webhook subscription"
+    },
+    {
+      "url": "https://business-api.tiktok.com/portal/docs/send-a-message-to-a-conversation/v1.3",
+      "retrieved_on": "2026-11-17",
+      "status": "documented",
+      "finding": "Necessary data security/privacy reviews and Business Messaging access required; endpoint /open_api/v1.3/business/message/send/"
+    }
+  ],
+  "inherited_registry": {
+    "path": "docs/research/adaptive-integration-2026-11-14/protocol-capability-registry.json",
+    "sha256": "afc960930638b6a0784bf8b529433662c8acc319edcc732fb01da57905d6f567",
+    "capabilities": [
+      {
+        "id": "pancake.conversations.phoenix",
+        "inherited_disposition": "mock-tested",
+        "production_approved": false,
+        "verification_this_run": "not-recaptured; inherited evidence only",
+        "authorization_state": "inherited-source-or-synthetic; provider rights UNKNOWN"
+      },
+      {
+        "id": "pancake.facebook.page-settings-tag",
+        "inherited_disposition": "live-verified",
+        "production_approved": false,
+        "verification_this_run": "not-recaptured; inherited evidence only",
+        "authorization_state": "inherited-bounded-live-authorized"
+      },
+      {
+        "id": "pancake.facebook.page-channel-reconnect",
+        "inherited_disposition": "live-verified",
+        "production_approved": false,
+        "verification_this_run": "not-recaptured; inherited evidence only",
+        "authorization_state": "inherited-bounded-live-authorized"
+      },
+      {
+        "id": "pancake.pos.webhooks",
+        "inherited_disposition": "mock-tested",
+        "production_approved": false,
+        "verification_this_run": "not-recaptured; inherited evidence only",
+        "authorization_state": "inherited-source-or-synthetic; provider rights UNKNOWN"
+      },
+      {
+        "id": "pancake.pos.embedded-data-change",
+        "inherited_disposition": "research-only",
+        "production_approved": false,
+        "verification_this_run": "not-recaptured; inherited evidence only",
+        "authorization_state": "inherited-source-or-synthetic; provider rights UNKNOWN"
+      },
+      {
+        "id": "north-star.browser-companion",
+        "inherited_disposition": "mock-tested",
+        "production_approved": false,
+        "verification_this_run": "not-recaptured; inherited evidence only",
+        "authorization_state": "inherited-source-or-synthetic; provider rights UNKNOWN"
+      },
+      {
+        "id": "meta.protocol-reference",
+        "inherited_disposition": "research-only",
+        "production_approved": false,
+        "verification_this_run": "not-recaptured; inherited evidence only",
+        "authorization_state": "inherited-source-or-synthetic; provider rights UNKNOWN"
+      },
+      {
+        "id": "tiktok.live-reference",
+        "inherited_disposition": "research-only",
+        "production_approved": false,
+        "verification_this_run": "not-recaptured; inherited evidence only",
+        "authorization_state": "inherited-source-or-synthetic; provider rights UNKNOWN"
+      },
+      {
+        "id": "google.change-feed-backlog",
+        "inherited_disposition": "research-only",
+        "production_approved": false,
+        "verification_this_run": "not-recaptured; inherited evidence only",
+        "authorization_state": "inherited-source-or-synthetic; provider rights UNKNOWN"
+      },
+      {
+        "id": "pancake.facebook.conversation-tags",
+        "inherited_disposition": "live-verified",
+        "production_approved": false,
+        "verification_this_run": "not-recaptured; inherited evidence only",
+        "authorization_state": "inherited-bounded-live-authorized"
+      },
+      {
+        "id": "pancake.facebook.read-reconciliation",
+        "inherited_disposition": "live-verified",
+        "production_approved": false,
+        "verification_this_run": "not-recaptured; inherited evidence only",
+        "authorization_state": "inherited-bounded-live-authorized"
+      },
+      {
+        "id": "pancake.pos.dashboard-read",
+        "inherited_disposition": "live-verified",
+        "production_approved": false,
+        "verification_this_run": "not-recaptured; inherited evidence only",
+        "authorization_state": "inherited-bounded-live-authorized"
+      }
+    ]
+  },
+  "failure_notes": [
+    {
+      "origin": "inherited-2026-11-15-report",
+      "finding": "Initial settings capture dropped 160/161 events; later zero-drop capture still incomplete; no completeness promotion"
+    },
+    {
+      "origin": "inherited-2026-11-15-report",
+      "finding": "Two contract-read REA attempts execution_failure/cleanup_incomplete and wrong target selection; corrected later run does not erase failures"
+    },
+    {
+      "origin": "inherited-2026-11-15-report",
+      "finding": "Message-tail first run repeat-page timeout despite HTTP 200; settled later run separate; root cause UNKNOWN"
+    },
+    {
+      "origin": "this-run",
+      "finding": "Initial optional read used nonexistent protocol-source-evidence.json filename; corrected directory listing and README read. No source conclusion relies on missing file."
+    },
+    {
+      "origin": "this-run",
+      "finding": "LICENSE glob selected REA licenses directory and failed read; explicit LICENSE inspected successfully."
+    },
+    {
+      "origin": "this-run",
+      "finding": "Initial connector src/lib/client.ts path absent; corrected to src/lib/client/index.ts."
+    },
+    {
+      "origin": "this-run",
+      "finding": "TikTok portal root returned no readable lines; official indexed get-started/send endpoint pages used for bounded access claims."
+    }
+  ],
+  "verification": {
+    "public_repository_bytes_hashed": true,
+    "upstream_tests_executed": false,
+    "hosted_ci_result_verified": false,
+    "rea_target_analysis_run": false,
+    "private_capture_read_or_acquired": false,
+    "live_provider_calls": false
+  },
+  "capabilities": [
+    {
+      "id": "rea.offline-and-browser-instrument",
+      "source_ids": [
+        "rea"
+      ],
+      "evidence_status": "source-inspected",
+      "authorization_status": "no-target-selected; no runtime authorization exercised",
+      "fingerprint": "HAR/SAZ/qlog/mitmproxy adapters; JavaScript input/result schemas; Playwright browser provider",
+      "reconnect_and_replay": "Not a provider continuity contract",
+      "production_approved": false
+    },
+    {
+      "id": "meta.mqtt-historical",
+      "source_ids": [
+        "meta-mqtt-v0.5.3"
+      ],
+      "evidence_status": "source-inspected",
+      "authorization_status": "UNKNOWN provider rights; no account access",
+      "fingerprint": "MQTT /ls_req /ls_resp; app settings; sync groups/cursors",
+      "reconnect_and_replay": "Client.Connect backoff and handleReadyEvent sync exist in source; provider complete replay UNKNOWN",
+      "production_approved": false
+    },
+    {
+      "id": "meta.dgw-graphql-current-snapshot",
+      "source_ids": [
+        "meta"
+      ],
+      "evidence_status": "source-inspected",
+      "authorization_status": "UNKNOWN provider rights; no account access",
+      "fingerprint": "/ws/lightspeed plus /api/graphql/; request app_id/payload/request_id/type; response payload/sp/target",
+      "reconnect_and_replay": "onSocketConnect ensureSyncedSocket groups 1/2/95/104; server retention and completeness UNKNOWN",
+      "production_approved": false
+    },
+    {
+      "id": "tiktok.webcast-reference",
+      "source_ids": [
+        "tiktoklive",
+        "connector"
+      ],
+      "evidence_status": "source-inspected",
+      "authorization_status": "UNKNOWN provider rights; no signer/account/network operation",
+      "fingerprint": "Signed WebSocket; protobuf fetch/push; method event mapping; needAck/log ID/internal extension",
+      "reconnect_and_replay": "Ack/heartbeat source observed; no durable replay/retention verified; separate from business inbox",
+      "production_approved": false
+    }
+  ],
+  "private_evidence_state": "private-unavailable-in-this-run; inherited published summaries only, no recapture"
+}

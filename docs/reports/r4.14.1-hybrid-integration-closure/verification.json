@@ -1,0 +1,780 @@
+{
+  "release": "R4.14.1",
+  "source": {
+    "repository": "phamdinhhai/North_Start_Commercial_Support_Platform",
+    "branch": "feat/r4141-hybrid-integration-closure",
+    "sourceSha": "580e499cd55771896b88ffb47adca7689b12c99f",
+    "productTree": "0467316f0ccfb9396af948b252dc21f5b1cb66c8",
+    "mergeBase": "164ebc17bff39f5d7604cc6bc5f6d37e7d188c9d",
+    "remoteBranch": "not pushed",
+    "lockfileSha256": "27c4606532efbc38efd8b6d4ca2a6c873eb809bc167895578a257b58555c7df8"
+  },
+  "hostedBaseline": {
+    "r414Workflow": "44966931141",
+    "r414Sha": "164ebc17bff39f5d7604cc6bc5f6d37e7d188c9d",
+    "product": "SUCCESS",
+    "browserOperator": "SUCCESS",
+    "r4141Hosted": "NOT_RUN_UNPUSHED"
+  },
+  "commands": {
+    "typecheck": {
+      "result": "PASS",
+      "sourceSha": "580e499cd55771896b88ffb47adca7689b12c99f"
+    },
+    "lint": {
+      "result": "PASS"
+    },
+    "architecture": {
+      "result": "PASS"
+    },
+    "registry": {
+      "result": "PASS"
+    },
+    "build": {
+      "result": "PASS"
+    },
+    "integrationCi": {
+      "result": "PASS",
+      "suites": 31,
+      "tests": 166,
+      "skipped": 0,
+      "artifact": "D:/AI-for-Enterprise/r4141-private/north-r47-integration-PGxqPB/integration-ci.log"
+    },
+    "coverage": {
+      "result": "PASS",
+      "files": 178,
+      "tests": 1637,
+      "skipped": 0,
+      "lines": 90.26,
+      "statements": 84.73,
+      "branches": 82.55,
+      "functions": 87.98,
+      "artifact": "D:/AI-for-Enterprise/r4141-private/north-r47-coverage2-gxuXKR/coverage.log",
+      "sha256": "8f1dd42dc1bde04bf404e3320b9fc095602a0dfff497b594a36508c4a9d90ebd"
+    },
+    "focusedVitestIndependent": {
+      "result": "PASS",
+      "tests": 77,
+      "files": 9
+    },
+    "nodeBrowserIndependent": {
+      "result": "PASS",
+      "tests": 25,
+      "skipped": 0
+    },
+    "postgresIndependentReceipt": {
+      "result": "PASS",
+      "tests": 9,
+      "skipped": 0
+    },
+    "secretScan": {
+      "status": "PASS",
+      "changed_untracked_files": 38,
+      "files_and_streams_scanned": 1488,
+      "credential_values_compared_in_memory": 7,
+      "staged_changed_untracked_generated_new_history_scanned": true,
+      "full_reachable_history_exact_value_scan": true,
+      "manual_allowlist": "Preexisting fabricated JWT negative fixture with subject 1 and literal signature sig",
+      "findings": [],
+      "result": "PASS"
+    },
+    "productionAudit": {
+      "result": "PASS",
+      "high": 0,
+      "critical": 0
+    },
+    "fullDependencyAudit": {
+      "result": "REVIEW_REQUIRED",
+      "moderate": 5,
+      "high": 0,
+      "critical": 0,
+      "names": [
+        "@nestjs/cli",
+        "@typescript-eslint/parser",
+        "@typescript-eslint/typescript-estree",
+        "glob",
+        "minimatch"
+      ],
+      "artifact": "D:\\AI-for-Enterprise\\r4141-private\\npm-audit-full.json",
+      "sha256": "fe9a71686a094d03b832bf6948d342050194e6e5fb070fe18f70be4f46f37d27"
+    }
+  },
+  "combinedE2E": {
+    "result": "PASS",
+    "artifact": "D:/AI-for-Enterprise/r4141-private/north-r47-final-OnYDAP/hybrid-durable-e2e.log",
+    "artifactSha256": "dddf1ea781b6ea45c0b3ff040c02cc5adca84a88b56cad404fc9307060a249de",
+    "sourceSha": "580e499cd55771896b88ffb47adca7689b12c99f",
+    "steps": 18,
+    "receipts": 13,
+    "providers": [
+      "pancake",
+      "meta-ads",
+      "hubspot"
+    ],
+    "providerContacted": false,
+    "providerMutations": 0,
+    "realCustomerData": false,
+    "uniqueCommercialLeads": 0,
+    "completeness": "UNKNOWN",
+    "browserApiFacts": "shared fixture label v1 paired; v2/deleted browser facts retained as conflict",
+    "ackLoss": "post-commit socket drop and replay PASS",
+    "transactionCrash": "pre-commit PostgreSQL rollback and replay PASS",
+    "stepNames": [
+      "REAL_NEST_POSTGRES_READY",
+      "REAL_OIDC_ADMIN_LOGIN",
+      "THREE_SERVER_BOUND_ENROLLMENTS",
+      "THREE_REAL_MV3_TO_POSTGRES_RECEIPTS",
+      "THREE_BROWSER_API_PAIRS_DURABLE_RECONCILIATION",
+      "AUTHORIZED_DATA_HEALTH_READBACK",
+      "ALTERED_DELETED_FACTS_RETAINED_WITHOUT_OVERWRITE",
+      "NO_BODY_OR_COMMERCIAL_PROJECTION",
+      "POST_COMMIT_SOCKET_DROP_WORKER_RESTART_IDENTICAL_REPLAY",
+      "PARTIAL_ACK_BROWSER_RESTART_PERSISTENCE",
+      "IN_TRANSACTION_BACKEND_CRASH_ROLLBACK_IDENTICAL_REPLAY",
+      "CONCURRENT_REPLAY_ONE_DURABLE_RECEIPT",
+      "DUPLICATE_CONFLICT_FOREIGN_WORKSPACE_NATIVE_OBJECT_DENIAL",
+      "ACCOUNT_SWITCH_FAIL_CLOSED",
+      "MISSING_IDENTITY_DOM_SCHEMA_FAIL_CLOSED",
+      "EXPIRED_OIDC_SESSION_ENROLLMENT_DENIED",
+      "FOREIGN_OIDC_PRINCIPAL_SCOPE_DENIAL",
+      "MEMBERSHIP_REVOCATION_DURING_BROWSER_DELIVERY"
+    ]
+  },
+  "extension": {
+    "packageSha256": "856464a638708f252ad69db0aed37ddbf34a5ae40be1b9a8d1d7f0c29ac946df",
+    "files": 10,
+    "published": false,
+    "permissions": [
+      "activeTab",
+      "scripting",
+      "storage"
+    ],
+    "optionalPermissions": [
+      "debugger"
+    ]
+  },
+  "sdk": {
+    "packages": [
+      "@hubspot/api-client@14.1.3",
+      "facebook-nodejs-business-sdk@27.0.0"
+    ],
+    "productionSbom": {
+      "format": "CycloneDX 1.5",
+      "components": 91,
+      "artifact": "D:\\AI-for-Enterprise\\r4141-private\\north-r47-final-OnYDAP\\production-sbom.log",
+      "sha256": "90e7a95e00b5b0f4352c526aa18f6e62645e0ddbbeba1a23b819f300e9676310"
+    },
+    "licenses": "conditional",
+    "redistributionAllowed": false,
+    "hubspotLicenseSha256": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4",
+    "metaLicenseSha256": "48d97b3c936203a750a3288c2b924327769d62327383a1060244b3d3c05ad01f",
+    "independentSbom": {
+      "artifact": "D:/AI-for-Enterprise/r414-private/r4141-580-sbom.json",
+      "sha256": "bee83b164e7030d82514c536eb6549f6cf148f0b6ff20ac8d380c3b857ceb02b"
+    }
+  },
+  "provider": {
+    "callsR4141": 0,
+    "mutationsR4141": 0,
+    "ownerManualReview": "NOT_OBSERVED",
+    "historicalPostAttempts": 1,
+    "confirmedProviderWrites": 0,
+    "sendOutcome": "SEND_UNRESOLVED",
+    "automaticRetryAllowed": false,
+    "newMutationsAllowed": false,
+    "deliveryStatus": "UNKNOWN",
+    "readStatus": "UNKNOWN"
+  },
+  "gates": {
+    "A": "PASS_LOCAL_EXACT_SOURCE",
+    "H": "NOT_RUN_R4141_UNPUSHED",
+    "E": "PASS_LOCAL_MV3_FIXTURE_RUNTIME",
+    "R": "CONDITIONAL_SDK_DISTRIBUTION_LICENSE_REVIEW",
+    "I": "PASS_LOCAL_COMBINED_BROWSER_API_BACKEND_FIXTURE_E2E",
+    "S": "PASS_POST_COMMIT_ACK_LOSS_AND_PRECOMMIT_CRASH_REPLAY",
+    "P1": "PASS_PRIOR_BOUNDED_READ",
+    "P2": "PASS_PRIOR_BOUNDED_PAGINATION_COMPLETENESS_UNKNOWN",
+    "P3": "SEND_UNRESOLVED",
+    "P4": "NOT_TESTED",
+    "P5": "NOT_VERIFIED",
+    "B": "CONDITIONAL",
+    "C": "NOT_READY"
+  },
+  "limitations": [
+    "No production HTTPS dispatch or DNS resolver was enabled.",
+    "No provider credentials, provider calls, mutations or real-data admission occurred.",
+    "Provider read fixtures use server-owned fabricated credentials and local emulators.",
+    "Browser/API authority correlation is technical identity evidence, not Customer/Lead identity or commercial truth.",
+    "Hosted R4.14.1 CI cannot be reported until this branch is separately pushed and workflow completes."
+  ],
+  "localVerification": {
+    "distinctLanes": 33,
+    "passed": 33,
+    "sourceSha": "580e499cd55771896b88ffb47adca7689b12c99f",
+    "productTree": "0467316f0ccfb9396af948b252dc21f5b1cb66c8",
+    "lanes": [
+      {
+        "name": "pilot-research-safety",
+        "command": [
+          "C:\\Program Files\\nodejs\\node.exe",
+          "--test",
+          "scripts/pilot/safety.test.mjs",
+          "scripts/research/validate-observation.test.mjs"
+        ],
+        "exit_code": 0,
+        "seconds": 0,
+        "log": "D:\\AI-for-Enterprise\\r4141-private\\north-r47-final-OnYDAP\\pilot-research-safety.log",
+        "source_sha": "580e499cd55771896b88ffb47adca7689b12c99f",
+        "log_sha256": "2581e1b87a0c6a570440d57308fbf5ded124a8e9a9075e854129cc2d3c7112e8"
+      },
+      {
+        "name": "typecheck",
+        "command": [
+          "C:\\Program Files\\nodejs\\node.exe",
+          "C:/Program Files/nodejs/node_modules/npm/bin/npm-cli.js",
+          "run",
+          "typecheck"
+        ],
+        "exit_code": 0,
+        "seconds": 10,
+        "log": "D:\\AI-for-Enterprise\\r4141-private\\north-r47-final-OnYDAP\\typecheck.log",
+        "source_sha": "580e499cd55771896b88ffb47adca7689b12c99f",
+        "log_sha256": "09b9a49f6769e2371ae5cfedc320845c173fe8c1356b69e516cecf3df4a23c7a"
+      },
+      {
+        "name": "lint",
+        "command": [
+          "C:\\Program Files\\nodejs\\node.exe",
+          "C:/Program Files/nodejs/node_modules/npm/bin/npm-cli.js",
+          "run",
+          "lint"
+        ],
+        "exit_code": 0,
+        "seconds": 5,
+        "log": "D:\\AI-for-Enterprise\\r4141-private\\north-r47-final-OnYDAP\\lint.log",
+        "source_sha": "580e499cd55771896b88ffb47adca7689b12c99f",
+        "log_sha256": "ad43281dbc673e71b219a3b5f8bb1351cdbf31f778553f420b51e951f5ce0a46"
+      },
+      {
+        "name": "architecture",
+        "command": [
+          "C:\\Program Files\\nodejs\\node.exe",
+          "C:/Program Files/nodejs/node_modules/npm/bin/npm-cli.js",
+          "run",
+          "architecture:check:strict"
+        ],
+        "exit_code": 0,
+        "seconds": 1,
+        "log": "D:\\AI-for-Enterprise\\r4141-private\\north-r47-final-OnYDAP\\architecture.log",
+        "source_sha": "580e499cd55771896b88ffb47adca7689b12c99f",
+        "log_sha256": "d77621a86ab9943075df85f3191a1cb7bb1df838338d769fe581a2ff13a87c50"
+      },
+      {
+        "name": "registry",
+        "command": [
+          "C:\\Program Files\\nodejs\\node.exe",
+          "C:/Program Files/nodejs/node_modules/npm/bin/npm-cli.js",
+          "run",
+          "registry:validate"
+        ],
+        "exit_code": 0,
+        "seconds": 0,
+        "log": "D:\\AI-for-Enterprise\\r4141-private\\north-r47-final-OnYDAP\\registry.log",
+        "source_sha": "580e499cd55771896b88ffb47adca7689b12c99f",
+        "log_sha256": "9ba0b062f4ecd65b28129862b0b83b76af3684de213382c0d20ffa086be3ab85"
+      },
+      {
+        "name": "integration-ci",
+        "command": [
+          "C:\\Program Files\\nodejs\\node.exe",
+          "C:/Program Files/nodejs/node_modules/npm/bin/npm-cli.js",
+          "run",
+          "test:integration:ci"
+        ],
+        "exit_code": 0,
+        "seconds": 92,
+        "log": "D:\\AI-for-Enterprise\\r4141-private\\north-r47-final-OnYDAP\\integration-ci.log",
+        "source_sha": "580e499cd55771896b88ffb47adca7689b12c99f",
+        "log_sha256": "1d54bf4e85cf334320fff744e6c0af590f09ea946edb6d8ac39b05a510bf8359"
+      },
+      {
+        "name": "coverage",
+        "command": [
+          "C:\\Program Files\\nodejs\\node.exe",
+          "C:/Program Files/nodejs/node_modules/npm/bin/npm-cli.js",
+          "run",
+          "test:cov",
+          "--",
+          "--no-file-parallelism",
+          "--coverage.reportsDirectory=D:\\AI-for-Enterprise\\r4141-private\\north-r47-coverage2-gxuXKR\\coverage",
+          "--testTimeout=20000"
+        ],
+        "exit_code": 0,
+        "seconds": 166,
+        "log": "D:\\AI-for-Enterprise\\r4141-private\\north-r47-coverage2-gxuXKR\\coverage.log",
+        "source_sha": "580e499cd55771896b88ffb47adca7689b12c99f",
+        "log_sha256": "8f1dd42dc1bde04bf404e3320b9fc095602a0dfff497b594a36508c4a9d90ebd"
+      },
+      {
+        "name": "build",
+        "command": [
+          "C:\\Program Files\\nodejs\\node.exe",
+          "C:/Program Files/nodejs/node_modules/npm/bin/npm-cli.js",
+          "run",
+          "build"
+        ],
+        "exit_code": 0,
+        "seconds": 16,
+        "log": "D:\\AI-for-Enterprise\\r4141-private\\north-r47-final-OnYDAP\\build.log",
+        "source_sha": "580e499cd55771896b88ffb47adca7689b12c99f",
+        "log_sha256": "4bc24afec50c327cef250b332ffda2df07d6c6766d549f4ee6b27ea4aaaebc3a"
+      },
+      {
+        "name": "http-e2e",
+        "command": [
+          "C:\\Program Files\\nodejs\\node.exe",
+          "C:/Program Files/nodejs/node_modules/npm/bin/npm-cli.js",
+          "run",
+          "test:e2e"
+        ],
+        "exit_code": 0,
+        "seconds": 10,
+        "log": "D:\\AI-for-Enterprise\\r4141-private\\north-r47-final-OnYDAP\\http-e2e.log",
+        "source_sha": "580e499cd55771896b88ffb47adca7689b12c99f",
+        "log_sha256": "504e755f8b83dd8777cd2ead9da03d6e03fe4a765705ff44cdb27ed6e39cb170"
+      },
+      {
+        "name": "browser",
+        "command": [
+          "C:\\Program Files\\nodejs\\node.exe",
+          "C:/Program Files/nodejs/node_modules/npm/bin/npm-cli.js",
+          "run",
+          "test:browser"
+        ],
+        "exit_code": 0,
+        "seconds": 25,
+        "log": "D:\\AI-for-Enterprise\\r4141-private\\north-r47-final-OnYDAP\\browser.log",
+        "source_sha": "580e499cd55771896b88ffb47adca7689b12c99f",
+        "log_sha256": "1d0e0343f5b8800eda1bea0e1c0ca04c1d009ed4c110526b8dc0333be14da436"
+      },
+      {
+        "name": "component",
+        "command": [
+          "C:\\Program Files\\nodejs\\node.exe",
+          "node_modules/@playwright/test/cli.js",
+          "test",
+          "--config",
+          "playwright.operator-recovery.config.ts"
+        ],
+        "exit_code": 0,
+        "seconds": 6,
+        "log": "D:\\AI-for-Enterprise\\r4141-private\\north-r47-final-OnYDAP\\component.log",
+        "source_sha": "580e499cd55771896b88ffb47adca7689b12c99f",
+        "log_sha256": "f670cf45fd4c5b8e7e4d634964c6ac2e6cb89155853ecacb4b0ba6e71bea0cb4"
+      },
+      {
+        "name": "lifecycle-memory",
+        "command": [
+          "C:\\Program Files\\nodejs\\node.exe",
+          "node_modules/@playwright/test/cli.js",
+          "test",
+          "--config",
+          "playwright.lifecycle.config.ts"
+        ],
+        "exit_code": 0,
+        "seconds": 22,
+        "log": "D:\\AI-for-Enterprise\\r4141-private\\north-r47-final-OnYDAP\\lifecycle-memory.log",
+        "source_sha": "580e499cd55771896b88ffb47adca7689b12c99f",
+        "log_sha256": "1b39a6f0a90ccdd2dc9709cbfcf2230c1fb8861d57009ca2f378f98bf02dc356"
+      },
+      {
+        "name": "oidc-ui",
+        "command": [
+          "C:\\Program Files\\nodejs\\node.exe",
+          "node_modules/@playwright/test/cli.js",
+          "test",
+          "--config",
+          "playwright.oidc.config.ts"
+        ],
+        "exit_code": 0,
+        "seconds": 43,
+        "log": "D:\\AI-for-Enterprise\\r4141-private\\north-r47-final-OnYDAP\\oidc-ui.log",
+        "source_sha": "580e499cd55771896b88ffb47adca7689b12c99f",
+        "log_sha256": "2bcaf7a6ba0b9dc53a1af9725f930004f910882fbde4a0d25f96b48d30c42979"
+      },
+      {
+        "name": "companion",
+        "command": [
+          "C:\\Program Files\\nodejs\\node.exe",
+          "C:/Program Files/nodejs/node_modules/npm/bin/npm-cli.js",
+          "run",
+          "test:companion"
+        ],
+        "exit_code": 0,
+        "seconds": 6,
+        "log": "D:\\AI-for-Enterprise\\r4141-private\\north-r47-final-OnYDAP\\companion.log",
+        "source_sha": "580e499cd55771896b88ffb47adca7689b12c99f",
+        "log_sha256": "e641f14df592ca1b949a99ffec918a83d6130ece576a436bc83181c84c44696a"
+      },
+      {
+        "name": "guardrails",
+        "command": [
+          "C:\\Program Files\\nodejs\\node.exe",
+          "--test",
+          "scripts/check-architecture.test.mjs",
+          "scripts/registry-validation.test.mjs",
+          "scripts/security-audit.test.mjs",
+          "scripts/backup-verify.test.mjs"
+        ],
+        "exit_code": 0,
+        "seconds": 1,
+        "log": "D:\\AI-for-Enterprise\\r4141-private\\north-r47-final-OnYDAP\\guardrails.log",
+        "source_sha": "580e499cd55771896b88ffb47adca7689b12c99f",
+        "log_sha256": "b7da1bc4bf4dd6a820e105b1e6b0f671b9fc6b6bcaa1dbb50652693c4537b050"
+      },
+      {
+        "name": "ail-research",
+        "command": [
+          "C:\\Program Files\\nodejs\\node.exe",
+          "C:/Program Files/nodejs/node_modules/npm/bin/npm-cli.js",
+          "run",
+          "test:ail:research"
+        ],
+        "exit_code": 0,
+        "seconds": 2,
+        "log": "D:\\AI-for-Enterprise\\r4141-private\\north-r47-final-OnYDAP\\ail-research.log",
+        "source_sha": "580e499cd55771896b88ffb47adca7689b12c99f",
+        "log_sha256": "529be4ddf963d74f05b98798afcb44cdee6d6c813bb4e80d8cc8aafdeb5fd44a"
+      },
+      {
+        "name": "restore",
+        "command": [
+          "C:\\Program Files\\nodejs\\node.exe",
+          "scripts/restore-rehearsal.mjs"
+        ],
+        "exit_code": 0,
+        "seconds": 12,
+        "log": "D:\\AI-for-Enterprise\\r4141-private\\north-r47-final-OnYDAP\\restore.log",
+        "source_sha": "580e499cd55771896b88ffb47adca7689b12c99f",
+        "log_sha256": "ab9a6b6475d5556811fdd946cd6d63ae0fc63813df8274baae94fca903a37e53"
+      },
+      {
+        "name": "audit",
+        "command": [
+          "C:\\Program Files\\nodejs\\node.exe",
+          "C:/Program Files/nodejs/node_modules/npm/bin/npm-cli.js",
+          "run",
+          "security:audit"
+        ],
+        "exit_code": 0,
+        "seconds": 6,
+        "log": "D:\\AI-for-Enterprise\\r4141-private\\north-r47-final-OnYDAP\\audit.log",
+        "source_sha": "580e499cd55771896b88ffb47adca7689b12c99f",
+        "log_sha256": "57e8b10012c380383e853728fe570a8746171dc602003a7af2be5786773033e3"
+      },
+      {
+        "name": "source-ui",
+        "command": [
+          "C:\\Program Files\\nodejs\\node.exe",
+          "node_modules/@playwright/test/cli.js",
+          "test",
+          "--config",
+          "playwright.source-integration.config.ts"
+        ],
+        "exit_code": 0,
+        "seconds": 34,
+        "log": "D:\\AI-for-Enterprise\\r4141-private\\north-r47-final-OnYDAP\\source-ui.log",
+        "source_sha": "580e499cd55771896b88ffb47adca7689b12c99f",
+        "log_sha256": "39aab10b04300053df23973e9e82578f1090841d2c70de02e91284b787efcd6c"
+      },
+      {
+        "name": "r411-browser",
+        "command": [
+          "C:\\Program Files\\nodejs\\node.exe",
+          "node_modules/@playwright/test/cli.js",
+          "test",
+          "--config",
+          "playwright.r411.config.ts"
+        ],
+        "exit_code": 0,
+        "seconds": 29,
+        "log": "D:\\AI-for-Enterprise\\r4141-private\\north-r47-final-OnYDAP\\r411-browser.log",
+        "source_sha": "580e499cd55771896b88ffb47adca7689b12c99f",
+        "log_sha256": "5f2311deff18b7c32460df80b78396b59c2bad6b8ce4766978679b96252773bc"
+      },
+      {
+        "name": "r412-browser",
+        "command": [
+          "C:\\Program Files\\nodejs\\node.exe",
+          "node_modules/@playwright/test/cli.js",
+          "test",
+          "--config",
+          "playwright.r412.config.ts"
+        ],
+        "exit_code": 0,
+        "seconds": 26,
+        "log": "D:\\AI-for-Enterprise\\r4141-private\\north-r47-final-OnYDAP\\r412-browser.log",
+        "source_sha": "580e499cd55771896b88ffb47adca7689b12c99f",
+        "log_sha256": "6ff8b54a5d70a9c2bde1b08167b23297dccc8aee800a1894f8bb3e525210dab0"
+      },
+      {
+        "name": "packaging",
+        "command": [
+          "C:\\Program Files\\nodejs\\node.exe",
+          "--test",
+          "scripts/companion-package.test.mjs"
+        ],
+        "exit_code": 0,
+        "seconds": 1,
+        "log": "D:\\AI-for-Enterprise\\r4141-private\\north-r47-final-OnYDAP\\packaging.log",
+        "source_sha": "580e499cd55771896b88ffb47adca7689b12c99f",
+        "log_sha256": "02914a90f0c98c79214135c271c4dbcff980d99a36b9b10dfbf86947b3199993"
+      },
+      {
+        "name": "pilot-launcher",
+        "command": [
+          "C:\\Program Files\\nodejs\\node.exe",
+          "C:/Users/admin/AppData/Local/Temp/north-r411-pilot-verify.mjs"
+        ],
+        "exit_code": 0,
+        "seconds": 42,
+        "log": "D:\\AI-for-Enterprise\\r4141-private\\north-r47-final-OnYDAP\\pilot-launcher.log",
+        "source_sha": "580e499cd55771896b88ffb47adca7689b12c99f",
+        "log_sha256": "c346a097437670ff0008a3f3781f29514534d4331ebfe805964c47004d4e7f69"
+      },
+      {
+        "name": "benchmark",
+        "command": [
+          "C:\\Program Files\\nodejs\\node.exe",
+          "scripts/source-integration-benchmark.mjs"
+        ],
+        "exit_code": 0,
+        "seconds": 4,
+        "log": "D:\\AI-for-Enterprise\\r4141-private\\north-r47-final-OnYDAP\\benchmark.log",
+        "source_sha": "580e499cd55771896b88ffb47adca7689b12c99f",
+        "log_sha256": "105f74c27ef248743a8296b2928eac48729403e431873fa3f51cdea2f31691ad"
+      },
+      {
+        "name": "sync-recovery",
+        "command": [
+          "C:\\Program Files\\nodejs\\node.exe",
+          "scripts/sync-recovery-rehearsal.mjs"
+        ],
+        "exit_code": 0,
+        "seconds": 5,
+        "log": "D:\\AI-for-Enterprise\\r4141-private\\north-r47-final-OnYDAP\\sync-recovery.log",
+        "source_sha": "580e499cd55771896b88ffb47adca7689b12c99f",
+        "log_sha256": "4f34282ca28f1cd97c8b9b593390239036f12ed9e852cebff5473f2ed99fa6f4"
+      },
+      {
+        "name": "sync-benchmark",
+        "command": [
+          "C:\\Program Files\\nodejs\\node.exe",
+          "scripts/sync-benchmark.mjs"
+        ],
+        "exit_code": 0,
+        "seconds": 2,
+        "log": "D:\\AI-for-Enterprise\\r4141-private\\north-r47-final-OnYDAP\\sync-benchmark.log",
+        "source_sha": "580e499cd55771896b88ffb47adca7689b12c99f",
+        "log_sha256": "a042db42d0519a71404b00dbedccb383388c30d34222efd0f189e818385e9841"
+      },
+      {
+        "name": "forensic-boundary",
+        "command": [
+          "C:\\Program Files\\nodejs\\node.exe",
+          "--test",
+          "scripts/pancake-forensics/python-json-boundary.test.mjs",
+          "scripts/pancake-forensics/unicode-and-response-parser-tests.mjs"
+        ],
+        "exit_code": 0,
+        "seconds": 1,
+        "log": "D:\\AI-for-Enterprise\\r4141-private\\north-r47-final-OnYDAP\\forensic-boundary.log",
+        "source_sha": "580e499cd55771896b88ffb47adca7689b12c99f",
+        "log_sha256": "688a37712dc205d82a90420392c60e2aa1da2c09575a8c8c2f54233354455a49"
+      },
+      {
+        "name": "hybrid-runtime-tests",
+        "command": [
+          "C:\\Program Files\\nodejs\\node.exe",
+          "--test",
+          "scripts/hybrid-browser/runtime.test.mjs",
+          "scripts/hybrid-browser/security.qa.test.mjs",
+          "scripts/hybrid-browser/diagnostic-worker.test.mjs"
+        ],
+        "exit_code": 0,
+        "seconds": 0,
+        "log": "D:\\AI-for-Enterprise\\r4141-private\\north-r47-final-OnYDAP\\hybrid-runtime-tests.log",
+        "source_sha": "580e499cd55771896b88ffb47adca7689b12c99f",
+        "log_sha256": "9c0f0f21097628fa64232ddb3b12fed1079a088f1eb03acf98d9f3abfe205acd"
+      },
+      {
+        "name": "hybrid-package",
+        "command": [
+          "C:\\Program Files\\nodejs\\node.exe",
+          "scripts/hybrid-browser/package.mjs",
+          "D:\\AI-for-Enterprise\\r4141-private\\north-r47-final-OnYDAP\\hybrid-package",
+          "--fixture"
+        ],
+        "exit_code": 0,
+        "seconds": 0,
+        "log": "D:\\AI-for-Enterprise\\r4141-private\\north-r47-final-OnYDAP\\hybrid-package.log",
+        "source_sha": "580e499cd55771896b88ffb47adca7689b12c99f",
+        "log_sha256": "baad8061f52652d60d2b02a7c06e190a2b3c8922214ba3ba384bd14011218539"
+      },
+      {
+        "name": "hybrid-smoke",
+        "command": [
+          "C:\\Program Files\\nodejs\\node.exe",
+          "scripts/hybrid-browser/smoke.mjs"
+        ],
+        "exit_code": 0,
+        "seconds": 3,
+        "log": "D:\\AI-for-Enterprise\\r4141-private\\north-r47-final-OnYDAP\\hybrid-smoke.log",
+        "source_sha": "580e499cd55771896b88ffb47adca7689b12c99f",
+        "log_sha256": "a2e42a67d24e468f95d2ed9ed0b25c21e608beef580afde85153bc1014497e28"
+      },
+      {
+        "name": "hybrid-durable-e2e",
+        "command": [
+          "C:\\Program Files\\nodejs\\node.exe",
+          "scripts/hybrid-browser/durable-e2e.mjs"
+        ],
+        "exit_code": 0,
+        "seconds": 18,
+        "log": "D:\\AI-for-Enterprise\\r4141-private\\north-r47-final-OnYDAP\\hybrid-durable-e2e.log",
+        "source_sha": "580e499cd55771896b88ffb47adca7689b12c99f",
+        "log_sha256": "dddf1ea781b6ea45c0b3ff040c02cc5adca84a88b56cad404fc9307060a249de"
+      },
+      {
+        "name": "sdk-license-audit",
+        "command": [
+          "C:\\Program Files\\nodejs\\node.exe",
+          "scripts/hybrid-browser/sdk-distribution-review.mjs",
+          "--allow-review"
+        ],
+        "exit_code": 0,
+        "seconds": 0,
+        "log": "D:\\AI-for-Enterprise\\r4141-private\\north-r47-final-OnYDAP\\sdk-license-audit.log",
+        "source_sha": "580e499cd55771896b88ffb47adca7689b12c99f",
+        "log_sha256": "bb108b6f7b6e2485a2e6aeb88458a4f615776b0f291b21a67d30a6b615ac93c2"
+      },
+      {
+        "name": "production-sbom",
+        "command": [
+          "C:\\Program Files\\nodejs\\node.exe",
+          "C:/Program Files/nodejs/node_modules/npm/bin/npm-cli.js",
+          "sbom",
+          "--omit=dev",
+          "--sbom-format",
+          "cyclonedx",
+          "--sbom-type",
+          "application"
+        ],
+        "exit_code": 0,
+        "seconds": 3,
+        "log": "D:\\AI-for-Enterprise\\r4141-private\\north-r47-final-OnYDAP\\production-sbom.log",
+        "source_sha": "580e499cd55771896b88ffb47adca7689b12c99f",
+        "log_sha256": "90e7a95e00b5b0f4352c526aa18f6e62645e0ddbbeba1a23b819f300e9676310"
+      }
+    ],
+    "primaryManifest": "D:\\AI-for-Enterprise\\r4141-private\\north-r47-final-OnYDAP\\results.json",
+    "primaryManifestSha256": "f59cc7a1f71bab3f8129df3d5a85133687ea376ae8328a41ce0524d372a437fa",
+    "coverageManifest": "D:\\AI-for-Enterprise\\r4141-private\\north-r47-coverage2-gxuXKR\\results.json",
+    "coverageManifestSha256": "4a89b41a55ff89d20785c7977ab57692114ce16fd26e65d28a47e68d4fbdbbf5",
+    "counting": "Coverage and PostgreSQL/focused tests overlap; totals are not summed. Coverage original failure retained below; successful rerun replaces that lane at identical source."
+  },
+  "independentQA": {
+    "cleanWorktree": "D:/AI-for-Enterprise/ns-r4141-clean-qa",
+    "sourceSha": "580e499cd55771896b88ffb47adca7689b12c99f",
+    "productTree": "0467316f0ccfb9396af948b252dc21f5b1cb66c8",
+    "focusedVitest": 77,
+    "node": 25,
+    "postgresReceiptTests": 9,
+    "logs": [
+      {
+        "name": "clean-install",
+        "path": "D:\\AI-for-Enterprise\\r414-private\\r4141-580-clean-install.log",
+        "sha256": "63c3be4e4f387646f0b08fa970bb6f7d91ec4d374117d37be3e847467fb07fa1"
+      },
+      {
+        "name": "typecheck",
+        "path": "D:\\AI-for-Enterprise\\r414-private\\r4141-580-typecheck.log",
+        "sha256": "47a27874e043103df0dea8af8f428453bc63fccd53acf7dafddae25af9738378"
+      },
+      {
+        "name": "build",
+        "path": "D:\\AI-for-Enterprise\\r414-private\\r4141-580-build.log",
+        "sha256": "f78304ee3b8647000203dc64079d9df88da961ff38509de3e06ae637293ac11f"
+      },
+      {
+        "name": "focused",
+        "path": "D:\\AI-for-Enterprise\\r414-private\\r4141-580-focused.log",
+        "sha256": "ff3af9ca2a7817ede558ede6c33200fe191f79231017c6acf16d0986f2785424"
+      },
+      {
+        "name": "node",
+        "path": "D:\\AI-for-Enterprise\\r414-private\\r4141-580-node.log",
+        "sha256": "014238e67fa8d9e3e80a99dfa8513a4cfb6e01f79d33c3c063d4936ec120b1ef"
+      }
+    ],
+    "sourceReview": "closure_qa reviewed exact fingerprint fix and complete final E2E evidence; no auth escalation or secret leak found.",
+    "postgresLog": {
+      "path": "D:\\AI-for-Enterprise\\r4141-private\\closure-qa-pg-5oW4Et\\tests.log",
+      "sha256": "ec099f1433d08d534ddd649fbb042f5b0bc7a436bb731c32abfdfffbd3be04a3"
+    }
+  },
+  "failureHistory": [
+    {
+      "category": "ENVIRONMENT_DISK",
+      "outcome": "Preliminary initdb on C failed with no space. Subsequent disposable clusters and reports used D; no Owner artifacts deleted."
+    },
+    {
+      "category": "HARNESS_SEQUENCE_AND_TDZ",
+      "outcome": "Preliminary combined harness failed checkpoint coupling and local api binding shadowing. Separate producer enrollments and apiEnvelope naming verified in final source."
+    },
+    {
+      "category": "HTTP_TRANSPARENT_REPLAY",
+      "outcome": "Socket drop may trigger Chromium HTTP replay. Proxy continues dropping capture ACK until explicit recovery and verifies duplicate upstream disposition."
+    },
+    {
+      "category": "JSONB_REPLAY_FINGERPRINT",
+      "sourceSha": "3c8478a056fea257fea0d907b124cf9537ac7648",
+      "artifact": "D:\\AI-for-Enterprise\\r4141-private\\north-r47-baseline-qKvMHD\\integration-ci.log",
+      "outcome": "3 new replay tests failed RECEIPT_CONFLICT; fixed using persisted fingerprint in580e499. Independent9/9 and full31suite PG rerun passed.",
+      "artifactSha256": "32f2dccb3f9a4d1513eae5be4d63394ca51229b57898a912e5e1ef5d2d68021f"
+    },
+    {
+      "category": "COVERAGE_LOCK",
+      "sourceSha": "580e499cd55771896b88ffb47adca7689b12c99f",
+      "artifact": "D:\\AI-for-Enterprise\\r4141-private\\north-r47-final-OnYDAP\\coverage.log",
+      "outcome": "Coverage directory was locked by prior invocation. Used unique private report directory on rerun.",
+      "artifactSha256": "e287a7c756d78ba946c9e85e0a1deb39eeced54b8cdf3afc685bfd00695ea575"
+    },
+    {
+      "category": "MIGRATION_TIMEOUT",
+      "sourceSha": "580e499cd55771896b88ffb47adca7689b12c99f",
+      "artifact": "D:\\AI-for-Enterprise\\r4141-private\\north-r47-coverage-FG8kfy\\coverage.log",
+      "outcome": "1636 passed and1 existing migration004 test exceeded5000ms. Final entire coverage rerun1637 passed with testTimeout20000, zero skipped; source/tests unchanged.",
+      "artifactSha256": "e4b2fa613b441ac115acdc56df9d2df6b1b5e89fd5561fa19bfa5fdf1791b1b8"
+    },
+    {
+      "category": "ENVIRONMENT_FILTERED_TESTS",
+      "outcome": "Standalone preliminary Vitest without TEST_DATABASE_URL:1471 passed166 skipped; not used for acceptance."
+    },
+    {
+      "category": "QA_HARNESS",
+      "outcome": "Earlier clean install/build race and Windows pg_ctl inherited-pipe wait recorded by independent QA; sequential install and separate owned-cluster reruns passed."
+    }
+  ],
+  "cleanup": {
+    "finalRunnerOwnedClusterStopped": true,
+    "coverageRunnerOwnedClusterStopped": true,
+    "e2eChildDatabaseDropped": true,
+    "independentOwnedClustersStopped": true,
+    "primaryWorktreeDirtyFilesPreserved": true,
+    "push": false,
+    "merge": false,
+    "deployment": false,
+    "extensionPublication": false
+  }
+}

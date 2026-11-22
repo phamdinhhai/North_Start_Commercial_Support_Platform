@@ -1,0 +1,200 @@
+{
+  "schema": "north-star.ail-source-ledger.v1",
+  "status": "working_non_canonical",
+  "as_of": "2026-11-15",
+  "rule": "Pinned source and documented behavior do not establish live delivery, permission, or release approval.",
+  "sources": [
+    {
+      "id": "pancake-relay",
+      "source_type": "public-repository-source",
+      "repository": "https://github.com/trananhhh/pancake-webhook-relay",
+      "revision": "23e2409f6c80e910de6f652b4c9d0a878ba2291b",
+      "license": "UNKNOWN: no license file identified",
+      "evidence_type": "source-inspected",
+      "files": [
+        {
+          "path": "src/phoenix-client.ts",
+          "sha256": "2435bac379bfb31ac78872460097736ab97bea8faaa453fafc66390faf8eed33",
+          "url": "https://github.com/trananhhh/pancake-webhook-relay/blob/23e2409f6c80e910de6f652b4c9d0a878ba2291b/src/phoenix-client.ts"
+        },
+        {
+          "path": "src/event-handler.ts",
+          "sha256": "b3cf4dcb6b6e8f15bcd64269e45be0476817cbc2b5b974295737e512b66a3053",
+          "url": "https://github.com/trananhhh/pancake-webhook-relay/blob/23e2409f6c80e910de6f652b4c9d0a878ba2291b/src/event-handler.ts"
+        },
+        {
+          "path": "src/config.ts",
+          "sha256": "da48c40692a90d129d99a4db4dbb43548791ed81ce8f78df2140a648d1972fa8",
+          "url": "https://github.com/trananhhh/pancake-webhook-relay/blob/23e2409f6c80e910de6f652b4c9d0a878ba2291b/src/config.ts"
+        }
+      ]
+    },
+    {
+      "id": "pancake-streaming",
+      "source_type": "public-repository-source",
+      "repository": "https://github.com/trongvan722000/pancake-streaming-ingestion",
+      "revision": "3dd868612dc73d2be4ada01c249fc673553b0a9c",
+      "license": "UNKNOWN: no license file identified",
+      "evidence_type": "source-inspected",
+      "files": [
+        {
+          "path": "gateway/main.py",
+          "sha256": "c9b761ecf414b02949320d42ad84cb08ae190d899dd246d0342b7047ca6676b7",
+          "url": "https://github.com/trongvan722000/pancake-streaming-ingestion/blob/3dd868612dc73d2be4ada01c249fc673553b0a9c/gateway/main.py"
+        },
+        {
+          "path": "gateway/producer.py",
+          "sha256": "3590b419a7fbc4191453e6be5435c55fca2a36d3bf62218adf88fb0cfbf29138",
+          "url": "https://github.com/trongvan722000/pancake-streaming-ingestion/blob/3dd868612dc73d2be4ada01c249fc673553b0a9c/gateway/producer.py"
+        },
+        {
+          "path": "consumer/consumer.py",
+          "sha256": "9abf61aa3e76f2a9398dfefdc92a4cc36205902414d9707f4d29ecded28c000c",
+          "url": "https://github.com/trongvan722000/pancake-streaming-ingestion/blob/3dd868612dc73d2be4ada01c249fc673553b0a9c/consumer/consumer.py"
+        },
+        {
+          "path": "README.md",
+          "sha256": "5bdf92ee7b44925ace3e580463077f33f86855d2797ba7e6bbebd2850bfa208b",
+          "url": "https://github.com/trongvan722000/pancake-streaming-ingestion/blob/3dd868612dc73d2be4ada01c249fc673553b0a9c/README.md"
+        }
+      ]
+    },
+    {
+      "id": "aiecos",
+      "source_type": "public-repository-source",
+      "repository": "https://github.com/aiecosvietnam/aiecos-social-crm",
+      "revision": "dba1bdb09dd8b65618fe1ce86153b371075099bb",
+      "license": "MIT",
+      "evidence_type": "source-inspected",
+      "files": [
+        {
+          "path": "chrome-extension/manifest.json",
+          "sha256": "65596988253542d1f26abbdbeaad122c14b8194404f3d2a49f35b7104f2f5210",
+          "url": "https://github.com/aiecosvietnam/aiecos-social-crm/blob/dba1bdb09dd8b65618fe1ce86153b371075099bb/chrome-extension/manifest.json"
+        },
+        {
+          "path": "chrome-extension/content.js",
+          "sha256": "7552117adec36d1ac32b31b0a541801330b9bc7ea1376628c16e4067de14bb0e",
+          "url": "https://github.com/aiecosvietnam/aiecos-social-crm/blob/dba1bdb09dd8b65618fe1ce86153b371075099bb/chrome-extension/content.js"
+        },
+        {
+          "path": "LICENSE",
+          "sha256": "f8328dd7658407187bf9f001eaeb628ea11818e2e135ed23b0fdf5a016c2e70a",
+          "url": "https://github.com/aiecosvietnam/aiecos-social-crm/blob/dba1bdb09dd8b65618fe1ce86153b371075099bb/LICENSE"
+        }
+      ]
+    },
+    {
+      "id": "pos-mcp",
+      "source_type": "public-repository-source",
+      "repository": "https://github.com/nguyennguyenit/pancake-pos-mcp",
+      "revision": "c9a67faf0a58f48aaf24ef702455ddaac84054a5",
+      "license": "MIT",
+      "evidence_type": "source-inspected",
+      "files": [
+        {
+          "path": "src/tools/webhooks-tool.ts",
+          "sha256": "42d38f38fe6e058877dd9da3c7f5e5eb3dc1c65ea7a2904ff294d574dae91ec0",
+          "url": "https://github.com/nguyennguyenit/pancake-pos-mcp/blob/c9a67faf0a58f48aaf24ef702455ddaac84054a5/src/tools/webhooks-tool.ts"
+        },
+        {
+          "path": "LICENSE",
+          "sha256": "d3c78a2ad0411832a5a2a4d73a2704a332446f7f2f8769195f0d73bbb1bcaebc",
+          "url": "https://github.com/nguyennguyenit/pancake-pos-mcp/blob/c9a67faf0a58f48aaf24ef702455ddaac84054a5/LICENSE"
+        }
+      ]
+    },
+    {
+      "id": "pancake-mcp",
+      "source_type": "public-repository-source",
+      "repository": "https://github.com/lynguyenvu/pancake-mcp-server",
+      "revision": "1e6678bad5b8602339751b523875c9d161f2db38",
+      "license": "UNKNOWN: no license file identified",
+      "evidence_type": "source-inspected",
+      "files": [
+        {
+          "path": "src/pancake_mcp/chat_client.py",
+          "sha256": "d2602359bd48bd9550514814b20a7ffcdd92d7c5276b90f0878e81ed2f6d9505",
+          "url": "https://github.com/lynguyenvu/pancake-mcp-server/blob/1e6678bad5b8602339751b523875c9d161f2db38/src/pancake_mcp/chat_client.py"
+        }
+      ]
+    },
+    {
+      "id": "official-api-vi-webhooks",
+      "source_type": "official-documentation",
+      "url": "https://pos.pancake.vn/developers/api/vi/webhooks.md",
+      "retrieved_on": "2026-11-14",
+      "sha256": "939a6d920fdf134ef1b4d44d783b1fd1ffefc5e2e9c21548a753424bcb90be46",
+      "evidence_type": "documented",
+      "revision": "Mutable documentation; content digest identifies retrieved snapshot"
+    },
+    {
+      "id": "official-api-vi-authentication",
+      "source_type": "official-documentation",
+      "url": "https://pos.pancake.vn/developers/api/vi/authentication.md",
+      "retrieved_on": "2026-11-14",
+      "sha256": "85f97cb7c1f1a13472d0ce3b36a04bd2122894ee762cc6ad67e5d9fc7476884d",
+      "evidence_type": "documented",
+      "revision": "Mutable documentation; content digest identifies retrieved snapshot"
+    },
+    {
+      "id": "official-api-webhook",
+      "source_type": "official-documentation",
+      "url": "https://pos.pancake.vn/developers/api/webhook.md",
+      "retrieved_on": "2026-11-14",
+      "sha256": "8ad91152ae10c127a75b259240a536f47bc6e4b81105bff9a09463255e90782d",
+      "evidence_type": "documented",
+      "revision": "Mutable documentation; content digest identifies retrieved snapshot"
+    },
+    {
+      "id": "official-api-schemas",
+      "source_type": "official-documentation",
+      "url": "https://pos.pancake.vn/developers/api/schemas.md",
+      "retrieved_on": "2026-11-14",
+      "sha256": "6a2ac661bcf9ec4ed03530ff550fa743218906e05f568af7cad7cbbf99940d18",
+      "evidence_type": "documented",
+      "revision": "Mutable documentation; content digest identifies retrieved snapshot"
+    },
+    {
+      "id": "official-apps-runtime-api",
+      "source_type": "official-documentation",
+      "url": "https://pos.pancake.vn/developers/apps/runtime-api.md",
+      "retrieved_on": "2026-11-14",
+      "sha256": "6f9a056d5f76b0353cbeefded3cb168ef34926e90339095e2a263f682276ea5a",
+      "evidence_type": "documented",
+      "revision": "Mutable documentation; content digest identifies retrieved snapshot"
+    },
+    {
+      "id": "official-apps-data-access",
+      "source_type": "official-documentation",
+      "url": "https://pos.pancake.vn/developers/apps/data-access.md",
+      "retrieved_on": "2026-11-14",
+      "sha256": "9079cd7e819c0da142139fcd3a61c34bbe40a6023fefc80d2c3d3a3c85b72913",
+      "evidence_type": "documented",
+      "revision": "Mutable documentation; content digest identifies retrieved snapshot"
+    },
+    {
+      "id": "official-apps-overview",
+      "source_type": "official-documentation",
+      "url": "https://pos.pancake.vn/developers/apps/overview.md",
+      "retrieved_on": "2026-11-14",
+      "sha256": "333536e1958c381f48108f616dbc8c925b02741cbff8f041c77835552619c47c",
+      "evidence_type": "documented",
+      "revision": "Mutable documentation; content digest identifies retrieved snapshot"
+    },
+    {
+      "id": "user-har-download-devtools",
+      "source_type": "user-supplied-historical-har",
+      "sha256": "bcb58184278c4407cc8e2a117461e74dc41dea6c2247fc296cdaf30c23932640",
+      "bytes": 53386113,
+      "evidence_type": "historical-capture-inspected",
+      "metadata_report": "har-review.json",
+      "raw_location": "local ignored credential directory",
+      "limitations": "No original response bodies or credential values are published",
+      "static_report": "facebook-settings-static-evidence.json",
+      "live_followup": "facebook-live-settings-experiment.json",
+      "conversation_contract_report": "conversation-protocol-static-evidence.json",
+      "continuity_followup": "continuity-experiment.json"
+    }
+  ]
+}

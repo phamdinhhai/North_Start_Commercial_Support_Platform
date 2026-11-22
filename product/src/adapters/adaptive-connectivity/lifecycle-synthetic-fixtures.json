@@ -1,0 +1,71 @@
+{
+  "schema": "north-star.synthetic-pancake-lifecycle-contracts.v1",
+  "synthetic": true,
+  "data": "SYNTHETIC ONLY. Every identifier, text and size is invented. No customer payload, credential or live capture was copied.",
+  "evidenceLevel": "SYNTHETIC_TESTED",
+  "cases": [
+    {
+      "name": "message-upsert-with-attachments",
+      "synthetic": true,
+      "provenance": "event label source-inspected (HAR asset 42 handler); attachment shape is a synthetic assumption",
+      "frame": [null, "synthetic-ref", "pages:synthetic-page", "pages:update_messages", {"page_id": "synthetic-page", "conversation_id": "synthetic-conversation", "messages": [{"id": "synthetic-message-1", "message": "synthetic-private-body", "attachments": [{"type": "photo", "size": 2048, "url": "https://synthetic.invalid/private-attachment.jpg", "name": "synthetic-private-name.jpg"}, {"type": "file", "size": 100}]}]}],
+      "expected": {"kind": "message-metadata", "label": "upsert-observed", "attachmentCount": 2, "attachmentTypes": ["file", "photo"], "totalBytes": 2148}
+    },
+    {
+      "name": "message-edit-reobserved",
+      "synthetic": true,
+      "provenance": "no edit frame has been observed live; same label, changed synthetic content",
+      "frame": [null, "synthetic-ref", "pages:synthetic-page", "pages:update_messages", {"conversation_id": "synthetic-conversation", "messages": [{"id": "synthetic-message-1", "message": "synthetic-private-body-edited"}]}],
+      "expected": {"kind": "message-metadata", "label": "upsert-observed", "attachmentCount": 0, "attachmentTypes": [], "totalBytes": 0}
+    },
+    {
+      "name": "message-deletion-label",
+      "synthetic": true,
+      "provenance": "nested message reference source-inspected; no live deletion performed",
+      "frame": [null, "synthetic-ref", "pages:synthetic-page", "messages:mark_as_deleted", {"message": {"id": "synthetic-message-1", "conversation_id": "synthetic-conversation", "message": "synthetic-private-body"}}],
+      "expected": {"kind": "message-metadata", "label": "deletion-labelled", "attachmentCount": 0, "attachmentTypes": [], "totalBytes": 0}
+    },
+    {
+      "name": "read-state-seen",
+      "synthetic": true,
+      "provenance": "label pages:seen_conversation source-inspected (facebook-settings-static-evidence.json); payload shape is a synthetic assumption",
+      "frame": [null, "synthetic-ref", "pages:synthetic-page", "pages:seen_conversation", {"conversation_id": "synthetic-conversation", "seen": true}],
+      "expected": {"kind": "read-state", "seen": true}
+    },
+    {
+      "name": "unknown-event-drift",
+      "synthetic": true,
+      "provenance": "invented future label to exercise quarantine",
+      "frame": [null, "synthetic-ref", "pages:synthetic-page", "messages:restored_v2", {"message": {"id": "synthetic-message-1", "message": "synthetic-private-body"}, "synthetic-private-key-123": 1}],
+      "expected": {"kind": "schema-drift", "reason": "unknown_event"}
+    },
+    {
+      "name": "known-event-unknown-shape-drift",
+      "synthetic": true,
+      "provenance": "invented singular message shape to exercise quarantine",
+      "frame": [null, "synthetic-ref", "pages:synthetic-page", "pages:update_messages", {"conversation_id": "synthetic-conversation", "message": {"id": "synthetic-message-1"}}],
+      "expected": {"kind": "schema-drift", "reason": "unknown_shape"}
+    },
+    {
+      "name": "auth-expired-reply",
+      "synthetic": true,
+      "provenance": "live auth-expiry frame shape UNVERIFIED; synthetic Phoenix error reply",
+      "frame": ["synthetic-join", "synthetic-ref", "pages:synthetic-page", "phx_reply", {"status": "error", "response": {"reason": "token_expired"}}],
+      "expected": {"kind": "transport", "signal": "auth-expired"}
+    },
+    {
+      "name": "channel-close",
+      "synthetic": true,
+      "provenance": "Phoenix control label; synthetic payload",
+      "frame": ["synthetic-join", "synthetic-ref", "pages:synthetic-page", "phx_close", {}],
+      "expected": {"kind": "transport", "signal": "channel-closed"}
+    },
+    {
+      "name": "rejoin-ack",
+      "synthetic": true,
+      "provenance": "Phoenix join ACK; one bounded page-channel rejoin was live-observed earlier, payload here is synthetic. Classifier yields reply-ok; only join-tracker.ts upgrades it to joined after matching an outbound phx_join (R2-I-03)",
+      "frame": ["synthetic-join", "synthetic-ref", "pages:synthetic-page", "phx_reply", {"status": "ok", "response": {}}],
+      "expected": {"kind": "transport", "signal": "reply-ok"}
+    }
+  ]
+}

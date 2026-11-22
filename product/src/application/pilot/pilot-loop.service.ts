@@ -1,6 +1,6 @@
 import type { LeadId } from '../../domain/lead/lead';
 import type { ManualIngestPort } from '../../ports/manual-ingest.port';
-import type { AuditDraft, CompletionEvidence, PilotLoopState, ResponsibleParty, ScenarioInput, WorkItem, WorkOrigin, WorkStatus, AuditHistoryEntry } from '../../ports/pilot-loop.types';
+import type { AuditDraft, CompletionEvidence, PilotLoopState, ResponsibleParty, ScenarioInput, WorkItem, WorkOrigin, WorkStatus, AuditHistoryEntry, PilotQueuePage, PilotQueueQuery } from '../../ports/pilot-loop.types';
 import { PilotDomainError } from '../../ports/pilot-loop.types';
 import type { PilotLoopStore } from '../../ports/pilot-loop.store';
 import { createHandoff } from '../../domain/handoff/handoff';
@@ -16,10 +16,8 @@ import {
   requireOwner,
   requireWork,
 } from '../../application/pilot/work-mutation-policy';
-
 // Compatibility export: the controller and existing consumers retain their import path.
 export { activeWorkRecipients } from '../../application/pilot/work-mutation-policy';
-
 /**
  * P0 pilot loop — education B2C candidate flow over a durable store (C-03).
  *
@@ -51,17 +49,14 @@ export { activeWorkRecipients } from '../../application/pilot/work-mutation-poli
 export class PilotLoopService {
   private readonly context: PilotCommandContext;
   private readonly ingestCommand: IngestScenarioCommand;
-
-  constructor(private readonly store: PilotLoopStore, private readonly adapter: ManualIngestPort) {
+  constructor(private readonly store: PilotLoopStore, private readonly adapter: ManualIngestPort, syntheticOnly = false) {
     this.context = new PilotCommandContext(store, adapter);
-    this.ingestCommand = new IngestScenarioCommand(this.context);
+    this.ingestCommand = new IngestScenarioCommand(this.context, syntheticOnly);
   }
-
   /** CE-1 boundary violation is a business refusal (422), never a raw 500. */
   private ce1Transition(lead: Parameters<PilotCommandContext['transition']>[0], input: Parameters<PilotCommandContext['transition']>[1]) {
     return this.context.transition(lead, input);
   }
-
   /**
    * P1-4 — an evidence pointer is a REFERENCE to immutable raw evidence (I-12), never a way
    * to promote a claim. A pointer must (a) resolve in durable storage, (b) live in the SAME
@@ -76,12 +71,10 @@ export class PilotLoopService {
   private resolveEvidence(state: PilotLoopState, pointer: string, action: string, options: { readonly requireRelation: boolean } = { requireRelation: true }) {
     return this.context.evidence(state, pointer, action, options.requireRelation);
   }
-
   /** Bước 1 — nhập tình huống: raw envelope immutable (I-12) + Lead create (I-07). */
-  async ingestScenario(input: ScenarioInput): Promise<PilotLoopState> {
-    return this.ingestCommand.execute(input);
+  async ingestScenario(input: ScenarioInput, authorize?: (state: PilotLoopState) => void): Promise<PilotLoopState> {
+    return this.ingestCommand.execute(input, authorize);
   }
-
   /**
    * Bước 2 — bàn giao cho người nhận B: context + evidence refs + proposed next
    * action. Work item starts `proposed` (gửi bàn giao ≠ nhận trách nhiệm, V2 §6).
@@ -105,7 +98,6 @@ export class PilotLoopService {
     const state = await this.require(leadId);
     // Bàn giao là mutation trên lead → chỉ owner hiện tại được tạo (P1-2).
     requireOwner(state, input.actor, 'hand off this lead');
-
     // P1-4 + I-12: một evidence ref phải trỏ tới raw evidence THẬT trong cùng workspace.
     // Mã cũ ghi `rawPayloadHash: 'pending'` cho ref do caller cung cấp — tức là bịa placeholder
     // vào dấu vết bằng chứng; ref không resolve thì bị từ chối thay vì được lưu mờ.
@@ -117,7 +109,6 @@ export class PilotLoopService {
       : state.envelope
         ? [{ envelopeId: state.envelope.envelopeId, rawPayloadHash: state.envelope.rawPayloadHash, capturedAt: state.envelope.sourceCapturedAt }]
         : [];
-
     const handoff = createHandoff({
       leadId: state.lead.id,
       workspaceId: state.lead.workspaceId,
@@ -125,7 +116,6 @@ export class PilotLoopService {
       evidenceRefs,
       proposedNextAction: { kind: 'follow-up', summary: input.proposedAction, ...(input.dueAt !== undefined && { dueAt: input.dueAt }) },
     });
-
     const work: WorkItem = {
       id: randomUUID(),
       leadId: state.lead.id,
@@ -141,14 +131,12 @@ export class PilotLoopService {
       recordedAt: new Date().toISOString(),
       actor: input.recipientUserId, // receiver is accountable once accepted
     };
-
     const next: PilotLoopState = {
       ...state,
       handoff,
       workItems: [...state.workItems, work],
       handoffRecipient: input.recipientUserId,
     };
-
     const audits: AuditDraft[] = [
       {
         entityType: 'handoff',
@@ -259,6 +247,8 @@ export class PilotLoopService {
       readonly evidenceRef?: string;
       readonly occurredAt?: string;
       readonly reason?: string;
+      readonly declaration?: string;
+      readonly confirmed?: boolean;
     },
   ): Promise<PilotLoopState> {
     const state = await this.require(leadId);
@@ -267,6 +257,9 @@ export class PilotLoopService {
 
     if (input.evidence === 'observed' && !input.evidenceRef) {
       throw new PilotDomainError('EVIDENCE_POINTER_REQUIRED', 422, 'observed completion requires a system evidence pointer');
+    }
+    if (input.evidence === 'declared' && (!input.declaration || input.declaration.trim() === '' || input.confirmed !== true)) {
+      throw new PilotDomainError('INPUT_INVALID', 422, 'declared completion requires a nonblank declaration and explicit confirmation');
     }
     if (input.evidence === 'inferred') {
       throw new PilotDomainError('INFERRED_CANNOT_CLOSE', 422, 'inferred evidence cannot close work; require user confirmation');
@@ -309,6 +302,8 @@ export class PilotLoopService {
             completionEvidence: input.evidence,
             occurredAt: input.occurredAt ?? UNKNOWN_SENTINEL, // Q4: không backfill occurredAt
             ...(input.evidenceRef !== undefined && { evidenceRef: input.evidenceRef }),
+            ...(input.declaration !== undefined && { declaration: input.declaration }),
+            ...(input.confirmed !== undefined && { confirmed: input.confirmed }),
           }
         : w,
     );
@@ -326,6 +321,8 @@ export class PilotLoopService {
           status: 'completed',
           evidence: input.evidence,
           ...(input.evidenceRef !== undefined && { evidenceRef: input.evidenceRef, evidenceHash: evidence?.rawPayloadHash }),
+          ...(input.declaration !== undefined && { declaration: input.declaration }),
+          ...(input.confirmed !== undefined && { confirmed: input.confirmed }),
         }),
         reason: input.reason ?? 'work completed',
         eventType: 'work_completed',
@@ -471,6 +468,10 @@ export class PilotLoopService {
 
   async get(leadId: LeadId): Promise<PilotLoopState | undefined> {
     return this.store.load(leadId);
+  }
+
+  async queue(query: PilotQueueQuery): Promise<PilotQueuePage> {
+    return this.store.queue(query);
   }
 
   /** Append-only audit history for a case (I-05) — durable in PG, ordered by time. */

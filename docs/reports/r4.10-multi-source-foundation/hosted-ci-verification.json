@@ -1,0 +1,215 @@
+{
+  "runId": 44664427195,
+  "url": "https://github.com/phamdinhhai/North_Start_Commercial_Support_Platform/actions/runs/44664427195",
+  "sha": "a2f1ca89a6c2fc04dd72304ae82a1ae7c5b00998",
+  "status": "completed",
+  "conclusion": "success",
+  "jobs": [
+    {
+      "name": "product",
+      "conclusion": "success",
+      "completedAt": "2026-11-20T03:02:28Z",
+      "steps": [
+        {
+          "name": "Set up job",
+          "conclusion": "success"
+        },
+        {
+          "name": "Initialize containers",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run actions/checkout@v4",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run actions/setup-node@v4",
+          "conclusion": "success"
+        },
+        {
+          "name": "Install locked dependencies",
+          "conclusion": "success"
+        },
+        {
+          "name": "Dependency audit gate tests",
+          "conclusion": "success"
+        },
+        {
+          "name": "Dependency audit (high and critical; production never waived)",
+          "conclusion": "success"
+        },
+        {
+          "name": "Repository diff and secret-pattern check",
+          "conclusion": "success"
+        },
+        {
+          "name": "Registry validation",
+          "conclusion": "success"
+        },
+        {
+          "name": "Typecheck",
+          "conclusion": "success"
+        },
+        {
+          "name": "Lint",
+          "conclusion": "success"
+        },
+        {
+          "name": "Architecture checker tests",
+          "conclusion": "success"
+        },
+        {
+          "name": "Companion packaging tests",
+          "conclusion": "success"
+        },
+        {
+          "name": "Synthetic pilot safety and anonymous research format tests",
+          "conclusion": "success"
+        },
+        {
+          "name": "Install Chromium for AIL research guards",
+          "conclusion": "success"
+        },
+        {
+          "name": "AIL research guard tests",
+          "conclusion": "success"
+        },
+        {
+          "name": "Strict architecture check",
+          "conclusion": "success"
+        },
+        {
+          "name": "Unit and domain tests",
+          "conclusion": "success"
+        },
+        {
+          "name": "PostgreSQL integration (fail on missing/skipped suites)",
+          "conclusion": "success"
+        },
+        {
+          "name": "Coverage (80% line threshold, including PostgreSQL)",
+          "conclusion": "success"
+        },
+        {
+          "name": "Build",
+          "conclusion": "success"
+        },
+        {
+          "name": "Disposable PostgreSQL backup and restore rehearsal",
+          "conclusion": "success"
+        },
+        {
+          "name": "E2E HTTP smoke",
+          "conclusion": "success"
+        },
+        {
+          "name": "Post Run actions/setup-node@v4",
+          "conclusion": "success"
+        },
+        {
+          "name": "Post Run actions/checkout@v4",
+          "conclusion": "success"
+        },
+        {
+          "name": "Stop containers",
+          "conclusion": "success"
+        },
+        {
+          "name": "Complete job",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "name": "Browser operator workflow",
+      "conclusion": "success",
+      "completedAt": "2026-11-20T03:01:36Z",
+      "steps": [
+        {
+          "name": "Set up job",
+          "conclusion": "success"
+        },
+        {
+          "name": "Initialize containers",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run actions/checkout@v4",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run actions/setup-node@v4",
+          "conclusion": "success"
+        },
+        {
+          "name": "Install locked dependencies",
+          "conclusion": "success"
+        },
+        {
+          "name": "Install Chromium and Linux dependencies",
+          "conclusion": "success"
+        },
+        {
+          "name": "Select ephemeral browser port",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run Playwright operator workflow",
+          "conclusion": "success"
+        },
+        {
+          "name": "Operator component regressions",
+          "conclusion": "success"
+        },
+        {
+          "name": "Lifecycle refuses non-durable storage",
+          "conclusion": "success"
+        },
+        {
+          "name": "OIDC and PostgreSQL UI-only LVP journey",
+          "conclusion": "success"
+        },
+        {
+          "name": "Create separate synthetic source acceptance database",
+          "conclusion": "success"
+        },
+        {
+          "name": "Synthetic Pancake and Meta signed UI reconciliation",
+          "conclusion": "success"
+        },
+        {
+          "name": "Chromium MV3 synthetic capture and restart",
+          "conclusion": "success"
+        },
+        {
+          "name": "Upload Playwright report",
+          "conclusion": "success"
+        },
+        {
+          "name": "Upload browser server diagnostics",
+          "conclusion": "success"
+        },
+        {
+          "name": "Post Run actions/setup-node@v4",
+          "conclusion": "success"
+        },
+        {
+          "name": "Post Run actions/checkout@v4",
+          "conclusion": "success"
+        },
+        {
+          "name": "Stop containers",
+          "conclusion": "success"
+        },
+        {
+          "name": "Complete job",
+          "conclusion": "success"
+        }
+      ]
+    }
+  ],
+  "logPath": "C:\\Users\\admin\\AppData\\Local\\Temp\\north-r410-hosted-44664427195.log",
+  "logSha256": "9d552cfc1b5b3e484dba51ee546a8f0beb68c8a7584afd569c0b1453351f5584",
+  "sourceRevision": "1df0eeba9b2c7b4d86653430940acdbc4d7f44af",
+  "scope": "Exact hostedSHA source/test/CI identical to source revision; intermediate changes documentation only."
+}

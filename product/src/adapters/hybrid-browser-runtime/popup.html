@@ -1,0 +1,7 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><title>North Start Integration Runtime</title></head><body>
+<h1>Integration Runtime</h1><p>Read-only context capture. Identity candidates authorize nothing; backend enrollment is required.</p>
+<label>North Start origin <input id="origin" type="url" value="https://localhost"></label>
+<label>Enrollment JSON <textarea id="enrollment" rows="5"></textarea></label>
+<button id="configure">Connect enrollment</button><button id="start">Start capture</button><button id="stop">Stop capture</button>
+<button id="upload">Upload one / retry ACK</button><button id="diagnostic">Enable scoped diagnostic</button><button id="disconnect">Disconnect</button>
+<pre id="health" aria-live="polite"></pre><script type="module" src="popup.mjs"></script></body></html>
