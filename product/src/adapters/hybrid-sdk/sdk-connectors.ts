@@ -92,7 +92,7 @@ export class MetaAdsReadConnector {
       if(!row||typeof row!=='object'||Array.isArray(row))throw new Error('META_SCHEMA_INVALID');
       if(String(row.account_id)!==this.accountId.slice(4)||row.account_currency!==this.currency)throw new Error('META_SCOPE_MISMATCH');
       if(!/^\d{4}-\d{2}-\d{2}$/u.test(String(row.date_start))||!/^\d{4}-\d{2}-\d{2}$/u.test(String(row.date_stop))||!Number.isSafeInteger(Number(row.impressions))||Number(row.impressions)<0||!Number.isFinite(Number(row.spend))||Number(row.spend)<0)throw new Error('META_SCHEMA_INVALID');
-      if(row.campaign_id!==undefined&&(typeof row.campaign_id!=='string'||!/^\d{1,64}$/u.test(row.campaign_id)))throw new Error('META_SCHEMA_INVALID');
+      if(row.campaign_id!==undefined&&(typeof row.campaign_id!=='string'||!/^[A-Za-z0-9_-]{1,128}$/u.test(row.campaign_id)))throw new Error('META_SCHEMA_INVALID');
       return {accountId:this.accountId,...(row.campaign_id?{campaignId:String(row.campaign_id)}:{}),dateStart:String(row.date_start),dateStop:String(row.date_stop),impressions:Number(row.impressions),spend:Number(row.spend),currency:this.currency,timezone:this.timezone};
     });
     return {records,nextCursor:cursor,completeness:'UNKNOWN',timezoneSource:'caller-supplied'};
