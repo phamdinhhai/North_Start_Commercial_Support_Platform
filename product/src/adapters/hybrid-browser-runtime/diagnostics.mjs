@@ -1,4 +1,16 @@
+import {resolveSiteContext} from './platform-registry.mjs';
+import {matchesEnrollment} from './permission-policy.mjs';
 const operations = new Set(['ConversationQuery','ConversationMessages','AdsInsights','CRMRecord']);
+/** URL candidates must still name the enrolled object; stale DOM context alone
+ * cannot authorize diagnostics after same-origin account or SPA navigation. */
+export function diagnosticTabMatches(url,session,enrollment) {
+  const current=resolveSiteContext(url,{},Boolean(enrollment?.fixture));
+  if(!current||current.origin!==session?.origin||current.provider!==enrollment?.scope?.provider||!session?.lastContext)return false;
+  const target=enrollment.scope.target??{};
+  if(!Object.entries(target).some(([key,value])=>key!=='pageId'&&current.native[key]===value))return false;
+  if(current.native.pageAlias&&session.lastContext.native.pageAlias&&current.native.pageAlias!==session.lastContext.native.pageAlias)return false;
+  return matchesEnrollment({...current,native:{...session.lastContext.native,...current.native}},enrollment);
+}
 export function createDiagnosticSession({activated=false,tabId,origin,allowedOrigins=[]}={}) {
   if (activated !== true || !Number.isInteger(tabId) || tabId < 0) throw new Error('DIAGNOSTIC_ACTIVATION_REQUIRED');
   const parsed = (() => { try { return new URL(origin); } catch { return null; } })();

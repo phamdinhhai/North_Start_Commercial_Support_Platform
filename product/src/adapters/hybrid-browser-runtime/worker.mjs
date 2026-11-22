@@ -1,7 +1,7 @@
 import { resolveSiteContext, minimizeDOM } from './platform-registry.mjs';
 import { validateEnrollment, matchesEnrollment } from './permission-policy.mjs';
 import { initialState, configure, appendContext, reserve, acknowledge, stop, recover, health } from './outbox.mjs';
-import { inspectGraphQL, inspectNetwork, inspectRealtime, createDiagnosticSession } from './diagnostics.mjs';
+import { inspectGraphQL, inspectNetwork, inspectRealtime, createDiagnosticSession, diagnosticTabMatches } from './diagnostics.mjs';
 const KEY='northStartHybridV1';
 const load=async()=> (await chrome.storage.local.get(KEY))[KEY] ?? initialState();
 const save=state=>chrome.storage.local.set({[KEY]:state});
@@ -32,7 +32,7 @@ async function upload(){
 async function startDiagnostic(activated=false){
  const s=await load();if(!s.session)throw Error('CAPTURE_REQUIRED');
  if(!await chrome.permissions.contains({permissions:['debugger']}))throw Error('DIAGNOSTIC_PERMISSION_REQUIRED');
- const tab=await chrome.tabs.get(s.session.tabId);if(new URL(tab.url).origin!==s.session.origin)throw Error('TARGET_SCOPE_MISMATCH');
+ const tab=await chrome.tabs.get(s.session.tabId);if(!diagnosticTabMatches(tab.url,s.session,s.enrollment))throw Error('TARGET_SCOPE_MISMATCH');
  if(!matchesEnrollment(s.session.lastContext,s.enrollment))throw Error('TARGET_SCOPE_MISMATCH');
  createDiagnosticSession({activated,tabId:s.session.tabId,origin:new URL(tab.url).origin,allowedOrigins:[s.session.origin]});
  await chrome.debugger.attach({tabId:s.session.tabId},'1.3');
@@ -62,7 +62,7 @@ chrome.runtime.onMessage.addListener((message,sender,respond)=>{
 });
 chrome.debugger?.onEvent.addListener((source,method,params)=>{enqueue(async()=>{
  const s=await load();if(s.diagnostic?.tabId!==source.tabId||!matchesEnrollment(s.session?.lastContext,s.enrollment))return stopCapture('diagnostic-target-changed');
- const tab=await chrome.tabs.get(source.tabId);if(new URL(tab.url).origin!==s.session?.origin)return stopCapture('diagnostic-origin-changed');
+ const tab=await chrome.tabs.get(source.tabId);if(!diagnosticTabMatches(tab.url,s.session,s.enrollment))return stopCapture('diagnostic-target-changed');
  const observation=method==='Network.responseReceived'?inspectNetwork(params.response?.url,params.response?.status):method==='Network.requestWillBeSent'?inspectGraphQL(params.request?.postData):method==='Network.webSocketFrameReceived'?inspectRealtime(params.response?.payloadData):null;
  if(observation)await save({...s,diagnostic:{...s.diagnostic,events:[...s.diagnostic.events,observation].slice(-50)}});
 }).catch(()=>stopCapture('diagnostic-failed'));});
@@ -70,4 +70,4 @@ chrome.debugger?.onDetach.addListener(source=>{enqueue(async()=>{const s=await l
 chrome.tabs.onRemoved.addListener(tabId=>{enqueue(async()=>{if((await load()).session?.tabId===tabId)await stopCapture('tab-closed');}).catch(()=>{});});
 chrome.permissions.onRemoved.addListener(()=>{enqueue(()=>stopCapture('permission-revoked')).catch(()=>{});});
 chrome.runtime.onStartup.addListener(()=>{enqueue(()=>stopCapture('browser-restarted')).catch(()=>{});});
-enqueue(async()=>{const s=await load();await save({...recover(s),diagnostic:null});}).catch(()=>{});
+enqueue(async()=>{const s=await load();if(s.diagnostic)await chrome.debugger?.detach({tabId:s.diagnostic.tabId}).catch(()=>{});await save({...recover(s),diagnostic:null});}).catch(()=>{});
