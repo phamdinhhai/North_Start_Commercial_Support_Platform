@@ -39,7 +39,6 @@ import {
   AddSavedQueryDialog,
   RemoveSavedQueryDialog,
 } from "@/components/admin/saved-queries";
-
 /**
  * A form for filter inputs with live updates. Included by default in List.
  *
@@ -50,17 +49,14 @@ import {
 export const FilterForm = (inProps: FilterFormProps) => {
   const { filters: filtersProps, ...rest } = inProps;
   const filters = useFilterContext() || filtersProps;
-
   return (
     <FilterLiveForm formComponent={StyledForm} {...sanitizeRestProps(rest)}>
       <FilterFormBase filters={filters} />
     </FilterLiveForm>
   );
 };
-
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export interface FilterFormProps extends FilterFormBaseProps {}
-
 /**
  * @deprecated Use FilterFormBase from `ra-core` once available.
  */
@@ -68,7 +64,6 @@ export const FilterFormBase = (props: FilterFormBaseProps) => {
   const { filters } = props;
   const resource = useResourceContext(props);
   const { displayedFilters = {}, filterValues, hideFilter } = useListContext();
-
   useEffect(() => {
     if (!filters) return;
     filters
@@ -84,7 +79,6 @@ export const FilterFormBase = (props: FilterFormBaseProps) => {
         }
       });
   }, [filters]);
-
   const getShownFilters = () => {
     if (!filters) return [];
     const values = filterValues;
@@ -99,13 +93,11 @@ export const FilterFormBase = (props: FilterFormBaseProps) => {
         );
       });
   };
-
   const handleHide = useCallback(
     (event: React.MouseEvent<HTMLElement>) =>
       hideFilter(event.currentTarget.dataset.key!),
     [hideFilter],
   );
-
   return (
     <>
       {getShownFilters().map((filterElement) => (
@@ -119,13 +111,11 @@ export const FilterFormBase = (props: FilterFormBaseProps) => {
     </>
   );
 };
-
 const sanitizeRestProps = ({
   hasCreate: _hasCreate,
   resource: _resource,
   ...props
 }: Partial<FilterFormBaseProps> & { hasCreate?: boolean }) => props;
-
 export type FilterFormBaseProps = Omit<
   HtmlHTMLAttributes<HTMLFormElement>,
   "children"
@@ -134,7 +124,6 @@ export type FilterFormBaseProps = Omit<
   resource?: string;
   filters?: ReactNode[];
 };
-
 const StyledForm = (props: React.FormHTMLAttributes<HTMLFormElement>) => {
   return (
     <form
@@ -147,10 +136,8 @@ const StyledForm = (props: React.FormHTMLAttributes<HTMLFormElement>) => {
     />
   );
 };
-
 const isEmptyValue = (filterValue: any): boolean => {
   if (filterValue === "" || filterValue == null) return true;
-
   // If one of the value leaf is not empty
   // the value is considered not empty
   if (typeof filterValue === "object") {
@@ -158,10 +145,8 @@ const isEmptyValue = (filterValue: any): boolean => {
       isEmptyValue(filterValue[key]),
     );
   }
-
   return false;
 };
-
 export const FilterFormInput = (inProps: FilterFormInputProps) => {
   const { filterElement, handleHide, className } = inProps;
   const resource = useResourceContext(inProps);
@@ -169,7 +154,6 @@ export const FilterFormInput = (inProps: FilterFormInputProps) => {
   const { alwaysOn: _, ...filterElementProps } = filterElement.props;
   const filterElementType =
     typeof filterElement === "string" ? filterElement : filterElement.type;
-
   return (
     <div
       data-source={filterElement.props.source}
@@ -203,16 +187,13 @@ export const FilterFormInput = (inProps: FilterFormInputProps) => {
     </div>
   );
 };
-
 export interface FilterFormInputProps {
   filterElement: React.ReactElement<any>;
   handleHide: (event: React.MouseEvent<HTMLElement>) => void;
   className?: string;
   resource?: string;
 }
-
 const emptyRecord = {};
-
 /**
  * A button that opens a dropdown to add, remove, and manage filters.
  *
@@ -260,18 +241,15 @@ export const FilterButton = (props: FilterButtonProps) => {
     }),
   );
   const [open, setOpen] = useState(false);
-
   if (filters === undefined) {
     throw new Error(
       "The <FilterButton> component requires the <List filters> prop to be set",
     );
   }
-
   const allTogglableFilters = filters.filter(
     (filterElement) =>
       isValidElement(filterElement) && !(filterElement.props as any).alwaysOn,
   );
-
   const handleShow = useCallback(
     ({ source, defaultValue }: { source: string; defaultValue: any }) => {
       showFilter(source, defaultValue === "" ? undefined : defaultValue);
@@ -289,7 +267,6 @@ export const FilterButton = (props: FilterButtonProps) => {
     },
     [showFilter, setOpen],
   );
-
   const handleRemove = useCallback(
     ({ source }: { source: string }) => {
       hideFilter(source);
@@ -297,7 +274,6 @@ export const FilterButton = (props: FilterButtonProps) => {
     },
     [hideFilter, setOpen],
   );
-
   // add query dialog state
   const [addSavedQueryDialogOpen, setAddSavedQueryDialogOpen] = useState(false);
   const hideAddSavedQueryDialog = (): void => {
@@ -307,7 +283,6 @@ export const FilterButton = (props: FilterButtonProps) => {
     setOpen(false);
     setAddSavedQueryDialogOpen(true);
   };
-
   // remove query dialog state
   const [removeSavedQueryDialogOpen, setRemoveSavedQueryDialogOpen] =
     useState(false);
@@ -318,7 +293,6 @@ export const FilterButton = (props: FilterButtonProps) => {
     setOpen(false);
     setRemoveSavedQueryDialogOpen(true);
   };
-
   if (
     allTogglableFilters.length === 0 &&
     validSavedQueries.length === 0 &&
@@ -441,7 +415,6 @@ export const FilterButton = (props: FilterButtonProps) => {
     </div>
   );
 };
-
 export interface FilterButtonProps extends HtmlHTMLAttributes<HTMLDivElement> {
   className?: string;
   disableSaveQuery?: boolean;
@@ -451,7 +424,6 @@ export interface FilterButtonProps extends HtmlHTMLAttributes<HTMLDivElement> {
     "default" | "destructive" | "outline" | "secondary" | "ghost" | "link";
   size?: "default" | "sm" | "lg" | "icon";
 }
-
 export const FilterButtonMenuItem = React.forwardRef<
   HTMLDivElement,
   FilterButtonMenuItemProps
@@ -469,7 +441,6 @@ export const FilterButtonMenuItem = React.forwardRef<
       source: filter.props.source,
     });
   }, [filter.props.source, onHide]);
-
   return (
     <div
       className={cn(
@@ -498,11 +469,9 @@ export const FilterButtonMenuItem = React.forwardRef<
     </div>
   );
 });
-
 export interface FilterButtonMenuItemProps {
   filter: React.ReactElement<any>;
   displayed: boolean;
-
   onShow: (params: { source: string; defaultValue: any }) => void;
   onHide: (params: { source: string }) => void;
   resource?: string;
