@@ -45,4 +45,4 @@ export interface SourceEvidence {
   receipt: { receiptId: string; disposition: string; completeness: string; verification: string };
   observation: { provider: string; displayName: string; observedAt: string; native: { conversationId: string | null; messageId: string | null }; completeness: string; verification: string };
 }
-export interface AccessibleLead { id: string; displayName?: string; lead?: { displayName?: string }; }
+export interface AccessibleLead { leadId: string; displayName?: string; lead?: { displayName?: string }; }
