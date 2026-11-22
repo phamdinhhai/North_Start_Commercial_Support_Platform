@@ -44,6 +44,8 @@ import { admitSyncObservation } from './application/durable-sync/admission';
 import { SOURCE_SYNTHETIC_MODE } from './ports/source-fixture-decoder';
 import { SourceIntegrationError } from './ports/source-observation';
 import { HybridObservationController } from './api/hybrid-observation.controller';
+import { HYBRID_FIXTURE_READER } from './ports/hybrid-fixture-reader';
+import { ConfiguredHybridFixtureReader } from './adapters/hybrid-sdk/fixture-reader';
 
 /** Composition root for the manual pilot loop and health delivery. */
 @Module({
@@ -60,6 +62,7 @@ import { HybridObservationController } from './api/hybrid-observation.controller
       useFactory: (service: SourceIntegrationService, decoder: SourceFixtureDecoder) => new SourceFixtureIntake(service, decoder) },
     AssertionDeliveryRunner,
     { provide: IntegrationIntake, inject: [PostgresService], useFactory: (db: PostgresService) => new IntegrationIntake(new PgIntegrationStore(db)) },
+    { provide: HYBRID_FIXTURE_READER, useFactory: () => new ConfiguredHybridFixtureReader() },
     // Observability (operational telemetry only; never commercial evidence).
     { provide: JsonLogger, useFactory: () => new JsonLogger() },
     HttpMetrics,

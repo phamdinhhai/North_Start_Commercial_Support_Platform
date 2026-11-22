@@ -5,6 +5,9 @@ import { fail, isId, isObject, loadConfig, type IntakeConfig } from './config';
 import { CAPABILITY, sign, verify } from './token';
 import { validateUpload } from './upload-validation';
 import { validateHybridUpload } from './hybrid-upload';
+import {receiptEnvelope} from './hybrid-envelope';
+import {reconcileHybridSources, type HybridObservationEnvelope} from '../../ports/hybrid-observation';
+import type {HybridFixtureReader} from '../../ports/hybrid-fixture-reader';
 export { validateUpload } from './upload-validation';
 
 const TTL_MS = 900000;
@@ -126,5 +129,35 @@ export class IntegrationIntake {
         const upload=validateHybridUpload(body,claim);
         const fingerprint=createHash('sha256').update(JSON.stringify(upload)).digest('hex');
         return this.store.append({id:claim.id,scope:claim.scope,expiresAt:claim.expiresAt},upload,fingerprint);
+    }
+    private hybridClaim(auth:unknown) {
+        if(this.env.HYBRID_FIXTURE_ENABLED!=='true')return fail('HYBRID_DISABLED',404);
+        const claim=verify(auth,loadConfig(this.env));
+        if(!claim.scope.target||Object.values(claim.scope.target).some(v=>!v.startsWith('fixture-')))return fail('FIXTURE_TARGET_REQUIRED',403);
+        return claim;
+    }
+    /** API observations are built from a server-owned reader, never client authority fields. */
+    async appendHybridProvider(auth:unknown,body:unknown,reader:HybridFixtureReader) {
+        const claim=this.hybridClaim(auth);
+        if(!isObject(body)||Object.keys(body).sort().join()!=='captureId,enrollmentId,sequence'||body.enrollmentId!==claim.id||!isId(body.captureId)||!Number.isSafeInteger(body.sequence)||(body.sequence as number)<1)return fail('INPUT_INVALID');
+        if(!this.store.readHybrid)return fail('HYBRID_READ_UNAVAILABLE',503);
+        const prior=await this.store.readHybrid(claim); // revalidate principal before credential use
+        const existing=prior.find(u=>u.captureId===body.captureId);
+        if(existing) {
+            if(existing.sequence!==body.sequence||existing.observation.method!=='official-api')return fail('RECEIPT_CONFLICT',409);
+            return this.store.append(claim,existing,createHash('sha256').update(JSON.stringify(existing)).digest('hex'));
+        }
+        const result=await reader.read(claim.scope);
+        if(result.native.accountId!==claim.scope.accountId||Object.entries(claim.scope.target!).some(([k,v])=>result.native[k]!==v))return fail('TARGET_SCOPE_MISMATCH',403);
+        const upload={captureId:body.captureId,sequence:body.sequence as number,pageId:claim.scope.pageId,observation:{method:'official-api',fixture:true,sourceAuthority:'synthetic_fixture',observedAt:new Date().toISOString(),native:result.native,...(result.facts?{facts:result.facts}:{}),hybridEnvelope:{} as HybridObservationEnvelope}};
+        upload.observation.hybridEnvelope=receiptEnvelope(claim,upload,'official_api');
+        return this.store.append(claim,upload,createHash('sha256').update(JSON.stringify(upload)).digest('hex'));
+    }
+    async reconcileHybrid(auth:unknown) {
+        const claim=this.hybridClaim(auth);
+        if(!this.store.readHybrid)return fail('HYBRID_READ_UNAVAILABLE',503);
+        const receipts=await this.store.readHybrid(claim,true);
+        const envelopes=receipts.map(u=>u.observation.hybridEnvelope).filter(Boolean) as HybridObservationEnvelope[];
+        return reconcileHybridSources(envelopes,claim.scope);
     }
 }

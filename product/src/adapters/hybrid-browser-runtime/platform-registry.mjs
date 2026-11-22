@@ -30,12 +30,13 @@ export function resolveSiteContext(raw, dom = {}, fixture = false) {
     if (record >= 0 && parts[record + 1] === '0-2') put('companyId', parts[record + 2]);
     if (record >= 0 && parts[record + 1] === '0-3') put('dealId', parts[record + 2]);
   }
-  return {provider, providerSurface: PLATFORMS[provider].surface, origin: url.origin, native, identityAuthority: 'CLIENT_ASSERTED', completeness: 'UNKNOWN'};
+  const facts=fixture&&/^fixture-[A-Za-z0-9_-]{1,64}$/.test(dom.fixtureLabel??'')?{label:dom.fixtureLabel,lifecycle:dom.fixtureLifecycle==='deleted'?'deleted':'present'}:undefined;
+  return {provider, providerSurface: PLATFORMS[provider].surface, origin: url.origin, native, ...(facts?{facts}:{}), identityAuthority: 'CLIENT_ASSERTED', completeness: 'UNKNOWN'};
 }
 
 /** The allowlisted projection never copies element text, HTML, forms, cookie or storage. */
 export function minimizeDOM(input) {
   if (!input || typeof input !== 'object' || Array.isArray(input)) return {};
-  return Object.fromEntries(['accountId','pageId','campaignId','adsetId','adId','contactId','companyId','dealId','currency','timezone']
+  return Object.fromEntries(['accountId','pageId','campaignId','adsetId','adId','contactId','companyId','dealId','currency','timezone','fixtureLabel','fixtureLifecycle']
     .filter(key => typeof input[key] === 'string' && input[key].length <= 256).map(key => [key,input[key]]));
 }

@@ -1,10 +1,11 @@
 import {withBoundedFixtureRelay} from './bounded-fixture-relay';
 import {Client as HubSpotClient} from '@hubspot/api-client';
 import {FacebookAdsApi} from 'facebook-nodejs-business-sdk';
+import {metaReportingFacts} from './provider-fact-quality';
 
 export interface HubSpotRecord {readonly id:string;readonly properties:Record<string,string|undefined>}
 export interface HubSpotReadPage {readonly records:HubSpotRecord[];readonly nextCursor:string|null;readonly completeness:'UNKNOWN'}
-export interface MetaInsight {readonly accountId:string;readonly campaignId?:string;readonly dateStart:string;readonly dateStop:string;readonly impressions:number;readonly spend:number;readonly currency:string;readonly timezone:string}
+export interface MetaInsight {readonly accountId:string;readonly campaignId?:string;readonly dateStart:string;readonly dateStop:string;readonly impressions:number;readonly spend:number;readonly currency:string;readonly timezone:string;readonly reportingFacts:ReturnType<typeof metaReportingFacts>}
 export interface MetaReadPage {readonly records:MetaInsight[];readonly nextCursor:string|null;readonly completeness:'UNKNOWN';readonly timezoneSource:'caller-supplied'}
 
 const validBase = (value:string) => {
@@ -93,7 +94,9 @@ export class MetaAdsReadConnector {
       if(String(row.account_id)!==this.accountId.slice(4)||row.account_currency!==this.currency)throw new Error('META_SCOPE_MISMATCH');
       if(!/^\d{4}-\d{2}-\d{2}$/u.test(String(row.date_start))||!/^\d{4}-\d{2}-\d{2}$/u.test(String(row.date_stop))||!Number.isSafeInteger(Number(row.impressions))||Number(row.impressions)<0||!Number.isFinite(Number(row.spend))||Number(row.spend)<0)throw new Error('META_SCHEMA_INVALID');
       if(row.campaign_id!==undefined&&(typeof row.campaign_id!=='string'||!/^[A-Za-z0-9_-]{1,128}$/u.test(row.campaign_id)))throw new Error('META_SCHEMA_INVALID');
-      return {accountId:this.accountId,...(row.campaign_id?{campaignId:String(row.campaign_id)}:{}),dateStart:String(row.date_start),dateStop:String(row.date_stop),impressions:Number(row.impressions),spend:Number(row.spend),currency:this.currency,timezone:this.timezone};
+      if(String(row.date_start)<dateStart||String(row.date_stop)>dateStop||String(row.date_start)>String(row.date_stop))throw new Error('META_WINDOW_MISMATCH');
+      const reportingFacts=metaReportingFacts({providerCurrency:String(row.account_currency),configuredCurrency:this.currency,configuredTimezone:this.timezone,since:String(row.date_start),until:String(row.date_stop)});
+      return {accountId:this.accountId,...(row.campaign_id?{campaignId:String(row.campaign_id)}:{}),dateStart:String(row.date_start),dateStop:String(row.date_stop),impressions:Number(row.impressions),spend:Number(row.spend),currency:String(row.account_currency),timezone:this.timezone,reportingFacts};
     });
     return {records,nextCursor:cursor,completeness:'UNKNOWN',timezoneSource:'caller-supplied'};
   }

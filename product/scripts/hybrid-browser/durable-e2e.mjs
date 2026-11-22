@@ -38,7 +38,7 @@ async function startBackend(){const log=openSync(privateLog,'a');let ready=false
 async function stopBackend(signal='SIGTERM'){if(!child||child.exitCode!==null)return;const exited=new Promise(done=>child.once('exit',done));child.kill(signal);await Promise.race([exited,delay(5000)]);}
 async function closeServer(server){if(!server)return;server.closeAllConnections();await new Promise(done=>server.close(done));}
 const admin=new Client({connectionString:adminUrl.href});await admin.connect();await admin.query('CREATE DATABASE '+database);await admin.end();
-let dropAck=false,partialAck=false;const proxyRequests=[],proxyResponses=[];
+let dropAck=false,droppedCapture=null,partialAck=false;const proxyRequests=[],proxyResponses=[];
 try{
  const fixtureTokens=['pancake-fixture-read','meta-fixture-read','hs-fixture-read'];
  const providerCalls=[];
@@ -59,7 +59,7 @@ try{
   let raw='';for await(const bytes of req){raw+=bytes;if(Buffer.byteLength(raw)>8192){res.writeHead(413);return res.end();}}
   const parsed=JSON.parse(raw);proxyRequests.push({captureId:parsed.captureId,sequence:parsed.sequence,raw});
   try{const upstream=await fetch(appOrigin+req.url,{method:'POST',headers:{authorization:req.headers.authorization,'content-type':'application/json'},body:raw});const body=await upstream.text();proxyResponses.push({status:upstream.status,body});
-   if(dropAck){dropAck=false;assert.equal(upstream.status,201);assert.equal(JSON.parse(body).disposition,'stored');res.destroy();return;}res.writeHead(upstream.status,{'content-type':'application/json'});if(partialAck){partialAck=false;res.end('{"receiptId":');return;}res.end(body);
+   if(dropAck||parsed.captureId===droppedCapture){if(dropAck){dropAck=false;droppedCapture=parsed.captureId;assert.equal(JSON.parse(body).disposition,'stored');}else assert.equal(JSON.parse(body).disposition,'duplicate');assert.equal(upstream.status,201);res.destroy();return;}res.writeHead(upstream.status,{'content-type':'application/json'});if(partialAck){partialAck=false;res.end('{"receiptId":');return;}res.end(body);
   }catch{res.writeHead(503);res.end('{"code":"FIXTURE_BACKEND_UNAVAILABLE"}');}
  });await new Promise(done=>proxy.listen(0,'127.0.0.1',done));const uploadOrigin=`http://127.0.0.1:${proxy.address().port}`;
  site=createServer((req,res)=>{const path=new URL(req.url,'http://127.0.0.1').pathname;const kind=path.split('/')[1];const account=({pancake:'pancake',ads:'ads',crm:'crm'})[kind];if(!account){res.writeHead(404);return res.end();}const pageAttr=kind==='pancake'?' data-page-id="fixture-page-pancake"':'';res.writeHead(200,{'content-type':'text/html'});res.end(`<!doctype html><title>Fabricated ${account}</title><div data-ns-context data-account-id="${kind==='ads'?'act_123':'fixture-account-'+account}"${pageAttr}></div><p>Fabricated private text must not enter receipt</p>`);});await new Promise(done=>site.listen(0,'127.0.0.1',done));const siteOrigin=`http://127.0.0.1:${site.address().port}`;
@@ -99,12 +99,27 @@ try{
  assert.equal(await receiptCount(),6);assert.deepEqual([...new Set(providerCalls.map(c=>c.kind))].sort(),[0,1,2]);
  step('THREE_BROWSER_API_PAIRS_DURABLE_RECONCILIATION');
  let health=await api('/v1/integration/health');assert.equal(health.status,200);assert.equal(health.body.completeness,'UNKNOWN');assert.equal(health.body.enrollments.length,3);assert.equal(health.body.enrollments.reduce((n,e)=>n+e.delivery.receiptCount,0),6);step('AUTHORIZED_DATA_HEALTH_READBACK');
+ // Altered and deleted browser facts stay as append-only competing evidence.
+ for(let i=0;i<3;i++){
+  const fresh=await api('/v1/integration/enrollments',{connectionId:scopes[i].connectionId});assert.equal(fresh.status,201);
+  const freshGrant={...fresh.body,scope:{...fresh.body.scope,provider:grants[i].scope.provider}};
+  const freshHeaders={authorization:'Bearer '+freshGrant.token,'content-type':'application/json'};
+  const freshRead=await fetch(appOrigin+'/v1/hybrid/provider-read',{method:'POST',headers:freshHeaders,body:JSON.stringify({enrollmentId:freshGrant.enrollmentId,captureId:'fixture-altered-api-'+i,sequence:1})});assert.equal(freshRead.status,201);
+  await configureGrant(freshGrant);const page=await context.newPage();await page.goto(siteOrigin+paths[i]);
+  await page.evaluate(()=>{const node=document.querySelector('[data-ns-context]');node.dataset.fixtureLabel='fixture-altered-label';node.dataset.fixtureLifecycle='deleted';});
+  await capture(page);await upload();
+  const view=await(await fetch(appOrigin+'/v1/hybrid/reconciliation',{headers:freshHeaders})).json();
+  assert.equal(view.conflict,true);assert.equal(view.identityStatus,'VERIFIED');assert.equal(view.observations.length,2);
+  assert.ok(view.observations.some(o=>o.payload.facts?.lifecycle==='deleted'));assert.ok(view.observations.some(o=>o.authority==='official_api'&&!o.payload.facts));
+  await page.close();
+ }
+ step('ALTERED_DELETED_FACTS_RETAINED_WITHOUT_OVERWRITE');
  assert.equal(Number((await db.query('SELECT count(*)::int n FROM lead')).rows[0].n),0);const metadata=JSON.stringify((await db.query('SELECT metadata FROM integration_receipt')).rows);assert.ok(!metadata.includes('Fabricated private text'));step('NO_BODY_OR_COMMERCIAL_PROJECTION');
  async function freshGrant(){const response=await api('/v1/integration/enrollments',{connectionId:scopes[0].connectionId});assert.equal(response.status,201);return {...response.body,scope:{...response.body.scope,provider:'pancake'}};}
  async function pancakePage(){const page=await context.newPage();await page.goto(siteOrigin+paths[0]);return page;}
  // A loopback proxy loses the ACK only after the actual PostgreSQL transaction committed.
  let grant=await freshGrant();await configureGrant(grant);let provider=await pancakePage();await capture(provider);const beforeLost=await receiptCount();dropAck=true;await upload('retry-required');assert.equal(await receiptCount(),beforeLost+1);const pending=structuredClone((await state()).pending),lostRequest=proxyRequests.at(-1).raw;
- const cdp=await context.newCDPSession(provider);const target=(await cdp.send('Target.getTargets')).targetInfos.find(t=>t.type==='service_worker'&&t.url.startsWith('chrome-extension://'+extensionId));assert.ok(target);await cdp.send('Target.closeTarget',{targetId:target.targetId});await delay(200);await send({kind:'status'});await wait(async()=>(await state()).lastStop==='worker-restarted','WORKER_RESTARTED');assert.deepEqual((await state()).pending,pending);await upload();assert.deepEqual(JSON.parse(proxyRequests.at(-1).raw),JSON.parse(lostRequest));assert.equal(await receiptCount(),beforeLost+1);assert.equal(JSON.parse(proxyResponses.at(-1).body).disposition,'duplicate');step('POST_COMMIT_SOCKET_DROP_WORKER_RESTART_IDENTICAL_REPLAY');await provider.close();
+ const cdp=await context.newCDPSession(provider);const target=(await cdp.send('Target.getTargets')).targetInfos.find(t=>t.type==='service_worker'&&t.url.startsWith('chrome-extension://'+extensionId));assert.ok(target);await cdp.send('Target.closeTarget',{targetId:target.targetId});await delay(200);await send({kind:'status'});await wait(async()=>(await state()).lastStop==='worker-restarted','WORKER_RESTARTED');assert.deepEqual((await state()).pending,pending);droppedCapture=null;await upload();assert.deepEqual(JSON.parse(proxyRequests.at(-1).raw),JSON.parse(lostRequest));assert.equal(await receiptCount(),beforeLost+1);assert.equal(JSON.parse(proxyResponses.at(-1).body).disposition,'duplicate');step('POST_COMMIT_SOCKET_DROP_WORKER_RESTART_IDENTICAL_REPLAY');await provider.close();
  // A truncated ACK is untrusted even when its real intake transaction committed.
  grant=await freshGrant();await configureGrant(grant);provider=await pancakePage();await capture(provider);partialAck=true;const beforePartial=await receiptCount();await upload('retry-required');const partialPending=structuredClone((await state()).pending);assert.equal(await receiptCount(),beforePartial+1);await context.close();extensionId=await launch();popup=await context.newPage();await popup.goto(popupURL());await send({kind:'status'});assert.deepEqual((await state()).pending,partialPending);assert.equal((await state()).session,null);await upload();assert.equal(await receiptCount(),beforePartial+1);step('PARTIAL_ACK_BROWSER_RESTART_PERSISTENCE');
  auth=await context.newPage();await login();

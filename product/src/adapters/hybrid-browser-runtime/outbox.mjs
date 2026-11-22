@@ -11,7 +11,7 @@ export function appendContext(state, context, at = new Date().toISOString(), cap
   const observation = {schemaVersion: 1, captureId, provider: context.provider, providerSurface: context.providerSurface,
     scope: {workspaceId: state.enrollment.scope.workspaceId, connectionId: state.enrollment.scope.connectionId, accountId: state.enrollment.scope.accountId},
     native: {...context.native}, method: 'browser-dom', authenticity: 'CLIENT_OBSERVED', completeness: 'UNKNOWN', observedAt: at,
-    sourceRevision: 'north-start-hybrid-browser/0.1.0'};
+    sourceRevision: 'north-start-hybrid-browser/0.1.0',...(state.enrollment.fixture&&context.facts?{facts:context.facts}:{})};
   const appended = appendRecord(state,observation,at);
   return {...appended.state, session: appended.stop ? null : {...state.session, lastContext: context}, ...(appended.stop ? {lastStop:'outbox-full'} : {})};
 }

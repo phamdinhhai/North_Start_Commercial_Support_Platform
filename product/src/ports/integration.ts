@@ -53,4 +53,5 @@ export interface IntegrationStore {
     enroll(value: Enrollment, audit: IssuanceAudit): Promise<void>;
     revoke(id: string, request: RevocationRequest): Promise<void>;
     append(enrollment: Enrollment, upload: Upload, fingerprint: string): Promise<ReceiptAck>;
+    readHybrid?(enrollment: Enrollment, acrossConnection?: boolean): Promise<readonly Upload[]>;
 }

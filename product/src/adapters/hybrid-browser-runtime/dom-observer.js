@@ -2,7 +2,7 @@
 (() => {
   if (globalThis.__northStartHybridObserver) { globalThis.__northStartHybridObserver.start(); return; }
   let active = false, interval, debounce, last = '';
-  const allowed = ['accountId','pageId','campaignId','adsetId','adId','contactId','companyId','dealId','currency','timezone'];
+  const allowed = ['accountId','pageId','campaignId','adsetId','adId','contactId','companyId','dealId','currency','timezone','fixtureLabel','fixtureLifecycle'];
   function snapshot() {
     if (!active) return;
     const url = new URL(location.href), safe = new URL(url.origin + url.pathname);

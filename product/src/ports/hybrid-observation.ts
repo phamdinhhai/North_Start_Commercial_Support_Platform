@@ -71,11 +71,12 @@ export function reconcileHybridSources(
     conflict: true, identityStatus: 'UNKNOWN', completeness: 'UNKNOWN',
   };
   const [nativeKey] = [...keys];
-  const digests = new Set(checked.map((item) => item.payloadDigest));
+  const digests = new Set(checked.map((item) => JSON.stringify(item.payload)));
+  const paired=checked.some(o=>['browser_dom','browser_network'].includes(o.authority))&&checked.some(o=>['official_api','official_webhook'].includes(o.authority)&&o.trust==='AUTHENTICATED_TRANSPORT');
   return {
     nativeKey, identity: checked[0].native, observations: checked,
     authorities: [...new Set(checked.map((item) => item.authority))],
-    conflict: digests.size > 1, identityStatus: 'VERIFIED', completeness: 'UNKNOWN',
+    conflict: digests.size > 1, identityStatus: paired?'VERIFIED':'UNKNOWN', completeness: 'UNKNOWN',
   };
 }
 const authorities: readonly ObservationAuthority[] = ['browser_dom', 'browser_network', 'official_api', 'official_webhook', 'user_export'];
