@@ -1,7 +1,7 @@
 import { resolveSiteContext, minimizeDOM } from './platform-registry.mjs';
 import { validateEnrollment, matchesEnrollment } from './permission-policy.mjs';
 import { initialState, configure, appendContext, reserve, acknowledge, stop, recover, health } from './outbox.mjs';
-import { inspectGraphQL, inspectNetwork, inspectRealtime } from './diagnostics.mjs';
+import { inspectGraphQL, inspectNetwork, inspectRealtime, createDiagnosticSession } from './diagnostics.mjs';
 const KEY='northStartHybridV1';
 const load=async()=> (await chrome.storage.local.get(KEY))[KEY] ?? initialState();
 const save=state=>chrome.storage.local.set({[KEY]:state});
@@ -29,11 +29,12 @@ async function upload(){
  catch{s={...s,delivery:'retry-required'};}finally{clearTimeout(timer);}await save(s);
  if(['blocked','unauthorized','expired'].includes(s.delivery))await stopCapture(s.delivery);
 }
-async function startDiagnostic(){
+async function startDiagnostic(activated=false){
  const s=await load();if(!s.session)throw Error('CAPTURE_REQUIRED');
  if(!await chrome.permissions.contains({permissions:['debugger']}))throw Error('DIAGNOSTIC_PERMISSION_REQUIRED');
  const tab=await chrome.tabs.get(s.session.tabId);if(new URL(tab.url).origin!==s.session.origin)throw Error('TARGET_SCOPE_MISMATCH');
  if(!matchesEnrollment(s.session.lastContext,s.enrollment))throw Error('TARGET_SCOPE_MISMATCH');
+ createDiagnosticSession({activated,tabId:s.session.tabId,origin:new URL(tab.url).origin,allowedOrigins:[s.session.origin]});
  await chrome.debugger.attach({tabId:s.session.tabId},'1.3');
  try{await chrome.debugger.sendCommand({tabId:s.session.tabId},'Network.enable');await save({...s,diagnostic:{tabId:s.session.tabId,events:[],startedAt:new Date().toISOString()}});}catch{await chrome.debugger.detach({tabId:s.session.tabId});throw Error('DIAGNOSTIC_UNAVAILABLE');}
 }
@@ -53,7 +54,7 @@ chrome.runtime.onMessage.addListener((message,sender,respond)=>{
   else if(message?.kind==='start')await startCapture();
   else if(message?.kind==='stop')await stopCapture('user-stopped');
   else if(message?.kind==='upload')await upload();
-  else if(message?.kind==='diagnostic')await startDiagnostic();
+  else if(message?.kind==='diagnostic')await startDiagnostic(popup);
   else if(message?.kind==='disconnect'){await stopCapture('disconnected');const s=await load();await save({...s,enrollment:s.enrollment?{...s.enrollment,token:null}:null,delivery:'disconnected'});}
   else if(message?.kind!=='status')throw Error('UNSUPPORTED_COMMAND');
   return health(await load());
