@@ -26,11 +26,11 @@ const appOrigin=`http://127.0.0.1:${appPort}`,controlOrigin=`http://127.0.0.1:${
 const workspace='qa-browser-a',controlSecret=randomBytes(32).toString('hex');
 const scopes=[
  {workspaceId:workspace,connectionId:'fixture-connection-pancake',accountId:'fixture-account-pancake',providerSurface:'pancake-conversations',pageId:'fixture-page-pancake',target:{pageId:'fixture-page-pancake',conversationId:'fixture-conversation-pancake'}},
- {workspaceId:workspace,connectionId:'fixture-connection-ads',accountId:'fixture-account-ads',providerSurface:'meta-ads',pageId:'fixture-page-ads',target:{campaignId:'fixture-campaign-ads'}},
+ {workspaceId:workspace,connectionId:'fixture-connection-ads',accountId:'act_123',providerSurface:'meta-ads',pageId:'fixture-page-ads',target:{campaignId:'fixture-campaign-ads'}},
  {workspaceId:workspace,connectionId:'fixture-connection-crm',accountId:'fixture-account-crm',providerSurface:'hubspot-crm',pageId:'fixture-page-crm',target:{contactId:'fixture-contact-crm'}},
 ];
 const childEnv={...process.env,R414_FIXTURE_CHILD:'true',QA_DATABASE_URL:databaseUrl.href,QA_CONTROL_SECRET:controlSecret,R414_APP_PORT:String(appPort),R414_IDP_PORT:String(idpPort),R414_CONTROL_PORT:String(controlPort),AIL_SIGNING_SECRET:randomBytes(32).toString('hex'),AIL_SCOPE_ALLOWLIST:JSON.stringify(scopes),CONTENT_DIGEST_KEYS_JSON:JSON.stringify(['qa-browser-a','qa-browser-b'].map(workspaceId=>({workspaceId,activeKid:'fixture',keys:[{kid:'fixture',secretBase64:randomBytes(32).toString('base64')}]})))};
-let child,context,db,site,proxy;const privateLog=join(root,'fixture-app.log');
+let child,context,db,site,proxy,providerApi;const privateLog=join(root,'fixture-app.log');
 const proof={result:'RUNNING',providerContacted:false,providerMutations:0,customerData:false,steps:[]};
 const step=name=>proof.steps.push(name);
 async function wait(check,label){for(let n=0;n<100;n++){try{const value=await check();if(value)return value;}catch{}await delay(100);}throw Error('TIMEOUT_'+label);}
@@ -40,6 +40,19 @@ async function closeServer(server){if(!server)return;server.closeAllConnections(
 const admin=new Client({connectionString:adminUrl.href});await admin.connect();await admin.query('CREATE DATABASE '+database);await admin.end();
 let dropAck=false,partialAck=false;const proxyRequests=[],proxyResponses=[];
 try{
+ const fixtureTokens=['pancake-fixture-read','meta-fixture-read','hs-fixture-read'];
+ const providerCalls=[];
+ providerApi=createServer((req,res)=>{
+  const url=new URL(req.url,'http://127.0.0.1');const token=url.searchParams.get('access_token')??url.searchParams.get('page_access_token')??String(req.headers.authorization??'').replace(/^Bearer /u,'');
+  const kind=url.pathname.includes('/insights')?1:url.pathname.includes('/crm/v3/objects/contacts')?2:0;
+  if(req.method!=='GET'||token!==fixtureTokens[kind]){res.writeHead(403);return res.end('{}');}
+  providerCalls.push({kind,method:req.method});res.writeHead(200,{'content-type':'application/json'});
+  if(kind===1)return res.end(JSON.stringify({data:[{account_id:'123',account_currency:'USD',campaign_id:'fixture-campaign-ads',date_start:'2026-11-01',date_stop:'2026-11-20',impressions:'12',spend:'3.50'}]}));
+  if(kind===2)return res.end(JSON.stringify({results:[{id:'fixture-contact-crm',properties:{}}]}));
+  if(url.pathname!=='/api/public_api/v1/pages/fixture-page-pancake/conversations/fixture-conversation-pancake/messages'){res.statusCode=404;return res.end('{}');}
+  return res.end(JSON.stringify({success:true,conversation_id:'fixture-conversation-pancake',page_id:'fixture-page-pancake',messages:[]}));
+ });await new Promise(done=>providerApi.listen(0,'127.0.0.1',done));
+ childEnv.HYBRID_API_FIXTURES_JSON=JSON.stringify(scopes.map((s,i)=>({workspaceId:s.workspaceId,connectionId:s.connectionId,accountId:s.accountId,baseUrl:`http://127.0.0.1:${providerApi.address().port}`,accessToken:fixtureTokens[i],expiresAt:new Date(Date.now()+3600000).toISOString(),...(i===1?{currency:'USD',timezone:'UTC'}:{})})));
  await startBackend();db=new Client({connectionString:databaseUrl.href});await db.connect();step('REAL_NEST_POSTGRES_READY');
  proxy=createServer(async(req,res)=>{
   if(req.method!=='POST'||req.url!=='/v1/hybrid/observations'){res.writeHead(404);return res.end();}
@@ -49,7 +62,7 @@ try{
    if(dropAck){dropAck=false;assert.equal(upstream.status,201);assert.equal(JSON.parse(body).disposition,'stored');res.destroy();return;}res.writeHead(upstream.status,{'content-type':'application/json'});if(partialAck){partialAck=false;res.end('{"receiptId":');return;}res.end(body);
   }catch{res.writeHead(503);res.end('{"code":"FIXTURE_BACKEND_UNAVAILABLE"}');}
  });await new Promise(done=>proxy.listen(0,'127.0.0.1',done));const uploadOrigin=`http://127.0.0.1:${proxy.address().port}`;
- site=createServer((req,res)=>{const path=new URL(req.url,'http://127.0.0.1').pathname;const kind=path.split('/')[1];const account=({pancake:'pancake',ads:'ads',crm:'crm'})[kind];if(!account){res.writeHead(404);return res.end();}const pageAttr=kind==='pancake'?' data-page-id="fixture-page-pancake"':'';res.writeHead(200,{'content-type':'text/html'});res.end(`<!doctype html><title>Fabricated ${account}</title><div data-ns-context data-account-id="fixture-account-${account}"${pageAttr}></div><p>Fabricated private text must not enter receipt</p>`);});await new Promise(done=>site.listen(0,'127.0.0.1',done));const siteOrigin=`http://127.0.0.1:${site.address().port}`;
+ site=createServer((req,res)=>{const path=new URL(req.url,'http://127.0.0.1').pathname;const kind=path.split('/')[1];const account=({pancake:'pancake',ads:'ads',crm:'crm'})[kind];if(!account){res.writeHead(404);return res.end();}const pageAttr=kind==='pancake'?' data-page-id="fixture-page-pancake"':'';res.writeHead(200,{'content-type':'text/html'});res.end(`<!doctype html><title>Fabricated ${account}</title><div data-ns-context data-account-id="${kind==='ads'?'act_123':'fixture-account-'+account}"${pageAttr}></div><p>Fabricated private text must not enter receipt</p>`);});await new Promise(done=>site.listen(0,'127.0.0.1',done));const siteOrigin=`http://127.0.0.1:${site.address().port}`;
  const extension=join(root,'extension');const packaged=await packageHybrid(extension,true);proof.packageSha256=packaged.zipSha256;
  const profile=join(root,'profile');const browserOptions={channel:'chromium',headless:true,args:[`--disable-extensions-except=${extension}`,`--load-extension=${extension}`]};
  async function launch(){context=await chromium.launchPersistentContext(profile,browserOptions);context.setDefaultTimeout(15000);await context.route('**/*',route=>{const u=new URL(route.request().url());return u.hostname==='127.0.0.1'||u.protocol==='chrome-extension:'?route.continue():route.abort();});const worker=context.serviceWorkers()[0]??await context.waitForEvent('serviceworker');return new URL(worker.url()).host;}
@@ -65,11 +78,27 @@ try{
  async function configureGrant(grant){await popup.bringToFront();await popup.locator('#origin').fill(uploadOrigin);await popup.locator('#enrollment').fill(JSON.stringify(grant));await popup.locator('#configure').click();await wait(async()=>(await state()).enrollment?.enrollmentId===grant.enrollmentId,'ENROLLMENT_CONFIGURED');}
  async function capture(provider){await provider.bringToFront();const result=await send({kind:'start'});assert.equal(result.ok,true,'MV3 start failed');await wait(async()=>(await state()).outbox.length>0,'BROWSER_OBSERVATION');}
  async function upload(expected='ready'){await popup.bringToFront();const result=await send({kind:'upload'});assert.equal(result.ok,true,'MV3 upload command failed');try{await wait(async()=>(await state()).delivery===expected,'UPLOAD_'+expected);}catch(error){const s=await state();throw new Error(`${error.message} delivery=${s.delivery} pending=${s.outbox.length} stop=${s.lastStop} requests=${proxyRequests.length}`);}}
- const paths=['/pancake/fixture-page-pancake?c_id=fixture-conversation-pancake','/ads/manage?act=fixture-account-ads&selected_campaign_ids=fixture-campaign-ads','/crm/contacts/fixture-account-crm/record/0-1/fixture-contact-crm'];
+ const paths=['/pancake/fixture-page-pancake?c_id=fixture-conversation-pancake','/ads/manage?act=act_123&selected_campaign_ids=fixture-campaign-ads','/crm/contacts/fixture-account-crm/record/0-1/fixture-contact-crm'];
  const receiptCount=async()=>Number((await db.query('SELECT count(*)::int n FROM integration_receipt')).rows[0].n);
  for(let i=0;i<3;i++){await configureGrant(grants[i]);const page=await context.newPage();await page.goto(siteOrigin+paths[i]);await capture(page);await upload();assert.equal((await state()).outbox.length,0);assert.equal(await receiptCount(),i+1);await page.close();}
  step('THREE_REAL_MV3_TO_POSTGRES_RECEIPTS');
- let health=await api('/v1/integration/health');assert.equal(health.status,200);assert.equal(health.body.completeness,'UNKNOWN');assert.equal(health.body.enrollments.length,3);assert.equal(health.body.enrollments.reduce((n,e)=>n+e.delivery.receiptCount,0),3);step('AUTHORIZED_DATA_HEALTH_READBACK');
+ // A second independently authenticated path reads each local provider emulator.
+ // Both paths persist through the same scoped backend receipt transaction.
+ for(let i=0;i<3;i++){
+  const grant=grants[i];const headers={authorization:'Bearer '+grant.token,'content-type':'application/json'};
+  const request={enrollmentId:grant.enrollmentId,captureId:'fixture-api-capture-'+i,sequence:2};
+  const response=await fetch(appOrigin+'/v1/hybrid/provider-read',{method:'POST',headers,body:JSON.stringify(request)});
+  assert.equal(response.status,201,'provider fixture read must persist');
+  const reconciliation=await fetch(appOrigin+'/v1/hybrid/reconciliation',{headers});assert.equal(reconciliation.status,200);
+  const view=await reconciliation.json();assert.equal(view.identityStatus,'VERIFIED');assert.equal(view.completeness,'UNKNOWN');assert.equal(view.conflict,false);assert.equal(view.observations.length,2);
+  assert.ok(view.authorities.includes('browser_dom'));assert.ok(view.authorities.includes('official_api'));
+  const browser=view.observations.find(o=>o.authority==='browser_dom');assert.equal(browser.trust,'UNVERIFIED');
+  const api=view.observations.find(o=>o.authority==='official_api');assert.notEqual(api.trust,'UNVERIFIED');
+  assert.deepEqual(browser.native,api.native);
+ }
+ assert.equal(await receiptCount(),6);assert.deepEqual([...new Set(providerCalls.map(c=>c.kind))].sort(),[0,1,2]);
+ step('THREE_BROWSER_API_PAIRS_DURABLE_RECONCILIATION');
+ let health=await api('/v1/integration/health');assert.equal(health.status,200);assert.equal(health.body.completeness,'UNKNOWN');assert.equal(health.body.enrollments.length,3);assert.equal(health.body.enrollments.reduce((n,e)=>n+e.delivery.receiptCount,0),6);step('AUTHORIZED_DATA_HEALTH_READBACK');
  assert.equal(Number((await db.query('SELECT count(*)::int n FROM lead')).rows[0].n),0);const metadata=JSON.stringify((await db.query('SELECT metadata FROM integration_receipt')).rows);assert.ok(!metadata.includes('Fabricated private text'));step('NO_BODY_OR_COMMERCIAL_PROJECTION');
  async function freshGrant(){const response=await api('/v1/integration/enrollments',{connectionId:scopes[0].connectionId});assert.equal(response.status,201);return {...response.body,scope:{...response.body.scope,provider:'pancake'}};}
  async function pancakePage(){const page=await context.newPage();await page.goto(siteOrigin+paths[0]);return page;}
@@ -98,6 +127,6 @@ try{
  proof.result='PASS';proof.providers=['pancake','meta-ads','hubspot'];proof.receipts=await receiptCount();proof.uniqueCommercialLeads=0;proof.completeness='UNKNOWN';proof.sourceSha=execFileSync('git',['rev-parse','HEAD'],{cwd:product,encoding:'utf8'}).trim();proof.historyIncident='SEND_UNRESOLVED';
  await writeFile(join(root,'verification.json'),JSON.stringify(proof,null,2)+'\n');console.log(JSON.stringify(proof));
 }finally{
- await context?.close().catch(()=>{});await closeServer(proxy).catch(()=>{});await closeServer(site).catch(()=>{});await stopBackend();await db?.end().catch(()=>{});
+ await context?.close().catch(()=>{});await closeServer(proxy).catch(()=>{});await closeServer(site).catch(()=>{});await closeServer(providerApi).catch(()=>{});await stopBackend();await db?.end().catch(()=>{});
  const cleanup=new Client({connectionString:adminUrl.href});try{await cleanup.connect();await cleanup.query('DROP DATABASE IF EXISTS '+fixtureDatabaseName(database)+' WITH (FORCE)');}finally{await cleanup.end();}
 }
