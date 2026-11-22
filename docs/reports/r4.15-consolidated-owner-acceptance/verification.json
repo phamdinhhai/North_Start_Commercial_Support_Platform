@@ -2,20 +2,107 @@
   "release": "R4.15",
   "branch": "release/r415-consolidated-owner-acceptance",
   "base": "7cb21ce9a2b361cb417fd520705d6b7cdd68e5cf",
-  "head": "d7410b108dbe668b2c45d4e485b7abc3db1373e7",
-  "testedSource": "52afb0c",
-  "productTree": "PENDING_FINAL_HEAD",
+  "head": "8aa7d55e7585b66e9d6d579b0e86171322cac130",
+  "testedSource": "d7410b108dbe668b2c45d4e485b7abc3db1373e7",
+  "productTree": "70df244657b61b0b49e3895f4a82e3002796f69b",
   "main": "5d6c20673218f02c0972263126e8654eadee18c9d",
-  "ancestry": {"r414MainDistance": "0 behind / 320 ahead", "milestones": "13/13 ALREADY_IN_ANCESTRY"},
-  "runtime": {"salesOperator": "http://127.0.0.1:51135/v1/operator", "hybridFixture": "http://127.0.0.1:54582", "hybridOperator": "http://127.0.0.1:54567/v1/operator", "salesManifest": "D:/AI-for-Enterprise/r415-private/north-synthetic-pilot-c931fe4908db530c709cbec3d6fc8c40/manifest.json", "hybridManifest": "D:/AI-for-Enterprise/r415-private/hybrid-preview/manifest.json", "syntheticOnly": true, "providerCalls": 0, "providerMutations": 0},
-  "ownerSmoke": {"result": "PASS", "steps": 10, "lead": "DEMO - Studio La Xanh (FABRICATED)", "leadId": "c12430d7-10c0-4304-b35f-5a7c0f0c3e33", "artifact": "D:/AI-for-Enterprise/r415-private/owner-sales-smoke.json"},
-  "verification": {"typecheck": "PASS", "lint": "PASS", "build": "PASS", "safety": "5/5 PASS", "healthReadiness": "HTTP 200", "operator": "HTTP 200", "migrationReadiness": "001-023", "integrationCi": "PASS (31 suites / 166 tests / 0 skipped)", "hybridPackage": "PASS", "focused": "111 passed / 14 skipped (dedicated PG gate covers integration skips)", "fullRunner": "PENDING_FINAL_COMPLETION", "secretScan": "PENDING_FINAL_SCAN"},
-  "priorEvidence": {"r4141Source": "580e499cd55771896b88ffb47adca7689b12c99f", "r4141ProductTree": "0467316f0ccfb9396af948b252dc21f5b1cb66c8", "r4141Lanes": 33, "r4141CombinedE2E": "18 steps / 13 receipts / 0 Leads", "r4141Gates": {"P3": "SEND_UNRESOLVED", "P4": "NOT_TESTED", "P5": "NOT_VERIFIED"}},
-  "gates": {"A": "PENDING_FINAL_RC_REGRESSION", "H": "NOT_RUN_UNPUSHED", "E": "PASS_LOCAL_MV3_AND_RUNTIME", "I": "PASS_LOCAL_FIXTURE_COMBINED_E2E_PRIOR; PERSISTENT_PREVIEW_RUNNING", "S": "PASS_PRIOR_R4141", "R": "CONDITIONAL", "P1": "PASS_PRIOR_BOUNDED_READ", "P2": "PASS_PRIOR_BOUNDED_PAGINATION_UNKNOWN", "P3": "SEND_UNRESOLVED", "P4": "NOT_TESTED", "P5": "NOT_VERIFIED", "B": "CONDITIONAL", "C": "NOT_READY"},
-  "ci": {"r414Baseline": "44966931141 SUCCESS", "r415": "NOT_RUN_UNPUSHED", "pr": null},
+  "ancestry": {
+    "r414MainDistance": "0 behind / 320 ahead",
+    "milestones": "13/13 ALREADY_IN_ANCESTRY"
+  },
+  "runtime": {
+    "salesOperator": "http://127.0.0.1:51135/v1/operator",
+    "hybridFixture": "http://127.0.0.1:54582",
+    "hybridOperator": "http://127.0.0.1:54567/v1/operator",
+    "salesManifest": "D:/AI-for-Enterprise/r415-private/north-synthetic-pilot-c931fe4908db530c709cbec3d6fc8c40/manifest.json",
+    "hybridManifest": "D:/AI-for-Enterprise/r415-private/hybrid-preview/manifest.json",
+    "syntheticOnly": true,
+    "providerCalls": 0,
+    "providerMutations": 0,
+    "finalHead": "8aa7d55e7585b66e9d6d579b0e86171322cac130",
+    "productTree": "70df244657b61b0b49e3895f4a82e3002796f69b"
+  },
+  "ownerSmoke": {
+    "result": "PASS",
+    "steps": 10,
+    "lead": "DEMO - Studio La Xanh (FABRICATED)",
+    "leadId": "c12430d7-10c0-4304-b35f-5a7c0f0c3e33",
+    "artifact": "D:/AI-for-Enterprise/r415-private/owner-sales-smoke.json"
+  },
+  "verification": {
+    "typecheck": "PASS",
+    "lint": "PASS",
+    "build": "PASS",
+    "safety": "5/5 PASS",
+    "healthReadiness": "HTTP 200",
+    "operator": "HTTP 200",
+    "migrationReadiness": "001-023",
+    "integrationCi": "PASS (31 suites / 166 tests / 0 skipped)",
+    "hybridPackage": "PASS",
+    "focused": "111 passed / 14 skipped (dedicated PG gate covers integration skips)",
+    "fullRunner": "PASS (31/31 lanes, 1643 coverage tests, 0 skips)",
+    "secretScan": "PASS (manual fabricated negative-test allowlist only)",
+    "coverageTests": 1643,
+    "coverageFiles": 178,
+    "coverageSkipped": 0,
+    "coverageLines": 90.28,
+    "coverageStatements": 84.78,
+    "coverageBranches": 82.55,
+    "coverageFunctions": 87.98,
+    "fullRunnerManifest": "D:\\AI-for-Enterprise\\r415-private\\north-r47-r415-final-Z4olf3\\results.json",
+    "fullRunnerManifestSha256": "c79bf11d25dbc3d82d06fe242df92cccbe6ea989be59f5cff81a581afed43c2e",
+    "coverageLogSha256": "d34c9b7c4aa4753e8a494fcccacb6b1c73c6056f36d7e15e418820a0789a4172",
+    "hybridE2ELogSha256": "e44057275409e3e863ba872c36c80c4d1447e118293703fe3cfa4593a62ba008",
+    "sourceSha": "d7410b108dbe668b2c45d4e485b7abc3db1373e7",
+    "finalHead": "8aa7d55e7585b66e9d6d579b0e86171322cac130",
+    "productTree": "70df244657b61b0b49e3895f4a82e3002796f69b"
+  },
+  "priorEvidence": {
+    "r4141Source": "580e499cd55771896b88ffb47adca7689b12c99f",
+    "r4141ProductTree": "0467316f0ccfb9396af948b252dc21f5b1cb66c8",
+    "r4141Lanes": 33,
+    "r4141CombinedE2E": "18 steps / 13 receipts / 0 Leads",
+    "r4141Gates": {
+      "P3": "SEND_UNRESOLVED",
+      "P4": "NOT_TESTED",
+      "P5": "NOT_VERIFIED"
+    }
+  },
+  "gates": {
+    "A": "PASS_LOCAL_EXACT_SOURCE",
+    "H": "NOT_RUN_UNPUSHED",
+    "E": "PASS_LOCAL_MV3_AND_RUNTIME",
+    "I": "PASS_LOCAL_THREE_PROVIDER_COMBINED_E2E; PERSISTENT_PREVIEW_RUNNING",
+    "S": "PASS_PRIOR_R4141",
+    "R": "CONDITIONAL",
+    "P1": "PASS_PRIOR_BOUNDED_READ",
+    "P2": "PASS_PRIOR_BOUNDED_PAGINATION_UNKNOWN",
+    "P3": "SEND_UNRESOLVED",
+    "P4": "NOT_TESTED",
+    "P5": "NOT_VERIFIED",
+    "B": "CONDITIONAL",
+    "C": "NOT_READY"
+  },
+  "ci": {
+    "r414Baseline": "44966931141 SUCCESS",
+    "r415": "NOT_RUN_UNPUSHED",
+    "pr": null
+  },
   "releaseApproved": false,
   "merged": false,
   "deployed": false,
   "published": false,
-  "knownLimitations": ["No live provider calls or customer-data admission", "Pancake send unresolved", "AI production runtime absent", "Hosted R4.15 CI pending", "Owner acceptance pending"]
+  "knownLimitations": [
+    "No live provider calls or customer-data admission",
+    "Pancake send unresolved",
+    "AI production runtime absent",
+    "Hosted R4.15 CI pending",
+    "Owner acceptance pending"
+  ],
+  "security": {
+    "secretScan": "PASS",
+    "providerCalls": 0,
+    "providerMutations": 0,
+    "realData": false
+  }
 }

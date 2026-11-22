@@ -12,3 +12,5 @@
 - Preview manifests contain generated secrets and must remain on the local machine. Do not publish them or paste their contents into chat.
 
 No known release-blocking failure remains in the tested synthetic paths. Owner acceptance is still required before merging to `main`.
+
+The final secret scan has a manual allowlist for pre-existing fabricated negative-test sentinels (`eyJ...sig` and `sk-abcdefghijklmnopqrstuvwxyz`); no actual credential value or newly changed secret was found.
