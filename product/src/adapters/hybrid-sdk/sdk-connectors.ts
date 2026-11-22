@@ -1,9 +1,10 @@
+import {withBoundedFixtureRelay} from './bounded-fixture-relay';
 import {Client as HubSpotClient} from '@hubspot/api-client';
 import {FacebookAdsApi} from 'facebook-nodejs-business-sdk';
 
 export interface HubSpotRecord {readonly id:string;readonly properties:Record<string,string|undefined>}
 export interface HubSpotReadPage {readonly records:HubSpotRecord[];readonly nextCursor:string|null;readonly completeness:'UNKNOWN'}
-export interface MetaInsight {readonly accountId:string;readonly dateStart:string;readonly dateStop:string;readonly impressions:number;readonly spend:number;readonly currency:string;readonly timezone:string}
+export interface MetaInsight {readonly accountId:string;readonly campaignId?:string;readonly dateStart:string;readonly dateStop:string;readonly impressions:number;readonly spend:number;readonly currency:string;readonly timezone:string}
 export interface MetaReadPage {readonly records:MetaInsight[];readonly nextCursor:string|null;readonly completeness:'UNKNOWN';readonly timezoneSource:'caller-supplied'}
 
 const validBase = (value:string) => {
@@ -33,12 +34,13 @@ function safeError(error:unknown):never {
 
 /** Official HubSpot SDK, constrained to a local emulator in this acceptance slice. */
 export class HubSpotReadConnector {
-  private readonly client:HubSpotClient;
+  private readonly basePath:string;
+  private readonly accessToken:string;
   constructor(basePath:string, accessToken:string) {
     if (!fixtureToken(accessToken,'hs')) throw new Error('FABRICATED_FIXTURE_TOKEN_REQUIRED');
     // The official SDK's Node transport does not expose redirect:'error'. The base
     // is loopback-pinned and tokens are fabricated-only, so this is emulator-only.
-    this.client = new HubSpotClient({basePath:validBase(basePath), accessToken,numberOfApiCallRetries:0});
+    this.basePath=validBase(basePath);this.accessToken=accessToken;
   }
   async contacts(limit=100, after?:string):Promise<HubSpotRecord[]> {
     if (!Number.isInteger(limit) || limit < 1 || limit > 100) throw new Error('LIMIT_INVALID');
@@ -54,7 +56,7 @@ export class HubSpotReadConnector {
     if(!['contacts','companies','deals'].includes(kind)||!Number.isInteger(limit)||limit<1||limit>100||after!==undefined&&(typeof after!=='string'||after.length>512||/[\x00-\x1f]/u.test(after)))throw new Error('LIMIT_INVALID');
     const props={contacts:['email','firstname','lastname'],companies:['name','domain'],deals:['dealname','dealstage','amount']}[kind];
     let values;
-    try{values=await this.client.crm[kind].basicApi.getPage(limit,after,props);}catch(error){return safeError(error);}
+    try{values=await withBoundedFixtureRelay(this.basePath,basePath=>new HubSpotClient({basePath,accessToken:this.accessToken,numberOfApiCallRetries:0}).crm[kind].basicApi.getPage(limit,after,props));}catch(error){return safeError(error);}
     if(!values||!Array.isArray(values.results))throw new Error('HUBSPOT_SCHEMA_INVALID');
     const cursor=values.paging?.next?.after??null;
     if(cursor!==null&&(typeof cursor!=='string'||cursor.length>512))throw new Error('HUBSPOT_SCHEMA_INVALID');
@@ -82,7 +84,7 @@ export class MetaAdsReadConnector {
   async readPage(dateStart:string,dateStop:string):Promise<MetaReadPage> {
     if (!/^\d{4}-\d{2}-\d{2}$/u.test(dateStart) || !/^\d{4}-\d{2}-\d{2}$/u.test(dateStop) || dateStart > dateStop) throw new Error('DATE_RANGE_INVALID');
     let value:{data?:Array<Record<string,unknown>>;paging?:{cursors?:{after?:unknown}}};
-    try{value=await this.api.call('GET',[this.accountId,'insights'],{fields:'account_id,account_currency,date_start,date_stop,impressions,spend',time_range:JSON.stringify({since:dateStart,until:dateStop})},{},false,this.baseUrl) as typeof value;}catch(error){return safeError(error);}
+    try{value=await withBoundedFixtureRelay(this.baseUrl,baseUrl=>this.api.call('GET',[this.accountId,'insights'],{level:'campaign',fields:'campaign_id,account_id,account_currency,date_start,date_stop,impressions,spend',time_range:JSON.stringify({since:dateStart,until:dateStop})},{},false,baseUrl)) as typeof value;}catch(error){return safeError(error);}
     if (!Array.isArray(value?.data)) throw new Error('META_SCHEMA_INVALID');
     const cursor=value.paging?.cursors?.after??null;
     if(cursor!==null&&(typeof cursor!=='string'||cursor.length>512))throw new Error('META_SCHEMA_INVALID');
@@ -90,7 +92,8 @@ export class MetaAdsReadConnector {
       if(!row||typeof row!=='object'||Array.isArray(row))throw new Error('META_SCHEMA_INVALID');
       if(String(row.account_id)!==this.accountId.slice(4)||row.account_currency!==this.currency)throw new Error('META_SCOPE_MISMATCH');
       if(!/^\d{4}-\d{2}-\d{2}$/u.test(String(row.date_start))||!/^\d{4}-\d{2}-\d{2}$/u.test(String(row.date_stop))||!Number.isSafeInteger(Number(row.impressions))||Number(row.impressions)<0||!Number.isFinite(Number(row.spend))||Number(row.spend)<0)throw new Error('META_SCHEMA_INVALID');
-      return {accountId:this.accountId,dateStart:String(row.date_start),dateStop:String(row.date_stop),impressions:Number(row.impressions),spend:Number(row.spend),currency:this.currency,timezone:this.timezone};
+      if(row.campaign_id!==undefined&&(typeof row.campaign_id!=='string'||!/^\d{1,64}$/u.test(row.campaign_id)))throw new Error('META_SCHEMA_INVALID');
+      return {accountId:this.accountId,...(row.campaign_id?{campaignId:String(row.campaign_id)}:{}),dateStart:String(row.date_start),dateStop:String(row.date_stop),impressions:Number(row.impressions),spend:Number(row.spend),currency:this.currency,timezone:this.timezone};
     });
     return {records,nextCursor:cursor,completeness:'UNKNOWN',timezoneSource:'caller-supplied'};
   }
