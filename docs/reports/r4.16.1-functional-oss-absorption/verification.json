@@ -1,1 +1,2 @@
-﻿{"release":"R4.16.1 functional OSS absorption","conversationApi":"IMPLEMENTED","taskBuckets":"IMPLEMENTED","crmSearch":"IMPLEMENTED","adsAggregation":"IMPLEMENTED","frontendNativeInbox":"IMPLEMENTED","migrationsAdded":0,"providerCalls":0,"providerMutations":0,"p3":"SEND_UNRESOLVED","p4":"NOT_TESTED","p5":"NOT_VERIFIED","ownerAcceptance":"PENDING"}
+﻿{`n  "head":"74940de146bf86a08d179dbb437a24315ba73368","release":"R4.16.1 functional OSS absorption","conversationApi":"IMPLEMENTED","taskBuckets":"IMPLEMENTED","crmSearch":"IMPLEMENTED","adsAggregation":"IMPLEMENTED","frontendNativeInbox":"IMPLEMENTED","migrationsAdded":0,"providerCalls":0,"providerMutations":0,"p3":"SEND_UNRESOLVED","p4":"NOT_TESTED","p5":"NOT_VERIFIED","ownerAcceptance":"PENDING"}
+
