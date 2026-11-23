@@ -62,7 +62,7 @@ export interface SourceEvidence {
 export interface SourceEvidencePageOptions { readonly limit?: number; readonly cursor?: string }
 export interface SourceEvidencePage { readonly items: readonly SourceEvidence[]; readonly nextCursor: string | null }
 export interface SourceConversationMessage { readonly messageId: string | null; readonly conversationId: string; readonly pageId: string | null; readonly observedAt: string; readonly utterance: string | null; readonly speaker: string; readonly receiptId: string; readonly verification: 'UNVERIFIED'; readonly completeness: 'UNKNOWN' }
-export interface SourceConversation { readonly conversationId: string; readonly canonicalId: string; readonly connectionId: string; readonly pageId: string | null; readonly provider: SourceProvider | null; readonly messages: readonly SourceConversationMessage[]; readonly completeness: 'UNKNOWN'; readonly verification: 'UNVERIFIED' }
+export interface SourceConversation { readonly conversationId: string; readonly canonicalId?: string; readonly connectionId?: string; readonly pageId: string | null; readonly provider: SourceProvider | null; readonly messages: readonly SourceConversationMessage[]; readonly completeness: 'UNKNOWN'; readonly verification: 'UNVERIFIED' }
 export interface SourceConversationPage { readonly items: readonly SourceConversation[]; readonly nextCursor: string | null }
 export interface SourceIntegrationStore {
   getConnection?(workspaceId: string, id: string): Promise<SourceConnection | null>;
