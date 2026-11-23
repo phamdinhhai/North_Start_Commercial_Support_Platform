@@ -1,0 +1,20 @@
+import 'reflect-metadata';
+import {beforeAll,afterAll,describe,it,expect,vi} from 'vitest';
+import {Test} from '@nestjs/testing';
+import {FastifyAdapter,type NestFastifyApplication} from '@nestjs/platform-fastify';
+import {ManagerExceptionsController} from './manager-exceptions.controller';
+import {ManagerExceptionsService} from '../application/pilot/manager-exceptions.service';
+import {AUTH_CONTEXT_RESOLVER} from '../ports/auth';
+import {ManagerExceptionsUnavailable} from '../ports/manager-exceptions';
+import {OPERATOR_MANAGER_SCRIPT} from './operator-manager';
+describe('manager exceptions HTTP boundary',()=>{
+ let app:NestFastifyApplication;const scan=vi.fn().mockResolvedValue([]);
+ beforeAll(async()=>{const m=await Test.createTestingModule({controllers:[ManagerExceptionsController],providers:[{provide:ManagerExceptionsService,useValue:new ManagerExceptionsService({scan})},{provide:AUTH_CONTEXT_RESOLVER,useValue:{resolve:({headers}:{headers:Record<string,string>})=>headers.authorization?{workspaceId:'server',userId:'u',role:headers.authorization,isDemo:false}:null}}]}).compile();app=m.createNestApplication<NestFastifyApplication>(new FastifyAdapter(),{logger:false});await app.init();await app.getHttpAdapter().getInstance().ready();});
+ afterAll(async()=>app?.close());
+ const get=(query='',role='manager')=>app.inject({method:'GET',url:'/pilot/manager-exceptions'+query,headers:role?{authorization:role}:{}});
+ it('requires authentication and refuses sales/viewer',async()=>{expect((await get('','')).statusCode).toBe(401);for(const role of ['sales','viewer'])expect((await get('',role)).statusCode).toBe(403);});
+ it('validates classification/bounds/cursor and rejects forged workspace',async()=>{for(const q of ['?classification=pretend','?limit=101','?limit=0','?after=bad','?workspaceId=foreign'])expect((await get(q)).statusCode).toBe(400);});
+ it('defaults real with no-store and server workspace; permits admin',async()=>{for(const role of ['manager','admin']){const r=await get('',role);expect(r.statusCode).toBe(200);expect(r.headers['cache-control']).toBe('no-store');expect(r.json()).toMatchObject({classification:'real',scope:'bounded_page',hasMore:false});}expect(scan).toHaveBeenLastCalledWith({workspaceId:'server',classification:'real',limit:50,after:undefined});});
+ it('returns explicit durable-storage requirement and sanitized unexpected failure',async()=>{scan.mockRejectedValueOnce(new ManagerExceptionsUnavailable());expect((await get()).statusCode).toBe(503);scan.mockRejectedValueOnce(new Error('secret database query'));const r=await get();expect(r.statusCode).toBe(500);expect(r.body).not.toContain('secret');});
+ it('ships a syntactically valid standalone manager asset',()=>{expect(()=>new Function(OPERATOR_MANAGER_SCRIPT)).not.toThrow();expect(OPERATOR_MANAGER_SCRIPT).toContain('textContent');expect(OPERATOR_MANAGER_SCRIPT).not.toContain('innerHTML');});
+});

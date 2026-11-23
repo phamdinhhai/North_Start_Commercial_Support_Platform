@@ -1,0 +1,1 @@
+﻿Three-column read-only fabricated Pancake/Meta/Web threads support search, filter, timeline and context. Evidence mode maps leadId correctly. Outbound is disabled. Mobile 390px has no horizontal overflow.

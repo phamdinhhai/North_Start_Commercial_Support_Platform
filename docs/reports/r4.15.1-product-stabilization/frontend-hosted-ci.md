@@ -1,0 +1,1 @@
+﻿Added a dedicated frontend GitHub job: locked npm ci, audit high, typecheck, contract tests, build and Vite /v1/app smoke. Existing product and browser jobs remain. Hosted result is pending for the R4.15.1 SHA.

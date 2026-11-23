@@ -1,30 +1,15 @@
 import { Injectable } from '@nestjs/common';
 import type { QueryResultRow } from 'pg';
 import { PostgresService } from '../postgres/postgres.service';
+import type { ProductEvent, RecordEventInput, TelemetryServicePort } from '../../ports/telemetry';
+import { LEARNING_EVENT_TYPES } from '../../ports/telemetry';
+export type { ProductEvent, RecordEventInput } from '../../ports/telemetry';
 
 /**
  * ProductEvent telemetry (R-21/R-22, C-07/C-08) — tagged releaseVersion + flag exposure.
  * Feedback (R-23) là bảng riêng; không gộp vào payload.
  * Persist only bounded telemetry metadata; sanitize payload and validate all tags at this boundary (QA-36/38).
  */
-export interface ProductEvent {
-  readonly id: string;
-  readonly workspaceId: string;
-  readonly eventType: string;
-  readonly payload: Record<string, unknown>;
-  readonly releaseVersion: string;
-  readonly flagExposure: Record<string, string>;
-  readonly createdAt: string;
-}
-
-export interface RecordEventInput {
-  workspaceId: string;
-  eventType: string;
-  payload?: Record<string, unknown>;
-  releaseVersion?: string;
-  flagExposure?: Record<string, string>;
-}
-
 interface ProductEventDbRow extends QueryResultRow {
   id: string;
   workspace_id: string;
@@ -50,6 +35,7 @@ const SAFE_KEY = /^[a-z][a-z0-9_]{0,63}$/i;
 const PAYLOAD_KEYS = new Set(['nested', 'safe', 'details']);
 // Known product event/flag identifiers only. New identifiers require an explicit privacy review.
 const EVENT_TYPES = new Set(['lead_viewed']);
+// Internal learning surface only; direct legacy telemetry accepts lead_viewed alone.
 const FLAG_VARIANTS: Readonly<Record<string, ReadonlySet<string>>> = {
   pancake_sync: new Set(['on', 'off']),
 };
@@ -144,14 +130,25 @@ function validateFlags(flags: unknown): Record<string, string> {
 }
 
 @Injectable()
-export class TelemetryService {
+export class TelemetryService implements TelemetryServicePort {
   constructor(private readonly db: PostgresService) {}
 
   async record(input: RecordEventInput): Promise<ProductEvent> {
+    return this.persist(input, EVENT_TYPES);
+  }
+
+  async recordLearning(input: RecordEventInput): Promise<ProductEvent> {
+    // This internal path receives a server-resolved membership workspace, never a caller-selected tag.
+    return this.persist(input, LEARNING_EVENT_TYPES, /^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$/, 128);
+  }
+
+  private async persist(input: RecordEventInput, approvedTypes: ReadonlySet<string>, workspacePattern = WORKSPACE_ID, workspaceBytes = MAX_TAG_BYTES): Promise<ProductEvent> {
     if (!input.workspaceId) throw new Error('workspaceId is required');
-    if (!validTag(input.workspaceId, WORKSPACE_ID, MAX_TAG_BYTES)) throw new Error('workspaceId is invalid');
+    if (!validTag(input.workspaceId, workspacePattern, workspaceBytes)) throw new Error('workspaceId is invalid');
     if (!input.eventType) throw new Error('eventType is required');
-    if (!validTag(input.eventType, SAFE_KEY, MAX_TAG_BYTES) || !EVENT_TYPES.has(input.eventType)) {
+    // Exact reviewed vocabulary authorizes event names such as evidence_viewed; the sensitive-key
+    // filter applies to payloads and arbitrary tags, not these fixed identifiers.
+    if (!SAFE_KEY.test(input.eventType) || !approvedTypes.has(input.eventType)) {
       throw new Error('eventType is not approved');
     }
     const releaseVersion = input.releaseVersion ?? process.env.npm_package_version ?? '0.1.0';

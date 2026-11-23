@@ -1,0 +1,15 @@
+# R4.10 baseline checkpoint
+
+Inspected2026-11-20. Baseline branch feat/r4-lvp-closure local/remote exact9ffae600447950c9edcec2d823153aa6fe202684; hosted run75 /44642189786 completed SUCCESS, product and browser jobs. No commits after9ffae60 found. OpenPR2 unified-adaptive-foundation andPR1 decision-demand-execution are separate; no merge attempted.
+
+Isolated integration worktree D:/AI-for-Enterprise/ns-r410-foundation, branch feat/multi-source-integration-foundation. Six specialist roles scheduled in waves under three concurrent child slots, separate writer worktrees. Existing ns-r4-gaps has only the supplied untracked catalog; original file remains unmodified/uncommitted. Canonical invariants and ADR005..009 reviewed; CE-1/ID-1/ID-2 remain open. No customer identity merge, no commercial outcome inference, no provider network writes. Existing pilot launcher, secrets, manifest, database, ports and configuration are outside phase ownership and must not be used for these tests.
+
+Catalog input (read-only): D:/AI-for-Enterprise/ns-r4-gaps/docs/north_start_third_party_research_catalog_2026-11-19.md. SHA256:74d3e73c873fbcfb81d05453109b5ee7c041bcb6c6a0319f3a6c5bbbeeb28e92. Catalog is a research candidate list, not source proof or connector approval.
+
+Locked npm ci on new worktree installed421packages, audited422; five moderate advisories, no lockfile change. Fresh18lane baseline validation is running on9ffae60 with a newly initialized OS-temp PostgreSQL17 cluster, separate generated DBs/ports. Final exact commands/results are recorded after completion. Historical1209tests/112PG/91.98% are reference only until independently rerun.
+
+Confirmed seams: existing IntegrationIntake is metadata-only research receipt upload, not content ingestion; CommercialEnvelope provides keyed immutable content; PgPilotStore supports existing lead UI; adaptive ledger/continuity is in-memory research, not durable cross-source business identity. Shared foundation will preserve these roles and add only two synthetic message paths with explicit origin/native identities. Conversation identity is not Lead identity; equal text never merges records. New content pipeline remains defaultOFF and synthetic-only.
+
+GateA baselinePASS; GateB CONDITIONAL (operator confirmed, Sales study organization/observations unapproved); GateC NOT READY FOR REAL CUSTOMER DATA. No R4.10 push authorized.
+
+Final authoritative baseline: detached worktree D:/AI-for-Enterprise/ns-r410-baseline-verification stayed unchanged at9ffae60 for the entire18lane run; all18PASS,1209Vitest tests/112PG, zero skips, linecoverage91.98%. Results and loghashes in baseline-verification.json, artifacts north-r47-r410-baseline-isolated-tVOewM. Own validation PostgreSQL stopped. An earlier18lane pass in the evolving integration worktree was superseded: new source-port files appeared while it ran, so its HEAD-only result was insufficient to certify an exact baseline tree. Those original local artifacts remain north-r47-r410-baseline-db5OlW and are not the accepted baseline evidence.

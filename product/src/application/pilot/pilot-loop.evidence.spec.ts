@@ -137,7 +137,7 @@ describe('P1-4 — evidence must exist, be in workspace scope and relate to the 
     const done = await svc.completeWork(state.lead.id, {
       workId,
       actor: 'marketing-lan',
-      evidence: 'declared',
+      evidence: 'declared', declaration: 'Operator confirmed completion', confirmed: true,
       evidenceRef: envelopeId,
       occurredAt: '2026-10-09T15:05:00+07:00',
       reason: 'nhân viên báo đã gửi',

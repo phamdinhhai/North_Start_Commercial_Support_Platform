@@ -1,0 +1,24 @@
+{
+  "manifest_version": 3,
+  "name": "North Star Research Companion",
+  "version": "0.3.0",
+  "description": "Experimental scoped metadata observer; optional consented upload to an enrolled HTTPS backend.",
+  "permissions": [
+    "activeTab",
+    "debugger",
+    "storage"
+  ],
+  "background": {
+    "service_worker": "worker.mjs",
+    "type": "module"
+  },
+  "action": {
+    "default_popup": "popup.html"
+  },
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'none'"
+  },
+  "optional_host_permissions": [
+    "https://*/*"
+  ]
+}

@@ -1,0 +1,1730 @@
+{
+  "schema": "north-star.github-research-matrix.v1",
+  "registry_status": "working_non_canonical",
+  "as_of": "2026-11-18",
+  "retrieval_date": "2026-11-18",
+  "authority": "Research consolidation only. docs/canonical/** remains the normative source; this file cannot resolve open decisions or approve production use.",
+  "evidence_levels": [
+    "README_CLAIM",
+    "SOURCE_INSPECTED",
+    "DOCUMENTED_API",
+    "SYNTHETIC_TESTED",
+    "CONTRACT_TESTED",
+    "LIVE_VERIFIED",
+    "RELEASE_APPROVED"
+  ],
+  "rules": [
+    "research_recommendations (verdict ADOPT/ADAPT/REFERENCE/REJECT) are NOT dependency approvals.",
+    "approved_dependencies mirrors product/package.json exactly; an entry may set approved_dependency=true only if npm_package is listed there.",
+    "pinned_sha is 40-hex or UNVERIFIED. INSPECTION_PIN = commit whose bytes were inspected (existence re-verified via GitHub API 2026-11-18). LS_REMOTE_HEAD_SNAPSHOT = default-branch HEAD observed via git ls-remote 2026-11-18, nothing inspected.",
+    "Forks/community bridges are never official SDKs; official_provider_repo=true only for repositories owned by the provider organisation."
+  ],
+  "approved_dependencies": {
+    "source": "product/package.json (R4.14 branch)",
+    "packages": [
+      {
+        "name": "@hubspot/api-client",
+        "range": "14.1.3",
+        "scope": "dependency"
+      },
+      {
+        "name": "@nestjs/cli",
+        "range": "^11.0.0",
+        "scope": "devDependency"
+      },
+      {
+        "name": "@nestjs/common",
+        "range": "^11.0.0",
+        "scope": "dependency"
+      },
+      {
+        "name": "@nestjs/core",
+        "range": "^11.0.0",
+        "scope": "dependency"
+      },
+      {
+        "name": "@nestjs/platform-fastify",
+        "range": "^11.0.0",
+        "scope": "dependency"
+      },
+      {
+        "name": "@nestjs/schematics",
+        "range": "^11.0.0",
+        "scope": "devDependency"
+      },
+      {
+        "name": "@nestjs/testing",
+        "range": "11.2.5",
+        "scope": "devDependency"
+      },
+      {
+        "name": "@playwright/test",
+        "range": "^1.56.1",
+        "scope": "devDependency"
+      },
+      {
+        "name": "@types/node",
+        "range": "^22.0.0",
+        "scope": "devDependency"
+      },
+      {
+        "name": "@types/pg",
+        "range": "^8.23.1",
+        "scope": "devDependency"
+      },
+      {
+        "name": "@typescript-eslint/parser",
+        "range": "8.72.2",
+        "scope": "devDependency"
+      },
+      {
+        "name": "@vitest/coverage-v8",
+        "range": "5.1.0",
+        "scope": "devDependency"
+      },
+      {
+        "name": "class-transformer",
+        "range": "^0.5.1",
+        "scope": "dependency"
+      },
+      {
+        "name": "class-validator",
+        "range": "^0.14.0",
+        "scope": "dependency"
+      },
+      {
+        "name": "eslint",
+        "range": "9.39.1",
+        "scope": "devDependency"
+      },
+      {
+        "name": "facebook-nodejs-business-sdk",
+        "range": "27.0.0",
+        "scope": "dependency"
+      },
+      {
+        "name": "jose",
+        "range": "6.2.17",
+        "scope": "dependency"
+      },
+      {
+        "name": "pg",
+        "range": "^8.23.1",
+        "scope": "dependency"
+      },
+      {
+        "name": "reflect-metadata",
+        "range": "^0.2.0",
+        "scope": "dependency"
+      },
+      {
+        "name": "rxjs",
+        "range": "^7.8.0",
+        "scope": "dependency"
+      },
+      {
+        "name": "typescript",
+        "range": "^5.7.0",
+        "scope": "devDependency"
+      },
+      {
+        "name": "vitest",
+        "range": "5.1.0",
+        "scope": "devDependency"
+      }
+    ],
+    "integration_branch_additions_pending_merge": []
+  },
+  "research_recommendations": [
+    {
+      "id": "gh.morluto.rea",
+      "url": "https://github.com/morluto/rea",
+      "canonical_url": "https://github.com/morluto/rea",
+      "owner": "morluto",
+      "repo": "rea",
+      "official_provider_repo": false,
+      "pinned_sha": "54e3918d1c09991970aadf8f0eb1ab6bcf6f83fb",
+      "pin_kind": "INSPECTION_PIN",
+      "sha_verification": "GITHUB_API_COMMIT_LOOKUP_2026-11-18",
+      "pinned_commit_date": "2026-11-17T09:25:07Z",
+      "current_head_2026_11_18": "aac23cb4b1097a23ece047e555635e82e6633a4f",
+      "license": "MIT (LICENSE file inspected; third-party notices separate)",
+      "github_license_spdx": "MIT",
+      "archived": false,
+      "pushed_at": "2026-11-18T02:33:03Z",
+      "inspected_paths": [
+        "LICENSE",
+        "package.json",
+        ".github/workflows/ci.yml",
+        "src/composition/webNetworkCaptures.ts",
+        "src/composition/browserScenario.ts",
+        "src/domain/javascript/javascriptApplicationAnalysis.ts",
+        "src/domain/webNetworkCapture.ts"
+      ],
+      "implemented_capability": "Reverse-engineering evidence instrument (HAR/SAZ/qlog/mitmproxy adapters, Playwright browser scenarios, JS bundle analysis)",
+      "verdict": "REFERENCE",
+      "verdict_reason": "Research-workstation evidence instrument only (conditional use behind docs/research boundary). Not a connector, subscription runtime, authorization layer or product dependency.",
+      "evidence_level": "SOURCE_INSPECTED",
+      "artifact_refs": [
+        "docs/reports/unified-execution-2026-11-16/protocol-evidence.json",
+        "docs/reports/unified-execution-2026-11-16/protocol-intelligence.md",
+        "untracked-primary-worktree:docs/research/rea-protocol-intelligence-2026-11-17/README.md"
+      ],
+      "approved_dependency": false
+    },
+    {
+      "id": "gh.mautrix.meta",
+      "url": "https://github.com/mautrix/meta",
+      "canonical_url": "https://github.com/mautrix/meta",
+      "owner": "mautrix",
+      "repo": "meta",
+      "official_provider_repo": false,
+      "pinned_sha": "f806b8053b2dbf212ae6622e730441c499f767bd",
+      "pin_kind": "INSPECTION_PIN",
+      "sha_verification": "GITHUB_API_COMMIT_LOOKUP_2026-11-18",
+      "pinned_commit_date": "2026-11-17T00:40:37Z",
+      "current_head_2026_11_18": "cb820ddc00e26f8282b6f9caa79777c27bc03bec",
+      "license": "AGPL-3.0 plus named exceptions (LICENSE + LICENSE.exceptions inspected)",
+      "github_license_spdx": "AGPL-3.0",
+      "archived": false,
+      "pushed_at": "2026-11-17T15:38:09Z",
+      "inspected_paths": [
+        "LICENSE",
+        "LICENSE.exceptions",
+        "pkg/messagix/client.go",
+        "pkg/messagix/socket.go",
+        "pkg/messagix/endpoints/facebook.go",
+        "pkg/messagix/httpclient/graphql.go",
+        "pkg/messagix/graphql/docs.go"
+      ],
+      "implemented_capability": "Meta Messenger/Instagram PERSONAL-account private protocol bridge (current DGW /ws/lightspeed + browser GraphQL)",
+      "verdict": "REFERENCE",
+      "verdict_reason": "Private-protocol reference only. AGPL-3.0 with Beeper/Element-specific exceptions that do not extend to this platform. Observed internal protocol is not a licensed API; never a production ingestion path.",
+      "evidence_level": "SOURCE_INSPECTED",
+      "artifact_refs": [
+        "docs/reports/unified-execution-2026-11-16/protocol-evidence.json",
+        "docs/reports/unified-execution-2026-11-16/protocol-intelligence.md"
+      ],
+      "approved_dependency": false,
+      "prior_pins": [
+        {
+          "sha": "d32c6dcf9cec27edb2bdbb525a7b04abfc264737",
+          "tag": "v0.5.3",
+          "role": "historical MQTT /ls_req /ls_resp revision, SOURCE_INSPECTED (topics.go, events.go, client.go)",
+          "verification": "GITHUB_API_COMMIT_LOOKUP"
+        },
+        {
+          "sha": "c032c9fbbf79c17e389f37c3e4ee0134025f00ec",
+          "role": "2026-11-15 registry discovery-only pin (no source read); superseded by f806b805 inspection",
+          "verification": "GITHUB_API_COMMIT_LOOKUP"
+        }
+      ]
+    },
+    {
+      "id": "gh.isaackogan.tiktoklive",
+      "url": "https://github.com/isaackogan/TikTokLive",
+      "canonical_url": "https://github.com/isaackogan/TikTokLive",
+      "owner": "isaackogan",
+      "repo": "TikTokLive",
+      "official_provider_repo": false,
+      "pinned_sha": "4158e6a0a55ee1dabb9a8495ae86ec9e4116c42e",
+      "pin_kind": "INSPECTION_PIN",
+      "sha_verification": "GITHUB_API_COMMIT_LOOKUP_2026-11-18",
+      "pinned_commit_date": "2026-10-20T17:58:04Z",
+      "current_head_2026_11_18": "4158e6a0a55ee1dabb9a8495ae86ec9e4116c42e",
+      "license": "AGPL-3.0",
+      "github_license_spdx": "AGPL-3.0",
+      "archived": false,
+      "pushed_at": "2026-10-20T17:58:09Z",
+      "inspected_paths": [
+        "LICENSE",
+        "TikTokLive/client/client.py",
+        "TikTokLive/client/ws/ws_client.py",
+        "TikTokLive/client/web/routes/fetch_signed_websocket.py"
+      ],
+      "implemented_capability": "TikTok LIVE Webcast (public live-room chat/gifts) community client, Python",
+      "verdict": "REJECT",
+      "verdict_reason": "TikTok LIVE only; reverse-engineered signed WebSocket via third-party signer; AGPL-3.0; ToS-fragile. Reference for fixture design only; reject as runtime dependency. Not TikTok Business/Shop/Ads.",
+      "evidence_level": "SOURCE_INSPECTED",
+      "artifact_refs": [
+        "docs/reports/unified-execution-2026-11-16/protocol-evidence.json",
+        "untracked-primary-worktree:docs/research/ads-platforms-2026-11-17/tiktok.md"
+      ],
+      "approved_dependency": false
+    },
+    {
+      "id": "gh.zerodytrash.tiktok-live-connector",
+      "url": "https://github.com/zerodytrash/TikTok-Live-Connector",
+      "canonical_url": "https://github.com/zerodytrash/TikTok-Live-Connector",
+      "owner": "zerodytrash",
+      "repo": "TikTok-Live-Connector",
+      "official_provider_repo": false,
+      "pinned_sha": "58c8d5a5806dc4fc6633458cf820be324fc527c6",
+      "pin_kind": "INSPECTION_PIN",
+      "sha_verification": "GITHUB_API_COMMIT_LOOKUP_2026-11-18",
+      "pinned_commit_date": "2026-11-11T18:56:14Z",
+      "current_head_2026_11_18": "58c8d5a5806dc4fc6633458cf820be324fc527c6",
+      "license": "AGPL-3.0",
+      "github_license_spdx": "AGPL-3.0",
+      "archived": false,
+      "pushed_at": "2026-11-11T18:56:15Z",
+      "inspected_paths": [
+        "LICENSE",
+        "src/lib/client/index.ts",
+        "src/lib/ws/lib/ws-client.ts",
+        "src/lib/ws/lib/proto-utils.ts",
+        "src/lib/web/routes/euler/fetch-signed-websocket-euler.ts"
+      ],
+      "implemented_capability": "TikTok LIVE Webcast community client, Node/TypeScript",
+      "verdict": "REJECT",
+      "verdict_reason": "Same boundary as TikTokLive: LIVE-only private protocol, external signing service, AGPL-3.0. Reference for decoder/ack fixture design only.",
+      "evidence_level": "SOURCE_INSPECTED",
+      "artifact_refs": [
+        "docs/reports/unified-execution-2026-11-16/protocol-evidence.json"
+      ],
+      "approved_dependency": false,
+      "owner_case_note": "Canonical owner is lowercase 'zerodytrash'; 2026-11-15 registry used 'Zerodytrash'."
+    },
+    {
+      "id": "gh.meta.facebook-nodejs-business-sdk",
+      "url": "https://github.com/facebook/facebook-nodejs-business-sdk",
+      "canonical_url": "https://github.com/meta/facebook-nodejs-business-sdk",
+      "owner": "facebook",
+      "repo": "facebook-nodejs-business-sdk",
+      "official_provider_repo": true,
+      "pinned_sha": "246c937eb5c1272ed743db41a944900bee449be9",
+      "pin_kind": "INSPECTION_PIN",
+      "sha_verification": "GITHUB_API_COMMIT_LOOKUP_2026-11-18",
+      "pinned_commit_date": "2026-11-04T04:56:24Z",
+      "current_head_2026_11_18": "246c937eb5c1272ed743db41a944900bee449be9",
+      "license": "Custom Meta Platform license (LICENSE inspected 2026-11-18); GitHub SPDX NOASSERTION; NOT MIT",
+      "github_license_spdx": "NOASSERTION",
+      "archived": false,
+      "pushed_at": "2026-11-04T05:28:23Z",
+      "inspected_paths": [
+        "LICENSE",
+        "src/api.js",
+        "src/objects/serverside/"
+      ],
+      "implemented_capability": "Official Meta Marketing API + Conversions API (src/objects/serverside) Node SDK",
+      "verdict": "REFERENCE",
+      "verdict_reason": "Official SDK and TypeScript/Node fit; candidate isolated adapter dependency for Marketing Insights reads and CAPI after provider spike. Custom Meta license (use only with Facebook services). Not approved (absent from product/package.json).",
+      "evidence_level": "SOURCE_INSPECTED",
+      "artifact_refs": [
+        "docs/reports/unified-execution-2026-11-16/protocol-evidence.json",
+        "docs/research/registries/reusable-engineering-assets.json"
+      ],
+      "approved_dependency": false,
+      "redirect_note": "Repository now resolves to meta/facebook-nodejs-business-sdk (GitHub redirect verified 2026-11-18)."
+    },
+    {
+      "id": "gh.meta.facebook-python-business-sdk",
+      "url": "https://github.com/facebook/facebook-python-business-sdk",
+      "canonical_url": "https://github.com/meta/facebook-python-business-sdk",
+      "owner": "facebook",
+      "repo": "facebook-python-business-sdk",
+      "official_provider_repo": true,
+      "pinned_sha": "b08e5c1d36a2adad3c4ede6578654c8eaca5f225",
+      "pin_kind": "INSPECTION_PIN",
+      "sha_verification": "GITHUB_API_COMMIT_LOOKUP_2026-11-18",
+      "pinned_commit_date": "2026-11-05T18:58:54Z",
+      "current_head_2026_11_18": "b08e5c1d36a2adad3c4ede6578654c8eaca5f225",
+      "license": "Custom Meta Platform license; GitHub SPDX NOASSERTION",
+      "github_license_spdx": "NOASSERTION",
+      "archived": false,
+      "pushed_at": "2026-11-05T19:19:02Z",
+      "inspected_paths": [
+        "LICENSE",
+        "facebook_business/adobjects/adaccount.py",
+        "facebook_business/api.py",
+        "facebook_business/test/integration_adaccount.py"
+      ],
+      "implemented_capability": "Official Meta Marketing API Python SDK (AdAccount insights)",
+      "verdict": "REFERENCE",
+      "verdict_reason": "Reference contract for Insights parameters and tests; Python runtime does not fit the TypeScript monolith. Custom Meta license.",
+      "evidence_level": "SOURCE_INSPECTED",
+      "artifact_refs": [
+        "docs/reports/unified-execution-2026-11-16/ads-source-registry.json",
+        "docs/reports/unified-execution-2026-11-16/ads-capabilities.md"
+      ],
+      "approved_dependency": false,
+      "redirect_note": "Repository now resolves to meta/facebook-python-business-sdk."
+    },
+    {
+      "id": "gh.tiktok.business-api-sdk",
+      "url": "https://github.com/tiktok/tiktok-business-api-sdk",
+      "canonical_url": "https://github.com/tiktok/tiktok-business-api-sdk",
+      "owner": "tiktok",
+      "repo": "tiktok-business-api-sdk",
+      "official_provider_repo": true,
+      "pinned_sha": "f809c396520df2d7b201a9ccc5378d822b728ed3",
+      "pin_kind": "INSPECTION_PIN",
+      "sha_verification": "GITHUB_API_COMMIT_LOOKUP_2026-11-18",
+      "pinned_commit_date": "2026-02-27T22:32:37Z",
+      "current_head_2026_11_18": "f809c396520df2d7b201a9ccc5378d822b728ed3",
+      "license": "MIT (LICENSE.md re-read 2026-11-18: \"MIT License, Copyright 2023 TikTok Pte. Ltd.\")",
+      "github_license_spdx": "MIT",
+      "archived": false,
+      "pushed_at": "2026-03-09T06:18:55Z",
+      "inspected_paths": [
+        "LICENSE.md",
+        "js_sdk/src/ApiClient.js",
+        "python_sdk/business_api_client/api/reporting_api.py",
+        "python_sdk/business_api_client/api/authentication_api.py",
+        "python_sdk/business_api_client/api/campaign_creation_api.py"
+      ],
+      "implemented_capability": "Official TikTok API for Business SDK (Marketing reporting, OAuth, campaign APIs; generated)",
+      "verdict": "REFERENCE",
+      "verdict_reason": "Official generated SDK; reference for v1.3 reporting/auth shapes. Current docs expose v2.0 reporting; pin endpoint versions explicitly. No Business Messaging methods found in the pinned SDK search.",
+      "evidence_level": "SOURCE_INSPECTED",
+      "artifact_refs": [
+        "docs/reports/unified-execution-2026-11-16/ads-source-registry.json",
+        "docs/reports/unified-execution-2026-11-16/protocol-evidence.json"
+      ],
+      "approved_dependency": false
+    },
+    {
+      "id": "gh.googleads.google-ads-python",
+      "url": "https://github.com/googleads/google-ads-python",
+      "canonical_url": "https://github.com/googleads/google-ads-python",
+      "owner": "googleads",
+      "repo": "google-ads-python",
+      "official_provider_repo": true,
+      "pinned_sha": "f253b400dc5924b731fcb42dbcd99e485200581e",
+      "pin_kind": "INSPECTION_PIN",
+      "sha_verification": "GITHUB_API_COMMIT_LOOKUP_2026-11-18",
+      "pinned_commit_date": "2026-11-11T20:09:44Z",
+      "current_head_2026_11_18": "f253b400dc5924b731fcb42dbcd99e485200581e",
+      "license": "Apache-2.0",
+      "github_license_spdx": "Apache-2.0",
+      "archived": false,
+      "pushed_at": "2026-11-11T23:18:08Z",
+      "inspected_paths": [
+        "LICENSE",
+        "google/ads/googleads/client.py",
+        "tests/client_test.py",
+        "examples/basic_operations/get_campaigns.py"
+      ],
+      "implemented_capability": "Official Google Ads API client (gRPC + REST transports)",
+      "verdict": "REFERENCE",
+      "verdict_reason": "Reference for GAQL reporting and client configuration; no first-party Node Ads client exists, so a thin owned REST adapter or sidecar remains a PH4 decision.",
+      "evidence_level": "SOURCE_INSPECTED",
+      "artifact_refs": [
+        "docs/reports/unified-execution-2026-11-16/ads-source-registry.json"
+      ],
+      "approved_dependency": false
+    },
+    {
+      "id": "gh.googleads.google-ads-mcp",
+      "url": "https://github.com/googleads/google-ads-mcp",
+      "canonical_url": "https://github.com/googleads/google-ads-mcp",
+      "owner": "googleads",
+      "repo": "google-ads-mcp",
+      "official_provider_repo": true,
+      "pinned_sha": "b2b5d54616e4fbb410df9b4116319e1ef22f75fa",
+      "pin_kind": "INSPECTION_PIN",
+      "sha_verification": "GITHUB_API_COMMIT_LOOKUP_2026-11-18",
+      "pinned_commit_date": "2026-11-16T16:49:26Z",
+      "current_head_2026_11_18": "44ca7770519362c8f334875477e1ceb499f8d2dd",
+      "license": "Apache-2.0",
+      "github_license_spdx": "Apache-2.0",
+      "archived": false,
+      "pushed_at": "2026-11-17T15:02:49Z",
+      "inspected_paths": [
+        "LICENSE",
+        "ads_mcp/propose_and_confirm.py",
+        "ads_mcp/audit.py",
+        "ads_mcp/tools/core.py",
+        "ads_mcp/tools/search.py",
+        "tests/propose_and_confirm_test.py"
+      ],
+      "implemented_capability": "Official Google Ads MCP server (search, list_accessible_customers, propose_and_confirm, audit)",
+      "verdict": "ADAPT",
+      "verdict_reason": "ADAPT the propose-and-confirm checksum + audit redaction pattern into a server-owned, expiring, single-use human-approved proposal. Do not run the server or enable mutation tools.",
+      "evidence_level": "SOURCE_INSPECTED",
+      "artifact_refs": [
+        "docs/reports/unified-execution-2026-11-16/ads-source-registry.json",
+        "docs/reports/unified-execution-2026-11-16/ads-capabilities.md"
+      ],
+      "approved_dependency": false
+    },
+    {
+      "id": "gh.google.skills",
+      "url": "https://github.com/google/skills",
+      "canonical_url": "https://github.com/google/skills",
+      "owner": "google",
+      "repo": "skills",
+      "official_provider_repo": true,
+      "pinned_sha": "67c4dbc8ff6313ef117d938e53bb21315fc281ae",
+      "pin_kind": "INSPECTION_PIN",
+      "sha_verification": "GITHUB_API_COMMIT_LOOKUP_2026-11-18",
+      "pinned_commit_date": "2026-11-13T17:51:25Z",
+      "current_head_2026_11_18": "739e294750207dcdb90e2a1b74c7517411a974d6",
+      "license": "Apache-2.0 (GitHub SPDX)",
+      "github_license_spdx": "Apache-2.0",
+      "archived": false,
+      "pushed_at": "2026-11-17T22:48:55Z",
+      "inspected_paths": [
+        "skills/ads/ (directory listing re-verified at pin 2026-11-18)"
+      ],
+      "implemented_capability": "Official Google agent skills incl. skills/ads/data-manager-api-{setup,event-ingestion,audience-ingestion}",
+      "verdict": "REFERENCE",
+      "verdict_reason": "Official Google (not Anthropic) skills; documentation/agent-skill reference for Google Data Manager API. Never executed or installed.",
+      "evidence_level": "SOURCE_INSPECTED",
+      "artifact_refs": [
+        "docs/research/registries/evidence-capability-register.json",
+        "https://github.com/google/skills/tree/67c4dbc8ff6313ef117d938e53bb21315fc281ae/skills/ads"
+      ],
+      "approved_dependency": false
+    },
+    {
+      "id": "gh.aiecos.social-crm",
+      "url": "https://github.com/aiecosvietnam/aiecos-social-crm",
+      "canonical_url": "https://github.com/aiecosvietnam/aiecos-social-crm",
+      "owner": "aiecosvietnam",
+      "repo": "aiecos-social-crm",
+      "official_provider_repo": false,
+      "pinned_sha": "dba1bdb09dd8b65618fe1ce86153b371075099bb",
+      "pin_kind": "INSPECTION_PIN",
+      "sha_verification": "GITHUB_API_COMMIT_LOOKUP_2026-11-18",
+      "pinned_commit_date": "2026-05-25T09:46:22Z",
+      "current_head_2026_11_18": "dba1bdb09dd8b65618fe1ce86153b371075099bb",
+      "license": "MIT",
+      "github_license_spdx": "MIT",
+      "archived": false,
+      "pushed_at": "2026-05-25T09:46:24Z",
+      "inspected_paths": [
+        "chrome-extension/content.js",
+        "chrome-extension/background.js",
+        "chrome-extension/manifest.json",
+        ".github/workflows/ci.yml",
+        "LICENSE"
+      ],
+      "implemented_capability": "Vietnam social CRM Chrome extension scraping Pancake DOM",
+      "verdict": "REJECT",
+      "verdict_reason": "REFERENCE sync-status/dedup UX only; REJECT production browser scraping (browser session access is not provider extraction permission).",
+      "evidence_level": "SOURCE_INSPECTED",
+      "artifact_refs": [
+        "docs/reports/unified-execution-2026-11-16/vietnam-source-registry.json",
+        "docs/research/adaptive-integration-2026-11-14/source-ledger.json"
+      ],
+      "approved_dependency": false
+    },
+    {
+      "id": "gh.nguyennguyenit.sapo-mcp",
+      "url": "https://github.com/nguyennguyenit/Sapo-MCP",
+      "canonical_url": "https://github.com/nguyennguyenit/Sapo-MCP",
+      "owner": "nguyennguyenit",
+      "repo": "Sapo-MCP",
+      "official_provider_repo": false,
+      "pinned_sha": "65a7af8c3b1d5fd2702d834d17fb848a9e239da5",
+      "pin_kind": "INSPECTION_PIN",
+      "sha_verification": "GITHUB_API_COMMIT_LOOKUP_2026-11-18",
+      "pinned_commit_date": "2026-04-30T19:50:06Z",
+      "current_head_2026_11_18": "65a7af8c3b1d5fd2702d834d17fb848a9e239da5",
+      "license": "MIT",
+      "github_license_spdx": "MIT",
+      "archived": false,
+      "pushed_at": "2026-04-30T19:50:36Z",
+      "inspected_paths": [
+        "src/guards.ts",
+        "src/client/http.ts",
+        "tests/guards.test.ts",
+        "tests/client/http.test.ts",
+        ".github/workflows/test.yml"
+      ],
+      "implemented_capability": "Sapo Admin API MCP (single-shop private app)",
+      "verdict": "ADAPT",
+      "verdict_reason": "ADAPT default-off capability registration and read-client retry patterns; retried POST without idempotency key is a duplicate-effect risk; single-shop secret is not SaaS OAuth.",
+      "evidence_level": "SOURCE_INSPECTED",
+      "artifact_refs": [
+        "docs/reports/unified-execution-2026-11-16/vietnam-source-registry.json"
+      ],
+      "approved_dependency": false
+    },
+    {
+      "id": "gh.diendh.zca-bridge",
+      "url": "https://github.com/diendh/zca-bridge",
+      "canonical_url": "https://github.com/diendh/zca-bridge",
+      "owner": "diendh",
+      "repo": "zca-bridge",
+      "official_provider_repo": false,
+      "pinned_sha": "1d7fd5946711ab44ef4427561c872ae0ae7e2248",
+      "pin_kind": "INSPECTION_PIN",
+      "sha_verification": "GITHUB_API_COMMIT_LOOKUP_2026-11-18",
+      "pinned_commit_date": "2026-09-23T15:17:21Z",
+      "current_head_2026_11_18": "1d7fd5946711ab44ef4427561c872ae0ae7e2248",
+      "license": "Apache-2.0",
+      "github_license_spdx": "Apache-2.0",
+      "archived": false,
+      "pushed_at": "2026-09-23T15:17:21Z",
+      "inspected_paths": [
+        "src/zalo-oa/verify.ts",
+        "src/zalo-oa/webhookRoute.ts",
+        "src/zalo-oa/tokenRefresher.ts",
+        "src/store/jobQueueRepo.ts",
+        "src/crypto/credentials.ts",
+        "test/zalo-oa/verify.test.ts",
+        ".github/workflows/ci.yml"
+      ],
+      "implemented_capability": "Zalo OA webhook/token bridge + separate personal zca-js route",
+      "verdict": "ADAPT",
+      "verdict_reason": "ADAPT isolated OA MAC verification, token refresh, AES-GCM credential and PostgreSQL job-queue patterns with Apache notices; REJECT the personal Zalo (zca-js) route. MAC check lacks timestamp freshness.",
+      "evidence_level": "SOURCE_INSPECTED",
+      "artifact_refs": [
+        "docs/reports/unified-execution-2026-11-16/vietnam-source-registry.json",
+        "docs/reports/unified-execution-2026-11-16/vietnam-ecosystem.md"
+      ],
+      "approved_dependency": false
+    },
+    {
+      "id": "gh.chatbotx",
+      "url": "https://github.com/ChatbotXIO/ChatbotX",
+      "canonical_url": "https://github.com/ChatbotXIO/ChatbotX",
+      "owner": "ChatbotXIO",
+      "repo": "ChatbotX",
+      "official_provider_repo": false,
+      "pinned_sha": "3e2b02e1c74ca57fe00c851296e70fdf0605706c",
+      "pin_kind": "INSPECTION_PIN",
+      "sha_verification": "GITHUB_API_COMMIT_LOOKUP_2026-11-18",
+      "pinned_commit_date": "2026-11-16T16:24:28Z",
+      "current_head_2026_11_18": "dcb9d140126729bb85649d80f811e3589c7d45b5",
+      "license": "MIT outside apps/builder/src/enterprise (commercial); GitHub NOASSERTION",
+      "github_license_spdx": "NOASSERTION",
+      "archived": false,
+      "pushed_at": "2026-11-17T22:45:43Z",
+      "inspected_paths": [
+        "LICENSE",
+        "apps/builder/src/enterprise/LICENSE",
+        "integrations/zalo/src/handlers/webhook.ts",
+        "integrations/zalo/src/lib/http-client.ts",
+        "integrations/zalo/__tests__/webhook-routing.test.ts",
+        ".github/workflows/ci.yml",
+        "apps/worker/src/trigger/services/handoff-executor.service.ts"
+      ],
+      "implemented_capability": "Chatbot platform incl. Zalo OA integration and handoff executor",
+      "verdict": "REFERENCE",
+      "verdict_reason": "REFERENCE schemas/fixtures and workspace-scoped handoff guard; REJECT unmodified webhook trust (general signature check commented out) and timestamp substitution.",
+      "evidence_level": "SOURCE_INSPECTED",
+      "artifact_refs": [
+        "docs/reports/unified-execution-2026-11-16/vietnam-source-registry.json",
+        "docs/reports/unified-execution-2026-11-16/omnichannel-crm.md"
+      ],
+      "approved_dependency": false
+    },
+    {
+      "id": "gh.trananhhh.pancake-webhook-relay",
+      "url": "https://github.com/trananhhh/pancake-webhook-relay",
+      "canonical_url": "https://github.com/trananhhh/pancake-webhook-relay",
+      "owner": "trananhhh",
+      "repo": "pancake-webhook-relay",
+      "official_provider_repo": false,
+      "pinned_sha": "23e2409f6c80e910de6f652b4c9d0a878ba2291b",
+      "pin_kind": "INSPECTION_PIN",
+      "sha_verification": "GITHUB_API_COMMIT_LOOKUP_2026-11-18",
+      "pinned_commit_date": "2026-04-06T13:20:36Z",
+      "current_head_2026_11_18": "23e2409f6c80e910de6f652b4c9d0a878ba2291b",
+      "license": "UNKNOWN (no license file; GitHub license null)",
+      "github_license_spdx": "NONE_DETECTED",
+      "archived": false,
+      "pushed_at": "2026-04-06T13:20:43Z",
+      "inspected_paths": [
+        "src/phoenix-client.ts",
+        "src/event-handler.ts",
+        "src/config.ts"
+      ],
+      "implemented_capability": "Community Pancake Conversations Phoenix socket relay",
+      "verdict": "REFERENCE",
+      "verdict_reason": "Protocol reference only (Phoenix tuple, heartbeat/rejoin, message/update/delete handler labels). No license file: do not copy code. Heartbeat/rejoin is not a replay guarantee.",
+      "evidence_level": "SOURCE_INSPECTED",
+      "artifact_refs": [
+        "docs/research/adaptive-integration-2026-11-14/source-ledger.json",
+        "docs/reports/unified-execution-2026-11-16/pancake-capabilities.md"
+      ],
+      "approved_dependency": false
+    },
+    {
+      "id": "gh.trongvan.pancake-streaming-ingestion",
+      "url": "https://github.com/trongvan722000/pancake-streaming-ingestion",
+      "canonical_url": "https://github.com/trongvan722000/pancake-streaming-ingestion",
+      "owner": "trongvan722000",
+      "repo": "pancake-streaming-ingestion",
+      "official_provider_repo": false,
+      "pinned_sha": "3dd868612dc73d2be4ada01c249fc673553b0a9c",
+      "pin_kind": "INSPECTION_PIN",
+      "sha_verification": "GITHUB_API_COMMIT_LOOKUP_2026-11-18",
+      "pinned_commit_date": "2026-08-12T15:19:28Z",
+      "current_head_2026_11_18": "3dd868612dc73d2be4ada01c249fc673553b0a9c",
+      "license": "UNKNOWN (no license file; GitHub license null)",
+      "github_license_spdx": "NONE_DETECTED",
+      "archived": false,
+      "pushed_at": "2026-08-12T15:19:28Z",
+      "inspected_paths": [
+        "gateway/main.py",
+        "gateway/producer.py",
+        "consumer/consumer.py",
+        "README.md"
+      ],
+      "implemented_capability": "Community Pancake streaming ingestion (gateway + Kafka producer/consumer)",
+      "verdict": "REJECT",
+      "verdict_reason": "No license file; Kafka-based design conflicts with modular monolith + PostgreSQL baseline. Reference for gateway shape only.",
+      "evidence_level": "SOURCE_INSPECTED",
+      "artifact_refs": [
+        "docs/research/adaptive-integration-2026-11-14/source-ledger.json"
+      ],
+      "approved_dependency": false
+    },
+    {
+      "id": "gh.nguyennguyenit.pancake-pos-mcp",
+      "url": "https://github.com/nguyennguyenit/pancake-pos-mcp",
+      "canonical_url": "https://github.com/nguyennguyenit/pancake-pos-mcp",
+      "owner": "nguyennguyenit",
+      "repo": "pancake-pos-mcp",
+      "official_provider_repo": false,
+      "pinned_sha": "c9a67faf0a58f48aaf24ef702455ddaac84054a5",
+      "pin_kind": "INSPECTION_PIN",
+      "sha_verification": "GITHUB_API_COMMIT_LOOKUP_2026-11-18",
+      "pinned_commit_date": "2026-10-08T09:43:02Z",
+      "current_head_2026_11_18": "c9a67faf0a58f48aaf24ef702455ddaac84054a5",
+      "license": "MIT",
+      "github_license_spdx": "MIT",
+      "archived": false,
+      "pushed_at": "2026-10-08T09:43:05Z",
+      "inspected_paths": [
+        "src/tools/webhooks-tool.ts",
+        "LICENSE"
+      ],
+      "implemented_capability": "Community Pancake POS API MCP server",
+      "verdict": "REFERENCE",
+      "verdict_reason": "Generic webhook CRUD with dotted event names differs from official shop webhook configuration model; audit every endpoint against official docs; no code vendored.",
+      "evidence_level": "SOURCE_INSPECTED",
+      "artifact_refs": [
+        "docs/research/adaptive-integration-2026-11-14/source-ledger.json",
+        "docs/reports/unified-execution-2026-11-16/pancake-capabilities.md"
+      ],
+      "approved_dependency": false
+    },
+    {
+      "id": "gh.lynguyenvu.pancake-mcp-server",
+      "url": "https://github.com/lynguyenvu/pancake-mcp-server",
+      "canonical_url": "https://github.com/lynguyenvu/pancake-mcp-server",
+      "owner": "lynguyenvu",
+      "repo": "pancake-mcp-server",
+      "official_provider_repo": false,
+      "pinned_sha": "1e6678bad5b8602339751b523875c9d161f2db38",
+      "pin_kind": "INSPECTION_PIN",
+      "sha_verification": "GITHUB_API_COMMIT_LOOKUP_2026-11-18",
+      "pinned_commit_date": "2026-03-08T23:23:46Z",
+      "current_head_2026_11_18": "1e6678bad5b8602339751b523875c9d161f2db38",
+      "license": "UNKNOWN (no license file; GitHub license null)",
+      "github_license_spdx": "NONE_DETECTED",
+      "archived": false,
+      "pushed_at": "2026-03-08T23:24:48Z",
+      "inspected_paths": [
+        "src/pancake_mcp/chat_client.py"
+      ],
+      "implemented_capability": "Community Pancake Chat (pages.fm public API) MCP wrapper, Python",
+      "verdict": "REFERENCE",
+      "verdict_reason": "Endpoint wrapper reference only; license UNKNOWN (no LICENSE / pyproject license) so no code copying.",
+      "evidence_level": "SOURCE_INSPECTED",
+      "artifact_refs": [
+        "docs/research/adaptive-integration-2026-11-14/source-ledger.json",
+        "docs/research/registries/reusable-engineering-assets.json"
+      ],
+      "approved_dependency": false
+    },
+    {
+      "id": "gh.chatwoot",
+      "url": "https://github.com/chatwoot/chatwoot",
+      "canonical_url": "https://github.com/chatwoot/chatwoot",
+      "owner": "chatwoot",
+      "repo": "chatwoot",
+      "official_provider_repo": false,
+      "pinned_sha": "0d62a53defdadff53fe1fd67d7ede456d067f7cb",
+      "pin_kind": "INSPECTION_PIN",
+      "sha_verification": "GITHUB_API_COMMIT_LOOKUP_2026-11-18",
+      "pinned_commit_date": "2026-11-17T09:13:38Z",
+      "current_head_2026_11_18": "d4433cfe1beebcfe8d5e044ac972f760122714cb",
+      "license": "MIT outside enterprise/ (separate enterprise license); GitHub NOASSERTION",
+      "github_license_spdx": "NOASSERTION",
+      "archived": false,
+      "pushed_at": "2026-11-18T00:57:23Z",
+      "inspected_paths": [
+        "app/services/conversations/assignment_service.rb",
+        "app/policies/conversation_policy.rb",
+        "spec/services/conversations/assignment_service_spec.rb",
+        "LICENSE",
+        "enterprise/LICENSE"
+      ],
+      "implemented_capability": "Open-source omnichannel inbox; conversation assignment / handoff",
+      "verdict": "ADAPT",
+      "verdict_reason": "ADAPT human/bot ownership display and handoff-race test scenarios; REJECT inheriting inbox/team visibility as lead authorization (I-09).",
+      "evidence_level": "SOURCE_INSPECTED",
+      "artifact_refs": [
+        "docs/reports/unified-execution-2026-11-16/omnichannel-crm.md"
+      ],
+      "approved_dependency": false,
+      "prior_pins": [
+        {
+          "sha": "1ef1d2b45ae0a17a35c5f1bd055e4ddf04dadabf",
+          "role": "2026-11-14 metadata-only pin (v4.19.1) in registries/reusable-engineering-assets.json; superseded by 0d62a53d source inspection",
+          "verification": "GITHUB_API_COMMIT_LOOKUP"
+        }
+      ]
+    },
+    {
+      "id": "gh.twenty",
+      "url": "https://github.com/twentyhq/twenty",
+      "canonical_url": "https://github.com/twentyhq/twenty",
+      "owner": "twentyhq",
+      "repo": "twenty",
+      "official_provider_repo": false,
+      "pinned_sha": "dbfe57c378b0d61552018cff8e74a75ca1059fe8",
+      "pin_kind": "INSPECTION_PIN",
+      "sha_verification": "GITHUB_API_COMMIT_LOOKUP_2026-11-18",
+      "pinned_commit_date": "2026-11-17T09:25:56Z",
+      "current_head_2026_11_18": "9c28b847aef5305a917c4fd022a86f2973c3cfb6",
+      "license": "AGPL-3.0 with Application Exception; enterprise files commercial; GitHub NOASSERTION",
+      "github_license_spdx": "NOASSERTION",
+      "archived": false,
+      "pushed_at": "2026-11-18T02:31:22Z",
+      "inspected_paths": [
+        "packages/twenty-server/src/engine/guards/workspace-not-suspended.guard.ts",
+        "packages/twenty-server/src/engine/guards/__tests__/workspace-not-suspended.guard.spec.ts",
+        "packages/twenty-server/test/integration/graphql/suites/object-generated/tasks.integration-spec.ts",
+        "LICENSE"
+      ],
+      "implemented_capability": "Open-source CRM with per-workspace generated REST/GraphQL",
+      "verdict": "REFERENCE",
+      "verdict_reason": "REFERENCE schema discovery and external task links; workspace schema is a mapping input under ID-2, never canonical identity/state.",
+      "evidence_level": "SOURCE_INSPECTED",
+      "artifact_refs": [
+        "docs/reports/unified-execution-2026-11-16/omnichannel-crm.md"
+      ],
+      "approved_dependency": false
+    },
+    {
+      "id": "gh.frappe.crm",
+      "url": "https://github.com/frappe/crm",
+      "canonical_url": "https://github.com/frappe/crm",
+      "owner": "frappe",
+      "repo": "crm",
+      "official_provider_repo": false,
+      "pinned_sha": "c9c460d74575a69b0e468a6da3a61b4f50de9808",
+      "pin_kind": "INSPECTION_PIN",
+      "sha_verification": "GITHUB_API_COMMIT_LOOKUP_2026-11-18",
+      "pinned_commit_date": "2026-11-17T08:54:23Z",
+      "current_head_2026_11_18": "135867649e253ce5ed2853e430f56a446797b29c",
+      "license": "AGPL-3.0",
+      "github_license_spdx": "AGPL-3.0",
+      "archived": false,
+      "pushed_at": "2026-11-17T15:03:47Z",
+      "inspected_paths": [
+        "crm/fcrm/doctype/crm_task/crm_task.py",
+        "crm/fcrm/doctype/crm_task/test_crm_task.py",
+        "crm/fcrm/doctype/crm_lead/crm_lead.py",
+        "LICENSE"
+      ],
+      "implemented_capability": "Frappe CRM tasks/assignment",
+      "verdict": "ADAPT",
+      "verdict_reason": "ADAPT due/assignee/reference presentation and reassignment regression scenarios only (no code); AGPL-3.0.",
+      "evidence_level": "SOURCE_INSPECTED",
+      "artifact_refs": [
+        "docs/reports/unified-execution-2026-11-16/omnichannel-crm.md"
+      ],
+      "approved_dependency": false
+    },
+    {
+      "id": "gh.hubspot.api-nodejs",
+      "url": "https://github.com/HubSpot/hubspot-api-nodejs",
+      "canonical_url": "https://github.com/HubSpot/hubspot-api-nodejs",
+      "owner": "HubSpot",
+      "repo": "hubspot-api-nodejs",
+      "official_provider_repo": true,
+      "pinned_sha": "568703577905e19a0c2708e1beb06bdc016feb9e",
+      "pin_kind": "INSPECTION_PIN",
+      "sha_verification": "GITHUB_API_COMMIT_LOOKUP_2026-11-18",
+      "pinned_commit_date": "2026-10-30T14:40:00Z",
+      "current_head_2026_11_18": "568703577905e19a0c2708e1beb06bdc016feb9e",
+      "license": "Apache-2.0",
+      "github_license_spdx": "Apache-2.0",
+      "archived": false,
+      "pushed_at": "2026-11-02T09:57:24Z",
+      "inspected_paths": [
+        "src/client.ts",
+        "src/services/decorators/RetryDecorator.ts",
+        "test/spec/crm/contacts/contacts.spec.ts",
+        "test/unit/httpTransport.spec.ts",
+        "LICENSE"
+      ],
+      "implemented_capability": "Official HubSpot Node SDK (CRM objects, OAuth, retry decorator)",
+      "verdict": "REFERENCE",
+      "verdict_reason": "Possible later adapter-only dependency after ID-2 + provider spike; SDK retries are not exactly-once commercial writes; singleton decorator config needs isolation check.",
+      "evidence_level": "SOURCE_INSPECTED",
+      "artifact_refs": [
+        "docs/reports/unified-execution-2026-11-16/omnichannel-crm.md",
+        "docs/research/registries/reusable-engineering-assets.json"
+      ],
+      "approved_dependency": false
+    },
+    {
+      "id": "gh.jsforce",
+      "url": "https://github.com/jsforce/jsforce",
+      "canonical_url": "https://github.com/jsforce/jsforce",
+      "owner": "jsforce",
+      "repo": "jsforce",
+      "official_provider_repo": false,
+      "pinned_sha": "d0837cb343ddd44bcf59d8b0cee02175e2ba8c63",
+      "pin_kind": "INSPECTION_PIN",
+      "sha_verification": "GITHUB_API_COMMIT_LOOKUP_2026-11-18",
+      "pinned_commit_date": "2026-10-27T20:38:26Z",
+      "current_head_2026_11_18": "d0837cb343ddd44bcf59d8b0cee02175e2ba8c63",
+      "license": "MIT",
+      "github_license_spdx": "MIT",
+      "archived": false,
+      "pushed_at": "2026-10-27T20:41:20Z",
+      "inspected_paths": [
+        "LICENSE"
+      ],
+      "implemented_capability": "Community Salesforce JS client",
+      "verdict": "REFERENCE",
+      "verdict_reason": "Salesforce adapter candidate only; only LICENSE and remote HEAD were checked; no auth/retry/test claim.",
+      "evidence_level": "SOURCE_INSPECTED",
+      "artifact_refs": [
+        "docs/reports/unified-execution-2026-11-16/omnichannel-crm.md"
+      ],
+      "approved_dependency": false
+    },
+    {
+      "id": "gh.erxes",
+      "url": "https://github.com/erxes/erxes",
+      "canonical_url": "https://github.com/erxes/erxes",
+      "owner": "erxes",
+      "repo": "erxes",
+      "official_provider_repo": false,
+      "pinned_sha": "1518a7ee96a0854ba00cf126dbeb24182d0b9f40",
+      "pin_kind": "INSPECTION_PIN",
+      "sha_verification": "GITHUB_API_COMMIT_LOOKUP_2026-11-18",
+      "pinned_commit_date": "2026-11-17T07:32:33Z",
+      "current_head_2026_11_18": "1a69233a81cf5fcdcb590855bdf4dea1c6708202",
+      "license": "AGPL-based with Enterprise exceptions and competing-SaaS restriction; GitHub NOASSERTION",
+      "github_license_spdx": "NOASSERTION",
+      "archived": false,
+      "pushed_at": "2026-11-17T23:41:35Z",
+      "inspected_paths": [
+        "LICENSE.md"
+      ],
+      "implemented_capability": "Open-source CRM/experience OS",
+      "verdict": "REJECT",
+      "verdict_reason": "License includes AGPL provisions, Enterprise exceptions and a competing-SaaS restriction; discovery-level only.",
+      "evidence_level": "SOURCE_INSPECTED",
+      "artifact_refs": [
+        "docs/reports/unified-execution-2026-11-16/omnichannel-crm.md"
+      ],
+      "approved_dependency": false
+    },
+    {
+      "id": "gh.onebook.onechat",
+      "url": "https://github.com/OneBook-ERP/OneChat",
+      "canonical_url": "https://github.com/OneBook-ERP/OneChat",
+      "owner": "OneBook-ERP",
+      "repo": "OneChat",
+      "official_provider_repo": false,
+      "pinned_sha": "7c68fdf1e2115c434377897f1015c4b1117f8e14",
+      "pin_kind": "INSPECTION_PIN",
+      "sha_verification": "GITHUB_API_COMMIT_LOOKUP_2026-11-18",
+      "pinned_commit_date": "2026-11-08T18:05:03Z",
+      "current_head_2026_11_18": "7c68fdf1e2115c434377897f1015c4b1117f8e14",
+      "license": "AGPL-3.0",
+      "github_license_spdx": "AGPL-3.0",
+      "archived": false,
+      "pushed_at": "2026-11-08T18:05:03Z",
+      "inspected_paths": [
+        "license.txt",
+        "onechat/inbox/conversations.py"
+      ],
+      "implemented_capability": "Frappe-based omnichannel inbox",
+      "verdict": "REFERENCE",
+      "verdict_reason": "REFERENCE side-by-side channel context and CRM links; REJECT contact-linked inbox status as Lead identity/completion.",
+      "evidence_level": "SOURCE_INSPECTED",
+      "artifact_refs": [
+        "docs/reports/unified-execution-2026-11-16/omnichannel-crm.md"
+      ],
+      "approved_dependency": false
+    },
+    {
+      "id": "gh.nango",
+      "url": "https://github.com/NangoHQ/nango",
+      "canonical_url": "https://github.com/NangoHQ/nango",
+      "owner": "NangoHQ",
+      "repo": "nango",
+      "official_provider_repo": false,
+      "pinned_sha": "961a8c79139f75ef5ff530482a65425a8aaf37e3",
+      "pin_kind": "INSPECTION_PIN",
+      "sha_verification": "GITHUB_API_COMMIT_LOOKUP_2026-11-18",
+      "pinned_commit_date": "2026-11-17T09:50:15Z",
+      "current_head_2026_11_18": "9bbb34d1ca59c085606fa6f10058df63c2a54433",
+      "license": "Elastic License 2.0 (root LICENSE); GitHub NOASSERTION",
+      "github_license_spdx": "NOASSERTION",
+      "archived": false,
+      "pushed_at": "2026-11-17T23:52:21Z",
+      "inspected_paths": [
+        "LICENSE",
+        "packages/server/lib/clients/oauth1.client.ts",
+        "packages/server/lib/clients/oauth1.client.unit.test.ts"
+      ],
+      "implemented_capability": "Integration/OAuth connection platform",
+      "verdict": "REFERENCE",
+      "verdict_reason": "ELv2 root license (GitHub NOASSERTION); hosted-service restrictions need Legal review. Reference OAuth lifecycle; prefer narrow port until a second concrete provider need exists.",
+      "evidence_level": "SOURCE_INSPECTED",
+      "artifact_refs": [
+        "docs/reports/unified-execution-2026-11-16/reusable-assets.md",
+        "docs/research/registries/reusable-engineering-assets.json"
+      ],
+      "approved_dependency": false,
+      "prior_pins": [
+        {
+          "sha": "b6a9ee10e6aaa81f42506436f9d2287ead8f7561",
+          "role": "2026-11-14 metadata-only pin (v0.72.4); superseded by 961a8c79 source inspection",
+          "verification": "GITHUB_API_COMMIT_LOOKUP"
+        }
+      ]
+    },
+    {
+      "id": "gh.airbyte",
+      "url": "https://github.com/airbytehq/airbyte",
+      "canonical_url": "https://github.com/airbytehq/airbyte",
+      "owner": "airbytehq",
+      "repo": "airbyte",
+      "official_provider_repo": false,
+      "pinned_sha": "54fa546e7cfeb5c4124c3a5958574ce093288c15",
+      "pin_kind": "INSPECTION_PIN",
+      "sha_verification": "GITHUB_API_COMMIT_LOOKUP_2026-11-18",
+      "pinned_commit_date": "2026-11-14T05:51:58Z",
+      "current_head_2026_11_18": "f5cbf0fd54a3f79b179c8752fb3731ec713114cc",
+      "license": "ELv2 per 2026-11-14 LICENSE blob reference; GitHub NOASSERTION; connector-level licenses UNVERIFIED",
+      "github_license_spdx": "NOASSERTION",
+      "archived": false,
+      "pushed_at": "2026-11-17T23:44:08Z",
+      "inspected_paths": [],
+      "implemented_capability": "ELT connector framework (incl. source-facebook-marketing, source-tiktok-marketing)",
+      "verdict": "REFERENCE",
+      "verdict_reason": "Reference incremental sync/state/backfill patterns; ELv2 restricts hosted multi-tenant use; no premature connector framework.",
+      "evidence_level": "README_CLAIM",
+      "artifact_refs": [
+        "docs/research/registries/reusable-engineering-assets.json"
+      ],
+      "approved_dependency": false
+    },
+    {
+      "id": "gh.opentelemetry-js",
+      "url": "https://github.com/open-telemetry/opentelemetry-js",
+      "canonical_url": "https://github.com/open-telemetry/opentelemetry-js",
+      "owner": "open-telemetry",
+      "repo": "opentelemetry-js",
+      "official_provider_repo": false,
+      "pinned_sha": "9e6be84d945e2c03f67e92d009b817033bd3be28",
+      "pin_kind": "INSPECTION_PIN",
+      "sha_verification": "GITHUB_API_COMMIT_LOOKUP_2026-11-18",
+      "pinned_commit_date": "2026-11-16T22:57:38Z",
+      "current_head_2026_11_18": "125590ea411a1f0ab69c95c4d75288c28dee61f1",
+      "license": "Apache-2.0",
+      "github_license_spdx": "Apache-2.0",
+      "archived": false,
+      "pushed_at": "2026-11-17T18:25:56Z",
+      "inspected_paths": [
+        "experimental/packages/opentelemetry-sdk-node/src/sdk.ts",
+        "experimental/packages/opentelemetry-sdk-node/test/sdk.test.ts",
+        "LICENSE"
+      ],
+      "implemented_capability": "OpenTelemetry JS SDK",
+      "verdict": "ADAPT",
+      "verdict_reason": "ADAPT instrumentation boundary behind existing telemetry port with allowlisted attributes and redaction; not commercial audit.",
+      "evidence_level": "SOURCE_INSPECTED",
+      "artifact_refs": [
+        "docs/reports/unified-execution-2026-11-16/reusable-assets.md"
+      ],
+      "approved_dependency": false,
+      "prior_pins": [
+        {
+          "sha": "5a78e6aef1fcbbe8306d982c0b3f0f1ea57eb032",
+          "role": "2026-11-14 metadata-only pin; superseded by 9e6be84d source inspection",
+          "verification": "GITHUB_API_COMMIT_LOOKUP"
+        }
+      ]
+    },
+    {
+      "id": "gh.pgbackrest",
+      "url": "https://github.com/pgbackrest/pgbackrest",
+      "canonical_url": "https://github.com/pgbackrest/pgbackrest",
+      "owner": "pgbackrest",
+      "repo": "pgbackrest",
+      "official_provider_repo": false,
+      "pinned_sha": "ac13a75b8300a9516bd820160e9731f27abe767a",
+      "pin_kind": "INSPECTION_PIN",
+      "sha_verification": "GITHUB_API_COMMIT_LOOKUP_2026-11-18",
+      "pinned_commit_date": "2026-11-13T16:13:36Z",
+      "current_head_2026_11_18": "0fc158c3c905890bc06bd76d34f2652cb1ad1f29",
+      "license": "MIT per 2026-11-14 LICENSE blob reference; GitHub NOASSERTION",
+      "github_license_spdx": "NOASSERTION",
+      "archived": false,
+      "pushed_at": "2026-11-17T17:26:43Z",
+      "inspected_paths": [],
+      "implemented_capability": "PostgreSQL backup/WAL archiving/PITR",
+      "verdict": "REFERENCE",
+      "verdict_reason": "Operational candidate for production PostgreSQL backup; current baseline is a dry-run helper.",
+      "evidence_level": "README_CLAIM",
+      "artifact_refs": [
+        "docs/research/registries/reusable-engineering-assets.json"
+      ],
+      "approved_dependency": false
+    },
+    {
+      "id": "gh.testcontainers-node",
+      "url": "https://github.com/testcontainers/testcontainers-node",
+      "canonical_url": "https://github.com/testcontainers/testcontainers-node",
+      "owner": "testcontainers",
+      "repo": "testcontainers-node",
+      "official_provider_repo": false,
+      "pinned_sha": "c79a5a56bcc824e207ac243207bd83e5b0459dd3",
+      "pin_kind": "INSPECTION_PIN",
+      "sha_verification": "GITHUB_API_COMMIT_LOOKUP_2026-11-18",
+      "pinned_commit_date": "2026-11-06T16:59:33Z",
+      "current_head_2026_11_18": "64ba3fa2169c4e8c988cc871c9c002257f5dbde5",
+      "license": "MIT",
+      "github_license_spdx": "MIT",
+      "archived": false,
+      "pushed_at": "2026-11-16T00:46:26Z",
+      "inspected_paths": [],
+      "implemented_capability": "Disposable containers for integration tests",
+      "verdict": "REFERENCE",
+      "verdict_reason": "Candidate for isolated PostgreSQL integration tests; CI currently uses scripts/ci-integration.mjs; validate runtime before adoption.",
+      "evidence_level": "README_CLAIM",
+      "artifact_refs": [
+        "docs/research/registries/reusable-engineering-assets.json"
+      ],
+      "approved_dependency": false
+    },
+    {
+      "id": "gh.keycloak",
+      "url": "https://github.com/keycloak/keycloak",
+      "canonical_url": "https://github.com/keycloak/keycloak",
+      "owner": "keycloak",
+      "repo": "keycloak",
+      "official_provider_repo": false,
+      "pinned_sha": "7698e043192bd69c7125c8a6bff11ac14f60e92f",
+      "pin_kind": "INSPECTION_PIN",
+      "sha_verification": "GITHUB_API_COMMIT_LOOKUP_2026-11-18",
+      "pinned_commit_date": "2026-11-16T19:02:26Z",
+      "current_head_2026_11_18": "eeceb5aed7dd7216be9611b4d7ba1586640187f5",
+      "license": "Apache-2.0",
+      "github_license_spdx": "Apache-2.0",
+      "archived": false,
+      "pushed_at": "2026-11-17T17:37:34Z",
+      "inspected_paths": [
+        "services/src/main/java/org/keycloak/protocol/oidc/TokenManager.java",
+        "services/src/test/java/org/keycloak/protocol/oidc/utils/OAuth2CodeTest.java",
+        "LICENSE.txt"
+      ],
+      "implemented_capability": "OIDC identity provider",
+      "verdict": "REFERENCE",
+      "verdict_reason": "OIDC adapter candidate behind AuthContextResolver after PM-1 review; provider roles never grant lead access by default.",
+      "evidence_level": "SOURCE_INSPECTED",
+      "artifact_refs": [
+        "docs/reports/unified-execution-2026-11-16/reusable-assets.md"
+      ],
+      "approved_dependency": false
+    },
+    {
+      "id": "gh.openfga",
+      "url": "https://github.com/openfga/openfga",
+      "canonical_url": "https://github.com/openfga/openfga",
+      "owner": "openfga",
+      "repo": "openfga",
+      "official_provider_repo": false,
+      "pinned_sha": "798149843737e264e64b8660baadb946528c02f0",
+      "pin_kind": "INSPECTION_PIN",
+      "sha_verification": "GITHUB_API_COMMIT_LOOKUP_2026-11-18",
+      "pinned_commit_date": "2026-11-16T13:50:49Z",
+      "current_head_2026_11_18": "798149843737e264e64b8660baadb946528c02f0",
+      "license": "Apache-2.0",
+      "github_license_spdx": "Apache-2.0",
+      "archived": false,
+      "pushed_at": "2026-11-16T19:01:00Z",
+      "inspected_paths": [
+        "pkg/server/commands/check.go",
+        "pkg/server/commands/check_test.go",
+        "LICENSE"
+      ],
+      "implemented_capability": "Relationship-based authorization service",
+      "verdict": "REFERENCE",
+      "verdict_reason": "Defer service adoption; keep in-process policy port; revisit when relationship complexity exceeds it (PM-1).",
+      "evidence_level": "SOURCE_INSPECTED",
+      "artifact_refs": [
+        "docs/reports/unified-execution-2026-11-16/reusable-assets.md"
+      ],
+      "approved_dependency": false
+    },
+    {
+      "id": "gh.bullmq",
+      "url": "https://github.com/taskforcesh/bullmq",
+      "canonical_url": "https://github.com/taskforcesh/bullmq",
+      "owner": "taskforcesh",
+      "repo": "bullmq",
+      "official_provider_repo": false,
+      "pinned_sha": "ba63962a39388be8f061f6335a750330a4ab9a1c",
+      "pin_kind": "INSPECTION_PIN",
+      "sha_verification": "GITHUB_API_COMMIT_LOOKUP_2026-11-18",
+      "pinned_commit_date": "2026-11-17T06:08:37Z",
+      "current_head_2026_11_18": "ba63962a39388be8f061f6335a750330a4ab9a1c",
+      "license": "MIT",
+      "github_license_spdx": "MIT",
+      "archived": false,
+      "pushed_at": "2026-11-17T06:10:32Z",
+      "inspected_paths": [
+        "src/classes/worker.ts",
+        "src/classes/queue.ts",
+        "tests/worker.test.ts",
+        "LICENSE"
+      ],
+      "implemented_capability": "Redis-backed job queue",
+      "verdict": "ADAPT",
+      "verdict_reason": "ADAPT idempotent-job/dedup/rate-limit patterns; Redis dependency deferred; PostgreSQL envelope uniqueness remains ingestion authority.",
+      "evidence_level": "SOURCE_INSPECTED",
+      "artifact_refs": [
+        "docs/reports/unified-execution-2026-11-16/reusable-assets.md"
+      ],
+      "approved_dependency": false
+    },
+    {
+      "id": "gh.n8n",
+      "url": "https://github.com/n8n-io/n8n",
+      "canonical_url": "https://github.com/n8n-io/n8n",
+      "owner": "n8n-io",
+      "repo": "n8n",
+      "official_provider_repo": false,
+      "pinned_sha": "d5b7725566f22ff4dd02d7c8945824f90e75a1ec",
+      "pin_kind": "LS_REMOTE_HEAD_SNAPSHOT",
+      "sha_verification": "GIT_LS_REMOTE_HEAD_2026-11-18",
+      "pinned_commit_date": null,
+      "current_head_2026_11_18": "d5b7725566f22ff4dd02d7c8945824f90e75a1ec",
+      "license": "Sustainable Use / fair-code per project docs (UNVERIFIED file read); GitHub NOASSERTION",
+      "github_license_spdx": "NOASSERTION",
+      "archived": false,
+      "pushed_at": "2026-11-18T02:30:18Z",
+      "inspected_paths": [],
+      "implemented_capability": "Workflow automation",
+      "verdict": "REFERENCE",
+      "verdict_reason": "Operator automation reference; Sustainable Use License (GitHub NOASSERTION) needs review; must call guarded commands only.",
+      "evidence_level": "README_CLAIM",
+      "artifact_refs": [
+        "https://docs.n8n.io/"
+      ],
+      "approved_dependency": false
+    },
+    {
+      "id": "gh.activepieces",
+      "url": "https://github.com/activepieces/activepieces",
+      "canonical_url": "https://github.com/activepieces/activepieces",
+      "owner": "activepieces",
+      "repo": "activepieces",
+      "official_provider_repo": false,
+      "pinned_sha": "bdc6a49dbaf96691e3b92f73b82eca75eb3f090e",
+      "pin_kind": "LS_REMOTE_HEAD_SNAPSHOT",
+      "sha_verification": "GIT_LS_REMOTE_HEAD_2026-11-18",
+      "pinned_commit_date": null,
+      "current_head_2026_11_18": "bdc6a49dbaf96691e3b92f73b82eca75eb3f090e",
+      "license": "Mixed (GitHub NOASSERTION); UNVERIFIED file read",
+      "github_license_spdx": "NOASSERTION",
+      "archived": false,
+      "pushed_at": "2026-11-18T01:04:22Z",
+      "inspected_paths": [],
+      "implemented_capability": "Workflow automation (MIT core + EE)",
+      "verdict": "REFERENCE",
+      "verdict_reason": "Automation reference; mixed license (GitHub NOASSERTION); deployment and license review outstanding.",
+      "evidence_level": "README_CLAIM",
+      "artifact_refs": [
+        "https://www.activepieces.com/docs"
+      ],
+      "approved_dependency": false
+    },
+    {
+      "id": "gh.temporal",
+      "url": "https://github.com/temporalio/temporal",
+      "canonical_url": "https://github.com/temporalio/temporal",
+      "owner": "temporalio",
+      "repo": "temporal",
+      "official_provider_repo": false,
+      "pinned_sha": "506d38141d6ebc663694d63b484aa020b31c415e",
+      "pin_kind": "LS_REMOTE_HEAD_SNAPSHOT",
+      "sha_verification": "GIT_LS_REMOTE_HEAD_2026-11-18",
+      "pinned_commit_date": null,
+      "current_head_2026_11_18": "506d38141d6ebc663694d63b484aa020b31c415e",
+      "license": "MIT (GitHub SPDX)",
+      "github_license_spdx": "MIT",
+      "archived": false,
+      "pushed_at": "2026-11-18T01:35:11Z",
+      "inspected_paths": [],
+      "implemented_capability": "Durable workflow engine server",
+      "verdict": "REJECT",
+      "verdict_reason": "Premature for current monolith/pilot; adds cluster, determinism and operations burden. Revisit only if long-running cross-system compensations exceed PostgreSQL jobs.",
+      "evidence_level": "README_CLAIM",
+      "artifact_refs": [
+        "https://docs.temporal.io/"
+      ],
+      "approved_dependency": false
+    },
+    {
+      "id": "gh.temporal-sdk-ts",
+      "url": "https://github.com/temporalio/sdk-typescript",
+      "canonical_url": "https://github.com/temporalio/sdk-typescript",
+      "owner": "temporalio",
+      "repo": "sdk-typescript",
+      "official_provider_repo": false,
+      "pinned_sha": "463d0d2d58d3dd48d7b454ef77c383a94288db53",
+      "pin_kind": "LS_REMOTE_HEAD_SNAPSHOT",
+      "sha_verification": "GIT_LS_REMOTE_HEAD_2026-11-18",
+      "pinned_commit_date": null,
+      "current_head_2026_11_18": "463d0d2d58d3dd48d7b454ef77c383a94288db53",
+      "license": "MIT (GitHub SPDX)",
+      "github_license_spdx": "MIT",
+      "archived": false,
+      "pushed_at": "2026-11-18T01:47:20Z",
+      "inspected_paths": [],
+      "implemented_capability": "Temporal TypeScript SDK",
+      "verdict": "REJECT",
+      "verdict_reason": "Only meaningful with Temporal server; same deferral.",
+      "evidence_level": "README_CLAIM",
+      "artifact_refs": [
+        "https://docs.temporal.io/"
+      ],
+      "approved_dependency": false
+    },
+    {
+      "id": "gh.pact-js",
+      "url": "https://github.com/pact-foundation/pact-js",
+      "canonical_url": "https://github.com/pact-foundation/pact-js",
+      "owner": "pact-foundation",
+      "repo": "pact-js",
+      "official_provider_repo": false,
+      "pinned_sha": "03510b006c034998ed26c6ee3de9ac515340124d",
+      "pin_kind": "LS_REMOTE_HEAD_SNAPSHOT",
+      "sha_verification": "GIT_LS_REMOTE_HEAD_2026-11-18",
+      "pinned_commit_date": null,
+      "current_head_2026_11_18": "03510b006c034998ed26c6ee3de9ac515340124d",
+      "license": "MIT per project (GitHub NOASSERTION); UNVERIFIED file read",
+      "github_license_spdx": "NOASSERTION",
+      "archived": false,
+      "pushed_at": "2026-11-17T03:55:59Z",
+      "inspected_paths": [],
+      "implemented_capability": "Consumer-driven contract testing",
+      "verdict": "REFERENCE",
+      "verdict_reason": "Provider pacts impossible without provider participation; useful only for internal API/companion contracts. Prefer recorded-fixture contract tests for third-party providers.",
+      "evidence_level": "README_CLAIM",
+      "artifact_refs": [
+        "https://docs.pact.io/"
+      ],
+      "approved_dependency": false
+    },
+    {
+      "id": "gh.playwright",
+      "url": "https://github.com/microsoft/playwright",
+      "canonical_url": "https://github.com/microsoft/playwright",
+      "owner": "microsoft",
+      "repo": "playwright",
+      "official_provider_repo": false,
+      "pinned_sha": "8124fc39233c4c349b9dbebd4abc4103738eae81",
+      "pin_kind": "LS_REMOTE_HEAD_SNAPSHOT",
+      "sha_verification": "GIT_LS_REMOTE_HEAD_2026-11-18",
+      "pinned_commit_date": null,
+      "current_head_2026_11_18": "8124fc39233c4c349b9dbebd4abc4103738eae81",
+      "license": "Apache-2.0",
+      "github_license_spdx": "Apache-2.0",
+      "archived": false,
+      "pushed_at": "2026-11-18T01:35:05Z",
+      "inspected_paths": [],
+      "implemented_capability": "Browser automation/testing",
+      "verdict": "ADOPT",
+      "verdict_reason": "Already an approved devDependency (@playwright/test) for companion/browser tests.",
+      "evidence_level": "README_CLAIM",
+      "artifact_refs": [
+        "product/package.json",
+        "product/playwright.config.ts"
+      ],
+      "approved_dependency": true,
+      "npm_package": "@playwright/test"
+    },
+    {
+      "id": "gh.wxt",
+      "url": "https://github.com/wxt-dev/wxt",
+      "canonical_url": "https://github.com/wxt-dev/wxt",
+      "owner": "wxt-dev",
+      "repo": "wxt",
+      "official_provider_repo": false,
+      "pinned_sha": "4968b85455445ece48781aa3b9d4ecba74f02d7e",
+      "pin_kind": "LS_REMOTE_HEAD_SNAPSHOT",
+      "sha_verification": "GIT_LS_REMOTE_HEAD_2026-11-18",
+      "pinned_commit_date": null,
+      "current_head_2026_11_18": "4968b85455445ece48781aa3b9d4ecba74f02d7e",
+      "license": "MIT",
+      "github_license_spdx": "MIT",
+      "archived": false,
+      "pushed_at": "2026-11-16T03:58:13Z",
+      "inspected_paths": [],
+      "implemented_capability": "Browser-extension framework (MV3)",
+      "verdict": "REFERENCE",
+      "verdict_reason": "Current companion is hand-written MV3; adopt a framework only if companion scope grows (LG-1).",
+      "evidence_level": "README_CLAIM",
+      "artifact_refs": [
+        "https://wxt.dev/"
+      ],
+      "approved_dependency": false
+    },
+    {
+      "id": "gh.plasmo",
+      "url": "https://github.com/PlasmoHQ/plasmo",
+      "canonical_url": "https://github.com/PlasmoHQ/plasmo",
+      "owner": "PlasmoHQ",
+      "repo": "plasmo",
+      "official_provider_repo": false,
+      "pinned_sha": "9369e2835de237caa60620b74b12ea3e2d4f3600",
+      "pin_kind": "LS_REMOTE_HEAD_SNAPSHOT",
+      "sha_verification": "GIT_LS_REMOTE_HEAD_2026-11-18",
+      "pinned_commit_date": null,
+      "current_head_2026_11_18": "9369e2835de237caa60620b74b12ea3e2d4f3600",
+      "license": "MIT",
+      "github_license_spdx": "MIT",
+      "archived": false,
+      "pushed_at": "2026-11-17T06:31:56Z",
+      "inspected_paths": [],
+      "implemented_capability": "Browser-extension framework",
+      "verdict": "REFERENCE",
+      "verdict_reason": "Alternative to WXT; same trigger.",
+      "evidence_level": "README_CLAIM",
+      "artifact_refs": [
+        "https://docs.plasmo.com/"
+      ],
+      "approved_dependency": false
+    },
+    {
+      "id": "gh.jose",
+      "url": "https://github.com/panva/jose",
+      "canonical_url": "https://github.com/panva/jose",
+      "owner": "panva",
+      "repo": "jose",
+      "official_provider_repo": false,
+      "pinned_sha": "f9b75f8a7f41472dc45bc2ac1d18bd448bf15fcd",
+      "pin_kind": "LS_REMOTE_HEAD_SNAPSHOT",
+      "sha_verification": "GIT_LS_REMOTE_HEAD_2026-11-18",
+      "pinned_commit_date": null,
+      "current_head_2026_11_18": "f9b75f8a7f41472dc45bc2ac1d18bd448bf15fcd",
+      "license": "MIT",
+      "github_license_spdx": "MIT",
+      "archived": false,
+      "pushed_at": "2026-11-12T14:14:59Z",
+      "inspected_paths": [],
+      "implemented_capability": "JOSE/JWT/JWKS library for Node",
+      "verdict": "ADOPT",
+      "verdict_reason": "OIDC access-token verifier behind AuthContextResolver. Approved runtime dependency jose@6.2.17 on the integration branch (D1); present in product/package.json since integration commit for D1 (2026-11-18).",
+      "evidence_level": "README_CLAIM",
+      "artifact_refs": [
+        "https://github.com/panva/jose"
+      ],
+      "approved_dependency": true,
+      "npm_package": "jose",
+      "approved_on_integration_branch": {
+        "version": "6.2.17",
+        "source": "coordinator notice 2026-11-18"
+      }
+    },
+    {
+      "id": "gh.zitadel",
+      "url": "https://github.com/zitadel/zitadel",
+      "canonical_url": "https://github.com/zitadel/zitadel",
+      "owner": "zitadel",
+      "repo": "zitadel",
+      "official_provider_repo": false,
+      "pinned_sha": "67a1a7867489f833897ce8e9d617dbfe8a4959ce",
+      "pin_kind": "LS_REMOTE_HEAD_SNAPSHOT",
+      "sha_verification": "GIT_LS_REMOTE_HEAD_2026-11-18",
+      "pinned_commit_date": null,
+      "current_head_2026_11_18": "67a1a7867489f833897ce8e9d617dbfe8a4959ce",
+      "license": "AGPL-3.0 (GitHub SPDX)",
+      "github_license_spdx": "AGPL-3.0",
+      "archived": false,
+      "pushed_at": "2026-11-17T16:08:27Z",
+      "inspected_paths": [],
+      "implemented_capability": "Identity provider",
+      "verdict": "REFERENCE",
+      "verdict_reason": "Keycloak alternative; AGPL-3.0 server license matters for self-host modification.",
+      "evidence_level": "README_CLAIM",
+      "artifact_refs": [
+        "https://zitadel.com/docs"
+      ],
+      "approved_dependency": false
+    },
+    {
+      "id": "gh.ory-kratos",
+      "url": "https://github.com/ory/kratos",
+      "canonical_url": "https://github.com/ory/kratos",
+      "owner": "ory",
+      "repo": "kratos",
+      "official_provider_repo": false,
+      "pinned_sha": "b86338da04a040247a07f46100a86dcfb3875909",
+      "pin_kind": "LS_REMOTE_HEAD_SNAPSHOT",
+      "sha_verification": "GIT_LS_REMOTE_HEAD_2026-11-18",
+      "pinned_commit_date": null,
+      "current_head_2026_11_18": "b86338da04a040247a07f46100a86dcfb3875909",
+      "license": "Apache-2.0",
+      "github_license_spdx": "Apache-2.0",
+      "archived": false,
+      "pushed_at": "2026-07-29T09:30:37Z",
+      "inspected_paths": [],
+      "implemented_capability": "Identity management (Ory)",
+      "verdict": "REFERENCE",
+      "verdict_reason": "Keycloak alternative; last push 2026-07-29.",
+      "evidence_level": "README_CLAIM",
+      "artifact_refs": [
+        "https://www.ory.sh/docs"
+      ],
+      "approved_dependency": false
+    },
+    {
+      "id": "gh.cerbos",
+      "url": "https://github.com/cerbos/cerbos",
+      "canonical_url": "https://github.com/cerbos/cerbos",
+      "owner": "cerbos",
+      "repo": "cerbos",
+      "official_provider_repo": false,
+      "pinned_sha": "6bb96b61ec86acb1a8bb9d9e3a651561aa94ad71",
+      "pin_kind": "LS_REMOTE_HEAD_SNAPSHOT",
+      "sha_verification": "GIT_LS_REMOTE_HEAD_2026-11-18",
+      "pinned_commit_date": null,
+      "current_head_2026_11_18": "6bb96b61ec86acb1a8bb9d9e3a651561aa94ad71",
+      "license": "Apache-2.0",
+      "github_license_spdx": "Apache-2.0",
+      "archived": false,
+      "pushed_at": "2026-11-16T08:49:22Z",
+      "inspected_paths": [],
+      "implemented_capability": "Policy decision point",
+      "verdict": "REFERENCE",
+      "verdict_reason": "Attribute/policy alternative to OpenFGA; revisit after PM-1.",
+      "evidence_level": "README_CLAIM",
+      "artifact_refs": [
+        "https://docs.cerbos.dev/"
+      ],
+      "approved_dependency": false
+    },
+    {
+      "id": "gh.node-casbin",
+      "url": "https://github.com/casbin/node-casbin",
+      "canonical_url": "https://github.com/apache/casbin-node-casbin",
+      "owner": "casbin",
+      "repo": "node-casbin",
+      "official_provider_repo": false,
+      "pinned_sha": "70eb3e2151d22b3018b3184f8807f7328f6063fc",
+      "pin_kind": "LS_REMOTE_HEAD_SNAPSHOT",
+      "sha_verification": "GIT_LS_REMOTE_HEAD_2026-11-18",
+      "pinned_commit_date": null,
+      "current_head_2026_11_18": "70eb3e2151d22b3018b3184f8807f7328f6063fc",
+      "license": "Apache-2.0",
+      "github_license_spdx": "Apache-2.0",
+      "archived": false,
+      "pushed_at": "2026-11-15T06:23:58Z",
+      "inspected_paths": [],
+      "implemented_capability": "Embedded authorization library",
+      "verdict": "REFERENCE",
+      "verdict_reason": "Embedded option; no engine makes an unapproved matrix valid.",
+      "evidence_level": "README_CLAIM",
+      "artifact_refs": [
+        "https://casbin.org/docs/overview"
+      ],
+      "approved_dependency": false,
+      "redirect_note": "Repository now resolves to apache/casbin-node-casbin (redirect observed 2026-11-18)."
+    },
+    {
+      "id": "gh.mcp-servers",
+      "url": "https://github.com/modelcontextprotocol/servers",
+      "canonical_url": "https://github.com/modelcontextprotocol/servers",
+      "owner": "modelcontextprotocol",
+      "repo": "servers",
+      "official_provider_repo": false,
+      "pinned_sha": "e1dc4b18dbb948921da37f3d4224a628730b43b0",
+      "pin_kind": "LS_REMOTE_HEAD_SNAPSHOT",
+      "sha_verification": "GIT_LS_REMOTE_HEAD_2026-11-18",
+      "pinned_commit_date": null,
+      "current_head_2026_11_18": "e1dc4b18dbb948921da37f3d4224a628730b43b0",
+      "license": "Mixed (GitHub NOASSERTION)",
+      "github_license_spdx": "NOASSERTION",
+      "archived": false,
+      "pushed_at": "2026-11-12T05:37:52Z",
+      "inspected_paths": [],
+      "implemented_capability": "Reference MCP servers",
+      "verdict": "REFERENCE",
+      "verdict_reason": "Reference only; reject arbitrary filesystem/URL/SQL tools; any North Star MCP server exposes narrow read/propose tools with server-side lead policy.",
+      "evidence_level": "README_CLAIM",
+      "artifact_refs": [
+        "https://modelcontextprotocol.io/specification/2026-07-28/basic/authorization"
+      ],
+      "approved_dependency": false
+    },
+    {
+      "id": "gh.mcp-ts-sdk",
+      "url": "https://github.com/modelcontextprotocol/typescript-sdk",
+      "canonical_url": "https://github.com/modelcontextprotocol/typescript-sdk",
+      "owner": "modelcontextprotocol",
+      "repo": "typescript-sdk",
+      "official_provider_repo": false,
+      "pinned_sha": "919bb8ea88b6e10e72c2f8b6218fad4cfdc40b2c",
+      "pin_kind": "LS_REMOTE_HEAD_SNAPSHOT",
+      "sha_verification": "GIT_LS_REMOTE_HEAD_2026-11-18",
+      "pinned_commit_date": null,
+      "current_head_2026_11_18": "919bb8ea88b6e10e72c2f8b6218fad4cfdc40b2c",
+      "license": "GitHub NOASSERTION; UNVERIFIED file read",
+      "github_license_spdx": "NOASSERTION",
+      "archived": false,
+      "pushed_at": "2026-11-10T14:38:41Z",
+      "inspected_paths": [],
+      "implemented_capability": "MCP TypeScript SDK",
+      "verdict": "REFERENCE",
+      "verdict_reason": "Candidate if a narrow read-only MCP surface is approved; not approved now.",
+      "evidence_level": "README_CLAIM",
+      "artifact_refs": [
+        "https://modelcontextprotocol.io/"
+      ],
+      "approved_dependency": false
+    },
+    {
+      "id": "gh.anthropics.skills",
+      "url": "https://github.com/anthropics/skills",
+      "canonical_url": "https://github.com/anthropics/skills",
+      "owner": "anthropics",
+      "repo": "skills",
+      "official_provider_repo": false,
+      "pinned_sha": "e4bb5d960d87126ff3b3a8af1a104b7db67560ba",
+      "pin_kind": "LS_REMOTE_HEAD_SNAPSHOT",
+      "sha_verification": "GIT_LS_REMOTE_HEAD_2026-11-18",
+      "pinned_commit_date": null,
+      "current_head_2026_11_18": "e4bb5d960d87126ff3b3a8af1a104b7db67560ba",
+      "license": "No root LICENSE; per-skill licensing (UNVERIFIED)",
+      "github_license_spdx": "NONE_DETECTED",
+      "archived": false,
+      "pushed_at": "2026-11-16T14:22:50Z",
+      "inspected_paths": [
+        "skills/ (directory listing 2026-11-18)"
+      ],
+      "implemented_capability": "Anthropic Agent Skills examples (document/design/mcp-builder skills)",
+      "verdict": "REFERENCE",
+      "verdict_reason": "Agent-skill authoring reference only; no Ads/Data Manager skills (those are google/skills). No root LICENSE (GitHub null); per-skill terms must be read before reuse.",
+      "evidence_level": "SOURCE_INSPECTED",
+      "artifact_refs": [
+        "https://github.com/anthropics/skills/tree/e4bb5d960d87126ff3b3a8af1a104b7db67560ba/skills"
+      ],
+      "approved_dependency": false
+    },
+    {
+      "id": "gh.meta.capi-param-builder",
+      "url": "https://github.com/meta/capi-param-builder",
+      "canonical_url": "https://github.com/meta/capi-param-builder",
+      "owner": "meta",
+      "repo": "capi-param-builder",
+      "official_provider_repo": true,
+      "pinned_sha": "08cf920818537f3d1ce95315f7139fc246d2ae78",
+      "pin_kind": "LS_REMOTE_HEAD_SNAPSHOT",
+      "sha_verification": "GIT_LS_REMOTE_HEAD_2026-11-18",
+      "pinned_commit_date": null,
+      "current_head_2026_11_18": "08cf920818537f3d1ce95315f7139fc246d2ae78",
+      "license": "GitHub NOASSERTION; UNVERIFIED file read",
+      "github_license_spdx": "NOASSERTION",
+      "archived": false,
+      "pushed_at": "2026-11-05T18:27:36Z",
+      "inspected_paths": [],
+      "implemented_capability": "Official Meta Conversions API parameter builder (fbc/fbp)",
+      "verdict": "REFERENCE",
+      "verdict_reason": "Reference for click-ID parameter construction; PILOT only after CAPI spike.",
+      "evidence_level": "README_CLAIM",
+      "artifact_refs": [
+        "untracked-primary-worktree:docs/research/ads-platforms-2026-11-17/meta.md"
+      ],
+      "approved_dependency": false
+    },
+    {
+      "id": "gh.jwen0605.tiktok-shop-webhook",
+      "url": "https://github.com/jwen0605/tiktok-shop-webhook",
+      "canonical_url": "https://github.com/jwen0605/tiktok-shop-webhook",
+      "owner": "jwen0605",
+      "repo": "tiktok-shop-webhook",
+      "official_provider_repo": false,
+      "pinned_sha": "990f95cf019da5a3c929b4e4890c7d479e561a75",
+      "pin_kind": "LS_REMOTE_HEAD_SNAPSHOT",
+      "sha_verification": "GIT_LS_REMOTE_HEAD_2026-11-18",
+      "pinned_commit_date": null,
+      "current_head_2026_11_18": "990f95cf019da5a3c929b4e4890c7d479e561a75",
+      "license": "UNKNOWN (GitHub license null)",
+      "github_license_spdx": "NONE_DETECTED",
+      "archived": false,
+      "pushed_at": "2026-04-19T23:29:11Z",
+      "inspected_paths": [],
+      "implemented_capability": "Community TikTok Shop webhook simulation",
+      "verdict": "REFERENCE",
+      "verdict_reason": "Webhook pattern reference only; no license; HMAC canonicalization must be checked against official Shop docs.",
+      "evidence_level": "README_CLAIM",
+      "artifact_refs": [
+        "untracked-primary-worktree:docs/research/ads-platforms-2026-11-17/tiktok.md"
+      ],
+      "approved_dependency": false
+    },
+    {
+      "id": "gh.davidteather.tiktok-api",
+      "url": "https://github.com/davidteather/TikTok-Api",
+      "canonical_url": "https://github.com/davidteather/TikTok-Api",
+      "owner": "davidteather",
+      "repo": "TikTok-Api",
+      "official_provider_repo": false,
+      "pinned_sha": "c5600f9ca8a411e93638e984407d41cca4209cb4",
+      "pin_kind": "LS_REMOTE_HEAD_SNAPSHOT",
+      "sha_verification": "GIT_LS_REMOTE_HEAD_2026-11-18",
+      "pinned_commit_date": null,
+      "current_head_2026_11_18": "c5600f9ca8a411e93638e984407d41cca4209cb4",
+      "license": "MIT",
+      "github_license_spdx": "MIT",
+      "archived": false,
+      "pushed_at": "2026-11-14T00:41:36Z",
+      "inspected_paths": [],
+      "implemented_capability": "Unofficial TikTok scraper",
+      "verdict": "REJECT",
+      "verdict_reason": "Scraping; ToS risk; not an official surface.",
+      "evidence_level": "README_CLAIM",
+      "artifact_refs": [
+        "untracked-primary-worktree:docs/research/ads-platforms-2026-11-17/tiktok.md"
+      ],
+      "approved_dependency": false
+    },
+    {
+      "id": "gh.google-api-nodejs-client",
+      "url": "https://github.com/googleapis/google-api-nodejs-client",
+      "canonical_url": "https://github.com/googleapis/google-api-nodejs-client",
+      "owner": "googleapis",
+      "repo": "google-api-nodejs-client",
+      "official_provider_repo": true,
+      "pinned_sha": "fbb6344097c77b0db3827dcb3cb28971523fcca3",
+      "pin_kind": "LS_REMOTE_HEAD_SNAPSHOT",
+      "sha_verification": "GIT_LS_REMOTE_HEAD_2026-11-18",
+      "pinned_commit_date": null,
+      "current_head_2026_11_18": "fbb6344097c77b0db3827dcb3cb28971523fcca3",
+      "license": "Apache-2.0",
+      "github_license_spdx": "Apache-2.0",
+      "archived": false,
+      "pushed_at": "2026-11-17T15:34:38Z",
+      "inspected_paths": [],
+      "implemented_capability": "Google APIs Node client (Discovery-based)",
+      "verdict": "REFERENCE",
+      "verdict_reason": "Does not include Google Ads API; possible path to non-Ads Google APIs only. Data Manager client support UNVERIFIED.",
+      "evidence_level": "README_CLAIM",
+      "artifact_refs": [
+        "untracked-primary-worktree:docs/research/ads-platforms-2026-11-17/google.md"
+      ],
+      "approved_dependency": false
+    }
+  ]
+}

@@ -42,7 +42,7 @@ integration('migration 005 — parent/child workspace consistency', () => {
     dbUrl = targetUrl(`/${dbName}`);
     db = new PostgresService({ connectionString: dbUrl, max: 2 });
     const migrations = loadMigrations();
-    await new Migrator(db, migrations.filter((m) => m.version !== '005_workspace_consistency')).up();
+    await new Migrator(db, migrations.filter((m) => m.version < '005_workspace_consistency')).up();
   });
 
   afterAll(async () => {
@@ -94,6 +94,8 @@ integration('migration 005 — parent/child workspace consistency', () => {
     const migration = loadMigrations().find((m) => m.version === '005_workspace_consistency');
     if (!migration) throw new Error('005 migration file not found');
     expect(await new Migrator(db, [migration]).up()).toEqual(['005_workspace_consistency']);
+    // Later migrations may depend on the composite lead key created by 005.
+    await new Migrator(db,loadMigrations()).up();
 
     const quarantined = await db.query<{
       source_table: string; source_id: string; row_data: { workspace_id: string; lead_id?: string; entity_id?: string };
@@ -191,10 +193,11 @@ integration('migration 005 — parent/child workspace consistency', () => {
     const allMigrations = loadMigrations();
     const migration = allMigrations.find((m) => m.version === '005_workspace_consistency');
     if (!migration) throw new Error('005 migration file not found');
-    // The database also has 006 applied by beforeAll; Migrator must know every
-    // applied version so rollback bookkeeping remains ordered and complete.
+    // Roll back every later migration first; new migrations must not silently
+    // shift this test away from exercising the 005 down contract.
     const migrator = new Migrator(db, allMigrations);
-    expect(await migrator.down(3)).toEqual(['007_evidence_acquisition', '006_pilot_ingest_command', '005_workspace_consistency']);
+    const rollbackVersions = allMigrations.filter((m) => m.version >= migration.version).map((m) => m.version);
+    expect(await migrator.down(rollbackVersions.length)).toEqual([...rollbackVersions].reverse());
     for (const table of tables) {
       const live = await db.query<{ workspace_id: string }>(
         `SELECT workspace_id FROM ${table} WHERE id = $1`, [ids[table]],
@@ -207,7 +210,7 @@ integration('migration 005 — parent/child workspace consistency', () => {
     expect(await quarantineCount()).toBe('6');
     // Down restores the old write contract; reapply hardens it again.
     await db.query(`INSERT INTO handoff(id,lead_id,workspace_id,context) VALUES ($1,$2,'ws-b','during rollback')`, [randomUUID(), leadId]);
-    expect(await migrator.up()).toEqual(['005_workspace_consistency', '006_pilot_ingest_command', '007_evidence_acquisition']);
+    expect(await migrator.up()).toEqual(rollbackVersions);
     expect(await quarantineCount()).toBe('7');
     for (const table of tables) {
       const live = await db.query<{ workspace_id: string }>(

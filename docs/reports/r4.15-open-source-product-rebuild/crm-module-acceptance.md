@@ -1,0 +1,1 @@
+﻿Chromium OIDC smoke created UI Demo FABRICATED, opened detail and persisted Sales handoff to private PostgreSQL. Tasks, contact, context, outcome and evidence controls are wired; claims never become revenue.

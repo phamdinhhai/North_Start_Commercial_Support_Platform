@@ -1,0 +1,1 @@
+﻿Same-origin cookies and CSRF remain unchanged. Identity changes clear cursor pagination and protected UI remounts; 401 signs out and 403 routes to access denied. No provider token or durable commercial draft is stored in browser cache.

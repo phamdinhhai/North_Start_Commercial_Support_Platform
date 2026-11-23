@@ -1,0 +1,44 @@
+{
+  "schemaVersion": 1,
+  "observedAt": "2026-11-14T12:19:28.886Z",
+  "evidenceType": "live-observed",
+  "method": "REA controlled browser scenario; GET/HEAD/OPTIONS only",
+  "authenticated": "UNKNOWN",
+  "blockedRequests": 6190,
+  "httpStatuses": {
+    "200": 93,
+    "206": 4,
+    "302": 6
+  },
+  "eventKinds": {
+    "request": 1024,
+    "response": 103,
+    "request-finished": 103,
+    "websocket-opened": 2,
+    "request-failed": 921,
+    "websocket-frame-sent": 2,
+    "websocket-frame-received": 2
+  },
+  "websocketOrigins": [],
+  "businessEvents": "UNKNOWN",
+  "limitations": [
+    "Non-read HTTP methods are blocked, which may prevent application initialization.",
+    "No business actions or conversation navigation; a quiet capture cannot establish event absence.",
+    "Browser transport observations do not prove replay, delivery guarantees or standalone connector rights.",
+    "Sanitized aggregate derivative only; full REA evidence is not persisted.",
+    "WebSocket origins were not extracted by this version of the summary script; empty list does not establish that no origins were present.",
+    "10,301 events were omitted; high retry traffic under the HTTP guard makes capture completeness materially limited."
+  ],
+  "evidenceId": "ev_56365417caaafae0d06e896e62673dd53afdba9d95951f34750796970b896474",
+  "result": "captured",
+  "durationMs": 19596,
+  "eventsDropped": 10301,
+  "stepStatuses": [
+    "completed",
+    "completed"
+  ],
+  "reaCleanup": "disconnected-external",
+  "finalLocation": "https://pancake.vn",
+  "loginRouteVisible": false,
+  "ownedBrowserClosed": true
+}

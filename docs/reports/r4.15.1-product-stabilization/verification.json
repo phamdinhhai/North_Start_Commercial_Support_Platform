@@ -1,0 +1,15 @@
+﻿{
+  "release":"R4.15.1",
+  "head":"6e6a1cdb1a18e9c49961ba5c870e557dae382e5c",
+  "base":"d26e6e446bf8cbc62e2d169199330c354a11f66a",
+  "frontendHostedCI":"ADDED_PENDING_HOSTED",
+  "frontendContractTests":"2/2 PASS",
+  "evidencePackager":"2/2 PASS",
+  "frontendBuild":"PASS_LOCAL",
+  "p3":"SEND_UNRESOLVED",
+  "p4":"NOT_TESTED",
+  "p5":"NOT_VERIFIED",
+  "gateB":"CONDITIONAL",
+  "gateC":"NOT_READY",
+  "ownerAcceptance":"PENDING"
+}

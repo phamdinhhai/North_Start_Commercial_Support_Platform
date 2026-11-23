@@ -1,0 +1,1 @@
+﻿No live provider calls, customer data, Pancake retry, Ads mutation or CRM writeback. Pancake remains SEND_UNRESOLVED/NOT_OBSERVED. Chatwoot Rails not deployed. AI production, extension publication, deployment and Owner acceptance remain pending.

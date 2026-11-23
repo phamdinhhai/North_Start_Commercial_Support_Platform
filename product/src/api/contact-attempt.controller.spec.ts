@@ -1,0 +1,25 @@
+import {beforeAll,afterAll,describe,it,expect} from 'vitest';
+import {Test} from '@nestjs/testing';
+import {FastifyAdapter,type NestFastifyApplication} from '@nestjs/platform-fastify';
+import {randomUUID} from 'node:crypto';
+import {ContactAttemptController} from './contact-attempt.controller';
+import {ContactAttemptService} from '../application/pilot/contact-attempt.service';
+import {PilotLoopService} from '../application/pilot/pilot-loop.service';
+import {InMemoryPilotStore} from '../infra/pilot/in-memory-pilot.store';
+import {InMemoryContactAttemptStore} from '../infra/pilot/in-memory-contact-attempt.store';
+import {AuditStore} from '../infra/audit/audit-store';
+import {ManualAdapter} from '../adapters/manual/manual-adapter';
+import {RbacService} from '../infra/rbac/rbac.service';
+import {configuredContentDigester} from '../infra/crypto/configured-content-digester';
+import {AUTH_CONTEXT_RESOLVER} from '../ports/auth';
+describe('contact attempt HTTP boundary',()=>{
+ let app:NestFastifyApplication;let lead:string;const store=new InMemoryPilotStore(new AuditStore());
+ const service=new ContactAttemptService(store,new RbacService(),configuredContentDigester({NODE_ENV:'test'}),new InMemoryContactAttemptStore(store));
+ const body={expectedVersion:1,idempotencyKey:'contact',occurredAt:'unknown',channel:'phone',claimedResult:'unknown',followUpImplication:'Synthetic callback',reason:'synthetic manual declaration'};
+ beforeAll(async()=>{lead=(await new PilotLoopService(store,new ManualAdapter()).ingestScenario({workspaceId:'http-contact',ownerUserId:'owner',displayName:'Synthetic HTTP',utterance:'synthetic',speaker:'customer',connection:'manual',externalRecordId:randomUUID(),isSynthetic:true})).lead.id;const m=await Test.createTestingModule({controllers:[ContactAttemptController],providers:[{provide:ContactAttemptService,useValue:service},{provide:AUTH_CONTEXT_RESOLVER,useValue:{resolve:({headers}:{headers:Record<string,string>})=>headers.authorization?{workspaceId:headers.authorization==='foreign'?'other':'http-contact',userId:headers.authorization==='manager'?'manager':'owner',role:headers.authorization==='viewer'?'viewer':headers.authorization==='manager'?'manager':'sales',isDemo:false}:null}}]}).compile();app=m.createNestApplication<NestFastifyApplication>(new FastifyAdapter(),{logger:false});app.setGlobalPrefix('v1');await app.init();await app.getHttpAdapter().getInstance().ready();});
+ afterAll(async()=>{await app?.close();});
+ const call=(method:'GET'|'POST',id=lead,authorization='owner',payload?:object,query='')=>app.inject({method,url:'/v1/pilot/leads/'+id+'/contact-attempts'+query,headers:authorization?{authorization}:{},...(payload?{payload}:{})});
+ it('authenticates before validating malformed input',async()=>{expect((await call('POST','bad','',{})).statusCode).toBe(401);});
+ it('rejects forged fields and refuses viewer/manager/foreign access',async()=>{for(const change of [{actor:'forged'},{recordedAt:'2020-01-01T00:00:00Z'},{workspaceId:'other'},{occurredAt:'2099-01-01T00:00:00Z'}])expect((await call('POST',lead,'owner',{...body,...change})).statusCode).toBe(400);expect((await call('POST',lead,'viewer',body)).statusCode).toBe(403);expect((await call('POST',lead,'manager',body)).statusCode).toBe(403);expect((await call('GET',lead,'foreign')).statusCode).toBe(404);});
+ it('returns claim history with no-store, bounded query, retry and stale conflict',async()=>{const r=await call('POST',lead,'owner',body);expect(r.statusCode).toBe(201);expect((await call('POST',lead,'owner',body)).json()).toEqual(r.json());expect((await call('POST',lead,'owner',{...body,idempotencyKey:'stale'})).statusCode).toBe(409);const page=await call('GET');expect(page.headers['cache-control']).toBe('no-store');expect(page.json().items[0]).toMatchObject({actor:'owner',occurredAt:'unknown',assertionStatus:'claimed'});expect(page.json().truth.revenueAttribution.status).toBe('unknown');for(const query of ['?limit=101','?after=bad','?workspaceId=other'])expect((await call('GET',lead,'owner',undefined,query)).statusCode).toBe(400);});
+});

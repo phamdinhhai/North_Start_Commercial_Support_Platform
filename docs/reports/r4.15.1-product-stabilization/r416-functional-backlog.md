@@ -1,0 +1,1 @@
+﻿1. Source-backed omnichannel conversation read model using existing receipts. 2. Conversation-to-Lead linkage. 3. Unified commercial timeline. 4. Follow-up/handoff from evidence context. 5. Explicit CRM relationship-model decisions. 6. Human validation.

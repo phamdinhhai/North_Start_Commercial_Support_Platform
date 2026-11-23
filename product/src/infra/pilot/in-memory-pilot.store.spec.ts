@@ -42,7 +42,7 @@ async function twoLeadsInOneWorkspace() {
   });
   const wid = bHanded.workItems[0].id;
   await svc.salesAccept(b.lead.id, { workId: wid, actor: 'sales-b', reason: 'B nhận' });
-  await svc.completeWork(b.lead.id, { workId: wid, actor: 'sales-b', evidence: 'declared', reason: 'B đã gửi bảng phí' });
+  await svc.completeWork(b.lead.id, { workId: wid, actor: 'sales-b', evidence: 'declared', declaration: 'Operator confirmed completion', confirmed: true, reason: 'B đã gửi bảng phí' });
   return { svc, a, b, bWorkId: wid };
 }
 
@@ -59,6 +59,42 @@ describe('InMemoryPilotStore CAS persistence hardening', () => {
     expect(committed.version).toBe(2);
     await expect(store.save(second, [])).rejects.toMatchObject({ code: 'STALE_VERSION', status: 409 });
     expect((await store.load(initial.lead.id))?.lead.displayName).toBe('winner');
+  });
+
+  it('lets exactly one concurrent service mutation win and leaves no stale projection or audit', async () => {
+    const audit = new AuditStore();
+    const store = new InMemoryPilotStore(audit);
+    const first = new PilotLoopService(store, new ManualAdapter());
+    const second = new PilotLoopService(store, new ManualAdapter());
+    const initial = await first.ingestScenario(intakeFor('cas-concurrent', 'CAS concurrent'));
+    const handed = await first.handoffToSales(initial.lead.id, {
+      context: 'c',
+      proposedAction: 'gọi lại',
+      responsibleParty: 'internal',
+      origin: 'explicit-request',
+      actor: 'marketing-lan',
+      recipientUserId: 'sales-b',
+    });
+    const workId = handed.workItems[0].id;
+    await first.salesAccept(initial.lead.id, { workId, actor: 'sales-b', reason: 'nhận' });
+
+    const results = await Promise.allSettled([
+      first.advance(initial.lead.id, { to: 'Contacting', actor: 'sales-b', reason: 'winner candidate' }),
+      second.advance(initial.lead.id, { to: 'Contacting', actor: 'sales-b', reason: 'stale candidate' }),
+    ]);
+
+    expect(results.filter((result) => result.status === 'fulfilled')).toHaveLength(1);
+    expect(results.filter((result) => result.status === 'rejected')).toHaveLength(1);
+    const rejected = results.find((result) => result.status === 'rejected');
+    expect(rejected).toMatchObject({ reason: { code: 'STALE_VERSION', status: 409 } });
+
+    const committed = await first.get(initial.lead.id);
+    expect(committed?.lead.status).toBe('Contacting');
+    expect(committed?.version).toBe(4);
+    const transitions = audit.getByEntity('lead', initial.lead.id).filter((record) => record.eventType === 'lead_transition');
+    expect(transitions).toHaveLength(2); // Accepted + one Contacting winner
+    expect(transitions.filter((record) => record.newValue === 'Contacting')).toHaveLength(1);
+    expect(transitions.map((record) => record.reason)).not.toContain('stale candidate');
   });
 
   it('rolls back audit appends when an append fails before publishing state', async () => {

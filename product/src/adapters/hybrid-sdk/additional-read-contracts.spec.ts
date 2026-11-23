@@ -1,0 +1,7 @@
+import {describe,expect,it} from 'vitest';
+import {AdditionalReadConnector,type AdditionalProvider} from './additional-read-contracts';
+describe('additional provider read contracts',()=>{
+ const cases:[AdditionalProvider,string,unknown][]=[['google-ads','/googleads/v18/customers',{results:[{customer:{resourceName:'customers/123',descriptiveName:'fabricated'}}]}],['shopify','/admin/api/2025-01/products.json',{products:[{id:123,title:'fabricated'}]}],['sapo','/admin/products',{products:[{id:123,name:'fabricated'}]}],['salesforce','/services/data/v61.0/query',{records:[{Id:'123',Name:'fabricated'}]}],['twenty','/rest/people',{data:[{id:'123',name:'fabricated'}]}],['frappe','/api/resource/CRM%20Lead',{data:[{name:'CRM-123'}]}]];
+ for(const [provider,path,payload] of cases)it(`${provider} maps documented native-id shape and scoped route`,async()=>{const connector=new AdditionalReadConnector(provider,{request:async(actual,query)=>{expect(actual).toBe(path);expect(query).toEqual({cursor:'fixture'});return payload;}});const rows=await connector.list({cursor:'fixture'});expect(rows).toHaveLength(1);expect(rows[0].provider).toBe(provider);expect(rows[0].nativeId).toBe(provider==='google-ads'?'customers/123':provider==='frappe'?'CRM-123':'123');});
+ it('fails closed on malformed provider payload',async()=>{await expect(new AdditionalReadConnector('shopify',{request:async()=>null}).list()).rejects.toThrow('PROVIDER_SCHEMA_INVALID');});
+});

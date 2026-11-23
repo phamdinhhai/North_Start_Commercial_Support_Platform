@@ -1,0 +1,16 @@
+{
+  "policy": "Production dependencies may never be waived. Dev-only high/critical advisories may be waived only when no patched version exists, by exact GHSA id, for at most 45 days, and must be re-reviewed before expiry.",
+  "exceptions": [
+    {
+      "id": "GHSA-fc5q-39xc-vjpf",
+      "package": "picomatch",
+      "scope": "dev-only",
+      "reason": "ReDoS via repeated extglobs; affects <=4.0.7 and no patched release exists (latest 4.0.7 on 2026-11-18). Reached only through vitest/vite/@nestjs/cli/typescript-eslint tooling matching repository-controlled globs; `npm audit --omit=dev` reports zero advisories.",
+      "recordedAt": "2026-11-18",
+      "expires": "2026-12-18",
+      "approval": "ACCEPTED_BY_OWNER",
+      "approvedBy": "Phạm Đình Hải (repository owner)",
+      "approvedAt": "2026-11-18"
+    }
+  ]
+}

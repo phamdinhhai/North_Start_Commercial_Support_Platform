@@ -1,0 +1,145 @@
+import { describe, it, expect, beforeAll, beforeEach } from 'vitest';
+import { JwksKeyStore } from './jwks-key-store';
+import { OidcAuthenticator } from './oidc-authenticator';
+import { OidcTokenVerifier } from './oidc-token-verifier';
+import { createTestKey, mintToken, testConfig, TEST_ISSUER, type TestSigningKey } from './oidc-test-kit';
+import { InMemoryMembershipStore } from '../membership/in-memory-membership.store';
+import type { MembershipReader } from '../../ports/auth';
+
+describe('OidcAuthenticator — server-side workspace membership (security-critical, ADR-006)', () => {
+  let key: TestSigningKey;
+  let store: InMemoryMembershipStore;
+  let auth: OidcAuthenticator;
+  beforeAll(async () => { key = await createTestKey('kid-1'); });
+  beforeEach(async () => {
+    const keys = new JwksKeyStore(async () => ({ keys: [key.publicJwk] }), { cacheMaxAgeMs: 600_000, refetchCooldownMs: 30_000 });
+    store = new InMemoryMembershipStore();
+    auth = new OidcAuthenticator(new OidcTokenVerifier(testConfig(), keys), store);
+    await store.grant({ workspaceId: 'ws-a', issuer: TEST_ISSUER, subject: 'user-alice', baseRole: 'sales' });
+  });
+  const bearer = (token: string, extra: Record<string, string> = {}) => ({ authorization: `Bearer ${token}`, ...extra });
+
+  it('valid token + active membership → context from the membership row; userId = internal platform user id', async () => {
+    const decision = await auth.authenticate(bearer(await mintToken(key)));
+    const userId = await store.resolveUserId(TEST_ISSUER, 'user-alice');
+    expect(userId).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/);
+    expect(decision).toEqual({ kind: 'authenticated', context: { workspaceId: 'ws-a', userId, role: 'sales', isDemo: false } });
+  });
+
+  it('token role/workspace claims are ignored (no claim-based escalation)', async () => {
+    const token = await mintToken(key, { extraClaims: { role: 'admin', workspaceId: 'ws-b', groups: ['admins'] } });
+    const decision = await auth.authenticate(bearer(token));
+    expect(decision.kind === 'authenticated' && decision.context).toMatchObject({ workspaceId: 'ws-a', role: 'sales' });
+  });
+
+  it('ADR-006: unknown (issuer, subject) → unauthenticated even with a workspace header; no auto-provisioning', async () => {
+    expect(await auth.authenticate(bearer(await mintToken(key, { sub: 'user-nobody' }))))
+      .toEqual({ kind: 'unauthenticated', reason: 'unknown_identity' });
+    expect(await auth.authenticate(bearer(await mintToken(key, { sub: 'user-nobody' }), { 'x-workspace-id': 'ws-a' })))
+      .toEqual({ kind: 'unauthenticated', reason: 'unknown_identity' });
+    expect(await store.resolveUserId(TEST_ISSUER, 'user-nobody')).toBeNull();
+  });
+
+  it('revoked membership → denied on the very next request', async () => {
+    const token = await mintToken(key);
+    expect((await auth.authenticate(bearer(token))).kind).toBe('authenticated');
+    expect(await store.revoke({ workspaceId: 'ws-a', issuer: TEST_ISSUER, subject: 'user-alice' })).toBe(true);
+    expect(await auth.authenticate(bearer(token))).toEqual({ kind: 'unauthenticated', reason: 'no_membership' });
+    expect(await auth.authenticate(bearer(token, { 'x-workspace-id': 'ws-a' }))).toEqual({ kind: 'forbidden', reason: 'workspace_not_member' });
+    // ADR-006: re-grant is a NEW row for the SAME internal user; the revoked row never reactivates.
+    const userId = await store.resolveUserId(TEST_ISSUER, 'user-alice');
+    const regrant = await store.grant({ workspaceId: 'ws-a', issuer: TEST_ISSUER, subject: 'user-alice', baseRole: 'viewer' });
+    expect(regrant.userId).toBe(userId);
+    expect(await auth.authenticate(bearer(token))).toEqual({ kind: 'authenticated', context: { workspaceId: 'ws-a', userId, role: 'viewer', isDemo: false } });
+  });
+
+  it('ADR-006: a disabled platform user is unauthenticated although memberships stay active', async () => {
+    const userId = (await store.resolveUserId(TEST_ISSUER, 'user-alice'))!;
+    store.setUserStatus(userId, 'disabled');
+    expect(await auth.authenticate(bearer(await mintToken(key)))).toEqual({ kind: 'unauthenticated', reason: 'unknown_identity' });
+  });
+
+  it('cross-workspace request without membership → forbidden', async () => {
+    expect(await auth.authenticate(bearer(await mintToken(key), { 'x-workspace-id': 'ws-b' })))
+      .toEqual({ kind: 'forbidden', reason: 'workspace_not_member' });
+  });
+
+  it('requested workspace honored only for an active membership; role still from the row', async () => {
+    await store.grant({ workspaceId: 'ws-b', issuer: TEST_ISSUER, subject: 'user-alice', baseRole: 'viewer' });
+    const token = await mintToken(key);
+    expect(await auth.authenticate(bearer(token))).toEqual({ kind: 'unauthenticated', reason: 'workspace_selection_required' });
+    const decision = await auth.authenticate(bearer(token, { 'x-workspace-id': 'ws-b' }));
+    expect(decision.kind === 'authenticated' && decision.context).toMatchObject({ workspaceId: 'ws-b', role: 'viewer' });
+  });
+
+  it('same subject from a different issuer does not inherit membership', async () => {
+    await store.grant({ workspaceId: 'ws-z', issuer: 'https://other-idp.invalid', subject: 'user-bob', baseRole: 'admin' });
+    expect(await auth.authenticate(bearer(await mintToken(key, { sub: 'user-bob' }))))
+      .toEqual({ kind: 'unauthenticated', reason: 'unknown_identity' });
+    expect(await store.resolveUserId(TEST_ISSUER, 'user-bob')).toBeNull();
+  });
+
+  it('ADR-006: the same sub at two issuers maps to two internal users; the interim oidc:<hash>:<sub> form is gone', async () => {
+    await store.grant({ workspaceId: 'ws-a', issuer: 'https://other-idp.invalid', subject: 'user-alice', baseRole: 'admin' });
+    const mine = await store.resolveUserId(TEST_ISSUER, 'user-alice');
+    const theirs = await store.resolveUserId('https://other-idp.invalid', 'user-alice');
+    expect(mine).not.toBe(theirs);
+    const decision = await auth.authenticate(bearer(await mintToken(key)));
+    expect(decision.kind === 'authenticated' && decision.context.userId).toBe(mine);
+    expect(decision.kind === 'authenticated' && decision.context.userId).not.toMatch(/^oidc:/);
+    expect(decision.kind === 'authenticated' && decision.context.role).toBe('sales');
+  });
+
+  it('defensive: a reader returning a non-UUID user id yields no context', async () => {
+    const now = new Date();
+    const keys = new JwksKeyStore(async () => ({ keys: [key.publicJwk] }), { cacheMaxAgeMs: 600_000, refetchCooldownMs: 30_000 });
+    const nonUuid = new OidcAuthenticator(new OidcTokenVerifier(testConfig(), keys), {
+      resolveUserId: async () => 'user-alice',
+      listActive: async () => [{ id: 'm', workspaceId: 'ws-a', userId: 'user-alice', baseRole: 'admin', status: 'active', createdAt: now, revokedAt: null }],
+    });
+    expect(await nonUuid.authenticate(bearer(await mintToken(key)))).toEqual({ kind: 'unauthenticated', reason: 'unknown_identity' });
+  });
+
+  it('malformed workspace header / repeated header → invalid_request; malformed authorization → unauthenticated', async () => {
+    const token = await mintToken(key);
+    expect(await auth.authenticate(bearer(token, { 'x-workspace-id': 'ws a; drop' }))).toEqual({ kind: 'invalid_request', reason: 'workspace_header_invalid' });
+    expect(await auth.authenticate({ authorization: `Bearer ${token}`, 'x-workspace-id': ['ws-a', 'ws-b'] })).toEqual({ kind: 'invalid_request', reason: 'workspace_header_invalid' });
+    expect(await auth.authenticate({ authorization: `Basic ${token}` })).toEqual({ kind: 'unauthenticated', reason: 'malformed_authorization' });
+    expect(await auth.authenticate({ authorization: [`Bearer ${token}`, `Bearer ${token}`] })).toEqual({ kind: 'unauthenticated', reason: 'malformed_authorization' });
+    expect(await auth.authenticate({})).toEqual({ kind: 'none' });
+  });
+
+  it('token failures surface as unauthenticated with the verifier reason', async () => {
+    expect(await auth.authenticate(bearer(await mintToken(key, { expSecondsFromNow: -600 }))))
+      .toEqual({ kind: 'unauthenticated', reason: 'expired' });
+  });
+
+  it('defensive: rows that are revoked/foreign/unknown-role from a faulty reader are ignored', async () => {
+    const now = new Date();
+    const me = '6c1f9a52-3f4b-4f43-9d8a-2a8f6f7f0c11';
+    const faulty: MembershipReader = {
+      resolveUserId: async () => me,
+      listActive: async () => [
+        { id: 'r', workspaceId: 'ws-r', userId: me, baseRole: 'admin', status: 'revoked', createdAt: now, revokedAt: now },
+        { id: 'f', workspaceId: 'ws-f', userId: '7d2e0b63-4a5c-4e54-8e9b-3b907080d122', baseRole: 'admin', status: 'active', createdAt: now, revokedAt: null },
+        { id: 'u', workspaceId: 'ws-u', userId: me, baseRole: 'superuser' as never, status: 'active', createdAt: now, revokedAt: null },
+      ],
+    };
+    const keys = new JwksKeyStore(async () => ({ keys: [key.publicJwk] }), { cacheMaxAgeMs: 600_000, refetchCooldownMs: 30_000 });
+    const guarded = new OidcAuthenticator(new OidcTokenVerifier(testConfig(), keys), faulty);
+    expect(await guarded.authenticate(bearer(await mintToken(key)))).toEqual({ kind: 'unauthenticated', reason: 'no_membership' });
+  });
+});
+
+describe('InMemoryMembershipStore — constraints mirror migration 010 (ADR-006)', () => {
+  it('rejects new roles, demo workspaces and empty identity', async () => {
+    const store = new InMemoryMembershipStore();
+    await expect(store.grant({ workspaceId: 'ws', issuer: TEST_ISSUER, subject: 's', baseRole: 'owner' as never })).rejects.toMatchObject({ code: 'INPUT_INVALID' });
+    await expect(store.grant({ workspaceId: 'ws', issuer: TEST_ISSUER, subject: 's', baseRole: 'sales' }, { userId: 'not-a-uuid' })).rejects.toMatchObject({ code: 'INPUT_INVALID' });
+    expect(await store.resolveUserId(TEST_ISSUER, 's')).toBeNull(); // nothing provisioned by a refused grant
+    await expect(store.grant({ workspaceId: 'demo:x', issuer: TEST_ISSUER, subject: 's', baseRole: 'viewer' })).rejects.toThrow();
+    await expect(store.grant({ workspaceId: 'ws', issuer: '', subject: 's', baseRole: 'viewer' })).rejects.toThrow();
+    await expect(store.grant({ workspaceId: 'ws', issuer: TEST_ISSUER, subject: '', baseRole: 'viewer' })).rejects.toThrow();
+    expect(await store.revoke({ workspaceId: 'ws', issuer: TEST_ISSUER, subject: 'missing' })).toBe(false);
+  });
+});

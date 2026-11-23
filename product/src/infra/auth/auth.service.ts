@@ -1,13 +1,15 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable, Logger, Optional } from '@nestjs/common';
 import { timingSafeEqual } from 'node:crypto';
-import type { AuthContext, AuthRequestLike, AuthRole, AuthContextResolver } from '../../ports/auth';
+import { VERIFIED_CONTEXT_LOOKUP, type AuthContext, type AuthRequestLike, type AuthRole, type AuthContextResolver, type VerifiedContextLookup } from '../../ports/auth';
+import { resolveAuthMode } from './oidc-config';
 export type { AuthContext, AuthRequestLike, AuthRole } from '../../ports/auth';
 
 /**
  * Auth stub — PH3 T3-03 (1-A).
  * Demo vs non-demo, reject unauthenticated non-demo.
  * KHÔNG phát token từ email/workspace caller gửi (QA-28).
- * // OPEN: PM-1 — invite one-use/expiring, password/SSO thật chờ RFC; hiện chỉ bootstrap stub.
+ * // ADR-006 — real principals come from AUTH_MODE=oidc (internal platform user id + server-side
+ * membership). Legacy mode stays a bootstrap/dev stub that can never yield an internal principal.
  */
 /** Demo workspace names are sandboxed so the header can never address a real tenant (P1 review). */
 const DEMO_PREFIX = 'demo:';
@@ -35,6 +37,13 @@ export class AuthService implements AuthContextResolver {
   private readonly logger = new Logger(AuthService.name);
 
   /**
+   * `verified` is only consulted when AUTH_MODE=oidc (experimental, default OFF). It holds
+   * contexts produced by OidcAuthModule's request hook from a verified token + server-side
+   * membership. Absent lookup in OIDC mode → every bearer request is unauthenticated.
+   */
+  constructor(@Optional() @Inject(VERIFIED_CONTEXT_LOOKUP) private readonly verified?: VerifiedContextLookup) {}
+
+  /**
    * Resolve auth context from request.
    * - Demo: `x-demo-workspace` — DEMO-ONLY and OPT-IN (`DEMO_WORKSPACES=true`). The value is a
    *   SANDBOX LABEL, not a workspace selector: it always resolves to `demo:<name>`, so a caller
@@ -53,11 +62,20 @@ export class AuthService implements AuthContextResolver {
       const sandbox = `${DEMO_PREFIX}${sanitizeDemoName(demoWs) || 'anon'}`;
       return { workspaceId: sandbox, userId: `${sandbox}:viewer`, role: 'viewer', isDemo: true };
     }
+    let oidc: boolean;
+    try {
+      oidc = resolveAuthMode() === 'oidc';
+    } catch {
+      return null; // unknown AUTH_MODE: fail closed (bootstrap already refuses to start)
+    }
+    // OIDC mode: bearer = verified OIDC access token only; unsigned dev tokens and the
+    // bootstrap admin hook are disabled (deny-only change). // ADR-006
+    if (oidc) return this.verified?.lookup(req.headers) ?? null;
     const auth = asSingleHeader(req.headers['authorization'] ?? req.headers['Authorization']);
     const bootstrap = asSingleHeader(req.headers['x-bootstrap-token']);
     const expectedBootstrap = process.env.BOOTSTRAP_TOKEN;
     // Bootstrap is deliberately narrow: an explicit, bounded secret is required. It is
-    // still a PM-1 seed hook, not a general session or credential model.
+    // still a legacy seed hook (not an internal principal, ADR-006), not a session or credential model.
     if (
       expectedBootstrap &&
       expectedBootstrap.length <= MAX_BOOTSTRAP_TOKEN_BYTES &&
@@ -72,7 +90,7 @@ export class AuthService implements AuthContextResolver {
       if (!/^Bearer\s/.test(auth) || !/^Bearer\s+[^\s]+$/.test(auth)) return null;
       const token = auth.slice(7).trim();
       // Unsigned tokens are strictly test/development-only and intentionally cannot grant
-      // privileged roles. PM-1 must define signed credentials before broader roles exist.
+      // privileged roles. ADR-006: privileged roles come only from server-side OIDC membership.
       const deployment = (process.env.DEPLOYMENT_MODE ?? process.env.APP_MODE ?? process.env.NODE_ENV ?? 'local').trim().toLowerCase();
       if (process.env.AUTH_DEV_UNSIGNED_TOKENS !== 'true' || token.length > MAX_TOKEN_BYTES ||
           !['local', 'development', 'dev', 'test', 'demo'].includes(deployment) || process.env.NODE_ENV === 'production') return null;

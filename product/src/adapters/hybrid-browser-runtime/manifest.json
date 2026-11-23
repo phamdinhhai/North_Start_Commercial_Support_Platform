@@ -1,0 +1,12 @@
+{
+  "manifest_version": 3,
+  "name": "North Start Hybrid Integration Runtime",
+  "version": "0.1.0",
+  "description": "Explicitly scoped read-only integration context capture with durable local delivery.",
+  "permissions": ["activeTab", "scripting", "storage"],
+  "optional_permissions": ["debugger"],
+  "optional_host_permissions": ["https://pancake.vn/*", "https://app.pancake.vn/*", "https://adsmanager.facebook.com/*", "https://business.facebook.com/*", "https://app.hubspot.com/*", "https://localhost/*"],
+  "background": {"service_worker": "worker.mjs", "type": "module"},
+  "action": {"default_popup": "popup.html"},
+  "content_security_policy": {"extension_pages": "script-src 'self'; object-src 'none'"}
+}

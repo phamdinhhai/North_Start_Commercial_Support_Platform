@@ -1,0 +1,1 @@
+export const SYNTHETIC_PILOT_MODE = Symbol('SYNTHETIC_PILOT_MODE');

@@ -1,0 +1,13 @@
+{
+  "sourceSha256": "bcb58184278c4407cc8e2a117461e74dc41dea6c2247fc296cdaf30c23932640",
+  "derivativeSha256": "4a3bb259a45e1e406f1bf6f621ba0955af9ed1ec935ae6de107550eca60f1073",
+  "derivativeBytes": 3228,
+  "originalOrdinalsInDerivativeOrder": [
+    82,
+    97,
+    197,
+    243,
+    429
+  ],
+  "transformation": "The REA derivative contains selected WebSocket handshake metadata only; bodies and frame records are omitted."
+}

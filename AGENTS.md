@@ -59,10 +59,21 @@ Tất cả invariant trong `docs/canonical/DOMAIN_INVARIANTS.md`. Code PHẢI en
 
 ## Open Decisions (DO NOT RESOLVE)
 
-7 canonical open decisions trong `docs/canonical/OPEN_DECISIONS.md`:
-CE-1 (state machine), CE-2 (event scope), MM-1 (attribution), ID-1 (merge thresholds), ID-2 (CRM mapping), PM-1 (permissions), LG-1 (scope conflict)
+3 canonical open decisions còn lại trong `docs/canonical/OPEN_DECISIONS.md`:
+CE-1 (state machine), ID-1 (merge thresholds), ID-2 (CRM mapping)
 
 > Code comment `// OPEN: CE-1 — see ADR-001` tại các seam. Abort nếu privilege/transition vượt frozen boundary.
+
+### Resolved 2026-11-18 (owner approval — follow the ADR, do not re-open)
+
+| ID | ADR (`docs/implementation-plan/decisions/`) | Rule for agents |
+|---|---|---|
+| CE-2 | ADR-005 | `CommercialEvent` = inferred assertion only; observed/claimed/imported → `AssertionEnvelope`; technical records are not assertions; AI action proposals need a draft CE + evidence |
+| PM-1 | ADR-006 | Enforce the capability matrix over the 4 existing roles; no new roles; admin-only for connector credentials, membership and high-risk actions |
+| LG-1 | ADR-007 | Only the LVP loop is active scope; foundations flag-off + synthetic; outbound capabilities only in test fixtures until a per-capability gate |
+| MM-1 | ADR-008 | LVP keeps Revenue Attribution `UNKNOWN`; attribution records are versioned, credit ≠ causation; conversion export gated |
+
+Also accepted: ADR-009 (keyed content digests; no body-derived hashes from the browser; no raw frame retention by default). Cite the ADR at resolved seams (e.g. `// ADR-006`).
 
 ## Code Standards
 

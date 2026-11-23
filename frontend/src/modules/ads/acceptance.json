@@ -1,0 +1,24 @@
+{
+  "upstream": {
+    "repository": "https://github.com/masgant99/nalarin-agentic-ads-studio",
+    "commit": "c500cc5a132142ff3de815bf6d15c50d490ea522",
+    "license": "MIT",
+    "copiedPaths": ["frontend/src/components/PerformanceTable.jsx", "frontend/src/pages/Overview.jsx"],
+    "install": "npm ci --ignore-scripts --no-audit --no-fund: PASS (554 packages)",
+    "build": "npm run build: PASS (2424 modules)",
+    "unitTests": "npm run test:unit -- --reporter=dot: FAIL (1/1; OptimizationPanel reads undefined allowed_actions from test auth mock)",
+    "dependencyAudit": {"low": 1, "moderate": 8, "high": 21, "critical": 6},
+    "reuseBoundary": "Only isolated table/chart source. Upstream package/lockfile/backend/auth/AI/optimization dependencies were not adopted."
+  },
+  "northStart": {
+    "fixtureTests": "node --test frontend/src/modules/ads/fixtures.test.mjs: PASS 3/3, zero skipped",
+    "typecheck": "tsc --noEmit --strict --skipLibCheck --jsx react-jsx --esModuleInterop --target ES2022 --module ESNext --moduleResolution Bundler frontend/src/modules/ads/AdsPage.tsx frontend/src/modules/ads/PerformanceTable.tsx frontend/src/modules/ads/fixtures.ts: PASS",
+    "browserIntegration": "PENDING root integrated acceptance",
+    "backendAdsReporting": "NOT_IMPLEMENTED; module remains explicitly labeled UI fixture",
+    "postgresPersistence": "NOT_CLAIMED",
+    "providerCalls": 0,
+    "providerMutations": 0,
+    "completeness": "UNKNOWN",
+    "ownerAcceptance": "PENDING"
+  }
+}

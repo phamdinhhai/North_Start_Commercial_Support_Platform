@@ -1,0 +1,736 @@
+{
+  "schema": "north-star.decision-register.v2",
+  "registry_status": "working_non_canonical",
+  "as_of": "2026-11-18",
+  "retrieval_date": "2026-11-18",
+  "authority": "Research consolidation only. docs/canonical/** remains the normative source; this file cannot resolve open decisions or approve production use.",
+  "evidence_levels": [
+    "README_CLAIM",
+    "SOURCE_INSPECTED",
+    "DOCUMENTED_API",
+    "SYNTHETIC_TESTED",
+    "CONTRACT_TESTED",
+    "LIVE_VERIFIED",
+    "RELEASE_APPROVED"
+  ],
+  "rule": "Canonical open decisions stay OPEN; proposals are PROPOSED/NOT_APPROVED. No entry may be ACCEPTED, APPROVED or RESOLVED here.",
+  "human_approval_required": true,
+  "canonical_authority": "docs/canonical/OPEN_DECISIONS.md",
+  "decisions": [
+    {
+      "id": "CE-1",
+      "title": "Commercial Event to Commercial State transition table",
+      "status": "OPEN",
+      "impact": "core/state",
+      "current_guardrail": "Keep the lead state graph as an interim hypothesis (product/src/domain/lead/lead-state.ts); research receipts/checkpoints cannot create commercial stages.",
+      "next_evidence": [
+        "transition RFC",
+        "Product and Data review",
+        "Gate #A record"
+      ],
+      "approval_required_from": [
+        "Product",
+        "Data"
+      ],
+      "source": "docs/canonical/OPEN_DECISIONS.md#CE-1",
+      "evidence_refs": [
+        "docs/implementation-plan/spike/RFC-CE1-CE2-draft.md",
+        "docs/reports/unified-execution-2026-11-16/decisions.md"
+      ],
+      "related_proposals": [],
+      "resolution_rule": "Only a human RFC/gate recorded in docs/canonical may change this status; this registry cannot."
+    },
+    {
+      "id": "CE-2",
+      "title": "Commercial Event scope",
+      "status": "RESOLVED_BY_ADR",
+      "impact": "core/event-semantics",
+      "current_guardrail": "Do not generalize inferred CommercialEvent semantics to observed/claimed/imported/operational assertions; provider webhooks, socket events, CAPI/Data Manager uploads and CRM task states are observations, not Commercial Events.",
+      "next_evidence": [
+        "scope RFC",
+        "Product and Architecture review",
+        "Gate #A record"
+      ],
+      "approval_required_from": [
+        "Product",
+        "Architecture"
+      ],
+      "source": "docs/canonical/OPEN_DECISIONS.md#CE-2",
+      "evidence_refs": [
+        "docs/implementation-plan/spike/RFC-CE1-CE2-draft.md",
+        "docs/research/registry-2026-11-18/provider-capability-registry.json"
+      ],
+      "related_proposals": [
+        "P-2026-11-18-02"
+      ],
+      "resolution_rule": "Only a human RFC/gate recorded in docs/canonical may change this status; this registry cannot.",
+      "resolution": {
+        "adr": "docs/implementation-plan/decisions/ADR-005-ce2-commercial-assertion-scope.md",
+        "decided_on": "2026-11-18",
+        "decided_by": "Phạm Đình Hải (repository owner)",
+        "canonical": "docs/canonical/OPEN_DECISIONS.md#resolved-decisions-supersession-log"
+      }
+    },
+    {
+      "id": "MM-1",
+      "title": "Attribution model choice",
+      "status": "RESOLVED_BY_ADR",
+      "impact": "measurement/revenue",
+      "current_guardrail": "Attribution stays UNKNOWN with reason; provider conversion counts (Meta/TikTok/Google) stay namespaced and never become revenue credit.",
+      "next_evidence": [
+        "validated revenue linkage",
+        "measurement RFC",
+        "Data and Product review"
+      ],
+      "approval_required_from": [
+        "Data",
+        "Product"
+      ],
+      "source": "docs/canonical/OPEN_DECISIONS.md#MM-1",
+      "evidence_refs": [
+        "docs/reports/unified-execution-2026-11-16/ads-capabilities.md"
+      ],
+      "related_proposals": [
+        "P-2026-11-18-03",
+        "P-2026-11-18-04"
+      ],
+      "resolution_rule": "Only a human RFC/gate recorded in docs/canonical may change this status; this registry cannot.",
+      "resolution": {
+        "adr": "docs/implementation-plan/decisions/ADR-008-mm1-attribution-model.md",
+        "decided_on": "2026-11-18",
+        "decided_by": "Phạm Đình Hải (repository owner)",
+        "canonical": "docs/canonical/OPEN_DECISIONS.md#resolved-decisions-supersession-log"
+      }
+    },
+    {
+      "id": "ID-1",
+      "title": "Identity merge thresholds and undo mechanics",
+      "status": "OPEN",
+      "impact": "identity/access-trust",
+      "current_guardrail": "No automatic merge. PSID/IGSID/Zalo OA follower IDs/CRM contact IDs/Pancake customer IDs remain namespaced external references.",
+      "next_evidence": [
+        "confidence/evidence policy",
+        "manual approval design",
+        "undo test",
+        "Product, Data and Trust review"
+      ],
+      "approval_required_from": [
+        "Product",
+        "Data",
+        "Trust"
+      ],
+      "source": "docs/canonical/OPEN_DECISIONS.md#ID-1",
+      "evidence_refs": [
+        "docs/reports/unified-execution-2026-11-16/omnichannel-crm.md",
+        "docs/research/registry-2026-11-18/provider-capability-registry.json"
+      ],
+      "related_proposals": [],
+      "resolution_rule": "Only a human RFC/gate recorded in docs/canonical may change this status; this registry cannot."
+    },
+    {
+      "id": "ID-2",
+      "title": "External CRM field and schema mapping",
+      "status": "OPEN",
+      "impact": "integration-boundary",
+      "current_guardrail": "CRM adapters resolve external references only; no production field mapping for Twenty/HubSpot/Salesforce/Chatwoot is assumed.",
+      "next_evidence": [
+        "provider feasibility spike",
+        "authority mapping",
+        "mapping RFC"
+      ],
+      "approval_required_from": [
+        "Engineering",
+        "Product"
+      ],
+      "source": "docs/canonical/OPEN_DECISIONS.md#ID-2",
+      "evidence_refs": [
+        "docs/reports/unified-execution-2026-11-16/omnichannel-crm.md",
+        "product/src/adapters/decision-demand/crm-external-id-mapper.spec.ts"
+      ],
+      "related_proposals": [
+        "P-2026-11-18-07",
+        "P-2026-11-18-09"
+      ],
+      "resolution_rule": "Only a human RFC/gate recorded in docs/canonical may change this status; this registry cannot."
+    },
+    {
+      "id": "PM-1",
+      "title": "Detailed permissions and credential model",
+      "status": "RESOLVED_BY_ADR",
+      "impact": "access/operations",
+      "current_guardrail": "Enforce only the frozen lead-scoped boundary. Provider membership/tokens (Pancake page admin, Meta Page token, OA token) never grant North Star lead access.",
+      "next_evidence": [
+        "capability matrix",
+        "credential lifecycle",
+        "security review",
+        "external validation"
+      ],
+      "approval_required_from": [
+        "Security",
+        "Product"
+      ],
+      "source": "docs/canonical/OPEN_DECISIONS.md#PM-1",
+      "evidence_refs": [
+        "docs/reports/unified-execution-2026-11-16/reusable-assets.md",
+        "docs/reports/unified-execution-2026-11-16/lead-access-hardening.md"
+      ],
+      "related_proposals": [
+        "P-2026-11-18-06",
+        "P-2026-11-18-08",
+        "P-2026-11-18-10"
+      ],
+      "resolution_rule": "Only a human RFC/gate recorded in docs/canonical may change this status; this registry cannot.",
+      "resolution": {
+        "adr": "docs/implementation-plan/decisions/ADR-006-pm1-capability-matrix.md",
+        "decided_on": "2026-11-18",
+        "decided_by": "Phạm Đình Hải (repository owner)",
+        "canonical": "docs/canonical/OPEN_DECISIONS.md#resolved-decisions-supersession-log"
+      }
+    },
+    {
+      "id": "LG-1",
+      "title": "North Star vision versus current LVP scope",
+      "status": "RESOLVED_BY_ADR",
+      "impact": "method/sequencing",
+      "current_guardrail": "Synthetic/manual continuity loop remains the baseline; provider research and adaptive connectivity are experiments, not scope promotion.",
+      "next_evidence": [
+        "learning-gate evidence",
+        "scope review",
+        "Founder/Product phase decision"
+      ],
+      "approval_required_from": [
+        "Founder",
+        "Product"
+      ],
+      "source": "docs/canonical/OPEN_DECISIONS.md#LG-1",
+      "evidence_refs": [
+        "docs/reports/unified-execution-2026-11-16/decisions.md"
+      ],
+      "related_proposals": [
+        "P-2026-11-18-02",
+        "P-2026-11-18-10"
+      ],
+      "resolution_rule": "Only a human RFC/gate recorded in docs/canonical may change this status; this registry cannot.",
+      "resolution": {
+        "adr": "docs/implementation-plan/decisions/ADR-007-lg1-phase-scope.md",
+        "decided_on": "2026-11-18",
+        "decided_by": "Phạm Đình Hải (repository owner)",
+        "canonical": "docs/canonical/OPEN_DECISIONS.md#resolved-decisions-supersession-log"
+      }
+    }
+  ],
+  "proposals": [
+    {
+      "status": "ADOPTED",
+      "approval_state": "NOT_APPROVED",
+      "id": "P-2026-11-18-01",
+      "title": "Unify evidence-level vocabulary across research registries",
+      "related_open_decisions": [],
+      "context": "Inherited registries used four incompatible vocabularies (DISCOVERED/DOCUMENTED/..., source-inspected/mock-tested/live-verified, README_CLAIM/DOCUMENTED_API/UNCERTAIN, SOURCE_INSPECTED_NOT_EXECUTED). \"live-verified\" was applied to bounded private-session observations.",
+      "alternatives": [
+        {
+          "option": "Keep per-registry vocabularies",
+          "pros": [
+            "no migration"
+          ],
+          "cons": [
+            "cross-registry comparison impossible",
+            "overclaim risk"
+          ]
+        },
+        {
+          "option": "Seven-level enum README_CLAIM..RELEASE_APPROVED plus separate live_observation/audit fields",
+          "pros": [
+            "machine-validated",
+            "private observations cannot inflate level"
+          ],
+          "cons": [
+            "old registries remain in legacy form"
+          ]
+        }
+      ],
+      "evidence_refs": [
+        "docs/research/registries/evidence-capability-register.json",
+        "docs/research/adaptive-integration-2026-11-14/protocol-capability-registry.json",
+        "docs/research/registry-2026-11-18/provider-capability-registry.json"
+      ],
+      "trade_offs": "Conservative capping lowers the apparent maturity of the Pancake tag/settings rows (was live-verified, now SYNTHETIC_TESTED with live_observation).",
+      "recommendation": "Adopt the seven-level enum for new registries; keep legacy files read-only; validator enforces it.",
+      "migration_impact": "Docs/validator only; no product code or schema change.",
+      "owner": "Engineering (research tooling)",
+      "approval_requirement": "Architecture review of registry-validation change",
+      "owner_decision": {
+        "decided_on": "2026-11-18",
+        "decided_by": "Phạm Đình Hải (repository owner)",
+        "scope": "engineering recommendation adopted as stated"
+      }
+    },
+    {
+      "status": "ADOPTED",
+      "approval_state": "NOT_APPROVED",
+      "id": "P-2026-11-18-02",
+      "title": "PH4 Pancake ingestion path ordering",
+      "related_open_decisions": [
+        "LG-1",
+        "PM-1",
+        "CE-2"
+      ],
+      "context": "Three candidate paths: official Pancake Chat Public API + POS webhooks/API (documented, no credential yet); observed Phoenix socket (internal protocol, rights UNKNOWN); first-party browser companion (synthetic-tested, consent-based).",
+      "alternatives": [
+        {
+          "option": "Official Public API polling + POS webhooks first",
+          "pros": [
+            "licensed",
+            "documented rate limit 5/page/s",
+            "no protocol drift risk"
+          ],
+          "cons": [
+            "no realtime chat events documented",
+            "credential not yet available"
+          ]
+        },
+        {
+          "option": "Standalone Phoenix socket subscriber",
+          "pros": [
+            "near-realtime"
+          ],
+          "cons": [
+            "observed internal protocol, rights UNKNOWN",
+            "no replay",
+            "drift"
+          ]
+        },
+        {
+          "option": "Browser companion observation",
+          "pros": [
+            "user-consented",
+            "already synthetic-tested"
+          ],
+          "cons": [
+            "partial coverage",
+            "operator browser dependency"
+          ]
+        }
+      ],
+      "evidence_refs": [
+        "docs/research/registry-2026-11-18/provider-capability-registry.json",
+        "docs/reports/unified-execution-2026-11-16/pancake-capabilities.md",
+        "docs/implementation-plan/spike/pancake-verdict.md"
+      ],
+      "trade_offs": "Latency vs licensing/continuity risk; manual fallback remains regardless.",
+      "recommendation": "Request one pilot-page Public API credential and a dedicated test POS shop; implement read polling + POS webhook receiver; keep socket and companion as research-only gap detectors.",
+      "migration_impact": "New adapter behind existing envelope/receipt tables; no canonical change.",
+      "owner": "Product + Engineering (PH4 gate)",
+      "approval_requirement": "PH4 Pancake spike verdict (Product + Engineering)",
+      "owner_decision": {
+        "adr": "docs/implementation-plan/decisions/ADR-007-lg1-phase-scope.md",
+        "decided_on": "2026-11-18",
+        "canonical_update": "APPLIED",
+        "decided_by": "Phạm Đình Hải (repository owner)"
+      }
+    },
+    {
+      "status": "ADOPTED",
+      "approval_state": "NOT_APPROVED",
+      "id": "P-2026-11-18-03",
+      "title": "First ads provider for read-only acquisition context",
+      "related_open_decisions": [
+        "MM-1",
+        "LG-1"
+      ],
+      "context": "Meta Marketing Insights, TikTok Marketing reporting and Google Ads GAQL are all DOCUMENTED_API with official SDK source inspected; none has a named test account.",
+      "alternatives": [
+        {
+          "option": "Meta first",
+          "pros": [
+            "Vietnamese SME ad spend concentration (assumption)",
+            "official Node SDK"
+          ],
+          "cons": [
+            "App Review lead time",
+            "custom license"
+          ]
+        },
+        {
+          "option": "Google Ads first",
+          "pros": [
+            "stable GAQL",
+            "REST available"
+          ],
+          "cons": [
+            "no Node client",
+            "developer token approval"
+          ]
+        },
+        {
+          "option": "TikTok first",
+          "pros": [
+            "MIT SDK"
+          ],
+          "cons": [
+            "v1.3/v2.0 drift",
+            "restatement window unverified"
+          ]
+        }
+      ],
+      "evidence_refs": [
+        "docs/reports/unified-execution-2026-11-16/ads-capabilities.md",
+        "docs/research/registry-2026-11-18/github-research-matrix.json"
+      ],
+      "trade_offs": "Pick by pilot customer channel mix, not SDK convenience.",
+      "recommendation": "Choose the provider used by the first pilot workspace; read-only daily spend + IDs; attribution stays UNKNOWN.",
+      "migration_impact": "Append-only observation table keyed by provider/account/object/interval/config.",
+      "owner": "Product",
+      "approval_requirement": "Product decision + provider app approval",
+      "owner_decision": {
+        "adr": "docs/implementation-plan/decisions/ADR-008-mm1-attribution-model.md",
+        "decided_on": "2026-11-18",
+        "canonical_update": "APPLIED",
+        "decided_by": "Phạm Đình Hải (repository owner)"
+      }
+    },
+    {
+      "status": "ADOPTED",
+      "approval_state": "NOT_APPROVED",
+      "id": "P-2026-11-18-04",
+      "title": "Outcome export to ad platforms (CAPI / TikTok Events / Google Data Manager)",
+      "related_open_decisions": [
+        "MM-1",
+        "CE-2",
+        "PM-1"
+      ],
+      "context": "Export of verified outcomes is a provider write; Google directs new offline conversion work to Data Manager API; legacy upload compatibility is conditional.",
+      "alternatives": [
+        {
+          "option": "Defer all exports",
+          "pros": [
+            "no write risk"
+          ],
+          "cons": [
+            "no optimisation feedback"
+          ]
+        },
+        {
+          "option": "Google Data Manager first",
+          "pros": [
+            "documented v1.9 call conversions/leadId"
+          ],
+          "cons": [
+            "Cloud project + OAuth verification"
+          ]
+        },
+        {
+          "option": "Meta CAPI first",
+          "pros": [
+            "event_id dedup"
+          ],
+          "cons": [
+            "consent basis UNKNOWN"
+          ]
+        }
+      ],
+      "evidence_refs": [
+        "docs/research/registry-2026-11-18/provider-capability-registry.json",
+        "docs/research/registries/evidence-capability-register.json"
+      ],
+      "trade_offs": "Exports could be misread as attribution; must remain namespaced measurement assertions.",
+      "recommendation": "Defer until MM-1 RFC and consent review; if started, Data Manager (not legacy upload) with human-approved batches.",
+      "migration_impact": "Outbound job + audit records; no canonical attribution field.",
+      "owner": "Data + Product",
+      "approval_requirement": "MM-1 RFC + write-path RFC + Security",
+      "owner_decision": {
+        "adr": "docs/implementation-plan/decisions/ADR-008-mm1-attribution-model.md",
+        "decided_on": "2026-11-18",
+        "canonical_update": "APPLIED",
+        "decided_by": "Phạm Đình Hải (repository owner)"
+      }
+    },
+    {
+      "status": "ADOPTED",
+      "approval_state": "NOT_APPROVED",
+      "id": "P-2026-11-18-05",
+      "title": "Background job runtime",
+      "related_open_decisions": [],
+      "context": "Webhook intake, polling and retries need durable jobs. Candidates: PostgreSQL job/outbox table, BullMQ (Redis), Temporal.",
+      "alternatives": [
+        {
+          "option": "PostgreSQL job/outbox (SKIP LOCKED)",
+          "pros": [
+            "single store",
+            "transactional with receipts"
+          ],
+          "cons": [
+            "throughput ceiling"
+          ]
+        },
+        {
+          "option": "BullMQ",
+          "pros": [
+            "mature retries"
+          ],
+          "cons": [
+            "Redis durability/ops",
+            "dedup not exactly-once"
+          ]
+        },
+        {
+          "option": "Temporal",
+          "pros": [
+            "durable workflows"
+          ],
+          "cons": [
+            "cluster ops",
+            "determinism"
+          ]
+        }
+      ],
+      "evidence_refs": [
+        "docs/research/registry-2026-11-18/reusable-assets-registry.json",
+        "docs/reports/unified-execution-2026-11-16/reusable-assets.md"
+      ],
+      "trade_offs": "Simplicity vs scale headroom.",
+      "recommendation": "PostgreSQL job/outbox first; ADAPT BullMQ idempotency patterns; reject Temporal/Kafka for now.",
+      "migration_impact": "One migration adding job table (owned by persistence agent).",
+      "owner": "Engineering",
+      "approval_requirement": "PH3 persistence/migration review",
+      "owner_decision": {
+        "decided_on": "2026-11-18",
+        "decided_by": "Phạm Đình Hải (repository owner)",
+        "scope": "engineering recommendation adopted as stated"
+      }
+    },
+    {
+      "status": "ADOPTED",
+      "approval_state": "NOT_APPROVED",
+      "id": "P-2026-11-18-06",
+      "title": "Authentication/authorization building blocks",
+      "related_open_decisions": [
+        "PM-1"
+      ],
+      "context": "App auth is a bootstrap stub; lead-scoped policy is in-process.",
+      "alternatives": [
+        {
+          "option": "External OIDC (Keycloak/ZITADEL/Ory) + jose verifier + in-process policy port",
+          "pros": [
+            "standards",
+            "no password custody"
+          ],
+          "cons": [
+            "IdP operations"
+          ]
+        },
+        {
+          "option": "Add OpenFGA/Cerbos service",
+          "pros": [
+            "expressive"
+          ],
+          "cons": [
+            "replication/stale grants",
+            "premature"
+          ]
+        }
+      ],
+      "evidence_refs": [
+        "docs/reports/unified-execution-2026-11-16/reusable-assets.md",
+        "docs/research/registry-2026-11-18/reusable-assets-registry.json"
+      ],
+      "trade_offs": "Operational load vs policy expressiveness.",
+      "recommendation": "jose-based verifier behind AuthContextResolver with a provider-neutral IdP; keep policy in-process; IdP roles never grant lead access.",
+      "migration_impact": "Auth module only; membership tables owned by platform.",
+      "owner": "Security",
+      "approval_requirement": "PM-1 RFC + Security review",
+      "owner_decision": {
+        "adr": "docs/implementation-plan/decisions/ADR-006-pm1-capability-matrix.md",
+        "decided_on": "2026-11-18",
+        "canonical_update": "APPLIED",
+        "decided_by": "Phạm Đình Hải (repository owner)"
+      }
+    },
+    {
+      "status": "ADOPTED",
+      "approval_state": "NOT_APPROVED",
+      "id": "P-2026-11-18-07",
+      "title": "Connector platform vs narrow ports",
+      "related_open_decisions": [
+        "ID-2"
+      ],
+      "context": "Nango/Airbyte offer connection lifecycle and sync frameworks under ELv2.",
+      "alternatives": [
+        {
+          "option": "Narrow owned ports per provider",
+          "pros": [
+            "our envelope/idempotency remain authoritative"
+          ],
+          "cons": [
+            "more code per provider"
+          ]
+        },
+        {
+          "option": "Embed Nango",
+          "pros": [
+            "OAuth lifecycle"
+          ],
+          "cons": [
+            "ELv2",
+            "second runtime",
+            "token custody"
+          ]
+        }
+      ],
+      "evidence_refs": [
+        "docs/research/registry-2026-11-18/github-research-matrix.json"
+      ],
+      "trade_offs": "Build cost vs license/ops risk.",
+      "recommendation": "Narrow ports until a second OAuth provider is live.",
+      "migration_impact": "None now.",
+      "owner": "Engineering",
+      "approval_requirement": "Architecture review + Legal (if ELv2 considered)",
+      "owner_decision": {
+        "decided_on": "2026-11-18",
+        "decided_by": "Phạm Đình Hải (repository owner)",
+        "scope": "engineering recommendation adopted as stated"
+      }
+    },
+    {
+      "status": "ADOPTED",
+      "approval_state": "NOT_APPROVED",
+      "id": "P-2026-11-18-08",
+      "title": "Zalo channel route",
+      "related_open_decisions": [
+        "PM-1",
+        "LG-1"
+      ],
+      "context": "Zalo OA is official (docs unreadable in checks); Zalo Personal is a private session route.",
+      "alternatives": [
+        {
+          "option": "OA adapter after official contract verification",
+          "pros": [
+            "licensed"
+          ],
+          "cons": [
+            "permission/partner process"
+          ]
+        },
+        {
+          "option": "Personal zca-js",
+          "pros": [
+            "fast"
+          ],
+          "cons": [
+            "ToS",
+            "account risk",
+            "no rights"
+          ]
+        }
+      ],
+      "evidence_refs": [
+        "docs/reports/unified-execution-2026-11-16/vietnam-ecosystem.md",
+        "docs/research/registry-2026-11-18/provider-capability-registry.json"
+      ],
+      "trade_offs": "Speed vs legitimacy.",
+      "recommendation": "OA only; reject personal route; obtain official docs + test OA before any code.",
+      "migration_impact": "None now.",
+      "owner": "Product",
+      "approval_requirement": "Product + Security",
+      "owner_decision": {
+        "decided_on": "2026-11-18",
+        "decided_by": "Phạm Đình Hải (repository owner)",
+        "scope": "engineering recommendation adopted as stated"
+      }
+    },
+    {
+      "status": "ADOPTED",
+      "approval_state": "NOT_APPROVED",
+      "id": "P-2026-11-18-09",
+      "title": "First CRM target spike",
+      "related_open_decisions": [
+        "ID-2",
+        "ID-1"
+      ],
+      "context": "Twenty is the canonical ID-2 example; HubSpot has the strongest official SDK evidence; Chatwoot is an inbox not a CRM.",
+      "alternatives": [
+        {
+          "option": "Twenty",
+          "pros": [
+            "named in ID-2",
+            "self-hostable"
+          ],
+          "cons": [
+            "AGPL",
+            "per-workspace generated schema"
+          ]
+        },
+        {
+          "option": "HubSpot",
+          "pros": [
+            "official SDK, Apache-2.0"
+          ],
+          "cons": [
+            "SaaS tenant needed"
+          ]
+        }
+      ],
+      "evidence_refs": [
+        "docs/reports/unified-execution-2026-11-16/omnichannel-crm.md"
+      ],
+      "trade_offs": "Pilot customer CRM reality dominates.",
+      "recommendation": "Spike against the CRM the first pilot customer uses; external IDs only, no field ownership until ID-2 RFC.",
+      "migration_impact": "External-reference table only.",
+      "owner": "Engineering + Product",
+      "approval_requirement": "ID-2 mapping RFC",
+      "owner_decision": {
+        "decided_on": "2026-11-18",
+        "decided_by": "Phạm Đình Hải (repository owner)",
+        "scope": "engineering recommendation adopted as stated"
+      }
+    },
+    {
+      "status": "ADOPTED",
+      "approval_state": "NOT_APPROVED",
+      "id": "P-2026-11-18-10",
+      "title": "Policy on observed internal / reverse-engineered protocols",
+      "related_open_decisions": [
+        "LG-1",
+        "PM-1"
+      ],
+      "context": "Pancake Phoenix, Meta DGW/MQTT, TikTok Webcast and Zalo personal are observed or community reverse-engineered.",
+      "alternatives": [
+        {
+          "option": "Research-only with gap detection; never production intake",
+          "pros": [
+            "legal/ToS safety"
+          ],
+          "cons": [
+            "less realtime data"
+          ]
+        },
+        {
+          "option": "Production use with monitoring",
+          "pros": [
+            "coverage"
+          ],
+          "cons": [
+            "no rights",
+            "drift",
+            "account bans"
+          ]
+        }
+      ],
+      "evidence_refs": [
+        "docs/research/registry-2026-11-18/protocol-evidence-registry.json",
+        "docs/reports/unified-execution-2026-11-16/protocol-intelligence.md"
+      ],
+      "trade_offs": "Coverage vs legitimacy and stability.",
+      "recommendation": "Research-only; promotion requires written provider permission artifact.",
+      "migration_impact": "None.",
+      "owner": "Founder + Security",
+      "approval_requirement": "Founder/Product phase gate + Legal",
+      "owner_decision": {
+        "adr": "docs/implementation-plan/decisions/ADR-007-lg1-phase-scope.md",
+        "decided_on": "2026-11-18",
+        "canonical_update": "APPLIED",
+        "decided_by": "Phạm Đình Hải (repository owner)"
+      }
+    }
+  ]
+}

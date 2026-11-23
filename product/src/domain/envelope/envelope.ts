@@ -1,3 +1,5 @@
+import { contentDigester } from '../content-digest/content-digester-runtime';
+import { versionedDigest, type VersionedContentDigest } from '../content-digest/versioned-content-digest';
 import { createHash, randomUUID } from 'node:crypto';
 
 /** Envelope ID — unique per ingest. */
@@ -15,7 +17,7 @@ export type EvidenceAcquisitionSource = 'system' | 'manual';
  *
  * Contract cho mọi inbound adapter (manual/synthetic/pancake):
  * - `rawPayload` immutable — I-12, không bao giờ sửa sau khi tạo.
- * - `rawPayloadHash` = SHA-256(JSON(rawPayload)) — verifies integrity.
+ * - `rawPayloadHash` = workspace-keyed HMAC with `rawPayloadDigest` metadata (legacy SHA-256 readable) — verifies integrity.
  * - `mappingStatus` = pending → mapped/error; lỗi mapping giữ nguyên raw, không fabricate canonical fields.
  * - Idempotency key: `workspaceId` + `connection` + `externalRecordId` (R-06 within I-09/R-01).
  *   Connection names come from external systems and collide across tenants, so the key MUST
@@ -32,7 +34,8 @@ export interface CommercialEnvelope {
   readonly sourceCapturedAt: string; // ISO 8601
   readonly ingestedAt: string; // ISO 8601
   readonly rawPayload: unknown; // immutable (I-12)
-  readonly rawPayloadHash: string; // SHA-256 hex
+  readonly rawPayloadHash: string; // Digest value; metadata absent only for legacy SHA-256.
+  readonly rawPayloadDigest?: VersionedContentDigest;
   readonly mappingStatus: MappingStatus;
   readonly mappingError?: string;
   readonly canonicalProjection?: unknown;
@@ -77,12 +80,12 @@ export function canonicalizePayload(value: unknown): string {
   return JSON.stringify(value);
 }
 
-/** SHA-256 hex digest of the recursively canonicalized raw payload. */
+/** Legacy verification only. New intake uses workspace-keyed digests (ADR-009). */
 export function hashRawPayload(rawPayload: unknown): string {
   return createHash('sha256').update(canonicalizePayload(rawPayload)).digest('hex');
 }
 
-export type ImmutableEnvelopeField = 'rawPayloadHash' | 'externalEventType' | 'sourceCapturedAt';
+export type ImmutableEnvelopeField = 'isSynthetic' | 'rawPayloadHash' | 'externalEventType' | 'sourceCapturedAt';
 
 /** Stable, machine-readable refusal for a reused key with changed immutable evidence. */
 export class EnvelopeIdempotencyConflictError extends Error {
@@ -106,6 +109,7 @@ export class EnvelopeIdempotencyConflictError extends Error {
 export function createEnvelope(input: CreateEnvelopeInput): CommercialEnvelope {
   if (!input.workspaceId) throw new Error("workspaceId is required — envelope scope (I-09/R-01)");
   const ingestedAt = new Date().toISOString();
+  const rawPayloadDigest = versionedDigest(contentDigester(), input.workspaceId, 'envelope', canonicalizePayload(input.rawPayload));
   return {
     envelopeId: randomUUID() as EnvelopeId,
     schemaVersion: 1,
@@ -116,7 +120,8 @@ export function createEnvelope(input: CreateEnvelopeInput): CommercialEnvelope {
     sourceCapturedAt: input.sourceCapturedAt,
     ingestedAt,
     rawPayload: structuredClone(input.rawPayload),
-    rawPayloadHash: hashRawPayload(input.rawPayload),
+    rawPayloadHash: rawPayloadDigest.value,
+    rawPayloadDigest,
     mappingStatus: 'pending',
     isSynthetic: input.isSynthetic ?? false,
     acquisitionMode: input.acquisitionMode ?? 'imported_record',

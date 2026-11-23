@@ -1,0 +1,1988 @@
+{
+  "schema": "north-star.provider-capability-registry.v1",
+  "registry_status": "working_non_canonical",
+  "as_of": "2026-11-18",
+  "retrieval_date": "2026-11-18",
+  "authority": "Research consolidation only. docs/canonical/** remains the normative source; this file cannot resolve open decisions or approve production use.",
+  "evidence_levels": [
+    "README_CLAIM",
+    "SOURCE_INSPECTED",
+    "DOCUMENTED_API",
+    "SYNTHETIC_TESTED",
+    "CONTRACT_TESTED",
+    "LIVE_VERIFIED",
+    "RELEASE_APPROVED"
+  ],
+  "vocabularies": {
+    "access_class": [
+      "OFFICIAL_API",
+      "OFFICIAL_EMBEDDED_APP_RUNTIME",
+      "OBSERVED_INTERNAL_PROTOCOL",
+      "COMMUNITY_REVERSE_ENGINEERED",
+      "FIRST_PARTY_BROWSER_OBSERVATION"
+    ],
+    "delivery_model": [
+      "push",
+      "poll",
+      "request-response",
+      "stream",
+      "batch-upload",
+      "not-available"
+    ],
+    "runtime_readiness": [
+      "none",
+      "synthetic",
+      "contract",
+      "sandbox"
+    ],
+    "production_approval": [
+      "NOT_APPROVED"
+    ]
+  },
+  "rules": [
+    "evidence_level is the highest level backed by a cited, independently re-checkable artifact. Bounded private-session observations are recorded in live_observation and never raise evidence_level to LIVE_VERIFIED.",
+    "Observed internal protocol is not a licensed API (licensed_api=false). Community bridges/forks are not official SDKs.",
+    "Surfaces are never generalised: Zalo OA != Zalo Personal; Meta Pages/Messenger/Instagram/Groups/Personal/Ads/CAPI/Lead Ads are separate; TikTok LIVE/Shop/Business Messaging/Ads/Events are separate; Google Ads API != Google Data Manager API.",
+    "Google Ads ChangeStatus/ChangeEvent is polled, never push.",
+    "production_approval is NOT_APPROVED for every entry; no approval artifact exists.",
+    "synthetic_fixture_refs are provider-agnostic platform tests with fabricated data; they do not test provider contracts and do not raise evidence_level."
+  ],
+  "capabilities": [
+    {
+      "licensed_api": false,
+      "runtime_readiness": "synthetic",
+      "production_approval": "NOT_APPROVED",
+      "last_reviewed": "2026-11-18",
+      "id": "pancake.conversations.socket.message-lifecycle-events",
+      "provider": "Pancake",
+      "product": "Pancake Conversations (pancake.vn / pages.fm)",
+      "surface": "PANCAKE_CONVERSATIONS_SOCKET",
+      "capability": "Inbound message/conversation/deletion events over the web client socket",
+      "access_class": "OBSERVED_INTERNAL_PROTOCOL",
+      "transport": "WebSocket, Phoenix v2 five-element tuple [join_ref, ref, topic, event, payload]; topics users/pages/phoenix",
+      "delivery_model": "push",
+      "auth_model": "Browser user session of the Pancake web client (cookie_session); no licensed credential for standalone subscription",
+      "permissions_required": [
+        "Pancake user membership on the page (provider-side)",
+        "Standalone subscription rights: UNKNOWN"
+      ],
+      "approval_required": "Provider permission for non-browser subscription: UNKNOWN; PH4 Pancake spike verdict gate",
+      "event_coverage": {
+        "source_derived_labels": [
+          "pages:update_messages",
+          "pages:update_conversation",
+          "messages:mark_as_deleted"
+        ],
+        "live_correlated": [],
+        "name_only_source_inspected": [
+          {
+            "label": "pages:seen_conversation",
+            "payload": "ASSUMED",
+            "companion_handling": "treated as schema drift (ignored, not retained as evidence)",
+            "source": "coordinator notice 2026-11-18 (integration branch companion work)"
+          }
+        ],
+        "note": "Labels come from a shipped client bundle (static) and community relay source; no live business-event correlation for these three labels."
+      },
+      "identity_fields": [
+        "payload.page_id",
+        "payload.conversation_id",
+        "payload.message.id",
+        "payload.message.conversation_id",
+        "payload.conversation.page_id"
+      ],
+      "recovery_replay": {
+        "reconnect": "Bundled Phoenix client defines reconnectAfterMs/rejoinAfterMs backoff (static)",
+        "replay": "UNKNOWN",
+        "gap_policy": "Gap stays open (I-08); reconnect ACK never closes a gap"
+      },
+      "evidence_level": "SYNTHETIC_TESTED",
+      "evidence_basis": [
+        "PRIVATE_CAPTURE_STATIC_ANALYSIS",
+        "COMMUNITY_SOURCE",
+        "REPO_SYNTHETIC_TEST"
+      ],
+      "artifact_refs": [
+        "docs/research/adaptive-integration-2026-11-14/conversation-protocol-static-evidence.json",
+        "docs/research/adaptive-integration-2026-11-14/protocol-capability-registry.json",
+        "product/src/adapters/adaptive-connectivity/phoenix-observer.spec.ts",
+        "https://github.com/trananhhh/pancake-webhook-relay/blob/23e2409f6c80e910de6f652b4c9d0a878ba2291b/src/phoenix-client.ts"
+      ],
+      "unknowns": [
+        "live message/new/edit/delete correlation",
+        "event identity and ordering",
+        "replay/retention/tombstones",
+        "standalone subscription rights",
+        "capture omissions"
+      ]
+    },
+    {
+      "licensed_api": false,
+      "runtime_readiness": "synthetic",
+      "production_approval": "NOT_APPROVED",
+      "last_reviewed": "2026-11-18",
+      "id": "pancake.conversations.socket.settings-and-tag-events",
+      "provider": "Pancake",
+      "product": "Pancake Conversations",
+      "surface": "PANCAKE_CONVERSATIONS_SOCKET",
+      "capability": "pages:update_settings and batch pages:tag_conversations events (Facebook page)",
+      "access_class": "OBSERVED_INTERNAL_PROTOCOL",
+      "transport": "WebSocket Phoenix v2 (pages topic)",
+      "delivery_model": "push",
+      "auth_model": "Browser user session; experiment membership facebook/ADMINISTER",
+      "permissions_required": [
+        "Pancake page admin membership (observed in experiment)"
+      ],
+      "approval_required": "Provider rights UNKNOWN; research-only",
+      "event_coverage": {
+        "live_correlated": [
+          "pages:update_settings (one create + one delete)",
+          "pages:tag_conversations (batch; map of conversation IDs + optional conversations_updated)"
+        ],
+        "note": "Observed on actor tab only; observer missed bounded offline event."
+      },
+      "identity_fields": [
+        "page id",
+        "conversation id map keys",
+        "settings version / tag index (advances on mutation)"
+      ],
+      "recovery_replay": {
+        "reconnect": "see pancake.conversations.socket.channel-rejoin",
+        "replay": "No batch replay observed on observer after 15 s and 15 min gaps; GET readback recovered latest state",
+        "gap_policy": "Snapshot readback is current-state confirmation, not event replay"
+      },
+      "evidence_level": "SYNTHETIC_TESTED",
+      "evidence_basis": [
+        "PRIVATE_OBSERVATION",
+        "REPO_SYNTHETIC_TEST"
+      ],
+      "live_observation": {
+        "status": "BOUNDED_AUTHORIZED_BROWSER_SESSION_OBSERVED",
+        "audit": "NOT_INDEPENDENTLY_AUDITED",
+        "note": "Sanitized summaries of private captures; raw captures are not in Git and were not re-acquired or re-audited 2026-11-18. Observation of an internal protocol in a user session is not a licensed API or standalone subscription right.",
+        "artifacts": [
+          "docs/research/adaptive-integration-2026-11-14/facebook-live-settings-experiment.json",
+          "docs/research/adaptive-integration-2026-11-14/pancake-conversation-recovery-experiment.json"
+        ]
+      },
+      "artifact_refs": [
+        "docs/research/adaptive-integration-2026-11-14/facebook-live-settings-experiment.json",
+        "docs/research/adaptive-integration-2026-11-14/pancake-conversation-recovery-experiment.json",
+        "docs/research/adaptive-integration-2026-11-14/facebook-settings-static-evidence.json",
+        "product/src/adapters/browser-companion/worker.spec.ts"
+      ],
+      "unknowns": [
+        "global event coverage",
+        "ordering/retry",
+        "server conflict enforcement",
+        "standalone protocol rights"
+      ],
+      "reconciliation_note": "2026-11-15 registry disposition \"live-verified\" is retained only as live_observation (bounded, private, not independently audited); evidence_level capped at SYNTHETIC_TESTED."
+    },
+    {
+      "licensed_api": false,
+      "runtime_readiness": "synthetic",
+      "production_approval": "NOT_APPROVED",
+      "last_reviewed": "2026-11-18",
+      "id": "pancake.conversations.socket.channel-rejoin",
+      "provider": "Pancake",
+      "product": "Pancake Conversations",
+      "surface": "PANCAKE_CONVERSATIONS_SOCKET",
+      "capability": "Page channel rejoin after transport loss (15 s and 15 min local faults)",
+      "access_class": "OBSERVED_INTERNAL_PROTOCOL",
+      "transport": "WebSocket Phoenix v2: close -> new socket -> phx_join -> ref-matched phx_reply ok",
+      "delivery_model": "push",
+      "auth_model": "Browser user session (disposable tab shares local session)",
+      "permissions_required": [
+        "Pancake page membership"
+      ],
+      "approval_required": "Research-only",
+      "event_coverage": {
+        "live_correlated": [
+          "phx_join/phx_reply lifecycle"
+        ],
+        "note": "No business events verified across the gap."
+      },
+      "identity_fields": [
+        "join_ref",
+        "ref",
+        "topic"
+      ],
+      "recovery_replay": {
+        "reconnect": "Observed: restore-to-join-ACK 4450 ms (15 s fault) and 2502 ms (900004 ms fault)",
+        "replay": "UNKNOWN; no batch replay observed",
+        "gap_policy": "Join ACK does not close gap; synthetic continuity tests keep UNKNOWN"
+      },
+      "evidence_level": "SYNTHETIC_TESTED",
+      "evidence_basis": [
+        "PRIVATE_OBSERVATION",
+        "REPO_SYNTHETIC_TEST"
+      ],
+      "live_observation": {
+        "status": "BOUNDED_AUTHORIZED_BROWSER_SESSION_OBSERVED",
+        "audit": "NOT_INDEPENDENTLY_AUDITED",
+        "note": "Sanitized summaries of private captures; raw captures are not in Git and were not re-acquired or re-audited 2026-11-18. Observation of an internal protocol in a user session is not a licensed API or standalone subscription right.",
+        "artifacts": [
+          "docs/research/adaptive-integration-2026-11-14/continuity-experiment.json",
+          "docs/research/adaptive-integration-2026-11-14/pancake-conversation-recovery-experiment.json"
+        ]
+      },
+      "artifact_refs": [
+        "docs/research/adaptive-integration-2026-11-14/continuity-experiment.json",
+        "product/src/adapters/adaptive-connectivity/continuity-recovery.spec.ts",
+        "product/scripts/ail/websocket-fault-probe.test.mjs"
+      ],
+      "unknowns": [
+        "message event recovery",
+        "auth expiry/revocation live",
+        "durable backend checkpoint",
+        "two failed same-target REA attempts in long run"
+      ]
+    },
+    {
+      "licensed_api": false,
+      "runtime_readiness": "synthetic",
+      "production_approval": "NOT_APPROVED",
+      "last_reviewed": "2026-11-18",
+      "id": "pancake.conversations.http.bounded-read-reconciliation",
+      "provider": "Pancake",
+      "product": "Pancake Conversations",
+      "surface": "PANCAKE_CONVERSATIONS_INTERNAL_HTTP",
+      "capability": "Bounded current-state + history reads (conversations, single conversation, messages, tag history)",
+      "access_class": "OBSERVED_INTERNAL_PROTOCOL",
+      "transport": "HTTPS same-origin dashboard GET (current_count / take_conversation_ids pagination)",
+      "delivery_model": "request-response",
+      "auth_model": "Browser user session; internal endpoints strip access_token in favour of session (static-derived)",
+      "permissions_required": [
+        "Pancake page membership"
+      ],
+      "approval_required": "Private dashboard endpoints must not become a production adapter contract",
+      "event_coverage": {
+        "note": "Not an event surface. Sample: 2 conversations; one history 25+16 unique messages, zero overlap, empty offset 41."
+      },
+      "identity_fields": [
+        "conversation id",
+        "message id",
+        "page id"
+      ],
+      "recovery_replay": {
+        "reconnect": "n/a",
+        "replay": "Latest state readable; event continuity UNKNOWN",
+        "gap_policy": "Bounded sample only; concurrent insert/delete pagination UNKNOWN"
+      },
+      "evidence_level": "SYNTHETIC_TESTED",
+      "evidence_basis": [
+        "PRIVATE_OBSERVATION",
+        "REPO_SYNTHETIC_TEST"
+      ],
+      "live_observation": {
+        "status": "BOUNDED_AUTHORIZED_BROWSER_SESSION_OBSERVED",
+        "audit": "NOT_INDEPENDENTLY_AUDITED",
+        "note": "Sanitized summaries of private captures; raw captures are not in Git and were not re-acquired or re-audited 2026-11-18. Observation of an internal protocol in a user session is not a licensed API or standalone subscription right.",
+        "artifacts": [
+          "docs/research/adaptive-integration-2026-11-14/pancake-read-contracts.json"
+        ]
+      },
+      "artifact_refs": [
+        "docs/research/adaptive-integration-2026-11-14/pancake-read-contracts.json",
+        "product/src/adapters/adaptive-connectivity/pancake-contract-fixtures.json",
+        "product/src/adapters/adaptive-connectivity/continuity-recovery.spec.ts",
+        "docs/research/registries/evidence-capability-register.json"
+      ],
+      "unknowns": [
+        "rate limits",
+        "large accounts",
+        "tombstones/retention",
+        "durable provider cursor",
+        "message-tail repeat-page timeout root cause"
+      ]
+    },
+    {
+      "licensed_api": false,
+      "runtime_readiness": "none",
+      "production_approval": "NOT_APPROVED",
+      "last_reviewed": "2026-11-18",
+      "id": "pancake.conversations.http.ui-tag-and-settings-mutation",
+      "provider": "Pancake",
+      "product": "Pancake Conversations",
+      "surface": "PANCAKE_CONVERSATIONS_INTERNAL_HTTP",
+      "capability": "UI-driven page settings tag create/delete and conversation tag toggle",
+      "access_class": "OBSERVED_INTERNAL_PROTOCOL",
+      "transport": "HTTPS POST /api/v1/pages/:page/settings (FormData changes/current_settings_key); POST toggle_tag FormData",
+      "delivery_model": "request-response",
+      "auth_model": "Browser user session through UI only",
+      "permissions_required": [
+        "Pancake page admin"
+      ],
+      "approval_required": "Any outbound mutation requires I-03/I-04 human action path and separate provider rights; not authorised",
+      "event_coverage": {
+        "note": "Mutation triggers pages:update_settings / pages:tag_conversations on actor."
+      },
+      "identity_fields": [
+        "page id",
+        "current_settings_key",
+        "tag id",
+        "conversation id"
+      ],
+      "recovery_replay": {
+        "reconnect": "n/a",
+        "replay": "n/a",
+        "gap_policy": "Provider version/index counters advance; provider audit remains after cleanup"
+      },
+      "evidence_level": "SOURCE_INSPECTED",
+      "evidence_basis": [
+        "PRIVATE_CAPTURE_STATIC_ANALYSIS",
+        "PRIVATE_OBSERVATION"
+      ],
+      "live_observation": {
+        "status": "BOUNDED_AUTHORIZED_BROWSER_SESSION_OBSERVED",
+        "audit": "NOT_INDEPENDENTLY_AUDITED",
+        "note": "Sanitized summaries of private captures; raw captures are not in Git and were not re-acquired or re-audited 2026-11-18. Observation of an internal protocol in a user session is not a licensed API or standalone subscription right.",
+        "artifacts": [
+          "docs/research/adaptive-integration-2026-11-14/facebook-live-settings-experiment.json",
+          "docs/research/adaptive-integration-2026-11-14/pancake-conversation-recovery-experiment.json"
+        ]
+      },
+      "artifact_refs": [
+        "docs/research/adaptive-integration-2026-11-14/facebook-settings-static-evidence.json",
+        "docs/research/adaptive-integration-2026-11-14/facebook-live-settings-experiment.json",
+        "product/scripts/ail/facebook-tag-research-policy.test.mjs"
+      ],
+      "unknowns": [
+        "server concurrency/conflict",
+        "non-UI write rights",
+        "production tenant authorization"
+      ]
+    },
+    {
+      "licensed_api": true,
+      "runtime_readiness": "none",
+      "production_approval": "NOT_APPROVED",
+      "last_reviewed": "2026-11-18",
+      "id": "pancake.conversations.public-api.page-read",
+      "provider": "Pancake",
+      "product": "Pancake Chat Public API (pages.fm/api/public_api/v1|v2)",
+      "surface": "PANCAKE_CONVERSATIONS_PUBLIC_API",
+      "capability": "Page-scoped read of conversations/messages/customers via documented public API",
+      "access_class": "OFFICIAL_API",
+      "transport": "HTTPS REST; credential in query parameter",
+      "delivery_model": "request-response",
+      "auth_model": "User access_token (account APIs, ~90 days per 2026-09-10 snapshot) -> page_access_token (page-scoped, non-expiring until regenerate) passed as query parameter",
+      "permissions_required": [
+        "page_access_token for the pilot page"
+      ],
+      "approval_required": "Existing Public API credential for one pilot page (pancake-verdict next step 1)",
+      "event_coverage": {
+        "note": "Read API; not an event stream."
+      },
+      "identity_fields": [
+        "page_id",
+        "conversation id",
+        "message id",
+        "customer id (provider)"
+      ],
+      "recovery_replay": {
+        "reconnect": "n/a",
+        "replay": "Incremental polling by time watermark is the fallback design; cursor semantics UNKNOWN",
+        "gap_policy": "Documented 5 calls/page/second; 429 on excess"
+      },
+      "evidence_level": "DOCUMENTED_API",
+      "evidence_basis": [
+        "OFFICIAL_DOCS_SNAPSHOT"
+      ],
+      "artifact_refs": [
+        "docs/external-apis/pancake/api-knowledge-base-2026-09-10/01_PANCAKE_CHAT/OVERVIEW.md",
+        "docs/external-apis/pancake/api-knowledge-base-2026-09-10/01_PANCAKE_CHAT/AUTH_RATE_LIMITS.md",
+        "docs/external-apis/pancake/api-knowledge-base-2026-09-10/01_PANCAKE_CHAT/ENDPOINT_CATALOG.md",
+        "docs/implementation-plan/spike/pancake-verdict.md",
+        "https://developer.pancake.biz/"
+      ],
+      "unknowns": [
+        "credential availability (only cookie export was supplied)",
+        "schema parity with internal dashboard",
+        "channel coverage",
+        "token-in-URL log redaction"
+      ],
+      "reconciliation_note": "Replaces registries/evidence-capability-register.json pancake.chat.read, which mixed public-API documentation (DOCUMENTED) with internal dashboard live reads (PARTIAL)."
+    },
+    {
+      "licensed_api": true,
+      "runtime_readiness": "none",
+      "production_approval": "NOT_APPROVED",
+      "last_reviewed": "2026-11-18",
+      "id": "pancake.conversations.webhooks",
+      "provider": "Pancake",
+      "product": "Pancake Chat webhooks (developer.pancake.biz/webhook)",
+      "surface": "PANCAKE_CONVERSATIONS_WEBHOOKS",
+      "capability": "Conversation webhook subscription/delivery",
+      "access_class": "OFFICIAL_API",
+      "transport": "HTTPS POST (assumed); not readable",
+      "delivery_model": "push",
+      "auth_model": "UNKNOWN",
+      "permissions_required": [
+        "UNKNOWN"
+      ],
+      "approval_required": "Q-04 evidence-backed verdict",
+      "event_coverage": {
+        "note": "Page exists; event list and payload schema not retrievable by crawler or reader."
+      },
+      "identity_fields": [
+        "UNKNOWN"
+      ],
+      "recovery_replay": {
+        "reconnect": "n/a",
+        "replay": "UNKNOWN",
+        "gap_policy": "UNKNOWN"
+      },
+      "evidence_level": "README_CLAIM",
+      "evidence_basis": [
+        "OFFICIAL_DOCS_PAGE_EXISTENCE_ONLY"
+      ],
+      "artifact_refs": [
+        "docs/external-apis/pancake/api-knowledge-base-2026-09-10/01_PANCAKE_CHAT/WEBHOOKS.md",
+        "docs/implementation-plan/spike/Q-04-webhook-semantics.md"
+      ],
+      "unknowns": [
+        "event names",
+        "payload schema",
+        "signature",
+        "retry/order/replay",
+        "account enablement"
+      ]
+    },
+    {
+      "licensed_api": false,
+      "runtime_readiness": "synthetic",
+      "production_approval": "NOT_APPROVED",
+      "last_reviewed": "2026-11-18",
+      "id": "pancake.conversations.browser-companion-observation",
+      "provider": "North Star (first-party)",
+      "product": "North Star browser companion 0.1.2 on Pancake tab",
+      "surface": "PANCAKE_CONVERSATIONS_BROWSER_COMPANION",
+      "capability": "Explicitly activated MV3 debugger observation of received frames into local outbox",
+      "access_class": "FIRST_PARTY_BROWSER_OBSERVATION",
+      "transport": "Chrome MV3 debugger Network events; local outbox; signed enrollment upload (experimental)",
+      "delivery_model": "push",
+      "auth_model": "Local explicit activation; research enrollment labels are not tenant authentication",
+      "permissions_required": [
+        "User consent on own browser",
+        "tenant/page-bound enrollment (experimental)"
+      ],
+      "approval_required": "LG-1 / PM-1 scope review before any non-research use",
+      "event_coverage": {
+        "note": "Synthetic-tested decoder for message/update/deletion labels and batch tag metadata."
+      },
+      "identity_fields": [
+        "tab/page/origin binding",
+        "page id",
+        "conversation id"
+      ],
+      "recovery_replay": {
+        "reconnect": "Browser-restart persistence smoke",
+        "replay": "none",
+        "gap_policy": "UNKNOWN gaps preserved"
+      },
+      "evidence_level": "SYNTHETIC_TESTED",
+      "evidence_basis": [
+        "REPO_SYNTHETIC_TEST"
+      ],
+      "artifact_refs": [
+        "product/src/adapters/browser-companion/worker.spec.ts",
+        "product/src/adapters/browser-companion/upload.spec.ts",
+        "product/scripts/ail/companion-browser-smoke.mjs",
+        "docs/reports/unified-execution-2026-11-16/browser-companion.md"
+      ],
+      "unknowns": [
+        "provider business-event verification",
+        "consent UI",
+        "authenticated enrollment end-to-end"
+      ]
+    },
+    {
+      "licensed_api": true,
+      "runtime_readiness": "none",
+      "production_approval": "NOT_APPROVED",
+      "last_reviewed": "2026-11-18",
+      "id": "pancake.pos.api.read",
+      "provider": "Pancake",
+      "product": "Pancake POS Open API",
+      "surface": "PANCAKE_POS_API",
+      "capability": "Shop/order/customer reads with updated-time reconciliation and pagination",
+      "access_class": "OFFICIAL_API",
+      "transport": "HTTPS REST",
+      "delivery_model": "request-response",
+      "auth_model": "Shop API key (full shop) or account key constrained by current user rights; revocation applies immediately",
+      "permissions_required": [
+        "shop API key or account key"
+      ],
+      "approval_required": "Shop owner issues key; PH4 gate",
+      "event_coverage": {
+        "note": "Read API; reconciliation by update time documented."
+      },
+      "identity_fields": [
+        "shop_id",
+        "order id",
+        "customer id",
+        "updated_at"
+      ],
+      "recovery_replay": {
+        "reconnect": "n/a",
+        "replay": "Documented reconciliation by updated time; completeness UNKNOWN",
+        "gap_policy": "Overlap windows + idempotent upsert of observations"
+      },
+      "evidence_level": "DOCUMENTED_API",
+      "evidence_basis": [
+        "OFFICIAL_DOCS_SNAPSHOT"
+      ],
+      "artifact_refs": [
+        "docs/research/adaptive-integration-2026-11-14/source-ledger.json",
+        "https://pos.pancake.vn/developers/api/vi/authentication.md",
+        "https://pos.pancake.vn/developers/api",
+        "docs/reports/unified-execution-2026-11-16/pancake-capabilities.md"
+      ],
+      "unknowns": [
+        "rate limits",
+        "tenant-specific schema",
+        "credential for pilot shop"
+      ]
+    },
+    {
+      "licensed_api": true,
+      "runtime_readiness": "synthetic",
+      "production_approval": "NOT_APPROVED",
+      "last_reviewed": "2026-11-18",
+      "id": "pancake.pos.webhooks",
+      "provider": "Pancake",
+      "product": "Pancake POS webhooks",
+      "surface": "PANCAKE_POS_WEBHOOKS",
+      "capability": "Record create/update callbacks (orders/customers) to configured HTTPS receiver",
+      "access_class": "OFFICIAL_API",
+      "transport": "HTTPS POST JSON with configured custom headers",
+      "delivery_model": "push",
+      "auth_model": "Shared value in configured custom header; no documented HMAC",
+      "permissions_required": [
+        "per-shop webhook configuration"
+      ],
+      "approval_required": "Shop owner configuration + PH4 gate",
+      "event_coverage": {
+        "documented": [
+          "record creation",
+          "record update"
+        ],
+        "note": "Order/customer field schema absent in retrieved markdown."
+      },
+      "identity_fields": [
+        "record id",
+        "updated time (dedup key)",
+        "shop id"
+      ],
+      "recovery_replay": {
+        "reconnect": "n/a",
+        "replay": "Documented retry after 10 min then 30 min; temporary delay on continuous failure; disable on invalid URL; 2xx within 30 s",
+        "gap_policy": "API reconciliation by updated time; no universal delivery ID"
+      },
+      "evidence_level": "SYNTHETIC_TESTED",
+      "evidence_basis": [
+        "OFFICIAL_DOCS_SNAPSHOT",
+        "REPO_SYNTHETIC_TEST"
+      ],
+      "artifact_refs": [
+        "docs/research/adaptive-integration-2026-11-14/source-ledger.json",
+        "https://pos.pancake.vn/developers/api/vi/webhooks.md",
+        "product/src/adapters/adaptive-connectivity/pos-webhook-fixture.spec.ts",
+        "docs/reports/unified-execution-2026-11-16/pancake-capabilities.md"
+      ],
+      "unknowns": [
+        "live delivery and retry",
+        "signature scheme",
+        "payload schema per version",
+        "durable production receipt sink"
+      ],
+      "reconciliation_note": "registries/evidence-capability-register.json cites https://pos.pancake.biz/developers/api/en/webhooks while the 2026-11-14 ledger hashed https://pos.pancake.vn/developers/api/vi/webhooks.md; the hashed .vn snapshot is the authoritative artifact."
+    },
+    {
+      "licensed_api": true,
+      "runtime_readiness": "none",
+      "production_approval": "NOT_APPROVED",
+      "last_reviewed": "2026-11-18",
+      "id": "pancake.pos.apps.embedded-runtime",
+      "provider": "Pancake",
+      "product": "Pancake POS Apps runtime API (api_version 2026-01)",
+      "surface": "PANCAKE_POS_APPS",
+      "capability": "Embedded app context: pos.data.record, draft, data-change events",
+      "access_class": "OFFICIAL_EMBEDDED_APP_RUNTIME",
+      "transport": "In-page JavaScript runtime API inside POS",
+      "delivery_model": "push",
+      "auth_model": "Installed app; user permissions intersect app access, current shop, active runtime",
+      "permissions_required": [
+        "provider-approved app registration"
+      ],
+      "approval_required": "Provider app registration + PH4 gate",
+      "event_coverage": {
+        "documented": [
+          "pos.on('data-change') context/form/route changes"
+        ],
+        "note": "UI context, not saved-provider-event guarantee or background feed."
+      },
+      "identity_fields": [
+        "shop id",
+        "record id (saved record context)"
+      ],
+      "recovery_replay": {
+        "reconnect": "n/a",
+        "replay": "UNKNOWN",
+        "gap_policy": "Draft is not committed order"
+      },
+      "evidence_level": "DOCUMENTED_API",
+      "evidence_basis": [
+        "OFFICIAL_DOCS_SNAPSHOT"
+      ],
+      "artifact_refs": [
+        "docs/research/adaptive-integration-2026-11-14/source-ledger.json",
+        "https://pos.pancake.vn/developers/apps/runtime-api.md",
+        "https://pos.pancake.vn/developers/apps/data-access.md"
+      ],
+      "unknowns": [
+        "installed app behaviour",
+        "complete context schemas",
+        "registration approval"
+      ]
+    },
+    {
+      "licensed_api": false,
+      "runtime_readiness": "none",
+      "production_approval": "NOT_APPROVED",
+      "last_reviewed": "2026-11-18",
+      "id": "pancake.pos.dashboard-proxy-read",
+      "provider": "Pancake",
+      "product": "Pancake POS via Conversations dashboard proxy",
+      "surface": "PANCAKE_POS_INTERNAL_HTTP",
+      "capability": "GET /pos-api/api/v1/shops/:shop and /crm/automation through same-origin proxy",
+      "access_class": "OBSERVED_INTERNAL_PROTOCOL",
+      "transport": "HTTPS same-origin proxy GET",
+      "delivery_model": "request-response",
+      "auth_model": "Browser user session",
+      "permissions_required": [
+        "linked shop membership"
+      ],
+      "approval_required": "Not a production path; use official POS API key instead",
+      "event_coverage": {
+        "note": "Config reads only: webhook not configured, CRM automation empty."
+      },
+      "identity_fields": [
+        "shop id"
+      ],
+      "recovery_replay": {
+        "reconnect": "n/a",
+        "replay": "n/a",
+        "gap_policy": "n/a"
+      },
+      "evidence_level": "SOURCE_INSPECTED",
+      "evidence_basis": [
+        "PRIVATE_CAPTURE_STATIC_ANALYSIS",
+        "PRIVATE_OBSERVATION"
+      ],
+      "live_observation": {
+        "status": "BOUNDED_AUTHORIZED_BROWSER_SESSION_OBSERVED",
+        "audit": "NOT_INDEPENDENTLY_AUDITED",
+        "note": "Sanitized summaries of private captures; raw captures are not in Git and were not re-acquired or re-audited 2026-11-18. Observation of an internal protocol in a user session is not a licensed API or standalone subscription right.",
+        "artifacts": [
+          "docs/research/adaptive-integration-2026-11-14/pancake-read-contracts.json"
+        ]
+      },
+      "artifact_refs": [
+        "docs/research/adaptive-integration-2026-11-14/pancake-read-contracts.json",
+        "docs/research/adaptive-integration-2026-11-14/protocol-capability-registry.json"
+      ],
+      "unknowns": [
+        "official credential",
+        "permission contract"
+      ]
+    },
+    {
+      "licensed_api": true,
+      "runtime_readiness": "none",
+      "production_approval": "NOT_APPROVED",
+      "last_reviewed": "2026-11-18",
+      "id": "meta.pages.graph-read-and-webhooks",
+      "provider": "Meta",
+      "product": "Facebook Pages (Graph API)",
+      "surface": "META_PAGES",
+      "capability": "Page metadata, feed/comments read and Page webhooks",
+      "access_class": "OFFICIAL_API",
+      "transport": "HTTPS Graph API (REST + query params, versioned) + webhooks",
+      "delivery_model": "push",
+      "auth_model": "Page access token via user/system-user token; app id/secret",
+      "permissions_required": [
+        "pages_show_list",
+        "pages_read_engagement",
+        "pages_read_user_content",
+        "pages_manage_metadata (webhook subscription)"
+      ],
+      "approval_required": "Meta App Review + Business Verification",
+      "event_coverage": {
+        "documented": [
+          "feed",
+          "comments/mentions via Page webhooks"
+        ],
+        "note": "Exact fields per Graph version."
+      },
+      "identity_fields": [
+        "page_id",
+        "post_id",
+        "comment_id",
+        "page-scoped user id"
+      ],
+      "recovery_replay": {
+        "reconnect": "n/a",
+        "replay": "No provider replay; reconcile by Graph reads",
+        "gap_policy": "Cursor pagination paging.next/after"
+      },
+      "evidence_level": "DOCUMENTED_API",
+      "evidence_basis": [
+        "OFFICIAL_DOCS_SNAPSHOT"
+      ],
+      "artifact_refs": [
+        "docs/external-apis/pancake/api-knowledge-base-2026-09-10/02_META/GRAPH_AND_PAGES_API.md",
+        "docs/external-apis/pancake/api-knowledge-base-2026-09-10/02_META/WEBHOOKS.md",
+        "docs/external-apis/pancake/api-knowledge-base-2026-09-10/02_META/AUTH_PERMISSIONS_APP_REVIEW.md"
+      ],
+      "unknowns": [
+        "current Graph version (v27.0 seen 2026-11-17)",
+        "app review outcome",
+        "rate tier"
+      ]
+    },
+    {
+      "licensed_api": true,
+      "runtime_readiness": "none",
+      "production_approval": "NOT_APPROVED",
+      "last_reviewed": "2026-11-18",
+      "id": "meta.messenger.platform-messaging",
+      "provider": "Meta",
+      "product": "Messenger Platform",
+      "surface": "META_MESSENGER",
+      "capability": "Page inbox messaging webhooks + Send API",
+      "access_class": "OFFICIAL_API",
+      "transport": "HTTPS webhooks (messages, messaging_postbacks, ...) + Send API",
+      "delivery_model": "push",
+      "auth_model": "Page access token; app secret signature on webhooks",
+      "permissions_required": [
+        "pages_messaging",
+        "pages_manage_metadata",
+        "pages_show_list"
+      ],
+      "approval_required": "App Review / access level; 24h standard messaging window and message tags policy",
+      "event_coverage": {
+        "documented": [
+          "inbound messages",
+          "postbacks",
+          "deliveries/reads"
+        ],
+        "note": "Outbound subject to 24h window; AI remains draft-only (I-03)."
+      },
+      "identity_fields": [
+        "PSID (page-scoped)",
+        "page_id",
+        "mid (message id)"
+      ],
+      "recovery_replay": {
+        "reconnect": "n/a",
+        "replay": "Webhook retries by Meta; conversation reads via Graph for reconciliation",
+        "gap_policy": "PSID never becomes stable Lead ID or cross-channel customer identity"
+      },
+      "evidence_level": "DOCUMENTED_API",
+      "evidence_basis": [
+        "OFFICIAL_DOCS"
+      ],
+      "artifact_refs": [
+        "https://developers.facebook.com/documentation/business-messaging/messenger-platform/overview",
+        "docs/external-apis/pancake/api-knowledge-base-2026-09-10/02_META/MESSENGER_PLATFORM.md",
+        "docs/reports/unified-execution-2026-11-16/protocol-evidence.json"
+      ],
+      "unknowns": [
+        "our app access level",
+        "tenant grants",
+        "Pancake coexistence (page already connected to Pancake)"
+      ]
+    },
+    {
+      "licensed_api": true,
+      "runtime_readiness": "none",
+      "production_approval": "NOT_APPROVED",
+      "last_reviewed": "2026-11-18",
+      "id": "meta.instagram.messaging",
+      "provider": "Meta",
+      "product": "Instagram Messaging (Messenger Platform for IG professional accounts)",
+      "surface": "META_INSTAGRAM_MESSAGING",
+      "capability": "IG DM webhooks + send",
+      "access_class": "OFFICIAL_API",
+      "transport": "HTTPS webhooks + Graph send",
+      "delivery_model": "push",
+      "auth_model": "Page/IG professional token via linked Page",
+      "permissions_required": [
+        "instagram_basic",
+        "instagram_manage_messages",
+        "pages_show_list"
+      ],
+      "approval_required": "App Review + Business Verification",
+      "event_coverage": {
+        "documented": [
+          "inbound DMs",
+          "story replies/mentions"
+        ],
+        "note": "Separate surface from Messenger despite shared platform."
+      },
+      "identity_fields": [
+        "IGSID (IG-scoped)",
+        "ig business account id"
+      ],
+      "recovery_replay": {
+        "reconnect": "n/a",
+        "replay": "UNKNOWN beyond webhook retries",
+        "gap_policy": "Reconcile by conversation reads"
+      },
+      "evidence_level": "DOCUMENTED_API",
+      "evidence_basis": [
+        "OFFICIAL_DOCS_SNAPSHOT"
+      ],
+      "artifact_refs": [
+        "docs/external-apis/pancake/api-knowledge-base-2026-09-10/02_META/INSTAGRAM_API.md",
+        "docs/external-apis/pancake/api-knowledge-base-2026-09-10/02_META/AUTH_PERMISSIONS_APP_REVIEW.md"
+      ],
+      "unknowns": [
+        "permission name drift (instagram_messaging vs instagram_manage_messages across docs)",
+        "rate limits"
+      ]
+    },
+    {
+      "licensed_api": true,
+      "runtime_readiness": "none",
+      "production_approval": "NOT_APPROVED",
+      "last_reviewed": "2026-11-18",
+      "id": "meta.groups.listener",
+      "provider": "Meta",
+      "product": "Facebook Groups API",
+      "surface": "META_GROUPS",
+      "capability": "Listening to group posts/comments for acquisition tracing",
+      "access_class": "OFFICIAL_API",
+      "transport": "Graph API (deprecated for user contexts)",
+      "delivery_model": "not-available",
+      "auth_model": "n/a",
+      "permissions_required": [
+        "Groups API access is deprecated/restricted"
+      ],
+      "approval_required": "Not viable",
+      "event_coverage": {
+        "note": "Group events largely not exposed to third-party apps."
+      },
+      "identity_fields": [],
+      "recovery_replay": {
+        "reconnect": "n/a",
+        "replay": "n/a",
+        "gap_policy": "n/a"
+      },
+      "evidence_level": "DOCUMENTED_API",
+      "evidence_basis": [
+        "OFFICIAL_DOCS_SNAPSHOT"
+      ],
+      "artifact_refs": [
+        "docs/external-apis/pancake/api-knowledge-base-2026-09-10/02_META/DEPRECATED_LEGACY.md",
+        "untracked-primary-worktree:docs/research/ads-platforms-2026-11-17/meta.md"
+      ],
+      "unknowns": [
+        "exact current deprecation scope"
+      ],
+      "verdict": "REJECT as ingestion surface; mautrix/meta is not a Groups listener"
+    },
+    {
+      "licensed_api": false,
+      "runtime_readiness": "none",
+      "production_approval": "NOT_APPROVED",
+      "last_reviewed": "2026-11-18",
+      "id": "meta.personal-messenger.private-protocol",
+      "provider": "Meta",
+      "product": "Personal Messenger/Instagram web client internals",
+      "surface": "META_PERSONAL_MESSENGER",
+      "capability": "Personal-account message sync via DGW /ws/lightspeed (current) or MQTT /ls_req /ls_resp (v0.5.3)",
+      "access_class": "COMMUNITY_REVERSE_ENGINEERED",
+      "transport": "WebSocket DGW lightspeed + browser GraphQL /api/graphql/ (doc IDs snapshot-specific)",
+      "delivery_model": "stream",
+      "auth_model": "Personal session state of a user account",
+      "permissions_required": [
+        "none licensed"
+      ],
+      "approval_required": "Prohibited for production; ToS risk",
+      "event_coverage": {
+        "note": "Sync groups 1/2/95/104 on connect (source)."
+      },
+      "identity_fields": [
+        "thread id",
+        "request_id (transport correlation only, not business identity)"
+      ],
+      "recovery_replay": {
+        "reconnect": "Client.Connect backoff 2 s -> 5 min cap (v0.5.3 source)",
+        "replay": "Server retention/completeness UNKNOWN",
+        "gap_policy": "n/a"
+      },
+      "evidence_level": "SOURCE_INSPECTED",
+      "evidence_basis": [
+        "COMMUNITY_SOURCE"
+      ],
+      "artifact_refs": [
+        "docs/reports/unified-execution-2026-11-16/protocol-evidence.json",
+        "https://github.com/mautrix/meta/blob/f806b8053b2dbf212ae6622e730441c499f767bd/pkg/messagix/socket.go"
+      ],
+      "unknowns": [
+        "everything about rights"
+      ],
+      "verdict": "REJECT for product; protocol reference only"
+    },
+    {
+      "licensed_api": true,
+      "runtime_readiness": "none",
+      "production_approval": "NOT_APPROVED",
+      "last_reviewed": "2026-11-18",
+      "id": "meta.marketing-api.insights-read",
+      "provider": "Meta",
+      "product": "Marketing API",
+      "surface": "META_MARKETING_ADS",
+      "capability": "Ad account/campaign/adset/ad structure and Insights (spend, delivery) reads",
+      "access_class": "OFFICIAL_API",
+      "transport": "HTTPS Graph API (sync + async insights jobs)",
+      "delivery_model": "poll",
+      "auth_model": "System-user or user token; app id/secret",
+      "permissions_required": [
+        "ads_read",
+        "business_management (assets)"
+      ],
+      "approval_required": "App access tier/App Review; mutations need separate ads_management approval (deferred)",
+      "event_coverage": {
+        "note": "Reporting; restatements/late conversions append revisions."
+      },
+      "identity_fields": [
+        "act_<ad_account_id>",
+        "campaign_id",
+        "adset_id",
+        "ad_id",
+        "account currency/timezone"
+      ],
+      "recovery_replay": {
+        "reconnect": "n/a",
+        "replay": "Re-query overlapping windows; attribution window/action report time recorded",
+        "gap_policy": "Usage headers x-business-use-case-usage/x-app-usage; no universal QPS"
+      },
+      "evidence_level": "DOCUMENTED_API",
+      "evidence_basis": [
+        "OFFICIAL_DOCS",
+        "OFFICIAL_SDK_SOURCE"
+      ],
+      "artifact_refs": [
+        "docs/reports/unified-execution-2026-11-16/ads-capabilities.md",
+        "docs/reports/unified-execution-2026-11-16/ads-source-registry.json",
+        "https://developers.facebook.com/docs/graph-api/reference/ad-account/",
+        "https://developers.facebook.com/docs/graph-api/overview/rate-limiting/"
+      ],
+      "synthetic_fixture_refs": [
+        "product/src/adapters/decision-demand/ads-metrics-normalizer.spec.ts"
+      ],
+      "unknowns": [
+        "granted access tier",
+        "named test ad account"
+      ]
+    },
+    {
+      "licensed_api": true,
+      "runtime_readiness": "none",
+      "production_approval": "NOT_APPROVED",
+      "last_reviewed": "2026-11-18",
+      "id": "meta.lead-ads.leadgen",
+      "provider": "Meta",
+      "product": "Lead Ads (leadgen webhooks + lead retrieval)",
+      "surface": "META_LEAD_ADS",
+      "capability": "Lead form submissions (acquisition lineage source)",
+      "access_class": "OFFICIAL_API",
+      "transport": "HTTPS Page webhook (leadgen) + Graph lead retrieval",
+      "delivery_model": "push",
+      "auth_model": "Page access token",
+      "permissions_required": [
+        "leads_retrieval",
+        "pages_manage_metadata",
+        "pages_show_list",
+        "ads_management or pages_read_engagement per docs"
+      ],
+      "approval_required": "App Review + Business Verification",
+      "event_coverage": {
+        "documented": [
+          "leadgen"
+        ]
+      },
+      "identity_fields": [
+        "leadgen_id",
+        "form_id",
+        "ad_id",
+        "page_id"
+      ],
+      "recovery_replay": {
+        "reconnect": "n/a",
+        "replay": "Retrieve leads per form for reconciliation (retention window UNKNOWN)",
+        "gap_policy": "Provider lead is an external reference, not canonical Lead (I-01/I-07)"
+      },
+      "evidence_level": "DOCUMENTED_API",
+      "evidence_basis": [
+        "OFFICIAL_DOCS_SNAPSHOT"
+      ],
+      "artifact_refs": [
+        "docs/external-apis/pancake/api-knowledge-base-2026-09-10/02_META/LEAD_ADS_AND_CONVERSIONS.md"
+      ],
+      "unknowns": [
+        "exact permission set for current version",
+        "retention window"
+      ]
+    },
+    {
+      "licensed_api": true,
+      "runtime_readiness": "none",
+      "production_approval": "NOT_APPROVED",
+      "last_reviewed": "2026-11-18",
+      "id": "meta.conversions-api.server-events",
+      "provider": "Meta",
+      "product": "Conversions API (CAPI)",
+      "surface": "META_CONVERSIONS_API",
+      "capability": "Server-side outcome events (Lead, Purchase) to a pixel/dataset",
+      "access_class": "OFFICIAL_API",
+      "transport": "HTTPS POST /{pixel_id}/events (batched)",
+      "delivery_model": "batch-upload",
+      "auth_model": "System-user access token with dataset/pixel asset access",
+      "permissions_required": [
+        "dataset/pixel asset permission (ads_management per research)"
+      ],
+      "approval_required": "Outcome export is a write: separate RFC; MM-1 OPEN; consent policy",
+      "event_coverage": {
+        "documented": [
+          "event_name",
+          "event_time",
+          "event_id (dedup)",
+          "action_source",
+          "user_data hashed"
+        ]
+      },
+      "identity_fields": [
+        "event_id",
+        "hashed em/ph",
+        "fbc/fbp click ids"
+      ],
+      "recovery_replay": {
+        "reconnect": "n/a",
+        "replay": "Idempotent resend via event_id dedup",
+        "gap_policy": "Provider conversion counts stay namespaced; never revenue credit"
+      },
+      "evidence_level": "DOCUMENTED_API",
+      "evidence_basis": [
+        "OFFICIAL_DOCS_SNAPSHOT",
+        "OFFICIAL_SDK_SOURCE"
+      ],
+      "artifact_refs": [
+        "docs/external-apis/pancake/api-knowledge-base-2026-09-10/02_META/LEAD_ADS_AND_CONVERSIONS.md",
+        "https://github.com/meta/facebook-nodejs-business-sdk/tree/246c937eb5c1272ed743db41a944900bee449be9/src/objects/serverside"
+      ],
+      "unknowns": [
+        "consent basis in Vietnam",
+        "dataset ownership"
+      ],
+      "reconciliation_note": "ads-platforms-2026-11-17/meta.md claims the Node SDK has no CAPI; source at pin 246c937e contains src/objects/serverside (event-request.js etc.). Corrected."
+    },
+    {
+      "licensed_api": false,
+      "runtime_readiness": "none",
+      "production_approval": "NOT_APPROVED",
+      "last_reviewed": "2026-11-18",
+      "id": "tiktok.live.webcast-events",
+      "provider": "TikTok",
+      "product": "TikTok LIVE (public live rooms)",
+      "surface": "TIKTOK_LIVE",
+      "capability": "Live-room chat/gift/like/follow events",
+      "access_class": "COMMUNITY_REVERSE_ENGINEERED",
+      "transport": "Signed WebSocket via third-party signer (Euler Stream); protobuf frames; needAck",
+      "delivery_model": "stream",
+      "auth_model": "None licensed; optional session cookies/OAuth bundle to library",
+      "permissions_required": [
+        "no official partner API"
+      ],
+      "approval_required": "Prohibited for production",
+      "event_coverage": {
+        "note": "Method-string to event class mapping (source)."
+      },
+      "identity_fields": [
+        "room id",
+        "user unique id (public)",
+        "msg id/log id (transport)"
+      ],
+      "recovery_replay": {
+        "reconnect": "Library reconnect; sequence reset on disconnect",
+        "replay": "None verified",
+        "gap_policy": "n/a"
+      },
+      "evidence_level": "SOURCE_INSPECTED",
+      "evidence_basis": [
+        "COMMUNITY_SOURCE"
+      ],
+      "artifact_refs": [
+        "docs/reports/unified-execution-2026-11-16/protocol-evidence.json",
+        "docs/reports/unified-execution-2026-11-16/protocol-intelligence.md"
+      ],
+      "unknowns": [
+        "rights",
+        "retention"
+      ],
+      "verdict": "REJECT for product; not Shop/Business/Ads"
+    },
+    {
+      "licensed_api": true,
+      "runtime_readiness": "none",
+      "production_approval": "NOT_APPROVED",
+      "last_reviewed": "2026-11-18",
+      "id": "tiktok.business-messaging.conversations",
+      "provider": "TikTok",
+      "product": "TikTok API for Business - Business Messaging API v1.3",
+      "surface": "TIKTOK_BUSINESS_MESSAGING",
+      "capability": "Business DM conversations: webhook + send",
+      "access_class": "OFFICIAL_API",
+      "transport": "HTTPS REST (POST /open_api/v1.3/business/message/send/) + webhook subscription",
+      "delivery_model": "push",
+      "auth_model": "Developer app + authorized business account token",
+      "permissions_required": [
+        "Business Messaging access",
+        "security/privacy reviews"
+      ],
+      "approval_required": "TikTok access grant; eligibility/region UNKNOWN",
+      "event_coverage": {
+        "documented": [
+          "message webhooks (subscription required)"
+        ]
+      },
+      "identity_fields": [
+        "conversation id",
+        "business account id"
+      ],
+      "recovery_replay": {
+        "reconnect": "n/a",
+        "replay": "UNKNOWN",
+        "gap_policy": "UNKNOWN"
+      },
+      "evidence_level": "DOCUMENTED_API",
+      "evidence_basis": [
+        "OFFICIAL_DOCS"
+      ],
+      "artifact_refs": [
+        "https://business-api.tiktok.com/portal/docs/business-messaging-api-get-started/v1.3",
+        "https://business-api.tiktok.com/portal/docs/send-a-message-to-a-conversation/v1.3",
+        "docs/external-apis/pancake/api-knowledge-base-2026-09-10/03_TIKTOK/BUSINESS_MESSAGING_API.md"
+      ],
+      "unknowns": [
+        "Vietnam eligibility",
+        "webhook signature",
+        "not in pinned official SDK"
+      ]
+    },
+    {
+      "licensed_api": true,
+      "runtime_readiness": "none",
+      "production_approval": "NOT_APPROVED",
+      "last_reviewed": "2026-11-18",
+      "id": "tiktok.shop.order-webhooks",
+      "provider": "TikTok",
+      "product": "TikTok Shop Partner API",
+      "surface": "TIKTOK_SHOP",
+      "capability": "Order/status webhooks",
+      "access_class": "OFFICIAL_API",
+      "transport": "HTTPS POST to registered endpoint",
+      "delivery_model": "push",
+      "auth_model": "Shop app; signature header (canonicalization UNKNOWN)",
+      "permissions_required": [
+        "Shop partner app authorization"
+      ],
+      "approval_required": "TikTok Shop partner approval; Vietnam market availability UNKNOWN",
+      "event_coverage": {
+        "claimed": [
+          "order status changes"
+        ],
+        "note": "Only a community simulation was referenced; no official doc read in this repo."
+      },
+      "identity_fields": [
+        "order id",
+        "shop id"
+      ],
+      "recovery_replay": {
+        "reconnect": "n/a",
+        "replay": "UNKNOWN",
+        "gap_policy": "UNKNOWN"
+      },
+      "evidence_level": "README_CLAIM",
+      "evidence_basis": [
+        "COMMUNITY_README"
+      ],
+      "artifact_refs": [
+        "untracked-primary-worktree:docs/research/ads-platforms-2026-11-17/tiktok.md"
+      ],
+      "unknowns": [
+        "official HMAC canonical form",
+        "event list",
+        "market eligibility"
+      ],
+      "reconciliation_note": "ads-platforms tiktok.md labels the Shop webhook contract DOCUMENTED_API but its only cited source is the community jwen0605 simulation; downgraded to README_CLAIM."
+    },
+    {
+      "licensed_api": true,
+      "runtime_readiness": "none",
+      "production_approval": "NOT_APPROVED",
+      "last_reviewed": "2026-11-18",
+      "id": "tiktok.marketing-api.reporting",
+      "provider": "TikTok",
+      "product": "TikTok API for Business - Marketing API",
+      "surface": "TIKTOK_MARKETING_ADS",
+      "capability": "Advertiser reporting (sync integrated report, async report tasks)",
+      "access_class": "OFFICIAL_API",
+      "transport": "HTTPS REST /open_api/{v1.3|v2.0}/report/...",
+      "delivery_model": "poll",
+      "auth_model": "OAuth2 advertiser authorization -> access token; advertiser_id per call",
+      "permissions_required": [
+        "Reporting permission scope",
+        "advertiser consent"
+      ],
+      "approval_required": "Approved Business API app",
+      "event_coverage": {
+        "note": "Async report creation documented at 1 QPS per app."
+      },
+      "identity_fields": [
+        "advertiser_id",
+        "campaign_id",
+        "adgroup_id",
+        "ad_id"
+      ],
+      "recovery_replay": {
+        "reconnect": "n/a",
+        "replay": "Re-query overlapping windows; restatement window UNCERTAIN (~28 d claim unverified)",
+        "gap_policy": "Record API version explicitly (SDK v1.3 vs docs v2.0)"
+      },
+      "evidence_level": "DOCUMENTED_API",
+      "evidence_basis": [
+        "OFFICIAL_DOCS",
+        "OFFICIAL_SDK_SOURCE"
+      ],
+      "artifact_refs": [
+        "docs/reports/unified-execution-2026-11-16/ads-capabilities.md",
+        "docs/reports/unified-execution-2026-11-16/ads-source-registry.json",
+        "https://business-api.tiktok.com/portal/docs/run-a-synchronous-report/v2.0",
+        "https://business-api.tiktok.com/portal/docs/create-an-asynchronous-report-task/v2.0"
+      ],
+      "synthetic_fixture_refs": [
+        "product/src/adapters/decision-demand/ads-metrics-normalizer.spec.ts"
+      ],
+      "unknowns": [
+        "metric enum strings",
+        "attribution window defaults",
+        "per-advertiser QPS"
+      ]
+    },
+    {
+      "licensed_api": true,
+      "runtime_readiness": "none",
+      "production_approval": "NOT_APPROVED",
+      "last_reviewed": "2026-11-18",
+      "id": "tiktok.events-api.measurement",
+      "provider": "TikTok",
+      "product": "TikTok Events API (measurement)",
+      "surface": "TIKTOK_EVENTS_API",
+      "capability": "Server-side conversion events",
+      "access_class": "OFFICIAL_API",
+      "transport": "HTTPS REST batch",
+      "delivery_model": "batch-upload",
+      "auth_model": "Events API access token per pixel",
+      "permissions_required": [
+        "pixel/event source access"
+      ],
+      "approval_required": "Outcome export write RFC; MM-1 OPEN",
+      "event_coverage": {
+        "documented": [
+          "standard events with event_id dedup (per KB)"
+        ]
+      },
+      "identity_fields": [
+        "event_id",
+        "hashed email/phone",
+        "ttclid"
+      ],
+      "recovery_replay": {
+        "reconnect": "n/a",
+        "replay": "Idempotent resend (event_id)",
+        "gap_policy": "namespaced provider counts"
+      },
+      "evidence_level": "DOCUMENTED_API",
+      "evidence_basis": [
+        "OFFICIAL_DOCS_SNAPSHOT"
+      ],
+      "artifact_refs": [
+        "docs/external-apis/pancake/api-knowledge-base-2026-09-10/03_TIKTOK/MEASUREMENT_EVENTS_API.md"
+      ],
+      "unknowns": [
+        "current version",
+        "consent requirements"
+      ]
+    },
+    {
+      "licensed_api": true,
+      "runtime_readiness": "none",
+      "production_approval": "NOT_APPROVED",
+      "last_reviewed": "2026-11-18",
+      "id": "google.ads-api.gaql-reporting",
+      "provider": "Google",
+      "product": "Google Ads API",
+      "surface": "GOOGLE_ADS_API",
+      "capability": "GAQL reporting (campaign/ad metrics, customer hierarchy)",
+      "access_class": "OFFICIAL_API",
+      "transport": "gRPC or REST (googleads.googleapis.com/v{N}); Search/SearchStream",
+      "delivery_model": "poll",
+      "auth_model": "OAuth 2.0 (user or service account) + developer token + login-customer-id for MCC routing",
+      "permissions_required": [
+        "Google Ads account access",
+        "developer token access level"
+      ],
+      "approval_required": "Developer token approval; Cloud project setup",
+      "event_coverage": {
+        "note": "Reporting; metrics restate."
+      },
+      "identity_fields": [
+        "customer_id",
+        "campaign.id",
+        "ad_group.id",
+        "ad_group_ad.ad.id",
+        "cost_micros"
+      ],
+      "recovery_replay": {
+        "reconnect": "n/a",
+        "replay": "Overlapping re-query; page_token pagination",
+        "gap_policy": "Retain micros; request_id for support"
+      },
+      "evidence_level": "DOCUMENTED_API",
+      "evidence_basis": [
+        "OFFICIAL_DOCS",
+        "OFFICIAL_SDK_SOURCE"
+      ],
+      "artifact_refs": [
+        "docs/reports/unified-execution-2026-11-16/ads-capabilities.md",
+        "docs/reports/unified-execution-2026-11-16/ads-source-registry.json",
+        "https://developers.google.com/google-ads/api/rest/examples"
+      ],
+      "synthetic_fixture_refs": [
+        "product/src/adapters/decision-demand/ads-metrics-normalizer.spec.ts"
+      ],
+      "unknowns": [
+        "no first-party Node client",
+        "test customer availability"
+      ],
+      "reconciliation_note": "ads-platforms google.md/README state mutations are gRPC-only; official REST examples (retrieved 2026-11-18) show customers/{id}/campaigns:mutate over REST, and google-ads-python has REST transports. Claim corrected (mutation remains out of scope)."
+    },
+    {
+      "licensed_api": true,
+      "runtime_readiness": "none",
+      "production_approval": "NOT_APPROVED",
+      "last_reviewed": "2026-11-18",
+      "id": "google.ads-api.change-status",
+      "provider": "Google",
+      "product": "Google Ads API",
+      "surface": "GOOGLE_ADS_API",
+      "capability": "ChangeStatus / ChangeEvent resource change discovery",
+      "access_class": "OFFICIAL_API",
+      "transport": "GAQL query over Search/SearchStream (polling)",
+      "delivery_model": "poll",
+      "auth_model": "Same as GAQL reporting",
+      "permissions_required": [
+        "Google Ads account access"
+      ],
+      "approval_required": "Same as GAQL reporting",
+      "event_coverage": {
+        "documented": [
+          "resource change status within last 90 days"
+        ],
+        "note": "Not a webhook or push feed. Query dates within 90 days; LIMIT at most 10,000."
+      },
+      "identity_fields": [
+        "change_status.resource_name",
+        "last_change_date_time"
+      ],
+      "recovery_replay": {
+        "reconnect": "n/a",
+        "replay": "Poll with high-water mark + overlap + dedup; 90-day window",
+        "gap_policy": "Does not replace metrics refresh or gap reconciliation"
+      },
+      "evidence_level": "DOCUMENTED_API",
+      "evidence_basis": [
+        "OFFICIAL_DOCS"
+      ],
+      "artifact_refs": [
+        "https://developers.google.com/google-ads/api/docs/change-status",
+        "docs/reports/unified-execution-2026-11-16/ads-capabilities.md"
+      ],
+      "unknowns": [
+        "delay before changes appear"
+      ],
+      "reconciliation_note": "2026-11-15 registry row google.change-feed-backlog (proposed, UNKNOWN) superseded; ChangeStatus is polling, never push."
+    },
+    {
+      "licensed_api": true,
+      "runtime_readiness": "none",
+      "production_approval": "NOT_APPROVED",
+      "last_reviewed": "2026-11-18",
+      "id": "google.ads-api.offline-conversion-upload-legacy",
+      "provider": "Google",
+      "product": "Google Ads API ConversionUploadService",
+      "surface": "GOOGLE_ADS_API",
+      "capability": "Legacy offline click conversion / enhanced conversions for leads upload",
+      "access_class": "OFFICIAL_API",
+      "transport": "gRPC/REST UploadClickConversions",
+      "delivery_model": "batch-upload",
+      "auth_model": "Same as Google Ads API",
+      "permissions_required": [
+        "conversion action access"
+      ],
+      "approval_required": "Write path: separate RFC; compatibility conditional",
+      "event_coverage": {
+        "note": "New implementations directed to Google Data Manager API from 2026-06-15; projects with no uploads between 2025-12-17 and 2026-06-15 get CUSTOMER_NOT_ALLOWLISTED_FOR_THIS_FEATURE; legacy developer tokens sunset 2026-09-09 (not a blanket import sunset)."
+      },
+      "identity_fields": [
+        "gclid",
+        "gbraid",
+        "wbraid",
+        "conversion_action",
+        "order_id"
+      ],
+      "recovery_replay": {
+        "reconnect": "n/a",
+        "replay": "Partial-failure responses",
+        "gap_policy": "n/a"
+      },
+      "evidence_level": "DOCUMENTED_API",
+      "evidence_basis": [
+        "OFFICIAL_DOCS"
+      ],
+      "artifact_refs": [
+        "https://developers.google.com/google-ads/api/docs/conversions/upload-offline",
+        "https://developers.google.com/ads/blog/posts/2026/05/changes-to-offline-click-conversion",
+        "docs/reports/unified-execution-2026-11-16/ads-capabilities.md"
+      ],
+      "unknowns": [
+        "our project allowlist state"
+      ],
+      "verdict": "Do not start new work on legacy path; see google.data-manager.event-ingestion"
+    },
+    {
+      "licensed_api": true,
+      "runtime_readiness": "none",
+      "production_approval": "NOT_APPROVED",
+      "last_reviewed": "2026-11-18",
+      "id": "google.data-manager.event-ingestion",
+      "provider": "Google",
+      "product": "Google Data Manager API v1.9 (a Google product; not Anthropic, not a generic data manager)",
+      "surface": "GOOGLE_DATA_MANAGER_API",
+      "capability": "Event ingestion: offline/call conversions, enhanced conversions for leads; request status diagnostics",
+      "access_class": "OFFICIAL_API",
+      "transport": "HTTPS REST events:ingest + requestStatus:retrieve",
+      "delivery_model": "batch-upload",
+      "auth_model": "OAuth for authorized Google account with enabled Cloud API; API keys unsupported; user OAuth verification may apply",
+      "permissions_required": [
+        "destination account access (Google Ads)",
+        "Cloud project with Data Manager API enabled"
+      ],
+      "approval_required": "Outcome export write RFC; consent; MM-1 OPEN",
+      "event_coverage": {
+        "documented": [
+          "Event.callInfo (CallInfo.startTimestamp)",
+          "AdIdentifiers.leadId",
+          "recordIndices in ErrorCount/WarningCount"
+        ]
+      },
+      "identity_fields": [
+        "AdIdentifiers.leadId",
+        "gclid",
+        "hashed email/phone (SHA-256)",
+        "transaction id"
+      ],
+      "recovery_replay": {
+        "reconnect": "n/a",
+        "replay": "Request status retrieval with row-level diagnostics",
+        "gap_policy": "100,000 requests/day and 300/min per Cloud project (ingestion quotas, not reporting)"
+      },
+      "evidence_level": "DOCUMENTED_API",
+      "evidence_basis": [
+        "OFFICIAL_DOCS",
+        "OFFICIAL_SKILLS_REPO"
+      ],
+      "artifact_refs": [
+        "https://developers.google.com/data-manager/api/reference",
+        "https://developers.google.com/data-manager/api/devguides/limits",
+        "https://developers.google.com/data-manager/api/devguides/quickstart/set-up-access",
+        "docs/research/registries/evidence-capability-register.json",
+        "https://github.com/google/skills/tree/67c4dbc8ff6313ef117d938e53bb21315fc281ae/skills/ads/data-manager-api-event-ingestion"
+      ],
+      "synthetic_fixture_refs": [
+        "product/src/adapters/decision-demand/ads-metrics-normalizer.spec.ts"
+      ],
+      "unknowns": [
+        "credential-bound contract fixture",
+        "live behaviour",
+        "project eligibility"
+      ],
+      "reconciliation_note": "Data Manager is an ingestion (upload) surface; the synthetic ads-metrics normalizer fixture models Event.call_info as a native reporting metric, which is a taxonomy mismatch to review with the code owner."
+    },
+    {
+      "licensed_api": true,
+      "runtime_readiness": "none",
+      "production_approval": "NOT_APPROVED",
+      "last_reviewed": "2026-11-18",
+      "id": "google.data-manager.audience-ingestion",
+      "provider": "Google",
+      "product": "Google Data Manager API",
+      "surface": "GOOGLE_DATA_MANAGER_API",
+      "capability": "Audience member ingestion (customer match)",
+      "access_class": "OFFICIAL_API",
+      "transport": "HTTPS REST audienceMembers:ingest",
+      "delivery_model": "batch-upload",
+      "auth_model": "Same as event ingestion",
+      "permissions_required": [
+        "destination audience access",
+        "consent"
+      ],
+      "approval_required": "Not in LVP scope (LG-1)",
+      "event_coverage": {
+        "note": "Out of current scope."
+      },
+      "identity_fields": [
+        "hashed email/phone"
+      ],
+      "recovery_replay": {
+        "reconnect": "n/a",
+        "replay": "request status",
+        "gap_policy": "n/a"
+      },
+      "evidence_level": "SOURCE_INSPECTED",
+      "evidence_basis": [
+        "OFFICIAL_SKILLS_REPO"
+      ],
+      "artifact_refs": [
+        "https://github.com/google/skills/tree/67c4dbc8ff6313ef117d938e53bb21315fc281ae/skills/ads/data-manager-api-audience-ingestion"
+      ],
+      "unknowns": [
+        "all runtime facts"
+      ]
+    },
+    {
+      "licensed_api": true,
+      "runtime_readiness": "none",
+      "production_approval": "NOT_APPROVED",
+      "last_reviewed": "2026-11-18",
+      "id": "google.ads-mcp.guarded-actions",
+      "provider": "Google",
+      "product": "Google Ads MCP (official)",
+      "surface": "GOOGLE_ADS_API",
+      "capability": "propose_and_confirm checksum-guarded mutation + audit redaction",
+      "access_class": "OFFICIAL_API",
+      "transport": "MCP server over Google Ads API",
+      "delivery_model": "request-response",
+      "auth_model": "Google Ads OAuth",
+      "permissions_required": [
+        "Google Ads account"
+      ],
+      "approval_required": "Pattern only; no server run; ads writes OFF",
+      "event_coverage": {
+        "note": "n/a"
+      },
+      "identity_fields": [
+        "customer id bound into checksum"
+      ],
+      "recovery_replay": {
+        "reconnect": "n/a",
+        "replay": "Checksum rejects argument drift; unkeyed checksum proves neither human authorization nor prior validation",
+        "gap_policy": "n/a"
+      },
+      "evidence_level": "SOURCE_INSPECTED",
+      "evidence_basis": [
+        "OFFICIAL_SDK_SOURCE"
+      ],
+      "artifact_refs": [
+        "docs/reports/unified-execution-2026-11-16/ads-source-registry.json",
+        "docs/reports/unified-execution-2026-11-16/ads-capabilities.md"
+      ],
+      "unknowns": [
+        "n/a for pattern use"
+      ]
+    },
+    {
+      "licensed_api": true,
+      "runtime_readiness": "none",
+      "production_approval": "NOT_APPROVED",
+      "last_reviewed": "2026-11-18",
+      "id": "zalo.oa.webhook-and-messaging",
+      "provider": "Zalo (VNG)",
+      "product": "Zalo Official Account (OA) API",
+      "surface": "ZALO_OA",
+      "capability": "OA inbound webhooks (MAC-signed) + OA messaging with OAuth token refresh",
+      "access_class": "OFFICIAL_API",
+      "transport": "HTTPS webhooks + REST",
+      "delivery_model": "push",
+      "auth_model": "OA OAuth access/refresh token pair (rotation)",
+      "permissions_required": [
+        "OA authorization of app",
+        "approved OA permissions"
+      ],
+      "approval_required": "OA admin authorization; partner status UNKNOWN",
+      "event_coverage": {
+        "note": "Community source shows MAC (SHA256) verification and follow/message events; official contract not readable."
+      },
+      "identity_fields": [
+        "OA id",
+        "user_id_by_app / follower id (OA-scoped)"
+      ],
+      "recovery_replay": {
+        "reconnect": "n/a",
+        "replay": "UNKNOWN",
+        "gap_policy": "MAC check without timestamp freshness is replayable; add freshness + dedup scoped by provider/account/workspace"
+      },
+      "evidence_level": "SOURCE_INSPECTED",
+      "evidence_basis": [
+        "COMMUNITY_SOURCE"
+      ],
+      "artifact_refs": [
+        "docs/reports/unified-execution-2026-11-16/vietnam-source-registry.json",
+        "docs/reports/unified-execution-2026-11-16/vietnam-ecosystem.md",
+        "https://github.com/diendh/zca-bridge/blob/1d7fd5946711ab44ef4427561c872ae0ae7e2248/src/zalo-oa/verify.ts",
+        "https://developers.zalo.me/docs/official-account/bat-dau/xac-thuc-va-uy-quyen-cho-ung-dung-new"
+      ],
+      "unknowns": [
+        "official token lifetime",
+        "messaging window",
+        "official signature spec",
+        "partner/permission status"
+      ],
+      "reconciliation_note": "Official Zalo docs returned shells only; evidence is community source (not an official SDK)."
+    },
+    {
+      "licensed_api": true,
+      "runtime_readiness": "none",
+      "production_approval": "NOT_APPROVED",
+      "last_reviewed": "2026-11-18",
+      "id": "zalo.zns.template-messages",
+      "provider": "Zalo (VNG)",
+      "product": "ZNS / ZBS Template Message",
+      "surface": "ZALO_ZNS",
+      "capability": "Template (transactional) notification messages to phone numbers",
+      "access_class": "OFFICIAL_API",
+      "transport": "HTTPS REST (UNVERIFIED)",
+      "delivery_model": "request-response",
+      "auth_model": "OA token (UNVERIFIED)",
+      "permissions_required": [
+        "template approval",
+        "ZNS/ZBS eligibility"
+      ],
+      "approval_required": "Template approval + consent; outbound is not in LVP scope",
+      "event_coverage": {
+        "note": "Docs index distinguishes OA from ZBS Template Message; naming must be rechecked."
+      },
+      "identity_fields": [
+        "phone (PII)",
+        "template id"
+      ],
+      "recovery_replay": {
+        "reconnect": "n/a",
+        "replay": "UNKNOWN",
+        "gap_policy": "n/a"
+      },
+      "evidence_level": "README_CLAIM",
+      "evidence_basis": [
+        "OFFICIAL_DOCS_INDEX_ONLY"
+      ],
+      "artifact_refs": [
+        "https://developers.zalo.me/docs/",
+        "docs/reports/unified-execution-2026-11-16/vietnam-source-registry.json"
+      ],
+      "unknowns": [
+        "all contract facts"
+      ]
+    },
+    {
+      "licensed_api": false,
+      "runtime_readiness": "none",
+      "production_approval": "NOT_APPROVED",
+      "last_reviewed": "2026-11-18",
+      "id": "zalo.personal.private-session",
+      "provider": "Zalo (VNG)",
+      "product": "Zalo personal account (zca-js)",
+      "surface": "ZALO_PERSONAL",
+      "capability": "Personal account messaging via QR/device session",
+      "access_class": "COMMUNITY_REVERSE_ENGINEERED",
+      "transport": "Private web protocol via zca-js",
+      "delivery_model": "stream",
+      "auth_model": "Personal device/QR session",
+      "permissions_required": [
+        "none licensed"
+      ],
+      "approval_required": "Prohibited for production",
+      "event_coverage": {
+        "note": "Successful login does not promote to OA/ZNS capability."
+      },
+      "identity_fields": [
+        "personal user id"
+      ],
+      "recovery_replay": {
+        "reconnect": "UNKNOWN",
+        "replay": "UNKNOWN",
+        "gap_policy": "n/a"
+      },
+      "evidence_level": "SOURCE_INSPECTED",
+      "evidence_basis": [
+        "COMMUNITY_SOURCE"
+      ],
+      "artifact_refs": [
+        "docs/reports/unified-execution-2026-11-16/vietnam-ecosystem.md",
+        "https://github.com/diendh/zca-bridge/tree/1d7fd5946711ab44ef4427561c872ae0ae7e2248/src"
+      ],
+      "unknowns": [
+        "rights"
+      ],
+      "verdict": "REJECT"
+    },
+    {
+      "licensed_api": true,
+      "runtime_readiness": "none",
+      "production_approval": "NOT_APPROVED",
+      "last_reviewed": "2026-11-18",
+      "id": "sapo.admin-api.private-app",
+      "provider": "Sapo",
+      "product": "Sapo Admin API (private app)",
+      "surface": "SAPO_ADMIN_API",
+      "capability": "Store orders/customers/products via private app",
+      "access_class": "OFFICIAL_API",
+      "transport": "HTTPS REST",
+      "delivery_model": "request-response",
+      "auth_model": "Private app Basic Authentication with resource-level none/read/read-write permissions",
+      "permissions_required": [
+        "resource permissions granted per private app"
+      ],
+      "approval_required": "Shop owner creates private app; multi-tenant OAuth UNKNOWN (partner portal requires login)",
+      "event_coverage": {
+        "note": "Webhook capability UNKNOWN."
+      },
+      "identity_fields": [
+        "store alias",
+        "order id",
+        "customer id"
+      ],
+      "recovery_replay": {
+        "reconnect": "n/a",
+        "replay": "UNKNOWN",
+        "gap_policy": "Retried POST without idempotency key can duplicate effects; keep writes disabled"
+      },
+      "evidence_level": "DOCUMENTED_API",
+      "evidence_basis": [
+        "OFFICIAL_DOCS",
+        "COMMUNITY_SOURCE"
+      ],
+      "artifact_refs": [
+        "https://help.sapo.vn/ung-dung-rieng-private-apps",
+        "docs/reports/unified-execution-2026-11-16/vietnam-source-registry.json"
+      ],
+      "unknowns": [
+        "OAuth scopes",
+        "rate limits",
+        "webhook signatures",
+        "mutation idempotency"
+      ]
+    },
+    {
+      "licensed_api": true,
+      "runtime_readiness": "none",
+      "production_approval": "NOT_APPROVED",
+      "last_reviewed": "2026-11-18",
+      "id": "crm.chatwoot.conversation-assignment",
+      "provider": "Chatwoot",
+      "product": "Chatwoot Application API",
+      "surface": "CRM_CHATWOOT",
+      "capability": "Conversation assignment (agent/team) as downstream operator inbox target",
+      "access_class": "OFFICIAL_API",
+      "transport": "HTTPS REST + webhooks",
+      "delivery_model": "request-response",
+      "auth_model": "api_access_token header per agent/bot (account-scoped)",
+      "permissions_required": [
+        "account agent/admin"
+      ],
+      "approval_required": "ID-2 mapping RFC; PM-1",
+      "event_coverage": {
+        "note": "Assignment and resolution are independent; inbox resolved != commercial obligation complete."
+      },
+      "identity_fields": [
+        "account_id",
+        "conversation_id",
+        "contact_id (external reference only)"
+      ],
+      "recovery_replay": {
+        "reconnect": "n/a",
+        "replay": "UNKNOWN",
+        "gap_policy": "n/a"
+      },
+      "evidence_level": "DOCUMENTED_API",
+      "evidence_basis": [
+        "OFFICIAL_DOCS",
+        "COMMUNITY_SOURCE"
+      ],
+      "artifact_refs": [
+        "https://developers.chatwoot.com/api-reference/conversation-assignments/assign-conversation",
+        "docs/reports/unified-execution-2026-11-16/omnichannel-crm.md"
+      ],
+      "synthetic_fixture_refs": [
+        "product/src/adapters/decision-demand/crm-external-id-mapper.spec.ts"
+      ],
+      "unknowns": [
+        "webhook signature",
+        "retry semantics"
+      ]
+    },
+    {
+      "licensed_api": true,
+      "runtime_readiness": "none",
+      "production_approval": "NOT_APPROVED",
+      "last_reviewed": "2026-11-18",
+      "id": "crm.twenty.workspace-api",
+      "provider": "Twenty",
+      "product": "Twenty CRM REST/GraphQL (generated per workspace)",
+      "surface": "CRM_TWENTY",
+      "capability": "Person/Company/Opportunity/Task objects as downstream CRM target",
+      "access_class": "OFFICIAL_API",
+      "transport": "HTTPS REST + GraphQL; separate core and metadata APIs",
+      "delivery_model": "request-response",
+      "auth_model": "Workspace API key (bearer) with role scoping",
+      "permissions_required": [
+        "workspace API key"
+      ],
+      "approval_required": "ID-2 mapping RFC (Twenty is the canonical ID-2 example)",
+      "event_coverage": {
+        "note": "Webhooks exist per docs; not evaluated."
+      },
+      "identity_fields": [
+        "workspace id",
+        "object id (external reference only)"
+      ],
+      "recovery_replay": {
+        "reconnect": "n/a",
+        "replay": "UNKNOWN",
+        "gap_policy": "Record workspace schema version per spike"
+      },
+      "evidence_level": "DOCUMENTED_API",
+      "evidence_basis": [
+        "OFFICIAL_DOCS",
+        "COMMUNITY_SOURCE"
+      ],
+      "artifact_refs": [
+        "https://docs.twenty.com/developers/extend/api",
+        "docs/reports/unified-execution-2026-11-16/omnichannel-crm.md"
+      ],
+      "synthetic_fixture_refs": [
+        "product/src/adapters/decision-demand/crm-external-id-mapper.spec.ts"
+      ],
+      "unknowns": [
+        "retry/conflict behaviour",
+        "tenant isolation"
+      ]
+    },
+    {
+      "licensed_api": true,
+      "runtime_readiness": "none",
+      "production_approval": "NOT_APPROVED",
+      "last_reviewed": "2026-11-18",
+      "id": "crm.hubspot.crm-objects",
+      "provider": "HubSpot",
+      "product": "HubSpot CRM API",
+      "surface": "CRM_HUBSPOT",
+      "capability": "Contacts/deals/tasks objects as downstream CRM target",
+      "access_class": "OFFICIAL_API",
+      "transport": "HTTPS REST (official Node SDK)",
+      "delivery_model": "request-response",
+      "auth_model": "OAuth app or private app token",
+      "permissions_required": [
+        "crm.objects.* scopes (per docs; UNVERIFIED)"
+      ],
+      "approval_required": "ID-2 mapping RFC",
+      "event_coverage": {
+        "note": "Webhooks not evaluated."
+      },
+      "identity_fields": [
+        "portal id",
+        "object id (external reference only)"
+      ],
+      "recovery_replay": {
+        "reconnect": "n/a",
+        "replay": "SDK retries 5xx/selected 429; not idempotency",
+        "gap_policy": "n/a"
+      },
+      "evidence_level": "SOURCE_INSPECTED",
+      "evidence_basis": [
+        "OFFICIAL_SDK_SOURCE"
+      ],
+      "artifact_refs": [
+        "docs/reports/unified-execution-2026-11-16/omnichannel-crm.md",
+        "https://developers.hubspot.com/docs/api-reference/error-handling"
+      ],
+      "synthetic_fixture_refs": [
+        "product/src/adapters/decision-demand/crm-external-id-mapper.spec.ts"
+      ],
+      "unknowns": [
+        "scopes",
+        "rate limits",
+        "webhook signature version"
+      ]
+    },
+    {
+      "licensed_api": true,
+      "runtime_readiness": "none",
+      "production_approval": "NOT_APPROVED",
+      "last_reviewed": "2026-11-18",
+      "id": "crm.salesforce.rest",
+      "provider": "Salesforce",
+      "product": "Salesforce REST API (via jsforce)",
+      "surface": "CRM_SALESFORCE",
+      "capability": "Lead/Contact/Opportunity/Task as downstream CRM target",
+      "access_class": "OFFICIAL_API",
+      "transport": "HTTPS REST/SOQL",
+      "delivery_model": "request-response",
+      "auth_model": "OAuth (connected app)",
+      "permissions_required": [
+        "connected app + profile permissions"
+      ],
+      "approval_required": "ID-2 mapping RFC",
+      "event_coverage": {
+        "note": "Not evaluated."
+      },
+      "identity_fields": [
+        "org id",
+        "record id (external reference only)"
+      ],
+      "recovery_replay": {
+        "reconnect": "n/a",
+        "replay": "UNKNOWN",
+        "gap_policy": "n/a"
+      },
+      "evidence_level": "README_CLAIM",
+      "evidence_basis": [
+        "LICENSE_ONLY"
+      ],
+      "artifact_refs": [
+        "docs/reports/unified-execution-2026-11-16/omnichannel-crm.md"
+      ],
+      "synthetic_fixture_refs": [
+        "product/src/adapters/decision-demand/crm-external-id-mapper.spec.ts"
+      ],
+      "unknowns": [
+        "everything beyond license"
+      ]
+    }
+  ]
+}

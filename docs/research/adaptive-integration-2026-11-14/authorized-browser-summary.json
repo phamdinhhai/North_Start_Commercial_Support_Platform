@@ -1,0 +1,125 @@
+{
+  "schema": "north-star.authorized-browser-research.v1",
+  "observedOn": "2026-11-14",
+  "authorization": {
+    "facebook": "User authorized functional testing on the Facebook page",
+    "tiktok": "Read-only; no TikTok mutation is authorized"
+  },
+  "session": {
+    "userConfirmedLogin": true,
+    "persistence": "Dedicated local Chrome profile under ignored docs/login_info",
+    "credentialExported": false
+  },
+  "liveRead": {
+    "evidenceId": "ev_c0b5a0cc99e7b595c176e2005008f36903f825029a1c671d45be152f68342871",
+    "keys": [
+      "evidence_id",
+      "subject",
+      "provider",
+      "analysis_profile",
+      "predicate_type",
+      "operation",
+      "parameters",
+      "raw_result",
+      "normalized_result",
+      "confidence",
+      "authority",
+      "environment",
+      "limitations",
+      "relationship_coverage",
+      "locations",
+      "evidence_links"
+    ],
+    "durationMs": 3638,
+    "completeness": {
+      "status": "incomplete",
+      "equality_eligible": false,
+      "missing_sections": [
+        "events"
+      ],
+      "truncated_sections": []
+    },
+    "steps": [
+      {
+        "step": "scenario_start",
+        "status": "completed"
+      },
+      {
+        "step": "facebook_conversations_read",
+        "status": "completed"
+      },
+      {
+        "step": "facebook_settings_read",
+        "status": "completed"
+      },
+      {
+        "step": "settle",
+        "status": "completed"
+      }
+    ],
+    "requests": [
+      {
+        "method": "GET",
+        "status": 200,
+        "path": "https://pancake.vn/api/v1/pages/:facebook-page/conversations"
+      },
+      {
+        "method": "GET",
+        "status": 200,
+        "path": "https://pancake.vn/api/v1/pages/:facebook-page/settings"
+      },
+      {
+        "method": "GET",
+        "status": 200,
+        "path": "https://pancake.vn/api/v1/pages/:facebook-page/cake_ai/config"
+      },
+      {
+        "method": "GET",
+        "status": 302,
+        "path": "https://pancake.vn/api/v1/pages/:facebook-page/avatar"
+      },
+      {
+        "method": "GET",
+        "status": 200,
+        "path": "https://pancake.vn/api/v1/pages/:facebook-page/conversations"
+      },
+      {
+        "method": "GET",
+        "status": 200,
+        "path": "https://pancake.vn/api/v1/pages/:facebook-page/settings"
+      },
+      {
+        "method": "GET",
+        "status": 200,
+        "path": "https://pancake.vn/api/v1/pages/:facebook-page/settings/warehouses"
+      },
+      {
+        "method": "GET",
+        "status": 200,
+        "path": "https://pancake.vn/api/v1/pages/:facebook-page/settings"
+      }
+    ],
+    "eventCounts": {
+      "request": 154,
+      "response": 154,
+      "request-finished": 154,
+      "websocket-opened": 1,
+      "websocket-frame-sent": 3,
+      "websocket-frame-received": 3
+    },
+    "eventsDropped": 0,
+    "cleanup": "disconnected-external"
+  },
+  "offlineRea": {
+    "summaryEvidenceId": "ev_5196a0e1c50dc947a613c3ff95b7d49b908def165f72d0d0956f4afaa6a4960d",
+    "parentEvidenceId": "ev_02731fb6fc5080ca80e6caa80d56e9892b795fa63c8122adecc0434149f84300",
+    "derivativeSha256": "4a3bb259a45e1e406f1bf6f621ba0955af9ed1ec935ae6de107550eca60f1073",
+    "totalDerivativeRecords": 5
+  },
+  "limitations": [
+    "HTTP 200 and user-confirmed login are observed; response bodies were not captured, so per-record content and business permissions are not asserted.",
+    "The browser's own background HTTP/WebSocket traffic was not blocked; no agent-authored mutation was sent.",
+    "REA marks live capture incomplete despite zero dropped events; no complete business-event stream is claimed.",
+    "HAR evidence is historical and its pages.fm connections use pke_chat_plugin topics."
+  ]
+}
