@@ -1,1 +1,15 @@
-﻿{"release":"R4.15.1","base":"d26e6e446bf8cbc62e2d169199330c354a11f66a","frontendHostedCI":"ADDED_PENDING","p3":"SEND_UNRESOLVED","p4":"NOT_TESTED","p5":"NOT_VERIFIED","gateB":"CONDITIONAL","gateC":"NOT_READY","ownerAcceptance":"PENDING"}
+﻿{
+  "release":"R4.15.1",
+  "head":"8509be15a14869b63b54afd20963abb98e9f3ac2",
+  "base":"d26e6e446bf8cbc62e2d169199330c354a11f66a",
+  "frontendHostedCI":"ADDED_PENDING",
+  "frontendContractTests":"2/2 PASS",
+  "evidencePackager":"2/2 PASS",
+  "frontendBuild":"PENDING_LOCAL_INSTALL; CI_GATE_REQUIRED",
+  "p3":"SEND_UNRESOLVED",
+  "p4":"NOT_TESTED",
+  "p5":"NOT_VERIFIED",
+  "gateB":"CONDITIONAL",
+  "gateC":"NOT_READY",
+  "ownerAcceptance":"PENDING"
+}
