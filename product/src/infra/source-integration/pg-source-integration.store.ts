@@ -142,7 +142,7 @@ export class PgSourceIntegrationStore implements SourceIntegrationStore {
   async conversationPage(workspaceId:string,actorId:string,options:SourceEvidencePageOptions & {conversationId?:string;pageId?:string}={}):Promise<SourceConversationPage> {
     const limit=Math.min(Math.max(options.limit??20,1),100);
     let position:null|{time:string;id:string}=null;
-    const cursorScope=JSON.stringify([workspaceId,options.conversationId??null,options.pageId??null]);
+    const cursorScope=JSON.stringify([workspaceId,actorId,options.conversationId??null,options.pageId??null]);
     if(options.cursor){try{const parsed=JSON.parse(Buffer.from(options.cursor,'base64url').toString('utf8'));if(parsed.scope!==cursorScope||typeof parsed.time!=='string'||typeof parsed.id!=='string')return fail('INPUT_INVALID',400);position=parsed;}catch{return fail('INPUT_INVALID',400);}}
     const args:any[]=[workspaceId],where=['r.workspace_id=$1','r.conversation_id IS NOT NULL'];
     if(options.conversationId){args.push(options.conversationId);where.push(`r.conversation_id=$${args.length}`);}
