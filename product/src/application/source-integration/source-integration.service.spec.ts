@@ -45,4 +45,9 @@ describe('synthetic source application boundary',()=>{
     expect(result).toMatchObject({limit:2,nextCursor:'cursor',possiblyTruncated:true,verification:'UNVERIFIED',completeness:'UNKNOWN'});
     expect(s.listConnections).not.toHaveBeenCalled();
   });
+  it('reads bounded native conversations through the scoped store and preserves UNKNOWN trust',async()=>{
+    const s={...store(),conversationPage:vi.fn().mockResolvedValue({items:[{conversationId:'conv-1',pageId:'page-1',provider:'pancake',messages:[{messageId:'m-1',conversationId:'conv-1',pageId:'page-1',observedAt:'2026-01-01T00:00:00.000Z',utterance:null,speaker:'unknown',receiptId:'r-1',verification:'UNVERIFIED',completeness:'UNKNOWN'}],completeness:'UNKNOWN',verification:'UNVERIFIED'}],nextCursor:null})};
+    const result=await new SourceIntegrationService(s,vi.fn(),true).conversations(ctx,{limit:2});
+    expect(s.conversationPage).toHaveBeenCalledWith('synthetic','admin',{limit:2});expect(result.items[0].messages[0].utterance).toBeNull();expect(result.items[0].verification).toBe('UNVERIFIED');
+  });
 });

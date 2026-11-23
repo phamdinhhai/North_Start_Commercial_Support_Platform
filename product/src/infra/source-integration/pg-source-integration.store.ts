@@ -4,7 +4,7 @@ import { createLead } from '../../domain/lead/lead';
 import { contentDigester } from '../../ports/content-digester-runtime';
 import type { ContentDigest } from '../../ports/content-digester';
 import type { AuthContext } from '../../ports/auth';
-import { SourceIntegrationError, type SourceConnection, type SourceEvidence, type SourceEvidencePageOptions, type SourceIntegrationStore, type SourceObservation, type SourceReceipt } from '../../ports/source-observation';
+import { SourceIntegrationError, type SourceConnection, type SourceEvidence, type SourceEvidencePageOptions, type SourceIntegrationStore, type SourceObservation, type SourceReceipt, type SourceConversationPage } from '../../ports/source-observation';
 import { encodeEvidenceCursor, evidencePageRequest } from './evidence-cursor';
 import { PostgresService, type SqlExecutor } from '../postgres/postgres.service';
 import { toEnvelope, type EnvelopeDbRow } from '../postgres/repositories/pilot-persistence.types';
@@ -138,5 +138,23 @@ export class PgSourceIntegrationStore implements SourceIntegrationStore {
       return {items:selected.map(r=>({receipt:receipt(r),observation:r.observation,envelope:toEnvelope(r.envelope)})),
         nextCursor:rows.rows.length>limit && last?encodeEvidenceCursor(workspaceId,leadId,{time:last.cursor_time,id:last.id}):null};
     });
+  }
+  async conversationPage(workspaceId:string,actorId:string,options:SourceEvidencePageOptions & {conversationId?:string;pageId?:string}={}):Promise<SourceConversationPage> {
+    const limit=Math.min(Math.max(options.limit??20,1),100);
+    let position:null|{time:string;id:string}=null;
+    if(options.cursor){try{const parsed=JSON.parse(Buffer.from(options.cursor,'base64url').toString('utf8'));if(parsed.workspaceId!==workspaceId||typeof parsed.time!=='string'||typeof parsed.id!=='string')return fail('INPUT_INVALID',400);position=parsed;}catch{return fail('INPUT_INVALID',400);}}
+    const args:any[]=[workspaceId],where=['r.workspace_id=$1','r.conversation_id IS NOT NULL'];
+    if(options.conversationId){args.push(options.conversationId);where.push(`r.conversation_id=$${args.length}`);}
+    if(options.pageId){args.push(options.pageId);where.push(`r.page_id=$${args.length}`);}
+    if(position){args.push(position.time,position.id);where.push(`(r.created_at,r.id)>($${args.length-1}::timestamptz,$${args.length}::uuid)`);}
+    args.push(limit+1);
+    const rows=await this.db.query<any>(`SELECT r.id,r.receipt_id,r.native_system,r.page_id,r.conversation_id,r.message_id,r.created_at,
+      COALESCE(e.raw_payload->>'utterance',NULL) utterance,COALESCE(e.raw_payload->>'speaker','unknown') speaker,
+      to_char(r.created_at AT TIME ZONE 'UTC','YYYY-MM-DD"T"HH24:MI:SS.US"Z"') cursor_time
+      FROM source_receipt r LEFT JOIN commercial_envelope e ON e.id=r.envelope_id AND e.workspace_id=r.workspace_id
+      WHERE ${where.join(' AND ')} ORDER BY r.created_at,r.id LIMIT $${args.length}`,args);
+    const selected=rows.rows.slice(0,limit), groups=new Map<string,any>();
+    for(const row of selected){const id=String(row.conversation_id);let group=groups.get(id);if(!group){group={conversationId:id,pageId:row.page_id??null,provider:row.native_system==='pancake'?'pancake':row.native_system==='meta'?'meta-page':null,messages:[]};groups.set(id,group);}group.messages.push({messageId:row.message_id??null,conversationId:id,pageId:row.page_id??null,observedAt:new Date(row.created_at).toISOString(),utterance:row.utterance??null,speaker:row.speaker,receiptId:row.receipt_id,verification:'UNVERIFIED',completeness:'UNKNOWN'});}
+    const last=selected.at(-1);return {items:[...groups.values()].map(group=>({...group,completeness:'UNKNOWN',verification:'UNVERIFIED'})),nextCursor:rows.rows.length>limit&&last?Buffer.from(JSON.stringify({workspaceId,time:last.cursor_time,id:last.id})).toString('base64url'):null};
   }
 }

@@ -54,4 +54,10 @@ export class SourceIntegrationController {
       return this.service.evidence(ctx, this.id(id),{...(q.limit!==undefined?{limit:Number(q.limit)}:{}),...(q.cursor!==undefined?{cursor:q.cursor}:{})});
     });
   }
+  @Get('conversations') @Header('Cache-Control', 'no-store') conversations(@Headers() h: Record<string,string|undefined>, @Query() q: Record<string,string|undefined>) {
+    return this.run(h, ctx => {
+      if (Object.keys(q).some(k => !['limit','cursor','conversationId','pageId'].includes(k)) || (q.limit !== undefined && (!Number.isInteger(Number(q.limit)) || Number(q.limit)<1 || Number(q.limit)>100)) || (q.cursor !== undefined && q.cursor.length > 2048)) throw new SourceIntegrationError('INPUT_INVALID',400);
+      return this.service.conversations(ctx, { ...(q.limit !== undefined ? {limit:Number(q.limit)}:{}), ...(q.cursor !== undefined ? {cursor:q.cursor}:{}), ...(q.conversationId !== undefined ? {conversationId:q.conversationId}:{}), ...(q.pageId !== undefined ? {pageId:q.pageId}: {}) });
+    });
+  }
 }

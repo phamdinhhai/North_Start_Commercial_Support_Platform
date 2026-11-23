@@ -61,9 +61,13 @@ export interface SourceEvidence {
 }
 export interface SourceEvidencePageOptions { readonly limit?: number; readonly cursor?: string }
 export interface SourceEvidencePage { readonly items: readonly SourceEvidence[]; readonly nextCursor: string | null }
+export interface SourceConversationMessage { readonly messageId: string | null; readonly conversationId: string; readonly pageId: string | null; readonly observedAt: string; readonly utterance: string | null; readonly speaker: string; readonly receiptId: string; readonly verification: 'UNVERIFIED'; readonly completeness: 'UNKNOWN' }
+export interface SourceConversation { readonly conversationId: string; readonly pageId: string | null; readonly provider: SourceProvider | null; readonly messages: readonly SourceConversationMessage[]; readonly completeness: 'UNKNOWN'; readonly verification: 'UNVERIFIED' }
+export interface SourceConversationPage { readonly items: readonly SourceConversation[]; readonly nextCursor: string | null }
 export interface SourceIntegrationStore {
   getConnection?(workspaceId: string, id: string): Promise<SourceConnection | null>;
   evidencePage?(workspaceId: string, leadId: string, actorId: string, options?: SourceEvidencePageOptions): Promise<SourceEvidencePage>;
+  conversationPage?(workspaceId: string, actorId: string, options?: SourceEvidencePageOptions & { readonly conversationId?: string; readonly pageId?: string }): Promise<SourceConversationPage>;
   createConnection(ctx: AuthContext, input: Pick<SourceConnection, 'provider' | 'route' | 'pageId'>): Promise<SourceConnection>;
   revokeConnection(ctx: AuthContext, id: string): Promise<SourceConnection>;
   listConnections(workspaceId: string): Promise<readonly SourceConnection[]>;

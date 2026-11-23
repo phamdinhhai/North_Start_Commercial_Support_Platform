@@ -15,7 +15,7 @@ describe('source HTTP authorization and errors', () => {
   const connection = { id, workspaceId: 'local-a', provider: 'pancake' as const, route: 'pancake-synthetic' as const, pageId: 'p', status: 'active' as const, health: 'SYNTHETIC_ONLY' as const };
   async function setup(ctx: AuthContext | null = admin, enabled = true) {
     const store = { listConnections: vi.fn().mockResolvedValue([connection]), createConnection: vi.fn().mockResolvedValue(connection),
-      revokeConnection: vi.fn(), intake: vi.fn(), evidence: vi.fn() } satisfies SourceIntegrationStore;
+      revokeConnection: vi.fn(), intake: vi.fn(), evidence: vi.fn(), conversationPage: vi.fn().mockResolvedValue({items:[],nextCursor:null}) } satisfies SourceIntegrationStore;
     const authorize = vi.fn().mockRejectedValue(new SourceIntegrationError('LEAD_NOT_FOUND', 404));
     const service = new SourceIntegrationService(store, authorize, enabled);
     const decoder = { decode: vi.fn(() => { throw new Error('private token raw details'); }), example: () => ({ synthetic: true }) };
@@ -53,5 +53,10 @@ describe('source HTTP authorization and errors', () => {
     const { store } = await setup();
     const res = await app.inject({ method: 'POST', url: '/v1/source-integrations/connections', payload: { provider: 'pancake', route: 'pancake-synthetic', pageId: 'p', workspaceId: 'foreign' } });
     expect(res.statusCode).toBe(400); expect(store.createConnection).not.toHaveBeenCalled();
+  });
+  it('returns bounded conversation projection with no-store and query scope', async () => {
+    const { store } = await setup();
+    const res = await app.inject({ method: 'GET', url: '/v1/source-integrations/conversations?limit=2&pageId=p' });
+    expect(res.statusCode).toBe(200); expect(res.headers['cache-control']).toBe('no-store'); expect(store.conversationPage).toHaveBeenCalledWith('local-a','admin',{limit:2,pageId:'p'});
   });
 });

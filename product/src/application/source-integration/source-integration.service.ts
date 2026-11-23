@@ -1,5 +1,5 @@
 import type { AuthContext } from '../../ports/auth';
-import { SourceIntegrationError, type SourceConnection, type SourceIntegrationStore, type SourceEvidencePageOptions, type SourceEvidence } from '../../ports/source-observation';
+import { SourceIntegrationError, type SourceConnection, type SourceIntegrationStore, type SourceEvidencePageOptions, type SourceEvidence, type SourceConversationPage } from '../../ports/source-observation';
 import { validateSourceObservation } from './validation';
 import { assertSyntheticNativeIdentity, assertSyntheticSourceAdmission, projectSourceTrust } from '../source-trust/source-trust';
 
@@ -48,6 +48,12 @@ export class SourceIntegrationService {
     return {items:page.items.map(sourceEvidenceView),limit:this.store.evidencePage?(options.limit??20):100,
       nextCursor:page.nextCursor,possiblyTruncated:page.nextCursor!==null || (!this.store.evidencePage&&page.items.length===100),
       verification:'UNVERIFIED' as const,completeness:'UNKNOWN' as const};
+  }
+  async conversations(ctx: AuthContext, options: SourceEvidencePageOptions & { readonly conversationId?: string; readonly pageId?: string } = {}): Promise<SourceConversationPage> {
+    this.gate();
+    if (!ctx?.workspaceId || !ctx.userId) throw new SourceIntegrationError('UNAUTHORIZED', 401);
+    if (!this.store.conversationPage) throw new SourceIntegrationError('CONVERSATION_READ_UNAVAILABLE', 503);
+    return this.store.conversationPage(ctx.workspaceId, ctx.userId, options);
   }
 }
 
