@@ -1,0 +1,1 @@
+﻿OIDC cookies and CSRF remain authoritative. Same-origin API rejects external routes. Generation cancellation/remount protects identity changes; 403 routes to access denied. Foreign workspace and viewer denial remain tested. No token/cookie is bundled or persisted.

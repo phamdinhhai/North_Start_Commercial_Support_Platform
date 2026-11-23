@@ -1,0 +1,1 @@
+﻿MIT Ads Studio table/chart adaptation supports Meta/Google/TikTok fabricated rows, filters, sorting and detail. Currency/timezone/attribution/completeness are bounded or UNKNOWN; no live calls or mutations.

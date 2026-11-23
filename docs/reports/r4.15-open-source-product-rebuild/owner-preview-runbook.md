@@ -1,0 +1,1 @@
+﻿UI: http://127.0.0.1:57693/v1/app/. Fallback: /v1/operator. Fixture roles: Owner/sales, Recipient/sales, Bystander/manager, Viewer/viewer, Admin/admin, Foreign/sales. Use private controls for status/restart/backup/stop; never reset/restore active demo.

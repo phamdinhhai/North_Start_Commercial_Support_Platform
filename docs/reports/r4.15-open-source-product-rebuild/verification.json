@@ -1,0 +1,1 @@
+﻿{"release":"R4.15 UI rebuild","branch":"feat/r415-open-source-product-ui","frontendBuild":"PASS","frontendAudit":"0 findings","crmBrowser":"PASS","inboxMobile":"PASS","providerCalls":0,"providerMutations":0,"gates":{"P3":"SEND_UNRESOLVED","P4":"NOT_TESTED","P5":"NOT_VERIFIED","B":"CONDITIONAL","C":"NOT_READY"},"ownerAcceptance":"PENDING"}

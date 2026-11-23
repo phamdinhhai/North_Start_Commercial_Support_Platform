@@ -1,0 +1,1 @@
+﻿Atomic, Chatwoot community, Twenty UI package and Ads Studio pins/license boundaries were reviewed. Atomic files retain MIT notice; full Ads dependency tree was not adopted after upstream audit findings. Frontend npm audit reports zero findings.

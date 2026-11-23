@@ -1,0 +1,1 @@
+﻿Atomic admin List/DataTable/SimpleForm/TextInput/sidebar/card/dialog modules provide CRM shell. Chatwoot helper and interaction patterns provide inbox. Ads Studio PerformanceTable and Overview chart provide campaigns. No Supabase, Rails backend, enterprise code or provider mutation controls were adopted.
