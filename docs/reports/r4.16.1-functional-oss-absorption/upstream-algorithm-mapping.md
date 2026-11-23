@@ -1,6 +1,10 @@
-﻿'# Upstream to native mapping
+﻿# Upstream algorithm to native mapping
 
-Chatwoot `conversationHelper.js` source-message dedupe and latest non-activity semantics are now represented by the native Northstar conversation projection contract. Northstar retains provider/page/conversation/message scope, receipt provenance, UNVERIFIED authority and UNKNOWN completeness. The Nest API is `/v1/source-integrations/conversations`; the PostgreSQL store projects existing `source_receipt` and `commercial_envelope` rows without adding a parallel conversation database.
+| Source | Native implementation | Tests |
+|---|---|---|
+| Chatwoot conversation/message ordering, dedupe and scoped read ideas | `SourceIntegrationService.conversations`, `PgSourceIntegrationStore.conversationPage`, `SourceConversation` ports and React `NativeConversationPanel` | source-integration service/http tests; bounded workspace/cursor cases |
+| Atomic task date grouping | `product/src/domain/work/task/task-buckets.ts` | overdue/today/tomorrow/week/later/completed/invalid/timezone tests |
+| Atomic list/search filtering ideas | `leadPage` search and `NorthStartDataProvider` `filter.q` | search projection, input-bound and cursor-scoped tests |
+| Ads Studio reporting grouping | `aggregateSyntheticAdsReport` over Northstar normalized metrics | aggregation, foreign workspace and currency/timezone slice tests |
 
-Atomic task date grouping remains the next bounded port; existing Northstar work items remain canonical. Ads reporting remains pending backend observation input; the fixture UI is not promoted.
-'
+Upstream code was not copied where its runtime or schema conflicted with Northstar. Northstar PostgreSQL, OIDC, RBAC, receipts and audit remain authoritative.
