@@ -12,7 +12,9 @@ suite('source bounded reads and locking',()=>{
   let db:PostgresService,store:PgSourceIntegrationStore;
   const ctx:AuthContext={workspaceId:`perf-test-${randomUUID()}`,userId:'fabricated-admin',role:'admin',isDemo:false};
   const observation=(messageId=randomUUID()):SourceObservation=>({schemaVersion:1,accountId:'p',provider:'pancake',route:'pancake-synthetic',synthetic:true,sourceAuthority:'synthetic_fixture',completeness:'UNKNOWN',verification:'UNVERIFIED',receiptId:randomUUID(),native:{system:'meta',pageId:'p',conversationId:null,messageId,eventId:null,revision:null},observedAt:'2026-11-20T00:00:00Z',occurredAt:null,lifecycle:'upsert-observed',displayName:'Fabricated',rawPayload:{utterance:'Fabricated',speaker:'customer',original:{fabricated:true}}});
-  const connect=()=>store.createConnection(ctx,{provider:'pancake',route:'pancake-synthetic',pageId:'p'});
+  const conversationObservation=(conversationId:string,pageId:string,system:'meta'|'pancake'='meta'):SourceObservation=>({...observation(),accountId:pageId,native:{system,pageId,conversationId,messageId:randomUUID(),eventId:null,revision:null},rawPayload:{utterance:`Fabricated ${conversationId}`,speaker:'customer',original:{fabricated:true}}});
+  const connectWithPage=(pageId='p')=>store.createConnection(ctx,{provider:'pancake',route:'pancake-synthetic',pageId});
+  const connect=()=>connectWithPage();
   beforeAll(async()=>{
     db=new PostgresService({connectionString:process.env.TEST_DATABASE_URL,max:8,statement_timeout:5000});
     await new Migrator(db,loadMigrations()).up();
@@ -46,6 +48,39 @@ suite('source bounded reads and locking',()=>{
       cursor=page.nextCursor??undefined;
     } while(cursor);
     expect(seen).toHaveLength(7);expect(new Set(seen).size).toBe(7);
+  });
+  it('pages canonical conversations without skipping boundaries or merging connection/provider identities',async()=>{
+    const connections=await Promise.all(['p1','p2','p3','p4','p5'].map(pageId=>connectWithPage(pageId)));
+    const receipts=[] as {receiptId:string;connectionId:string}[];
+    for(let i=0;i<5;i++){
+      const result=await store.intake(ctx,connections[i].id,conversationObservation(`conversation-${i+1}`,connections[i].pageId));
+      receipts.push({receiptId:result.receiptId,connectionId:connections[i].id});
+    }
+    // Force an identical source timestamp so the UUID tie-breaker is exercised.
+    await db.query('UPDATE source_receipt SET created_at=$1 WHERE receipt_id = ANY($2::text[])',['2026-11-21T00:00:00Z',receipts.map(r=>r.receiptId)]);
+    const seen:string[]=[];let cursor:string|undefined;
+    do {
+      const page=await store.conversationPage(ctx.workspaceId,ctx.userId,{limit:2,cursor});
+      seen.push(...page.items.map(item=>item.canonicalId??item.conversationId));
+      cursor=page.nextCursor??undefined;
+    } while(cursor);
+    expect(seen).toHaveLength(5);expect(new Set(seen).size).toBe(5);
+
+    // Same native conversation ID is isolated by connection/provider namespace.
+    const duplicateA=await store.intake(ctx,connections[0].id,conversationObservation('same-native-id','p1','meta'));
+    const duplicateB=await store.intake(ctx,connections[1].id,conversationObservation('same-native-id','p2','pancake'));
+    const duplicatePage=await store.conversationPage(ctx.workspaceId,ctx.userId,{conversationId:'same-native-id',limit:10});
+    expect(duplicatePage.items.map(item=>item.canonicalId)).toEqual(expect.arrayContaining([
+      JSON.stringify([ctx.workspaceId,connections[0].id,'meta','p1','same-native-id']),
+      JSON.stringify([ctx.workspaceId,connections[1].id,'pancake','p2','same-native-id'])
+    ]));
+    expect(duplicateA.receiptId).not.toBe(duplicateB.receiptId);
+
+    await store.revokeConnection(ctx,connections[4].id);
+    const afterRevoke=await store.conversationPage(ctx.workspaceId,ctx.userId,{limit:20});
+    expect(afterRevoke.items.some(item=>item.canonicalId===JSON.stringify([ctx.workspaceId,connections[4].id,'meta','p5','conversation-5']))).toBe(false);
+    const filtered=await store.conversationPage(ctx.workspaceId,ctx.userId,{pageId:'p1',limit:20});
+    expect(filtered.items.every(item=>item.pageId==='p1')).toBe(true);
   });
   it('holds revoke behind an accepted intake lock, then denies every subsequent append',async()=>{
     const c=await connect(),base=observation();
