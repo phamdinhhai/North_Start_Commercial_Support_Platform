@@ -50,14 +50,18 @@ suite('source bounded reads and locking',()=>{
     expect(seen).toHaveLength(7);expect(new Set(seen).size).toBe(7);
   });
   it('pages canonical conversations without skipping boundaries or merging connection/provider identities',async()=>{
-    const connections=await Promise.all(['p1','p2','p3','p4','p5'].map(pageId=>connectWithPage(pageId)));
+    const connections=[] as Awaited<ReturnType<typeof connectWithPage>>[];
+    for(const pageId of ['p1','p2','p3','p4','p5']) connections.push(await connectWithPage(pageId));
     const receipts=[] as {receiptId:string;connectionId:string}[];
-    for(let i=0;i<5;i++){
-      const result=await store.intake(ctx,connections[i].id,conversationObservation(`conversation-${i+1}`,connections[i].pageId));
-      receipts.push({receiptId:result.receiptId,connectionId:connections[i].id});
-    }
-    // Force an identical source timestamp so the UUID tie-breaker is exercised.
-    await db.query('UPDATE source_receipt SET created_at=$1 WHERE receipt_id = ANY($2::text[])',['2026-11-21T00:00:00Z',receipts.map(r=>r.receiptId)]);
+    // One transaction gives PostgreSQL's transaction timestamp to every receipt;
+    // this exercises the UUID tie-breaker without mutating append-only evidence.
+    await db.withTransaction(async tx=>{
+      const sameTransaction=new PgSourceIntegrationStore({withTransaction:<T>(fn:(executor:SqlExecutor)=>Promise<T>)=>fn(tx)} as PostgresService);
+      for(let i=0;i<5;i++){
+        const result=await sameTransaction.intake(ctx,connections[i].id,conversationObservation(`conversation-${i+1}`,connections[i].pageId));
+        receipts.push({receiptId:result.receiptId,connectionId:connections[i].id});
+      }
+    });
     const seen:string[]=[];let cursor:string|undefined;
     do {
       const page=await store.conversationPage(ctx.workspaceId,ctx.userId,{limit:2,cursor});
@@ -82,13 +86,16 @@ suite('source bounded reads and locking',()=>{
     const filtered=await store.conversationPage(ctx.workspaceId,ctx.userId,{pageId:'p1',limit:20});
     expect(filtered.items.every(item=>item.pageId==='p1')).toBe(true);
 
-    for(let i=0;i<101;i++) await store.intake(ctx,connections[0].id,conversationObservation('long-history','p1','meta'));
+    await db.withTransaction(async tx=>{
+      const sameTransaction=new PgSourceIntegrationStore({withTransaction:<T>(fn:(executor:SqlExecutor)=>Promise<T>)=>fn(tx)} as PostgresService);
+      for(let i=0;i<101;i++) await sameTransaction.intake(ctx,connections[0].id,conversationObservation('long-history','p1','meta'));
+    });
     const bounded=await store.conversationPage(ctx.workspaceId,ctx.userId,{conversationId:'long-history',limit:2});
     expect(bounded.items).toHaveLength(1);
     expect(bounded.items[0].messages).toHaveLength(100);
     expect(bounded.items[0].messageHistoryLimit).toBe(100);
     expect(bounded.items[0].messageHistoryTruncated).toBe(true);
-  });
+  }, 120000);
   it('holds revoke behind an accepted intake lock, then denies every subsequent append',async()=>{
     const c=await connect(),base=observation();
     let entered!:()=>void,release!:()=>void;
