@@ -1,6 +1,6 @@
 ﻿{
   "release":"R4.15.1",
-  "head":"ac724559f86b1f17a47fb587d5e56986b2c308c6",
+  "head":"6e6a1cdb1a18e9c49961ba5c870e557dae382e5c",
   "base":"d26e6e446bf8cbc62e2d169199330c354a11f66a",
   "frontendHostedCI":"ADDED_PENDING_HOSTED",
   "frontendContractTests":"2/2 PASS",
@@ -13,4 +13,5 @@
   "gateC":"NOT_READY",
   "ownerAcceptance":"PENDING"
 }
+
 
