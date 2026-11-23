@@ -1,11 +1,11 @@
 ﻿{
   "release":"R4.15.1",
-  "head":"8509be15a14869b63b54afd20963abb98e9f3ac2",
+  "head":"ac724559f86b1f17a47fb587d5e56986b2c308c6",
   "base":"d26e6e446bf8cbc62e2d169199330c354a11f66a",
-  "frontendHostedCI":"ADDED_PENDING",
+  "frontendHostedCI":"ADDED_PENDING_HOSTED",
   "frontendContractTests":"2/2 PASS",
   "evidencePackager":"2/2 PASS",
-  "frontendBuild":"PENDING_LOCAL_INSTALL; CI_GATE_REQUIRED",
+  "frontendBuild":"PASS_LOCAL",
   "p3":"SEND_UNRESOLVED",
   "p4":"NOT_TESTED",
   "p5":"NOT_VERIFIED",
@@ -13,3 +13,4 @@
   "gateC":"NOT_READY",
   "ownerAcceptance":"PENDING"
 }
+
