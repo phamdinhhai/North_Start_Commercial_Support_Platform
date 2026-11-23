@@ -19,7 +19,7 @@ export interface AdsReportRow {
 export function aggregateSyntheticAdsReport(workspaceId: string, metrics: readonly NormalizedAdsMetric[]): readonly AdsReportRow[] {
   const grouped = new Map<string, AdsReportRow & { total: number; versions: Set<string> }>();
   for (const metric of metrics) {
-    if (metric.workspaceId !== workspaceId) continue;
+    if (metric.workspaceId !== workspaceId || metric.isSynthetic !== true) continue;
     const key = JSON.stringify([metric.provider, metric.providerAccountId, metric.providerObjectId, metric.metricName, metric.currency, metric.timezone, metric.occurredAt]);
     const existing = grouped.get(key);
     if (existing) {

@@ -16,6 +16,9 @@ describe('native synthetic Ads reporting', () => {
   it('denies foreign workspace rows without leaking them into results', () => {
     expect(aggregateSyntheticAdsReport('w', [metric({ workspaceId: 'foreign' })])).toEqual([]);
   });
+  it('does not promote non-synthetic observations into the fixture report', () => {
+    expect(aggregateSyntheticAdsReport('w', [metric({ isSynthetic: false })])).toEqual([]);
+  });
   it('keeps distinct currency/timezone slices separate', () => {
     const rows = aggregateSyntheticAdsReport('w', [metric(), metric({ currency: 'EUR' }), metric({ timezone: 'Asia/Ho_Chi_Minh' })]);
     expect(rows).toHaveLength(3);
