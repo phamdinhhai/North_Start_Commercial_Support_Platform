@@ -81,6 +81,13 @@ suite('source bounded reads and locking',()=>{
     expect(afterRevoke.items.some(item=>item.canonicalId===JSON.stringify([ctx.workspaceId,connections[4].id,'meta','p5','conversation-5']))).toBe(false);
     const filtered=await store.conversationPage(ctx.workspaceId,ctx.userId,{pageId:'p1',limit:20});
     expect(filtered.items.every(item=>item.pageId==='p1')).toBe(true);
+
+    for(let i=0;i<101;i++) await store.intake(ctx,connections[0].id,conversationObservation('long-history','p1','meta'));
+    const bounded=await store.conversationPage(ctx.workspaceId,ctx.userId,{conversationId:'long-history',limit:2});
+    expect(bounded.items).toHaveLength(1);
+    expect(bounded.items[0].messages).toHaveLength(100);
+    expect(bounded.items[0].messageHistoryLimit).toBe(100);
+    expect(bounded.items[0].messageHistoryTruncated).toBe(true);
   });
   it('holds revoke behind an accepted intake lock, then denies every subsequent append',async()=>{
     const c=await connect(),base=observation();

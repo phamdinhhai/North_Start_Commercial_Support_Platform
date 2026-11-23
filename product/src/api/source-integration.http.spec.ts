@@ -59,4 +59,10 @@ describe('source HTTP authorization and errors', () => {
     const res = await app.inject({ method: 'GET', url: '/v1/source-integrations/conversations?limit=2&pageId=p' });
     expect(res.statusCode).toBe(200); expect(res.headers['cache-control']).toBe('no-store'); expect(store.conversationPage).toHaveBeenCalledWith('local-a','admin',{limit:2,pageId:'p'});
   });
+  it('denies native conversation reads without an authenticated workspace context', async () => {
+    const { store } = await setup(null);
+    const res = await app.inject({ method: 'GET', url: '/v1/source-integrations/conversations?limit=2' });
+    expect(res.statusCode).toBe(401);
+    expect(store.conversationPage).not.toHaveBeenCalled();
+  });
 });
