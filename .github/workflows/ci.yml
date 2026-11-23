@@ -9,6 +9,58 @@ permissions:
   contents: read
 
 jobs:
+  frontend:
+    name: React frontend build and contract
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          persist-credentials: false
+          fetch-depth: 1
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - name: Install locked frontend dependencies
+        run: npm ci
+      - name: Frontend dependency audit
+        run: npm audit --audit-level=high
+      - name: Frontend typecheck
+        run: npm run typecheck
+      - name: Frontend contract tests
+        run: npm run test:contract
+      - name: Frontend production build
+        run: npm run build
+      - name: Frontend build smoke server
+        run: |
+          npx vite preview --host 127.0.0.1 > frontend-preview.log 2>&1 &
+          preview_pid=$!
+          trap 'kill "$preview_pid"' EXIT
+          for attempt in $(seq 1 30); do
+            if curl --fail --silent http://127.0.0.1:4173/v1/app/ > /tmp/north-start-frontend.html; then
+              grep -q 'id="root"' /tmp/north-start-frontend.html
+              exit 0
+            fi
+            sleep 1
+          done
+          cat frontend-preview.log
+          exit 1
+      - name: Upload frontend build diagnostics
+        if: always()
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
+        with:
+          name: frontend-build
+          path: |
+            frontend/dist
+            frontend/frontend-preview.log
+          retention-days: 7
+          if-no-files-found: warn
+
   product:
     runs-on: ubuntu-24.04
     timeout-minutes: 25
