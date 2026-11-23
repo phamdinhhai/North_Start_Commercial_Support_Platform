@@ -142,19 +142,21 @@ export class PgSourceIntegrationStore implements SourceIntegrationStore {
   async conversationPage(workspaceId:string,actorId:string,options:SourceEvidencePageOptions & {conversationId?:string;pageId?:string}={}):Promise<SourceConversationPage> {
     const limit=Math.min(Math.max(options.limit??20,1),100);
     let position:null|{time:string;id:string}=null;
-    if(options.cursor){try{const parsed=JSON.parse(Buffer.from(options.cursor,'base64url').toString('utf8'));if(parsed.workspaceId!==workspaceId||typeof parsed.time!=='string'||typeof parsed.id!=='string')return fail('INPUT_INVALID',400);position=parsed;}catch{return fail('INPUT_INVALID',400);}}
+    const cursorScope=JSON.stringify([workspaceId,options.conversationId??null,options.pageId??null]);
+    if(options.cursor){try{const parsed=JSON.parse(Buffer.from(options.cursor,'base64url').toString('utf8'));if(parsed.scope!==cursorScope||typeof parsed.time!=='string'||typeof parsed.id!=='string')return fail('INPUT_INVALID',400);position=parsed;}catch{return fail('INPUT_INVALID',400);}}
     const args:any[]=[workspaceId],where=['r.workspace_id=$1','r.conversation_id IS NOT NULL'];
     if(options.conversationId){args.push(options.conversationId);where.push(`r.conversation_id=$${args.length}`);}
     if(options.pageId){args.push(options.pageId);where.push(`r.page_id=$${args.length}`);}
     if(position){args.push(position.time,position.id);where.push(`(r.created_at,r.id)>($${args.length-1}::timestamptz,$${args.length}::uuid)`);}
     args.push(limit+1);
-    const rows=await this.db.query<any>(`SELECT r.id,r.receipt_id,r.connection_id,r.native_system,r.page_id,r.conversation_id,r.message_id,r.created_at,
+    const rows=await this.db.query<any>(`SELECT r.id,r.receipt_id,r.native_system,r.page_id,r.conversation_id,r.message_id,r.created_at,
       COALESCE(e.raw_payload->>'utterance',NULL) utterance,COALESCE(e.raw_payload->>'speaker','unknown') speaker,
       to_char(r.created_at AT TIME ZONE 'UTC','YYYY-MM-DD"T"HH24:MI:SS.US"Z"') cursor_time
-      FROM source_receipt r LEFT JOIN commercial_envelope e ON e.id=r.envelope_id AND e.workspace_id=r.workspace_id
+      FROM source_receipt r JOIN source_connection c ON c.workspace_id=r.workspace_id AND c.id=r.connection_id AND c.status='active'
+      LEFT JOIN commercial_envelope e ON e.id=r.envelope_id AND e.workspace_id=r.workspace_id
       WHERE ${where.join(' AND ')} ORDER BY r.created_at,r.id LIMIT $${args.length}`,args);
     const selected=rows.rows.slice(0,limit), groups=new Map<string,any>();
-    for(const row of selected){const id=String(row.conversation_id),connectionId=String(row.connection_id),canonicalId=JSON.stringify([workspaceId,connectionId,row.native_system??null,row.page_id??null,id]);let group=groups.get(canonicalId);if(!group){group={conversationId:id,canonicalId,connectionId,pageId:row.page_id??null,provider:row.native_system==='pancake'?'pancake':row.native_system==='meta'?'meta-page':null,messages:[]};groups.set(canonicalId,group);}group.messages.push({messageId:row.message_id??null,conversationId:id,pageId:row.page_id??null,observedAt:new Date(row.created_at).toISOString(),utterance:row.utterance??null,speaker:row.speaker,receiptId:row.receipt_id,verification:'UNVERIFIED',completeness:'UNKNOWN'});}
-    const last=selected.at(-1);return {items:[...groups.values()].map(group=>({...group,completeness:'UNKNOWN',verification:'UNVERIFIED'})),nextCursor:rows.rows.length>limit&&last?Buffer.from(JSON.stringify({workspaceId,time:last.cursor_time,id:last.id})).toString('base64url'):null};
+    for(const row of selected){const id=String(row.conversation_id),scopeKey=JSON.stringify([row.connection_id,row.native_system,row.page_id,id]);let group=groups.get(scopeKey);if(!group){group={conversationId:id,connectionId:String(row.connection_id),pageId:row.page_id??null,provider:row.native_system==='pancake'?'pancake':row.native_system==='meta'?'meta-page':null,messages:[]};groups.set(scopeKey,group);}group.messages.push({messageId:row.message_id??null,conversationId:id,pageId:row.page_id??null,observedAt:new Date(row.created_at).toISOString(),utterance:row.utterance??null,speaker:row.speaker,receiptId:row.receipt_id,verification:'UNVERIFIED',completeness:'UNKNOWN'});}
+    const last=selected.at(-1);return {items:[...groups.values()].map(group=>({...group,completeness:'UNKNOWN',verification:'UNVERIFIED'})),nextCursor:rows.rows.length>limit&&last?Buffer.from(JSON.stringify({scope:cursorScope,time:last.cursor_time,id:last.id})).toString('base64url'):null};
   }
 }
