@@ -1,4 +1,4 @@
-﻿'# Security and license
+﻿# Security and license review
 
-No Chatwoot runtime, Rails server, database, ActionCable, Redis or authentication entered Northstar. The native API uses existing OIDC/CSRF/RBAC controller boundaries. Query filters are bounded and workspace-scoped. Chatwoot community provenance remains documented at commit `5d1afdf3b2f32b88e21899d62fcde12f2c0c33d7`; MIT community helper behavior was adapted, Enterprise code excluded.
-'
+Native APIs use existing Northstar AuthContext, workspace scope and PostgreSQL receipts. Conversation authority remains UNVERIFIED and completeness UNKNOWN. Search is bounded 2..120 characters and cursor-scoped. Ads aggregation excludes foreign workspace and non-synthetic records. Upstream MIT/community notices and rejection boundaries are documented in R4.16 reports. No credentials or upstream runtime entered the repository.
+
