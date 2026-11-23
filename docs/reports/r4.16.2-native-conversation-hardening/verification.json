@@ -1,7 +1,7 @@
 {
     "release":  "R4.16.2",
     "branch":  "feat/r4162-native-conversation-hardening",
-    "head":  "e5272eceed91b25e00f05cd8886ccba977751e07",
+    "head":  "97cb3954992c75a995df6889f8c0dcc52e4091d3",
     "before":  "9f5aec200f8cc871339eefbf8b93501883b2bcf5",
     "findings":  {
                      "N01":  "FIXED",
