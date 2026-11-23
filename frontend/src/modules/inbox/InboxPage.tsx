@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { northStart, useSession } from '@/providers/north-start';
 import { channelLabels, inboxFixtures, lastPreview, previewMessages, visibleConversations, type AccessibleLead, type SourceEvidence } from './inbox-model';
+import { NativeConversationPanel } from './NativeConversationPanel';
 
 const clock = (seconds: number) => new Intl.DateTimeFormat('vi', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Ho_Chi_Minh' }).format(new Date(seconds * 1000));
 const emptyEvidence = 'Chưa có bằng chứng nguồn trong trang kết quả này. Không suy ra toàn bộ lịch sử trống.';
@@ -13,7 +14,7 @@ const emptyEvidence = 'Chưa có bằng chứng nguồn trong trang kết quả 
 /** Chatwoot community inbox structure, rendered with the Atomic CRM design system. Read-only. */
 export function InboxPage() {
   const { generation } = useSession();
-  const [mode, setMode] = useState<'preview' | 'evidence'>('preview');
+  const [mode, setMode] = useState<'preview' | 'evidence' | 'native'>('preview');
   const [channel, setChannel] = useState('all');
   const [query, setQuery] = useState('');
   const [selected, setSelected] = useState(inboxFixtures[0].id);
@@ -55,7 +56,7 @@ export function InboxPage() {
     } catch { if (token === epoch.current) { setEvidence([]); setNotice('Bằng chứng không khả dụng hoặc không được phép truy cập. Không hiển thị dữ liệu đã tải trước.'); } }
     finally { if (token === epoch.current) setLoading(false); }
   }
-  function changeMode(next: 'preview' | 'evidence') { epoch.current++; setMode(next); setEvidence([]); setLeads([]); setLeadId(''); setSelectedReceipt(''); setNotice(''); setLoading(false); }
+  function changeMode(next: 'preview' | 'evidence' | 'native') { epoch.current++; setMode(next); setEvidence([]); setLeads([]); setLeadId(''); setSelectedReceipt(''); setNotice(''); setLoading(false); }
 
   return <div className="space-y-5" data-testid="inbox-page">
     <div className="flex flex-wrap items-start justify-between gap-4">
@@ -63,7 +64,7 @@ export function InboxPage() {
       <Badge variant="outline" className="gap-1.5 px-3 py-1.5"><LockKeyhole className="size-3.5" /> Chỉ đọc · Gửi tin bị khóa</Badge>
     </div>
     <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border bg-muted/30 p-3">
-      <div className="flex flex-wrap gap-2"><Button size="sm" variant={mode === 'preview' ? 'default' : 'outline'} onClick={() => changeMode('preview')}>Tình huống mẫu</Button><Button size="sm" variant={mode === 'evidence' ? 'default' : 'outline'} onClick={() => changeMode('evidence')}><Database className="mr-2 size-4" />Bằng chứng North Start</Button></div>
+      <div className="flex flex-wrap gap-2"><Button size="sm" variant={mode === 'preview' ? 'default' : 'outline'} onClick={() => changeMode('preview')}>Tình huống mẫu</Button><Button size="sm" variant={mode === 'native' ? 'default' : 'outline'} onClick={() => changeMode('native')}><Database className="mr-2 size-4"/>Conversation native</Button><Button size="sm" variant={mode === 'evidence' ? 'default' : 'outline'} onClick={() => changeMode('evidence')}><Database className="mr-2 size-4" />Bằng chứng North Start</Button></div>
       <span className="text-xs text-muted-foreground">{mode === 'preview' ? 'Dữ liệu hoàn toàn hư cấu · Không kết nối nhà cung cấp' : 'Đọc API thật · Phân quyền North Start · PostgreSQL'}</span>
     </div>
     {mode === 'preview' ? <div className="grid min-h-[620px] min-w-0 grid-cols-1 overflow-hidden rounded-xl border bg-background shadow-sm lg:grid-cols-[280px_minmax(0,1fr)_280px]">
@@ -82,7 +83,7 @@ export function InboxPage() {
         <div className="rounded-lg border border-dashed p-3"><div className="mb-2 flex items-center gap-2 text-sm font-medium"><ShieldCheck className="size-4" />Nguồn & bằng chứng</div><p className="text-xs leading-relaxed text-muted-foreground">Các tin nhắn mẫu này không phải sự kiện nhà cung cấp, không tự tạo Lead và không ghi nhận kết quả.</p></div>
         <div className="rounded-lg bg-muted/40 p-3 text-xs leading-relaxed text-muted-foreground"><CircleHelp className="mb-2 size-4" />Pancake: SEND_UNRESOLVED. Lần gửi lịch sử chưa xác định. Việc không quan sát thấy tin không chứng minh chưa gửi.</div>
       </aside>
-    </div> : <div className="space-y-4">
+    </div> : mode === 'native' ? <NativeConversationPanel/> : <div className="space-y-4">
       <Card><CardHeader><CardTitle className="text-base">Quan sát đã lưu theo phạm vi Lead</CardTitle></CardHeader><CardContent className="space-y-4"><p className="text-sm text-muted-foreground">Chọn Lead để đọc receipt và định danh nguồn từ API North Start. Không tự liên kết với hội thoại mẫu hoặc tạo danh tính thương mại.</p><div className="flex flex-wrap gap-3"><Button variant="outline" onClick={loadLeads} disabled={loading}><RefreshCw className={`mr-2 size-4 ${loading ? 'animate-spin' : ''}`} />Tải Lead được phép truy cập</Button><select aria-label="Lead đọc bằng chứng" className="h-10 min-w-0 flex-1 rounded-md border bg-background px-3 text-sm" value={leadId} onChange={event => void loadEvidence(event.target.value)} disabled={!leads.length || loading}><option value="">Chọn Lead...</option>{leads.map(lead => <option key={lead.leadId} value={lead.leadId}>{lead.displayName ?? lead.lead?.displayName ?? lead.leadId}</option>)}</select></div><p className="text-sm text-muted-foreground" role="status">{loading ? 'Đang đọc dữ liệu được phép truy cập...' : notice || 'Chưa tải dữ liệu. Không có dữ liệu cache từ workspace trước.'}</p></CardContent></Card>
       <div className="grid gap-4 lg:grid-cols-[340px_minmax(0,1fr)]"><Card><CardHeader><CardTitle className="text-base">Receipt nguồn</CardTitle></CardHeader><CardContent className="space-y-2">{evidence.map(item => <button key={item.receipt.receiptId} aria-pressed={activeEvidence?.receipt.receiptId === item.receipt.receiptId} className={`w-full rounded-lg border p-3 text-left hover:bg-muted ${activeEvidence?.receipt.receiptId === item.receipt.receiptId ? 'border-primary bg-primary/5' : ''}`} onClick={() => setSelectedReceipt(item.receipt.receiptId)}><div className="text-sm font-medium">{item.observation.displayName}</div><div className="mt-1 text-xs text-muted-foreground">{item.observation.provider} · {item.receipt.disposition}</div><Badge variant="outline" className="mt-2">{item.receipt.verification}</Badge></button>)}{!evidence.length && <p className="py-6 text-center text-sm text-muted-foreground">Chưa có receipt được chọn.</p>}</CardContent></Card><Card><CardHeader><CardTitle className="text-base">Chi tiết bằng chứng</CardTitle></CardHeader><CardContent>{activeEvidence ? <dl className="space-y-4 text-sm">{[['Receipt', activeEvidence.receipt.receiptId], ['Nhà cung cấp', activeEvidence.observation.provider], ['Conversation ID ứng viên', activeEvidence.observation.native.conversationId], ['Message ID ứng viên', activeEvidence.observation.native.messageId], ['Thời điểm quan sát', activeEvidence.observation.observedAt], ['Xác minh', activeEvidence.receipt.verification], ['Độ đầy đủ', activeEvidence.receipt.completeness]].map(([key, value]) => <div key={key}><dt className="text-xs text-muted-foreground">{key}</dt><dd className="mt-1 break-all font-medium">{value ?? 'UNKNOWN'}</dd></div>)}<p className="rounded-lg bg-muted p-3 text-xs leading-relaxed text-muted-foreground">Đây là receipt lưu trữ North Start. Không đồng nghĩa với xác nhận từ nhà cung cấp, danh tính Customer, trạng thái đã đọc hoặc gửi thành công.</p></dl> : <div className="py-12 text-center text-sm text-muted-foreground"><Database className="mx-auto mb-3 size-8" />Chọn một receipt để kiểm tra nguồn và độ đầy đủ.</div>}</CardContent></Card></div>
     </div>}
