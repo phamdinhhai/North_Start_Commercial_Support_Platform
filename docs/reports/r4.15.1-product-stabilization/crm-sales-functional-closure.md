@@ -1,0 +1,1 @@
+﻿Safe fixture role labels now replace raw UUIDs in the primary header. Existing Lead create/detail/handoff/accept/advance/task/contact/outcome/correction commands remain versioned and idempotent. No domain model was duplicated.

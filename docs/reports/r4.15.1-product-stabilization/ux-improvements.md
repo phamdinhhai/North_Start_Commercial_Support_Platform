@@ -1,0 +1,1 @@
+﻿Reports and Commercial Intelligence now have distinct labels, purposes and bounded cards. Work board remains explicitly operational work status, not Deal stage. Existing synthetic/UNKNOWN labeling is preserved.

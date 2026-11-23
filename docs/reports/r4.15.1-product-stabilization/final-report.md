@@ -1,0 +1,1 @@
+﻿R4.15.1 stabilizes the existing product: hosted frontend CI was added, identity labels are safer, Reports and Commercial Intelligence are separated, and screenshot packaging rejects browser profiles. Provider safety gates remain unchanged. Owner acceptance is still required.
