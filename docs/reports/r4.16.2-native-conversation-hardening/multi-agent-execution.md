@@ -1,0 +1,1 @@
+﻿Three real specialists were started because environment capacity allowed four concurrent agents including root: domain/Postgres, security/authorization and frontend. Agent 4-6 responsibilities were retained by root and documented as root-owned reviews; no simulated subagents were claimed.

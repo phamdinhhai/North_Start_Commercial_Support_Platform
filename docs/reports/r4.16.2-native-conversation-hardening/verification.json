@@ -1,0 +1,26 @@
+﻿{
+    "release":  "R4.16.2",
+    "branch":  "feat/r4162-native-conversation-hardening",
+    "head":  "dd3976f162193899ed83fd944d515d297dac257a",
+    "before":  "9f5aec200f8cc871339eefbf8b93501883b2bcf5",
+    "findings":  {
+                     "N01":  "FIXED",
+                     "N08":  "PENDING_FINAL_REPORT_RECONCILIATION",
+                     "N04":  "FIXED_FRONTEND_CURSOR_SESSION_LIFECYCLE",
+                     "N07":  "PRESERVED",
+                     "N03":  "FIXED_CONVERSATION_LEVEL",
+                     "N06":  "REGRESSION_CHECKED",
+                     "N02":  "PARTIAL_FIXED_RESIDUAL_PAGE_MEMBERSHIP_MODEL",
+                     "N05":  "PRESERVED_UNVERIFIED_UNKNOWN"
+                 },
+    "focusedTests":  "26 passed / 0 skipped",
+    "frontend":  "typecheck/build/contract PASS",
+    "fullE2E":  "PENDING",
+    "providerCalls":  0,
+    "providerMutations":  0,
+    "p3":  "SEND_UNRESOLVED",
+    "p4":  "NOT_TESTED",
+    "p5":  "NOT_VERIFIED",
+    "ownerAcceptance":  "PENDING",
+    "ci":  "NOT_RUN_FOR_CURRENT_SHA"
+}

@@ -1,0 +1,1 @@
+﻿Native conversation identity is composite workspace + connection + provider/native system + page + conversation. Existing Northstar receipts/envelopes remain canonical. No migration or parallel conversation database. Page-membership authorization has no canonical model and remains an explicit residual limitation.

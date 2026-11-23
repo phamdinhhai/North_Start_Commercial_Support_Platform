@@ -1,0 +1,1 @@
+﻿Independent review found and closed collision namespace, revoked connection filtering, principal-bound cursors, and receipt-vs-conversation pagination. Residual: no canonical page membership model; message-history pagination separate from conversation-list pagination; full browser intake E2E pending.

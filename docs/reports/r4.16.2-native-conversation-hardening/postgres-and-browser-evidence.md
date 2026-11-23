@@ -1,0 +1,1 @@
+﻿Focused HTTP/service tests pass 16/16 for source integration. Frontend typecheck/build/contract pass. Native Inbox session-aware pagination is wired. Disposable full intake-to-browser proof with >50 conversations and >100-message history remains pending; no claim of full E2E verified.

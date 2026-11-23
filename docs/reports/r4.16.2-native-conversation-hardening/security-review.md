@@ -1,0 +1,1 @@
+﻿Revoked connections are excluded from SQL projection. Cursor scope binds workspace, actor, conversation filter and page filter. Foreign workspace and invalid cursor tests remain. Authority is UNVERIFIED and completeness UNKNOWN. Raw payload remains bounded by existing envelope/evidence contracts.
