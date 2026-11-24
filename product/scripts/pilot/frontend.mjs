@@ -13,7 +13,7 @@ export function resolveAsset(root,path){
 }
 export function registerFrontend(server){
  if(!existsSync(resolve(build,'index.html')))return false;
- const serve=(req,res)=>{try{const {file,type}=resolveAsset(build,req.params?.['*']??'');return res.header('cache-control','no-store').header('x-content-type-options','nosniff').header('referrer-policy','no-referrer').header('content-security-policy',"default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'").type(type).send(readFileSync(file));}catch{return res.code(404).send({code:'ASSET_NOT_AVAILABLE'});}};
+ const serve=(req,res)=>{try{const requested=req.params?.['*']??'';const {file,type}=resolveAsset(build,requested && requested.includes('.')?requested:'index.html');return res.header('cache-control','no-store').header('x-content-type-options','nosniff').header('referrer-policy','no-referrer').header('content-security-policy',"default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'").type(type).send(readFileSync(file));}catch{return res.code(404).send({code:'ASSET_NOT_AVAILABLE'});}};
  server.get('/v1/app',(_req,res)=>res.redirect('/v1/app/'));
  server.get('/v1/app/',serve);server.get('/v1/app/*',serve);return true;
 }
