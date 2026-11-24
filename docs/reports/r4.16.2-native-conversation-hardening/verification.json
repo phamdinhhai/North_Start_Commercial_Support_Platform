@@ -1,11 +1,13 @@
 {
   "release": "R4.16.2",
   "branch": "feat/r4162-native-conversation-hardening",
-  "implementationHead": "f201e02c45511e1c6fb77fd58be86f75d45b04ab",
-  "previousRemoteHead": "c973186556136620368f2592166165d41f2ce37e",
+  "implementationHead": "d1bd8a286c82617b3c32efdec503ae6682fa0fb2",
+  "previousRemoteHead": "ff89212af3219a1ed689ce5b209ee884eb82d960",
   "findings": {
+    "A01": "FIXED_LEAD_SCOPED_CONVERSATION_READ",
+    "B01": "FIXED_SEARCH_BEFORE_LIMIT_SCOPED_CURSOR",
     "N01": "FIXED_CURSOR_BOUNDARY_AND_TIMESTAMP_PRECISION",
-    "N02": "PARTIAL_WORKSPACE_AND_ACTIVE_CONNECTION_SCOPE_NO_PAGE_MEMBERSHIP_MODEL",
+    "N02": "PARTIAL_PAGE_MEMBERSHIP_NOT_CANONICAL",
     "N03": "FIXED_CONVERSATION_LEVEL_CURSOR",
     "N04": "FIXED_SESSION_AWARE_FRONTEND_PAGINATION",
     "N05": "PRESERVED_UNVERIFIED_UNKNOWN_AND_BOUNDED_HISTORY_DISCLOSURE",
@@ -14,16 +16,19 @@
     "N08": "RECONCILED_FOR_THIS_IMPLEMENTATION"
   },
   "tests": [
-    {"command": "npm run typecheck", "workspace": "product", "exitCode": 0},
-    {"command": "npm run build", "workspace": "product", "exitCode": 0},
+    {"command": "npm run typecheck && npm run build", "workspace": "product", "exitCode": 0},
     {"command": "npm test -- --run src/api/source-integration.http.spec.ts src/application/source-integration/source-integration.service.spec.ts", "workspace": "product", "exitCode": 0, "result": "17 passed / 0 skipped"},
-    {"command": "npm test -- --run src/adapters/decision-demand/ads-reporting.spec.ts src/domain/work/task-buckets.spec.ts", "workspace": "product", "exitCode": 0, "result": "10 passed / 0 skipped"},
+    {"command": "npm test -- --run src/infra/postgres/pilot-closure.integration.spec.ts", "workspace": "product", "exitCode": 0, "result": "8 passed / 0 skipped with disposable PostgreSQL"},
     {"command": "npm test -- --run src/infra/source-integration/source-performance.integration.spec.ts", "workspace": "product", "exitCode": 0, "result": "5 passed / 0 skipped with disposable PostgreSQL"},
     {"command": "npm run typecheck && npm run build && npm run test:contract", "workspace": "frontend", "exitCode": 0, "result": "typecheck/build/2 contract tests passed"},
-    {"command": "npx playwright test --config playwright.source-integration.config.ts", "workspace": "product", "exitCode": 0, "result": "1 passed; existing source/operator journey"}
+    {"command": "npx playwright test --config playwright.oidc.config.ts --grep \"React Native Inbox\"", "workspace": "product", "exitCode": 0, "result": "1 passed; actual React route, Nest backend, PostgreSQL and fixture OIDC"},
+    {"command": "npm run architecture:check:strict", "workspace": "product", "exitCode": 0, "result": "0 findings"},
+    {"command": "npm run security:audit", "workspace": "product", "exitCode": 0, "result": "production clean"}
   ],
-  "nativeInboxBrowserE2E": "NOT_RUN_NATIVE_ROUTE_HARNESS_MISSING",
-  "fullIntakeToNativeInboxE2E": "PENDING",
+  "nativeInboxBrowserE2E": "PASS",
+  "fullIntakeToNativeInboxE2E": "PASS_FOR_SINGLE_SYNTHETIC_CONVERSATION",
+  "crmSearchPostgresE2E": "PASS_8_OF_8",
+  "commercialContinuityReactJourney": "PARTIAL_NATIVE_INBOX_ONLY",
   "hostedCI": "NOT_RUN_FOR_CURRENT_IMPLEMENTATION_SHA",
   "providerCalls": 0,
   "providerMutations": 0,
@@ -31,5 +36,5 @@
   "p4": "NOT_TESTED",
   "p5": "NOT_VERIFIED",
   "ownerAcceptance": "PENDING",
-  "status": "READY_FOR_OWNER_REVIEW_WITH_NATIVE_INBOX_E2E_BLOCKER"
+  "status": "IMPLEMENTED_WITH_ACCEPTANCE_BLOCKERS"
 }
