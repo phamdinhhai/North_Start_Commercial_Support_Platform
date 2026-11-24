@@ -37,5 +37,5 @@
   "p4": "NOT_TESTED",
   "p5": "NOT_VERIFIED",
   "ownerAcceptance": "PENDING",
-  "status": "LOCAL_TECHNICAL_CLOSURE_VERIFIED_CI_PENDING"
+  "status": "TECHNICAL_CLOSURE_CI_VERIFIED_COMMERCIAL_ACCEPTANCE_PENDING",\n  "ciRunId": 45382647613,\n  "ciUrl": "https://github.com/phamdinhhai/North_Start_Commercial_Support_Platform/actions/runs/45382647613",\n  "ciSha": "c5f2d8c5a210c66a0ffb2dc12a907fac3ca14717"
 }
