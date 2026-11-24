@@ -22,10 +22,9 @@ import { assertSameEnvelope } from '../../ports/pilot-loop.store';
 import type { PilotLoopState, AuditHistoryEntry, PilotQueueItem, PilotQueuePage, PilotQueueQuery } from '../../ports/pilot-loop.types';
 import type { EvidenceRefRecord, PilotLoopStore } from '../../ports/pilot-loop.store';
 
-const LEAD_UUID=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 type LeadCursor={v:1;workspaceId:string;actorId:string;actorRole:string;classification:string;search:string|null;id:string};
 function decodeLeadCursor(value:string|undefined,query:PilotLeadQuery):string|undefined{
-  if(!value)return undefined;if(LEAD_UUID.test(value))return value;
+  if(!value)return undefined;
   try{const c=JSON.parse(Buffer.from(value,'base64url').toString('utf8')) as Partial<LeadCursor>;
     if(c.v!==1||c.workspaceId!==query.workspaceId||c.actorId!==query.actorId||c.actorRole!==query.actorRole||c.classification!==(query.classification??'real')||c.search!==(query.search?.trim().toLocaleLowerCase('vi')??null)||typeof c.id!=='string'||!LEAD_UUID.test(c.id))throw new Error('cursor_scope');return c.id;
   }catch{throw new PilotDomainError('INPUT_INVALID',400,'invalid lead cursor');}

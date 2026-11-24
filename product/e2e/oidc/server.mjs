@@ -16,7 +16,7 @@ const require = createRequire(import.meta.url);
 const origin = 'http://127.0.0.1:3410', issuer = 'http://127.0.0.1:3411';
 Object.assign(process.env, { DATABASE_URL: process.env.QA_DATABASE_URL, DEPLOYMENT_MODE: 'test', NODE_ENV: 'test', PILOT_STORE_MODE: 'postgres',
   AUTH_MODE: 'oidc', AUTH_DEV_UNSIGNED_TOKENS: 'false', DEMO_WORKSPACES: 'false', OIDC_BROWSER_ENABLED: 'true',
-  SOURCE_INTEGRATION_SYNTHETIC_ENABLED: 'true',
+  ...(process.env.NATIVE_INBOX_E2E === 'true' ? { SOURCE_INTEGRATION_SYNTHETIC_ENABLED: 'true' } : {}),
   OIDC_BROWSER_ORIGIN: origin, OIDC_AUTHORIZATION_ENDPOINT: `${issuer}/authorize`, OIDC_TOKEN_ENDPOINT: `${issuer}/token`,
   OIDC_CLIENT_ID: 'qa-browser', OIDC_ISSUER: issuer, OIDC_JWKS_URI: `${issuer}/jwks`, OIDC_AUDIENCE: 'qa-api',
   CONTENT_DIGEST_KEYS_JSON: JSON.stringify(['qa-browser-a', 'qa-browser-b'].map(workspaceId => ({ workspaceId, activeKid: 'fixture-v1', keys: [{ kid: 'fixture-v1', secretBase64: randomBytes(32).toString('base64') }] }))) });

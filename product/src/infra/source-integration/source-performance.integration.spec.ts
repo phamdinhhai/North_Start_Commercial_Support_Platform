@@ -77,6 +77,16 @@ suite('source bounded reads and locking',()=>{
     } while(cursor);
     expect(seen).toHaveLength(5);expect(new Set(seen).size).toBe(5);
 
+    await store.intake(ctx,connections[0].id,conversationObservation('mixed-conversation','p1','meta'));
+    await store.intake(ctx,connections[0].id,conversationObservation('mixed-conversation','p1','meta'));
+    const mixedLeads=(await db.query<{id:string}>('SELECT DISTINCT lead_id AS id FROM source_receipt WHERE workspace_id=$1 AND conversation_id=$2',[ctx.workspaceId,'mixed-conversation'])).rows;
+    expect(mixedLeads).toHaveLength(2);
+    await db.query('UPDATE lead SET owner_user_id=$1 WHERE id=$2',['sales-owner',mixedLeads[0].id]);
+    const mixedScoped=await store.conversationPage(ctx.workspaceId,'sales-owner',{actorRole:'sales',conversationId:'mixed-conversation',limit:20});
+    expect(mixedScoped.items).toHaveLength(1);
+    expect(mixedScoped.items[0].messages).toHaveLength(1);
+    expect(mixedScoped.items[0].messageHistoryTruncated).toBe(false);
+
     // Same native conversation ID is isolated by connection/provider namespace.
     const duplicateA=await store.intake(ctx,connections[0].id,conversationObservation('same-native-id','p1','meta'));
     const duplicateB=await store.intake(ctx,connections[1].id,conversationObservation('same-native-id','p2','pancake'));
