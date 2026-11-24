@@ -164,7 +164,7 @@ export class PgSourceIntegrationStore implements SourceIntegrationStore {
       const assoc=await this.db.query<{lead_id:string;display_name:string;status:string}>(`WITH latest AS (
         SELECT DISTINCT ON (workspace_id,connection_id,receipt_id) workspace_id,connection_id,receipt_id,effective_lead_id,action
         FROM source_episode_link WHERE workspace_id=$1 ORDER BY workspace_id,connection_id,receipt_id,version DESC
-      ) SELECT DISTINCT l.id::text AS lead_id,l.display_name,l.status
+      ) SELECT DISTINCT ON (l.id) l.id::text AS lead_id,l.display_name,l.status
         FROM source_receipt r JOIN source_connection c ON c.workspace_id=r.workspace_id AND c.id=r.connection_id AND c.status='active'
         LEFT JOIN latest sl ON sl.workspace_id=r.workspace_id AND sl.connection_id=r.connection_id AND sl.receipt_id=r.receipt_id
         JOIN lead l ON l.workspace_id=r.workspace_id AND l.id=COALESCE(sl.effective_lead_id,r.lead_id)
@@ -174,7 +174,7 @@ export class PgSourceIntegrationStore implements SourceIntegrationStore {
           AND ($6 IN ('admin','manager') OR l.owner_user_id=$7 OR EXISTS (
             SELECT 1 FROM pilot_work_item aw WHERE aw.workspace_id=r.workspace_id AND aw.lead_id=l.id AND aw.actor=$7
               AND aw.status IN ('proposed','accepted','open','awaiting-external')))
-        ORDER BY l.display_name,l.id`,[workspaceId,group.connectionId,group.conversationId,group.provider==='pancake'?'pancake':group.provider==='meta-page'?'meta':null,group.pageId,actorRole,actorId]);
+      ORDER BY l.id,l.display_name`,[workspaceId,group.connectionId,group.conversationId,group.provider==='pancake'?'pancake':group.provider==='meta-page'?'meta':null,group.pageId,actorRole,actorId]);
       const associatedLeads=assoc.rows.map(row=>({leadId:row.lead_id,displayName:row.display_name,status:row.status}));
       group.associatedLeads=associatedLeads;
       group.associationState=associatedLeads.length?'known':'none';
