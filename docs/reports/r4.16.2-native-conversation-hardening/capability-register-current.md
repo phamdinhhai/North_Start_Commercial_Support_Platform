@@ -1,6 +1,6 @@
 # Current capability register — R4.16.2 closure
 
-This register reflects the implementation at `d1bd8a286c82617b3c32efdec503ae6682fa0fb2` and local evidence through `f2b188e`. Historical `docs/implementation-plan/state/features.json` is preserved unchanged.
+This register reflects the implementation at `0d19942` and local evidence through `f2b188e`. Historical `docs/implementation-plan/state/features.json` is preserved unchanged.
 
 | Capability | UI | Backend/PostgreSQL | Synthetic E2E | CI | Owner |
 |---|---|---|---|---|---|

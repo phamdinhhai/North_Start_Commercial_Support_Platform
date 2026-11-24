@@ -11,3 +11,4 @@ A mixed conversation with two source receipts mapped to different Leads was test
 `PgPilotStore.leads()` applies workspace, classification, role and search predicates before `LIMIT`; Lead IDs are then loaded only for the bounded result page. The opaque cursor binds workspace, actor, role, classification and normalized search. Raw UUID cursors are no longer accepted as a compatibility shortcut. PostgreSQL coverage uses 100+ Leads, a Vietnamese match beyond the initial page and cursor reuse under changed actor/classification.
 
 The current implementation still performs bounded aggregate loading for each result row (`Promise.all(load)`), an existing N+1-shaped read pattern. It is bounded by page size and was not expanded into a separate projection in this release. Query-plan optimization remains a future bounded task if measured evidence requires it.
+Final review correction: raw UUID Lead cursors are now rejected; only scope-bound opaque cursors are accepted.
