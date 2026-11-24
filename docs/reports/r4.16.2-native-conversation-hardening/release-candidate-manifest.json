@@ -4,7 +4,7 @@
   "baselineRemoteSha": "ff89212af3219a1ed689ce5b209ee884eb82f93501883b2bcf5",
   "implementationSha": "0d19942e7ebd9aaac2cdeded7c87aec87e98836b",
   "reportedFinalLocalHead": "2773995a2c623e4ad95be1d28a591f422f288526",
-  "currentLocalHeadAtManifestCreation": "2773995a2c623e4ad95be1d28a591f422f288526",
+  "currentLocalHeadAtManifestCreation": "381cee705ddbc528182f26f118470631d00fc13a",
   "remoteShaAtManifestCreation": "ff89212af3219a1ed689ce5b209ee884eb82f93501883b2bcf5",
   "hostedCi": "PENDING_FOR_PUSHED_SHA",
   "pushAuthorized": false,
