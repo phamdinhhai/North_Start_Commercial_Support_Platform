@@ -23,6 +23,7 @@ import type { PilotLoopState, AuditHistoryEntry, PilotQueueItem, PilotQueuePage,
 import type { EvidenceRefRecord, PilotLoopStore } from '../../ports/pilot-loop.store';
 
 type LeadCursor={v:1;workspaceId:string;actorId:string;actorRole:string;classification:string;search:string|null;id:string};
+const LEAD_UUID=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 function decodeLeadCursor(value:string|undefined,query:PilotLeadQuery):string|undefined{
   if(!value)return undefined;
   try{const c=JSON.parse(Buffer.from(value,'base64url').toString('utf8')) as Partial<LeadCursor>;
