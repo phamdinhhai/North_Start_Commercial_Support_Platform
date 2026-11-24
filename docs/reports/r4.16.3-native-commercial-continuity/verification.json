@@ -1,0 +1,23 @@
+{
+  "release": "R4.16.3",
+  "branch": "feat/r4163-native-commercial-continuity",
+  "baselineSha": "c29823065182587218771cd51969bfada07517b5",
+  "implementationSha": "d0b499c996e354d5034475d67d34ac32b3ca6855",
+  "documentationSha": null,
+  "finalLocalHead": null,
+  "hostedCI": "PENDING",
+  "ownerAcceptance": "PENDING",
+  "commercialJourney": "PARTIAL_REACT_VERIFIED",
+  "p3": "SEND_UNRESOLVED",
+  "p4": "NOT_TESTED",
+  "p5": "NOT_VERIFIED",
+  "providerCalls": 0,
+  "providerMutations": 0,
+  "productionAuthorization": "NO",
+  "status": "IMPLEMENTED_WITH_ACCEPTANCE_BLOCKERS",
+  "blockers": [
+    "full browser handoff-to-audit journey",
+    "exact-SHA Hosted CI",
+    "Owner acceptance"
+  ]
+}
