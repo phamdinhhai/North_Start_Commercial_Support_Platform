@@ -3,7 +3,7 @@
   "branch": "feat/r4163-native-commercial-continuity",
   "baselineSha": "c29823065182587218771cd51969bfada07517b5",
   "implementationSha": "d0b499c996e354d5034475d67d34ac32b3ca6855",
-  "documentationSha": null,
+  "documentationSha": "8dd339ed1b271bad04f28671882fbd55f54bbd6b",
   "finalLocalHead": null,
   "hostedCI": "PENDING",
   "ownerAcceptance": "PENDING",
@@ -19,5 +19,44 @@
     "full browser handoff-to-audit journey",
     "exact-SHA Hosted CI",
     "Owner acceptance"
-  ]
+  ],
+  "testEvidence": {
+    "productTypecheck": {
+      "command": "npm run typecheck",
+      "exitCode": 0
+    },
+    "productLintBuild": {
+      "command": "npm run lint; npm run build",
+      "exitCode": 0
+    },
+    "pilotUnit": {
+      "command": "npm test -- --run src/application/pilot/pilot-loop.service.spec.ts src/application/pilot/pilot-closure.service.spec.ts src/application/pilot/contact-attempt.service.spec.ts src/application/pilot/manager-exceptions.service.spec.ts",
+      "passed": 50,
+      "exitCode": 0
+    },
+    "postgresSourcePerformance": {
+      "command": "TEST_DATABASE_URL=... npm test -- --run src/infra/source-integration/source-performance.integration.spec.ts",
+      "passed": 5,
+      "exitCode": 0
+    },
+    "postgresContinuityHttp": {
+      "command": "TEST_DATABASE_URL=... npm test -- --run src/infra/source-continuity/source-continuity.integration.spec.ts src/infra/source-continuity/linked-evidence-reader.integration.spec.ts src/api/source-continuity.http.spec.ts",
+      "passed": 19,
+      "exitCode": 0
+    },
+    "frontend": {
+      "command": "npm run typecheck; npm run build; npm run test:contract",
+      "contractPassed": 2,
+      "exitCode": 0
+    },
+    "commercialBrowser": {
+      "command": "npx playwright test --config playwright.commercial-continuity.config.ts",
+      "passed": 1,
+      "exitCode": 0
+    },
+    "architectureSecurity": {
+      "command": "npm run architecture:check:strict; npm run security:audit",
+      "exitCode": 0
+    }
+  }
 }
