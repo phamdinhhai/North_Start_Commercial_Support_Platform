@@ -16,26 +16,73 @@
     "N08": "RECONCILED_FOR_THIS_IMPLEMENTATION"
   },
   "tests": [
-    {"command": "npm run typecheck && npm run build", "workspace": "product", "exitCode": 0},
-    {"command": "npm test -- --run src/api/source-integration.http.spec.ts src/application/source-integration/source-integration.service.spec.ts", "workspace": "product", "exitCode": 0, "result": "17 passed / 0 skipped"},
-    {"command": "npm test -- --run src/infra/postgres/pilot-closure.integration.spec.ts", "workspace": "product", "exitCode": 0, "result": "8 passed / 0 skipped with disposable PostgreSQL"},
-    {"command": "npm test -- --run src/infra/source-integration/source-performance.integration.spec.ts", "workspace": "product", "exitCode": 0, "result": "5 passed / 0 skipped with disposable PostgreSQL"},
-    {"command": "npm run typecheck && npm run build && npm run test:contract", "workspace": "frontend", "exitCode": 0, "result": "typecheck/build/2 contract tests passed"},
-    {"command": "npx playwright test --config playwright.native-inbox.config.ts", "workspace": "product", "exitCode": 0, "result": "1 passed; 55+ conversations, 101-message history, real React route, Nest backend, PostgreSQL and fixture OIDC"},
-    {"command": "npx playwright test --config playwright.oidc.config.ts", "workspace": "product", "exitCode": 0, "result": "6 passed / 0 skipped; Native Inbox is isolated into dedicated config"},
-    {"command": "npm run architecture:check:strict", "workspace": "product", "exitCode": 0, "result": "0 findings"},
-    {"command": "npm run security:audit", "workspace": "product", "exitCode": 0, "result": "production clean"}
+    {
+      "command": "npm run typecheck && npm run build",
+      "workspace": "product",
+      "exitCode": 0
+    },
+    {
+      "command": "npm test -- --run src/api/source-integration.http.spec.ts src/application/source-integration/source-integration.service.spec.ts",
+      "workspace": "product",
+      "exitCode": 0,
+      "result": "17 passed / 0 skipped"
+    },
+    {
+      "command": "npm test -- --run src/infra/postgres/pilot-closure.integration.spec.ts",
+      "workspace": "product",
+      "exitCode": 0,
+      "result": "8 passed / 0 skipped with disposable PostgreSQL"
+    },
+    {
+      "command": "npm test -- --run src/infra/source-integration/source-performance.integration.spec.ts",
+      "workspace": "product",
+      "exitCode": 0,
+      "result": "5 passed / 0 skipped with disposable PostgreSQL"
+    },
+    {
+      "command": "npm run typecheck && npm run build && npm run test:contract",
+      "workspace": "frontend",
+      "exitCode": 0,
+      "result": "typecheck/build/2 contract tests passed"
+    },
+    {
+      "command": "npx playwright test --config playwright.native-inbox.config.ts",
+      "workspace": "product",
+      "exitCode": 0,
+      "result": "1 passed; 55+ conversations, 101-message history, real React route, Nest backend, PostgreSQL and fixture OIDC"
+    },
+    {
+      "command": "npx playwright test --config playwright.oidc.config.ts",
+      "workspace": "product",
+      "exitCode": 0,
+      "result": "6 passed / 0 skipped; Native Inbox is isolated into dedicated config"
+    },
+    {
+      "command": "npm run architecture:check:strict",
+      "workspace": "product",
+      "exitCode": 0,
+      "result": "0 findings"
+    },
+    {
+      "command": "npm run security:audit",
+      "workspace": "product",
+      "exitCode": 0,
+      "result": "production clean"
+    }
   ],
   "nativeInboxBrowserE2E": "PASS",
   "fullIntakeToNativeInboxE2E": "PASS_55_PLUS_CONVERSATIONS_AND_101_MESSAGE_HISTORY",
   "crmSearchPostgresE2E": "PASS_8_OF_8",
   "commercialContinuityReactJourney": "PARTIAL_NATIVE_INBOX_ONLY",
-  "hostedCI": "NOT_RUN_FOR_CURRENT_IMPLEMENTATION_SHA",
+  "hostedCI": "PASS",
   "providerCalls": 0,
   "providerMutations": 0,
   "p3": "SEND_UNRESOLVED",
   "p4": "NOT_TESTED",
   "p5": "NOT_VERIFIED",
   "ownerAcceptance": "PENDING",
-  "status": "TECHNICAL_CLOSURE_CI_VERIFIED_COMMERCIAL_ACCEPTANCE_PENDING",\n  "ciRunId": 45382647613,\n  "ciUrl": "https://github.com/phamdinhhai/North_Start_Commercial_Support_Platform/actions/runs/45382647613",\n  "ciSha": "c5f2d8c5a210c66a0ffb2dc12a907fac3ca14717"
+  "status": "TECHNICAL_CLOSURE_CI_VERIFIED_COMMERCIAL_ACCEPTANCE_PENDING",
+  "ciRunId": 45382647613,
+  "ciUrl": "https://github.com/phamdinhhai/North_Start_Commercial_Support_Platform/actions/runs/45382647613",
+  "ciSha": "c5f2d8c5a210c66a0ffb2dc12a907fac3ca14717"
 }
