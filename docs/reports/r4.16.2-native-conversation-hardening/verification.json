@@ -1,7 +1,7 @@
 {
   "release": "R4.16.2",
   "branch": "feat/r4162-native-conversation-hardening",
-  "implementationHead": "0d19942",
+  "implementationHead": "0d19942e7ebd9aaac2cdeded7c87aec87e98836b",
   "previousRemoteHead": "ff89212af3219a1ed689ce5b209ee884eb82d960",
   "findings": {
     "A01": "FIXED_LEAD_SCOPED_CONVERSATION_READ",
