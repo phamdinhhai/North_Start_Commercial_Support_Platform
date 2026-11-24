@@ -26,4 +26,4 @@
 
 The first-wave specialists were real processes: authorization, CRM/PostgreSQL search and React browser E2E. Their changes were reviewed and integrated by the root agent. The environment did not provide six simultaneous slots; no unlaunched agents are represented as having run.
 
-The new browser harness proves a single synthetic conversation from authorized intake through PostgreSQL and the actual React Native Inbox. It does not prove full 50+ conversation pagination through the browser, full mixed Lead authorization in the UI, or the complete Conversation ? Lead ? Sales outcome journey. Hosted CI for the final implementation SHA and Owner acceptance remain pending.
+The expanded browser harness proves synthetic intake through PostgreSQL and the actual React Native Inbox, including 55+ conversations and 101-message bounded history. It does not prove the complete Conversation ? Lead ? Sales outcome journey. Hosted CI run `45399187491` passed on exact SHA `665b09a9d17c2e403c56dd8942228151b7e010f4`; Owner acceptance remains pending.
