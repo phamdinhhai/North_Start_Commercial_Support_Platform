@@ -22,7 +22,7 @@ export class PilotClosureService {
     requirePilotLeadAccess(ctx, state, this.policy);
     return state!;
   }
-  async leads(ctx: AuthContext, query: { classification?: 'real'|'synthetic'|'all'; limit?: number; after?: string }) {
+  async leads(ctx: AuthContext, query: { classification?: 'real'|'synthetic'|'all'; limit?: number; after?: string; search?: string }) {
     return this.store.leads({...query,workspaceId:ctx.workspaceId,actorId:ctx.userId,actorRole:ctx.role});
   }
   async assignees(ctx: AuthContext) {

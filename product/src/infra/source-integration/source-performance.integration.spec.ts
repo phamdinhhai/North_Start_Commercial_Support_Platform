@@ -62,6 +62,13 @@ suite('source bounded reads and locking',()=>{
         receipts.push({receiptId:result.receiptId,connectionId:connections[i].id});
       }
     });
+    const owned=(await db.query<{lead_id:string}>('SELECT lead_id FROM source_receipt WHERE receipt_id=$1',[receipts[0].receiptId])).rows[0].lead_id;
+    await db.query('UPDATE lead SET owner_user_id=$1 WHERE id=$2',['sales-owner',owned]);
+    const scoped=await store.conversationPage(ctx.workspaceId,'sales-owner',{actorRole:'sales',limit:20});
+    expect(scoped.items).toHaveLength(1);
+    expect(scoped.items[0].conversationId).toBe('conversation-1');
+    const denied=await store.conversationPage(ctx.workspaceId,'unassigned-sales',{actorRole:'sales',limit:20});
+    expect(denied.items).toHaveLength(0);
     const seen:string[]=[];let cursor:string|undefined;
     do {
       const page=await store.conversationPage(ctx.workspaceId,ctx.userId,{actorRole:'admin',limit:2,cursor});

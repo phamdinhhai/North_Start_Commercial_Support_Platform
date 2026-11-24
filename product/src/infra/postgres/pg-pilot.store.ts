@@ -17,10 +17,20 @@ import {
   toOutcome,
   toWork,
 } from '../../infra/postgres/repositories/pilot-persistence.types';
-import { decodePilotQueueCursor, encodePilotQueueCursor, PilotStaleVersionError } from '../../ports/pilot-loop.types';
+import { decodePilotQueueCursor, encodePilotQueueCursor, PilotDomainError, PilotStaleVersionError } from '../../ports/pilot-loop.types';
 import { assertSameEnvelope } from '../../ports/pilot-loop.store';
 import type { PilotLoopState, AuditHistoryEntry, PilotQueueItem, PilotQueuePage, PilotQueueQuery } from '../../ports/pilot-loop.types';
 import type { EvidenceRefRecord, PilotLoopStore } from '../../ports/pilot-loop.store';
+
+const LEAD_UUID=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+type LeadCursor={v:1;workspaceId:string;actorId:string;actorRole:string;classification:string;search:string|null;id:string};
+function decodeLeadCursor(value:string|undefined,query:PilotLeadQuery):string|undefined{
+  if(!value)return undefined;if(LEAD_UUID.test(value))return value;
+  try{const c=JSON.parse(Buffer.from(value,'base64url').toString('utf8')) as Partial<LeadCursor>;
+    if(c.v!==1||c.workspaceId!==query.workspaceId||c.actorId!==query.actorId||c.actorRole!==query.actorRole||c.classification!==(query.classification??'real')||c.search!==(query.search?.trim().toLocaleLowerCase('vi')??null)||typeof c.id!=='string'||!LEAD_UUID.test(c.id))throw new Error('cursor_scope');return c.id;
+  }catch{throw new PilotDomainError('INPUT_INVALID',400,'invalid lead cursor');}
+}
+function encodeLeadCursor(query:PilotLeadQuery,id:string):string{return Buffer.from(JSON.stringify({v:1,workspaceId:query.workspaceId,actorId:query.actorId,actorRole:query.actorRole,classification:query.classification??'real',search:query.search?.trim().toLocaleLowerCase('vi')??null,id} satisfies LeadCursor)).toString('base64url');}
 
 /**
  * Durable pilot-loop store (C-03, C-06, R-18) — PostgreSQL-backed.
@@ -38,13 +48,26 @@ export class PgPilotStore implements PilotLoopStore {
   constructor(@Inject(PostgresService) private readonly db: PostgresService) {}
 
   async leads(query: PilotLeadQuery) {
+    const afterId=decodeLeadCursor(query.after,query);
+    const params: unknown[]=[query.workspaceId,query.classification ?? 'real'];
+    const where=[`l.workspace_id=$1`,`($2='all' OR e.is_synthetic=($2='synthetic'))`];
+    if(afterId){params.push(afterId);where.push(`l.id>$${params.length}::uuid`);}
+    where.push(`($${params.length+1} IN ('admin','manager') OR l.owner_user_id=$${params.length+2} OR EXISTS(SELECT 1 FROM pilot_work_item w WHERE w.lead_id=l.id AND w.workspace_id=$1 AND w.actor=$${params.length+2} AND w.status IN ('proposed','accepted','open','awaiting-external')))`);
+    params.push(query.actorRole,query.actorId);
+    const search=query.search?.trim();
+    if(search){
+      params.push(search.toLocaleLowerCase('vi'));
+      const p=params.length;
+      // Search is deliberately applied in PostgreSQL before ORDER/LIMIT so a
+      // matching Lead beyond the first page cannot be hidden by pre-filtering.
+      where.push(`(lower(l.display_name) LIKE '%' || $${p} || '%' OR lower(coalesce(l.owner_user_id,'')) LIKE '%' || $${p} || '%' OR lower(l.status) LIKE '%' || $${p} || '%')`);
+    }
+    params.push((query.limit ?? 50)+1);
     const ids = await this.db.query<{id:string}>(`SELECT l.id FROM lead l LEFT JOIN commercial_envelope e ON e.id=l.source_envelope_id
-      WHERE l.workspace_id=$1 AND ($2='all' OR e.is_synthetic=($2='synthetic'))
-      AND ($3::uuid IS NULL OR l.id>$3::uuid)
-      AND ($4 IN ('admin','manager') OR l.owner_user_id=$5 OR EXISTS(SELECT 1 FROM pilot_work_item w WHERE w.lead_id=l.id AND w.actor=$5 AND w.status IN ('proposed','accepted','open','awaiting-external')))
-      ORDER BY l.id LIMIT $6`,[query.workspaceId,query.classification ?? 'real',query.after ?? null,query.actorRole,query.actorId,(query.limit ?? 50)+1]);
+      WHERE ${where.join(' AND ')} ORDER BY l.id LIMIT $${params.length}`,params);
     const states = await Promise.all(ids.rows.map(r=>this.load(r.id)));
-    return leadPage(states.filter((s):s is PilotLoopState=>!!s),query);
+    const page=leadPage(states.filter((s):s is PilotLoopState=>!!s),{...query,after:undefined,search:undefined});
+    return page.nextCursor ? {...page,nextCursor:encodeLeadCursor(query,page.items.at(-1)!.leadId)} : page;
   }
   async appendAccess(leadId: string, actor: string): Promise<void> {
     await this.db.query(`INSERT INTO audit_record(entity_type,entity_id,workspace_id,actor,event_type,new_value)
