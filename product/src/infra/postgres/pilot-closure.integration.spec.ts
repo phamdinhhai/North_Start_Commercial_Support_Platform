@@ -24,15 +24,17 @@ suite('R4 workflow PostgreSQL CAS and append history',()=>{
 
  it('preserves unknown source classification for bare legacy leads in PG lists and queue',async()=>{const f=await setup();const lead=createLead({workspaceId,displayName:'unknown provenance'});await f.store.save({lead,ownerUserId:'owner',outcomes:[],workItems:[{id:randomUUID(),leadId:lead.id,workspaceId,action:'Legacy work',responsibleParty:'internal',origin:'explicit-request',status:'open',completionEvidence:'absent',occurredAt:'unknown',recordedAt:new Date().toISOString(),actor:'owner'}]},[]);for(const classification of ['real','synthetic'] as const){expect((await f.service.leads(actor,{classification})).items.some(x=>x.leadId===lead.id)).toBe(false);expect((await f.store.queue({workspaceId,actorId:'owner',actorRole:'sales',classification})).items.some(x=>x.leadId===lead.id)).toBe(false);}expect((await f.service.leads(actor,{classification:'all'})).items.find(x=>x.leadId===lead.id)?.isSynthetic).toBeNull();expect((await f.store.queue({workspaceId,actorId:'owner',actorRole:'sales',classification:'all'})).items.find(x=>x.leadId===lead.id)?.isSynthetic).toBeNull();});
  it('applies bounded Vietnamese search before PostgreSQL pagination and binds cursor scope',async()=>{
-   await db.query('INSERT INTO workspace(id,name) VALUES($1,$1) ON CONFLICT DO NOTHING',[workspaceId]);
-   await db.query(`INSERT INTO lead(id,workspace_id,display_name,status,owner_user_id) SELECT ('00000000-0000-0000-0000-'||lpad(i::text,12,'0'))::uuid,$1,'Lead số '||i,'New',$2 FROM generate_series(1,100) i`,[workspaceId,'owner']);
-   await db.query(`INSERT INTO lead(id,workspace_id,display_name,status,owner_user_id) VALUES($1,$2,$3,'New',$4) ON CONFLICT DO NOTHING`,['ffffffff-ffff-ffff-ffff-ffffffffffff',workspaceId,'Khách hàng Đà Nẵng','New','owner']);
-   const first=await new PgPilotStore(db).leads({workspaceId,actorId:'owner',actorRole:'sales',classification:'all',search:'đà nẵng',limit:25});
+   const searchWorkspace=`${workspaceId}-search`;
+   await db.query('INSERT INTO workspace(id,name) VALUES($1,$1)',[searchWorkspace]);
+   const searchLeadId=randomUUID();
+   await db.query(`INSERT INTO lead(id,workspace_id,display_name,status,owner_user_id) SELECT gen_random_uuid(),$1,'Lead số '||i,'New',$2 FROM generate_series(1,100) i`,[searchWorkspace,'owner']);
+   await db.query(`INSERT INTO lead(id,workspace_id,display_name,status,owner_user_id) VALUES($1,$2,$3,'New',$4)`,[searchLeadId,searchWorkspace,'Khách hàng Đà Nẵng','owner']);
+   const first=await new PgPilotStore(db).leads({workspaceId:searchWorkspace,actorId:'owner',actorRole:'sales',classification:'all',search:'đà nẵng',limit:25});
    expect(first.items.map(x=>x.displayName)).toEqual(['Khách hàng Đà Nẵng']);
-   const page=await new PgPilotStore(db).leads({workspaceId,actorId:'owner',actorRole:'sales',classification:'all',limit:25});
+   const page=await new PgPilotStore(db).leads({workspaceId:searchWorkspace,actorId:'owner',actorRole:'sales',classification:'all',limit:25});
    expect(page.nextCursor).toBeDefined();
-   await expect(new PgPilotStore(db).leads({workspaceId,actorId:'other',actorRole:'sales',classification:'all',limit:25,after:page.nextCursor})).rejects.toMatchObject({code:'INPUT_INVALID'});
-   await expect(new PgPilotStore(db).leads({workspaceId,actorId:'owner',actorRole:'sales',classification:'synthetic',limit:25,after:page.nextCursor})).rejects.toMatchObject({code:'INPUT_INVALID'});
+   await expect(new PgPilotStore(db).leads({workspaceId:searchWorkspace,actorId:'other',actorRole:'sales',classification:'all',limit:25,after:page.nextCursor})).rejects.toMatchObject({code:'INPUT_INVALID'});
+   await expect(new PgPilotStore(db).leads({workspaceId:searchWorkspace,actorId:'owner',actorRole:'sales',classification:'synthetic',limit:25,after:page.nextCursor})).rejects.toMatchObject({code:'INPUT_INVALID'});
  });
 
 });
