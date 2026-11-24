@@ -22,6 +22,7 @@
     {"command": "npm test -- --run src/infra/source-integration/source-performance.integration.spec.ts", "workspace": "product", "exitCode": 0, "result": "5 passed / 0 skipped with disposable PostgreSQL"},
     {"command": "npm run typecheck && npm run build && npm run test:contract", "workspace": "frontend", "exitCode": 0, "result": "typecheck/build/2 contract tests passed"},
     {"command": "npx playwright test --config playwright.oidc.config.ts --grep \"React Native Inbox\"", "workspace": "product", "exitCode": 0, "result": "1 passed; actual React route, Nest backend, PostgreSQL and fixture OIDC"},
+    {"command": "npx playwright test --config playwright.oidc.config.ts", "workspace": "product", "exitCode": 1, "result": "5 passed / 2 failed in pre-existing legacy operator journey assertions; Native Inbox test passed"},
     {"command": "npm run architecture:check:strict", "workspace": "product", "exitCode": 0, "result": "0 findings"},
     {"command": "npm run security:audit", "workspace": "product", "exitCode": 0, "result": "production clean"}
   ],

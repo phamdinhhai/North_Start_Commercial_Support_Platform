@@ -15,3 +15,6 @@ Independent review covered the Lead-scoped Native Conversation SQL path, cursor 
 ## Verdict
 
 Local implementation evidence is sufficient for the bounded technical slices listed in `verification.json`. Full commercial continuity and Owner acceptance remain open. No live provider call or mutation was performed.
+## Historical regression note
+
+The complete OIDC browser suite was rerun on a fresh disposable database. Five tests passed, including the new Native Inbox test; two legacy operator tests failed on their existing classification queue assumptions. These failures are recorded in verification.json and prevent a full regression PASS. No provider calls or mutations occurred.
