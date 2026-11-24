@@ -53,7 +53,7 @@ export class SourceIntegrationService {
     this.gate();
     if (!ctx?.workspaceId || !ctx.userId) throw new SourceIntegrationError('UNAUTHORIZED', 401);
     if (!this.store.conversationPage) throw new SourceIntegrationError('CONVERSATION_READ_UNAVAILABLE', 503);
-    return this.store.conversationPage(ctx.workspaceId, ctx.userId, options);
+    return this.store.conversationPage(ctx.workspaceId, ctx.userId, { ...options, actorRole: ctx.role });
   }
 }
 

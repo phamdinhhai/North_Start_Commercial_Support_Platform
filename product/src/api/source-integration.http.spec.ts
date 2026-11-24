@@ -57,7 +57,7 @@ describe('source HTTP authorization and errors', () => {
   it('returns bounded conversation projection with no-store and query scope', async () => {
     const { store } = await setup();
     const res = await app.inject({ method: 'GET', url: '/v1/source-integrations/conversations?limit=2&pageId=p' });
-    expect(res.statusCode).toBe(200); expect(res.headers['cache-control']).toBe('no-store'); expect(store.conversationPage).toHaveBeenCalledWith('local-a','admin',{limit:2,pageId:'p'});
+    expect(res.statusCode).toBe(200); expect(res.headers['cache-control']).toBe('no-store'); expect(store.conversationPage).toHaveBeenCalledWith('local-a','admin',{limit:2,pageId:'p',actorRole:'admin'});
   });
   it('denies native conversation reads without an authenticated workspace context', async () => {
     const { store } = await setup(null);

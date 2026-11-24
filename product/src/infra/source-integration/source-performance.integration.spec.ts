@@ -64,7 +64,7 @@ suite('source bounded reads and locking',()=>{
     });
     const seen:string[]=[];let cursor:string|undefined;
     do {
-      const page=await store.conversationPage(ctx.workspaceId,ctx.userId,{limit:2,cursor});
+      const page=await store.conversationPage(ctx.workspaceId,ctx.userId,{actorRole:'admin',limit:2,cursor});
       seen.push(...page.items.map(item=>item.canonicalId??item.conversationId));
       cursor=page.nextCursor??undefined;
     } while(cursor);
@@ -73,7 +73,7 @@ suite('source bounded reads and locking',()=>{
     // Same native conversation ID is isolated by connection/provider namespace.
     const duplicateA=await store.intake(ctx,connections[0].id,conversationObservation('same-native-id','p1','meta'));
     const duplicateB=await store.intake(ctx,connections[1].id,conversationObservation('same-native-id','p2','pancake'));
-    const duplicatePage=await store.conversationPage(ctx.workspaceId,ctx.userId,{conversationId:'same-native-id',limit:10});
+    const duplicatePage=await store.conversationPage(ctx.workspaceId,ctx.userId,{actorRole:'admin',conversationId:'same-native-id',limit:10});
     expect(duplicatePage.items.map(item=>item.canonicalId)).toEqual(expect.arrayContaining([
       JSON.stringify([ctx.workspaceId,connections[0].id,'meta','p1','same-native-id']),
       JSON.stringify([ctx.workspaceId,connections[1].id,'pancake','p2','same-native-id'])
@@ -81,16 +81,16 @@ suite('source bounded reads and locking',()=>{
     expect(duplicateA.receiptId).not.toBe(duplicateB.receiptId);
 
     await store.revokeConnection(ctx,connections[4].id);
-    const afterRevoke=await store.conversationPage(ctx.workspaceId,ctx.userId,{limit:20});
+    const afterRevoke=await store.conversationPage(ctx.workspaceId,ctx.userId,{actorRole:'admin',limit:20});
     expect(afterRevoke.items.some(item=>item.canonicalId===JSON.stringify([ctx.workspaceId,connections[4].id,'meta','p5','conversation-5']))).toBe(false);
-    const filtered=await store.conversationPage(ctx.workspaceId,ctx.userId,{pageId:'p1',limit:20});
+    const filtered=await store.conversationPage(ctx.workspaceId,ctx.userId,{actorRole:'admin',pageId:'p1',limit:20});
     expect(filtered.items.every(item=>item.pageId==='p1')).toBe(true);
 
     await db.withTransaction(async tx=>{
       const sameTransaction=new PgSourceIntegrationStore({withTransaction:<T>(fn:(executor:SqlExecutor)=>Promise<T>)=>fn(tx)} as PostgresService);
       for(let i=0;i<101;i++) await sameTransaction.intake(ctx,connections[0].id,conversationObservation('long-history','p1','meta'));
     });
-    const bounded=await store.conversationPage(ctx.workspaceId,ctx.userId,{conversationId:'long-history',limit:2});
+    const bounded=await store.conversationPage(ctx.workspaceId,ctx.userId,{actorRole:'admin',conversationId:'long-history',limit:2});
     expect(bounded.items).toHaveLength(1);
     expect(bounded.items[0].messages).toHaveLength(100);
     expect(bounded.items[0].messageHistoryLimit).toBe(100);

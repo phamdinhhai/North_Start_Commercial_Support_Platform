@@ -67,7 +67,7 @@ export interface SourceConversationPage { readonly items: readonly SourceConvers
 export interface SourceIntegrationStore {
   getConnection?(workspaceId: string, id: string): Promise<SourceConnection | null>;
   evidencePage?(workspaceId: string, leadId: string, actorId: string, options?: SourceEvidencePageOptions): Promise<SourceEvidencePage>;
-  conversationPage?(workspaceId: string, actorId: string, options?: SourceEvidencePageOptions & { readonly conversationId?: string; readonly pageId?: string }): Promise<SourceConversationPage>;
+  conversationPage?(workspaceId: string, actorId: string, options?: SourceEvidencePageOptions & { readonly conversationId?: string; readonly pageId?: string; readonly actorRole?: AuthContext['role'] }): Promise<SourceConversationPage>;
   createConnection(ctx: AuthContext, input: Pick<SourceConnection, 'provider' | 'route' | 'pageId'>): Promise<SourceConnection>;
   revokeConnection(ctx: AuthContext, id: string): Promise<SourceConnection>;
   listConnections(workspaceId: string): Promise<readonly SourceConnection[]>;
