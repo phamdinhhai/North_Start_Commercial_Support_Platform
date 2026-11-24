@@ -211,6 +211,9 @@ jobs:
         run: npm ci
       - name: Install Chromium and Linux dependencies
         run: npx playwright install --with-deps chromium
+      - name: Build React application for product browser acceptance
+        working-directory: frontend
+        run: npm ci && npm run build
       - name: Select ephemeral browser port
         shell: bash
         run: |
@@ -230,6 +233,16 @@ jobs:
         run: npx playwright test --config playwright.oidc.config.ts
         env:
           QA_DATABASE_URL: postgresql://north_browser:browser_ci_only@127.0.0.1:5432/qa_browser_ci
+      - name: Create dedicated Native Inbox acceptance database
+        run: >-
+          node -e "const {Client}=require('pg'); const c=new Client({connectionString:process.env.QA_NATIVE_INBOX_ADMIN_URL});
+          (async()=>{await c.connect();try{await c.query('CREATE DATABASE qa_browser_native_inbox_ci');}finally{await c.end();}})().catch(()=>process.exit(1));"
+        env:
+          QA_NATIVE_INBOX_ADMIN_URL: postgresql://north_browser:browser_ci_only@127.0.0.1:5432/postgres
+      - name: React Native Inbox acceptance journey
+        run: npx playwright test --config playwright.native-inbox.config.ts
+        env:
+          QA_DATABASE_URL: postgresql://north_browser:browser_ci_only@127.0.0.1:5432/qa_browser_native_inbox_ci
       - name: Create separate synthetic source acceptance database
         run: >-
           node -e "const {Client}=require('pg'); const c=new Client({connectionString:process.env.QA_SOURCE_ADMIN_URL});

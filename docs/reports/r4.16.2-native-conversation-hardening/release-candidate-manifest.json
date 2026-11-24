@@ -1,0 +1,18 @@
+{
+  "release": "R4.16.2",
+  "branch": "feat/r4162-native-conversation-hardening",
+  "baselineRemoteSha": "ff89212af3219a1ed689ce5b209ee884eb82f93501883b2bcf5",
+  "implementationSha": "0d19942e7ebd9aaac2cdeded7c87aec87e98836b",
+  "reportedFinalLocalHead": "2773995a2c623e4ad95be1d28a591f422f288526",
+  "currentLocalHeadAtManifestCreation": "2773995a2c623e4ad95be1d28a591f422f288526",
+  "remoteShaAtManifestCreation": "ff89212af3219a1ed689ce5b209ee884eb82f93501883b2bcf5",
+  "hostedCi": "PENDING_FOR_PUSHED_SHA",
+  "pushAuthorized": false,
+  "ownerAcceptance": "PENDING",
+  "productionAuthorization": "NO",
+  "providerCalls": 0,
+  "providerMutations": 0,
+  "p3": "SEND_UNRESOLVED",
+  "p4": "NOT_TESTED",
+  "p5": "NOT_VERIFIED"
+}
