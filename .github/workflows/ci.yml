@@ -243,6 +243,16 @@ jobs:
         run: npx playwright test --config playwright.native-inbox.config.ts
         env:
           QA_DATABASE_URL: postgresql://north_browser:browser_ci_only@127.0.0.1:5432/qa_browser_native_inbox_ci
+      - name: Create dedicated commercial continuity acceptance database
+        run: >-
+          node -e "const {Client}=require('pg'); const c=new Client({connectionString:process.env.QA_COMMERCIAL_ADMIN_URL});
+          (async()=>{await c.connect();try{await c.query('CREATE DATABASE qa_browser_commercial_continuity_ci');}finally{await c.end();}})().catch(()=>process.exit(1));"
+        env:
+          QA_COMMERCIAL_ADMIN_URL: postgresql://north_browser:browser_ci_only@127.0.0.1:5432/postgres
+      - name: React commercial continuity acceptance journey
+        run: npx playwright test --config playwright.commercial-continuity.config.ts
+        env:
+          QA_DATABASE_URL: postgresql://north_browser:browser_ci_only@127.0.0.1:5432/qa_browser_commercial_continuity_ci
       - name: Create separate synthetic source acceptance database
         run: >-
           node -e "const {Client}=require('pg'); const c=new Client({connectionString:process.env.QA_SOURCE_ADMIN_URL});

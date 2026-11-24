@@ -93,8 +93,12 @@ test("React commercial continuity opens persisted Conversation and authorized Le
       (item: any) => item.conversationId === conversationId,
     ),
   ).toBe(true);
+  const visibleConversation = projection.body.items.find(
+    (item: any) => item.conversationId === conversationId,
+  );
+  expect(visibleConversation.associatedLeads.map((lead: any) => lead.leadId)).toContain(leadId);
 
-  await page.goto("app/");
+  await page.goto("app/#/inbox");
   await page.getByRole("button", { name: /Conversation native/ }).click();
   await expect(page.getByTestId("inbox-page")).toBeVisible();
   await expect(
