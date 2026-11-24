@@ -1,0 +1,5 @@
+# Cursor stability and message semantics
+
+Conversation list ordering uses the canonical conversation anchor `(min(created_at), lexicographic-min UUID cast to UUID)` within each scoped namespace. The cursor is derived from the last visible anchor and preserves UTC microsecond precision. A new or late receipt can change the minimum anchor and therefore can move a conversation between requests; this release documents cursor traversal as a bounded, non-snapshot consistency model. It does not promise snapshot isolation.
+
+Message history is capped at 100 source receipt observations per visible canonical conversation, ordered by `created_at,id`. The response exposes `messageHistoryLimit` and `messageHistoryTruncated`; authority remains `UNVERIFIED` and completeness remains `UNKNOWN`. The limit counts source observations, not a provider-normalized distinct-message model. Duplicate/revision identity remains represented by source receipt/message fields and is not merged into commercial identity.

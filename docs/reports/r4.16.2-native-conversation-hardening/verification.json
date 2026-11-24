@@ -1,7 +1,7 @@
 {
   "release": "R4.16.2",
   "branch": "feat/r4162-native-conversation-hardening",
-  "implementationHead": "d1bd8a286c82617b3c32efdec503ae6682fa0fb2",
+  "implementationHead": "90a2af9",
   "previousRemoteHead": "ff89212af3219a1ed689ce5b209ee884eb82d960",
   "findings": {
     "A01": "FIXED_LEAD_SCOPED_CONVERSATION_READ",
@@ -21,13 +21,13 @@
     {"command": "npm test -- --run src/infra/postgres/pilot-closure.integration.spec.ts", "workspace": "product", "exitCode": 0, "result": "8 passed / 0 skipped with disposable PostgreSQL"},
     {"command": "npm test -- --run src/infra/source-integration/source-performance.integration.spec.ts", "workspace": "product", "exitCode": 0, "result": "5 passed / 0 skipped with disposable PostgreSQL"},
     {"command": "npm run typecheck && npm run build && npm run test:contract", "workspace": "frontend", "exitCode": 0, "result": "typecheck/build/2 contract tests passed"},
-    {"command": "npx playwright test --config playwright.oidc.config.ts --grep \"React Native Inbox\"", "workspace": "product", "exitCode": 0, "result": "1 passed; actual React route, Nest backend, PostgreSQL and fixture OIDC"},
-    {"command": "npx playwright test --config playwright.oidc.config.ts", "workspace": "product", "exitCode": 1, "result": "5 passed / 2 failed in pre-existing legacy operator journey assertions; Native Inbox test passed"},
+    {"command": "npx playwright test --config playwright.native-inbox.config.ts", "workspace": "product", "exitCode": 0, "result": "1 passed; 55+ conversations, 101-message history, real React route, Nest backend, PostgreSQL and fixture OIDC"},
+    {"command": "npx playwright test --config playwright.oidc.config.ts", "workspace": "product", "exitCode": 0, "result": "6 passed / 0 skipped; Native Inbox is isolated into dedicated config"},
     {"command": "npm run architecture:check:strict", "workspace": "product", "exitCode": 0, "result": "0 findings"},
     {"command": "npm run security:audit", "workspace": "product", "exitCode": 0, "result": "production clean"}
   ],
   "nativeInboxBrowserE2E": "PASS",
-  "fullIntakeToNativeInboxE2E": "PASS_FOR_SINGLE_SYNTHETIC_CONVERSATION",
+  "fullIntakeToNativeInboxE2E": "PASS_55_PLUS_CONVERSATIONS_AND_101_MESSAGE_HISTORY",
   "crmSearchPostgresE2E": "PASS_8_OF_8",
   "commercialContinuityReactJourney": "PARTIAL_NATIVE_INBOX_ONLY",
   "hostedCI": "NOT_RUN_FOR_CURRENT_IMPLEMENTATION_SHA",
@@ -37,5 +37,5 @@
   "p4": "NOT_TESTED",
   "p5": "NOT_VERIFIED",
   "ownerAcceptance": "PENDING",
-  "status": "IMPLEMENTED_WITH_ACCEPTANCE_BLOCKERS"
+  "status": "LOCAL_TECHNICAL_CLOSURE_VERIFIED_CI_PENDING"
 }
