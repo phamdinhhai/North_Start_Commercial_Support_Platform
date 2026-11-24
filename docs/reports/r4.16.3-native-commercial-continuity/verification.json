@@ -4,7 +4,6 @@
   "baselineSha": "c29823065182587218771cd51969bfada07517b5",
   "implementationSha": "d0b499c996e354d5034475d67d34ac32b3ca6855",
   "documentationSha": "8dd339ed1b271bad04f28671882fbd55f54bbd6b",
-  "finalLocalHead": null,
   "hostedCI": "PENDING",
   "ownerAcceptance": "PENDING",
   "commercialJourney": "PARTIAL_REACT_VERIFIED",
@@ -58,5 +57,6 @@
       "command": "npm run architecture:check:strict; npm run security:audit",
       "exitCode": 0
     }
-  }
+  },
+  "evidenceSha": "ab34df517563bcb115b899ebe5610423f5ea89f5"
 }
