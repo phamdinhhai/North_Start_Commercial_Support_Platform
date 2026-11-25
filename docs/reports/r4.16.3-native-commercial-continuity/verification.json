@@ -4,7 +4,7 @@
   "baselineSha": "c29823065182587218771cd51969bfada07517b5",
   "implementationSha": "0869821e47524fc19896148736077441be113e7a",
   "documentationSha": "8dd339ed1b271bad04f28671882fbd55f54bbd6b",
-  "hostedCI": "PENDING",
+  "hostedCI": "PENDING_CURRENT_CANDIDATE",
   "ownerAcceptance": "PENDING",
   "commercialJourney": "FULL_REACT_JOURNEY_VERIFIED",
   "p3": "SEND_UNRESOLVED",
@@ -58,7 +58,7 @@
       "exitCode": 0
     }
   },
-  "evidenceSha": "7d4c8a6ad81d38238c373a81c6f2572bcb873d21",
+  "evidenceSha": "d5203d79a9a68d64a033173151fcec470ab4187d",
   "authorizationRegression": "PASS_ORIGIN_AND_EFFECTIVE_REQUIRED",
   "finalLocalHead": "6c801a3cbcf940f8ed3c0e8074f079c5ffb18a12",
   "rootCause": "CC-08 commercial entry owner presentation mismatch plus CC-09 dialog submission harness defect",
@@ -68,9 +68,15 @@
     "test": "commercial-continuity.browser.spec.ts",
     "evidence": "clean disposable PostgreSQL databases"
   },
-  "candidateLocalHead": "7d4c8a6ad81d38238c373a81c6f2572bcb873d21",
+  "candidateLocalHead": "d5203d79a9a68d64a033173151fcec470ab4187d",
   "cc13": "PASS_PERSISTED_OWNER_WORKITEM_VERSION_AUDIT",
   "cc14": "PASS_NATIVE_INBOX_ASSOCIATED_LEAD_LINK",
   "cc15": "PASS_SPECIFIC_SOURCE_UTTERANCE_AND_EVIDENCE",
-  "sourceAssociationManagement": "PASS_CROSS_LEAD_LINK_UNLINK_REJECT"
+  "sourceAssociationManagement": "PASS_CROSS_LEAD_LINK_UNLINK_REJECT",
+  "stabilityRuns": {
+    "fullSuiteRuns": 3,
+    "eachRunPassedPrimaryAndAssociation": true,
+    "retries": 0
+  },
+  "negativeAuthorization": "HTTP_POSTGRESQL_CONTRACTS_PASS_BROWSER_NEGATIVE_UI_NOT_SEPARATE"
 }
