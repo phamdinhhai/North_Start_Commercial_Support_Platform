@@ -15,7 +15,7 @@
   "productionAuthorization": "NO",
   "status": "IMPLEMENTED_WITH_ACCEPTANCE_BLOCKERS",
   "blockers": [
-    "full browser handoff-to-audit journey",
+    "full browser handoff-to-audit journey (extended attempt timed out)",
     "exact-SHA Hosted CI",
     "Owner acceptance"
   ],
@@ -35,7 +35,7 @@
     },
     "postgresSourcePerformance": {
       "command": "TEST_DATABASE_URL=... npm test -- --run src/infra/source-integration/source-performance.integration.spec.ts",
-      "passed": 5,
+      "passed": 6,
       "exitCode": 0
     },
     "postgresContinuityHttp": {
@@ -58,5 +58,6 @@
       "exitCode": 0
     }
   },
-  "evidenceSha": "ab34df517563bcb115b899ebe5610423f5ea89f5"
+  "evidenceSha": "ab34df517563bcb115b899ebe5610423f5ea89f5",
+  "authorizationRegression": "PASS_ORIGIN_AND_EFFECTIVE_REQUIRED"
 }

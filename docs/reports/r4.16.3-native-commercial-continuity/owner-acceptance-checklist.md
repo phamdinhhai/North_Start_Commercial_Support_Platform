@@ -1,10 +1,10 @@
 # Owner acceptance checklist
 
 - [x] Native Conversation ? authorized Lead read path
-- [x] Mixed-scope association filtering
+- [x] Mixed-scope association filtering, including origin/effective fail-closed links
 - [x] Synthetic intake ? PostgreSQL ? React Inbox
 - [x] Viewer/unauthorized deep-link denial
-- [ ] One browser scenario covering handoff, recipient acceptance, contact, work, outcome and audit
+- [ ] One browser scenario covering handoff, recipient acceptance, contact, work, outcome and audit (attempted extension timed out; retained as blocker)
 - [ ] Hosted CI exact SHA
 - [ ] Owner acceptance
 

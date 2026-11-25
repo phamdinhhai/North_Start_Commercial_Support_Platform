@@ -5,3 +5,5 @@ The final diff against R4.16.2 was reviewed independently. No credentials, custo
 Evidence passed: source-performance 5/5, continuity/API 19/19, pilot unit 50/50, frontend contracts 2/2, commercial browser 1/1, product typecheck/lint/build, frontend typecheck/build and architecture/security checks.
 
 Residual limitation: the browser test proves intake ? Native Inbox ? authorized Lead/provenance ? viewer denial, but not the full handoff ? recipient ? work ? outcome ? audit sequence. The association projection performs one bounded query per visible conversation; retain as a measured optimization task.
+
+The independent authorization review reproduced the effective-only disclosure risk and verified the correction in `8874bfc`: explicit links now require both origin and effective Lead access. Source-performance regression is 6/6.
