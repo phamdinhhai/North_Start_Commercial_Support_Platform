@@ -2,7 +2,7 @@
   "release": "R4.16.3",
   "branch": "feat/r4163-native-commercial-continuity",
   "baselineSha": "c29823065182587218771cd51969bfada07517b5",
-  "implementationSha": "d0b499c996e354d5034475d67d34ac32b3ca6855",
+  "implementationSha": "8874bfc8d571584d8ce90a150624f4d6495f3ffa",
   "documentationSha": "8dd339ed1b271bad04f28671882fbd55f54bbd6b",
   "hostedCI": "PENDING",
   "ownerAcceptance": "PENDING",
@@ -40,7 +40,7 @@
     },
     "postgresContinuityHttp": {
       "command": "TEST_DATABASE_URL=... npm test -- --run src/infra/source-continuity/source-continuity.integration.spec.ts src/infra/source-continuity/linked-evidence-reader.integration.spec.ts src/api/source-continuity.http.spec.ts",
-      "passed": 19,
+      "passed": 33,
       "exitCode": 0
     },
     "frontend": {
@@ -59,5 +59,6 @@
     }
   },
   "evidenceSha": "ab34df517563bcb115b899ebe5610423f5ea89f5",
-  "authorizationRegression": "PASS_ORIGIN_AND_EFFECTIVE_REQUIRED"
+  "authorizationRegression": "PASS_ORIGIN_AND_EFFECTIVE_REQUIRED",
+  "finalLocalHead": "2e38b8f3c60dc1bf986d91d146c1ddb7e44a48b2"
 }

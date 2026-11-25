@@ -1,13 +1,5 @@
 # React browser evidence
 
-Command:
+The short dedicated suite passes `1/1` against fixture OIDC, NestJS, disposable PostgreSQL and the actual React route. It verifies synthetic intake, Native Inbox, authorized association, Lead deep-link, provenance and viewer denial.
 
-```text
-cd product
-QA_DATABASE_URL=postgresql://<loopback>/qa_browser_r4163h
-npx playwright test --config playwright.commercial-continuity.config.ts --reporter=line
-```
-
-Result: 1 passed. The test uses fixture OIDC, the actual Nest server, disposable PostgreSQL, authorized synthetic intake through the source API, Native Inbox rendering, canonical association projection, Lead deep-link, provenance/UNKNOWN disclosure and viewer denial.
-
-The full handoff ? recipient ? work ? outcome ? audit browser journey is not yet verified; existing canonical APIs and PostgreSQL pilot-loop tests cover those operations separately.
+A full UI extension was attempted with separate recipient context and actual context, handoff, acceptance, contact, work, outcome and audit controls. It timed out in the recipient flow and was reverted; it is not reported as passing. The complete journey remains the primary acceptance blocker.

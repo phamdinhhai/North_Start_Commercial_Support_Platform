@@ -1,5 +1,5 @@
 # R4.16.3 final engineering report
 
-R4.16.3 adds authorized Conversation-to-Lead projection and a dedicated React commercial-continuity acceptance lane while reusing Northstar's existing source continuity and pilot-loop services. Authorization is applied before grouping and message expansion, and explicit source links preserve origin/effective Lead semantics.
+The origin/effective Lead authorization review found and fixed a real disclosure defect: explicit links previously authorized only the effective Lead. The projection now requires both immutable origin and effective Lead access for explicit links, while unlink/reject/no-link use origin authorization. PostgreSQL regression coverage passes 6/6.
 
-Local correctness and browser evidence pass for the implemented vertical slice. The complete commercial browser journey remains an acceptance blocker, so this release is not commercially accepted or production-ready.
+The short React acceptance slice passes 1/1. A full browser journey extension was attempted and timed out during recipient-flow execution, so R4.16.3 remains `IMPLEMENTED_WITH_ACCEPTANCE_BLOCKERS`.
