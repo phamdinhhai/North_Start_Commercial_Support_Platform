@@ -12,7 +12,7 @@ export default defineConfig({
   use: {
     baseURL: "http://127.0.0.1:3410/v1/",
     ...devices["Desktop Chrome"],
-    trace: "retain-on-failure",
+    trace: "off",
   },
   webServer: {
     command: "npm run build && node e2e/oidc/server.mjs",
