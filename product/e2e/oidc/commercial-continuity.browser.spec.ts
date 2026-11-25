@@ -256,3 +256,49 @@ test("React commercial continuity opens persisted Conversation and authorized Le
     await viewerContext.close();
   }
 });
+
+test("React admin cross-Lead source association Link Unlink Reject", async ({ page }) => {
+  await signIn(page, "admin");
+  const connection = await api(page, "/v1/source-integrations/connections", { method: "POST", body: JSON.stringify({ provider: "pancake", route: "pancake-synthetic", pageId: "association-page" }) });
+  expect(connection.status).toBe(201);
+  const connectionId = connection.body.id as string;
+  const example = (await api(page, `/v1/source-integrations/connections/${connectionId}/example`)).body.fixture as Record<string, any>;
+  async function intake(conversationId: string) {
+    const fixture = JSON.parse(JSON.stringify(example));
+    fixture.receiptId = `association-receipt-${crypto.randomUUID()}`;
+    delete fixture.originalMeta;
+    fixture.payload.page_id = "association-page";
+    fixture.payload.data.conversation = { id: conversationId, type: "INBOX" };
+    fixture.payload.data.message = { ...fixture.payload.data.message, id: `association-message-${crypto.randomUUID()}`, page_id: "association-page", conversation_id: conversationId };
+    const result = await api(page, `/v1/source-integrations/connections/${connectionId}/observations`, { method: "POST", body: JSON.stringify({ fixture, claimResponsibility: true }) });
+    expect(result.status).toBe(201); return result.body as { leadId: string; receiptId: string; envelopeId: string };
+  }
+  const origin = await intake(`association-origin-${crypto.randomUUID()}`);
+  const target = await intake(`association-target-${crypto.randomUUID()}`);
+  expect(origin.leadId).not.toBe(target.leadId);
+  await page.goto(`app/#/leads/${origin.leadId}/show`);
+  await page.getByRole("tab", { name: /Lịch sử|History/ }).click();
+  const panel = page.getByTestId("source-associations");
+  await expect(panel).toBeVisible();
+  await panel.locator("select").selectOption(target.leadId);
+  const linkResponse = page.waitForResponse(response => response.url().includes(`/v1/source-integrations/leads/${target.leadId}/source-links`) && response.request().method() === "POST");
+  await panel.getByRole("button", { name: "Link", exact: true }).first().click();
+  expect((await linkResponse).status()).toBe(201);
+  const linked = await api(page, `/v1/source-integrations/leads/${target.leadId}/source-links`);
+  expect(linked.status).toBe(200); expect(linked.body.items[0]).toMatchObject({ action: "link", originLeadId: origin.leadId, effectiveLeadId: target.leadId, version: 1 });
+  await page.goto(`app/#/leads/${target.leadId}/show`); await page.getByRole("tab", { name: /Lịch sử|History/ }).click();
+  const targetPanel = page.getByTestId("source-associations");
+  const unlinkResponse = page.waitForResponse(response => response.url().includes(`/v1/source-integrations/leads/${target.leadId}/source-links`) && response.request().method() === "POST");
+  await targetPanel.getByRole("button", { name: "Unlink", exact: true }).first().click();
+  expect((await unlinkResponse).status()).toBe(201);
+  const unlinked = await api(page, `/v1/source-integrations/leads/${target.leadId}/source-links`);
+  expect(unlinked.body.items.at(-1)).toMatchObject({ action: "unlink", effectiveLeadId: null, version: 2 });
+  const rejectResponse = page.waitForResponse(response => response.url().includes(`/v1/source-integrations/leads/${target.leadId}/source-links`) && response.request().method() === "POST");
+  await targetPanel.getByRole("button", { name: "Reject", exact: true }).last().click();
+  expect((await rejectResponse).status()).toBe(201);
+  const rejected = await api(page, `/v1/source-integrations/leads/${target.leadId}/source-links`);
+  expect(rejected.body.items.map((item: any) => item.action)).toEqual(["link", "unlink", "reject"]);
+  expect(rejected.body.items.at(-1)).toMatchObject({ originLeadId: origin.leadId, effectiveLeadId: null, version: 3, linkage: "rejected" });
+  const originEvidence = await api(page, `/v1/source-integrations/leads/${origin.leadId}/evidence?limit=25`);
+  expect(originEvidence.status).toBe(200); expect(originEvidence.body.items.length).toBeGreaterThan(0);
+});

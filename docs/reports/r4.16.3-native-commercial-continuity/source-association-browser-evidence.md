@@ -1,5 +1,9 @@
 # Source association browser evidence
 
-The native `SourceAssociationPanel` is implemented on Lead Detail using the existing SourceContinuity endpoints. It exposes Admin-only Link, Unlink and Reject controls, current version and UNVERIFIED audit state.
+The focused React scenario now passes against clean disposable PostgreSQL. It creates distinct origin and target synthetic Leads, selects the target Lead in the Admin Source Association Panel, executes Link, navigates to the target, executes Unlink and Reject, and verifies each HTTP 201 response plus persisted source-link history:
 
-The focused browser acceptance was attempted but did not yet produce a stable PASS: the first Link command did not render the expected status feedback. PostgreSQL and HTTP source-link contracts remain covered; UI association acceptance is therefore retained as a blocker.
+- Link: origin A, effective B, version 1, human_confirmed, UNVERIFIED.
+- Unlink: effective null, version 2, unknown linkage.
+- Reject: effective null, version 3, rejected linkage.
+
+The primary commercial journey and this focused association scenario are both discovered by `playwright.commercial-continuity.config.ts` and therefore run in the dedicated CI lane.

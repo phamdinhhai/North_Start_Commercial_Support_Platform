@@ -15,7 +15,6 @@
   "productionAuthorization": "NO",
   "status": "LOCAL_COMMERCIAL_JOURNEY_VERIFIED_CI_PENDING",
   "blockers": [
-    "source association browser acceptance and conflict/negative UI verification",
     "Hosted CI for current candidate SHA",
     "Owner acceptance"
   ],
@@ -50,9 +49,9 @@
     },
     "commercialBrowser": {
       "command": "npx playwright test --config playwright.commercial-continuity.config.ts --reporter=line",
-      "passed": 1,
+      "passed": 2,
       "exitCode": 0,
-      "scope": "Conversation ? Lead ? evidence ? context ? handoff ? recipient acceptance ? contact ? follow-up ? next action ? reschedule ? complete ? reopen ? outcome ? correction ? manager review ? audit"
+      "scope": "Primary full journey + cross-Lead Source Association Link/Unlink/Reject"
     },
     "architectureSecurity": {
       "command": "npm run architecture:check:strict; npm run security:audit",
@@ -69,9 +68,9 @@
     "test": "commercial-continuity.browser.spec.ts",
     "evidence": "clean disposable PostgreSQL databases"
   },
-  "candidateLocalHead": "41f16b190aac21e4ae0cac531e5b3f3b137d3d2e",
+  "candidateLocalHead": "0869821e47524fc19896148736077441be113e7a",
   "cc13": "PASS_PERSISTED_OWNER_WORKITEM_VERSION_AUDIT",
   "cc14": "PASS_NATIVE_INBOX_ASSOCIATED_LEAD_LINK",
   "cc15": "PASS_SPECIFIC_SOURCE_UTTERANCE_AND_EVIDENCE",
-  "sourceAssociationManagement": "IMPLEMENTED_UI_NOT_BROWSER_VERIFIED"
+  "sourceAssociationManagement": "PASS_CROSS_LEAD_LINK_UNLINK_REJECT"
 }
