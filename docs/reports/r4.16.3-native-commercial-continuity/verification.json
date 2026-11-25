@@ -2,8 +2,9 @@
   "release": "R4.16.3",
   "branch": "feat/r4163-native-commercial-continuity",
   "baselineSha": "c29823065182587218771cd51969bfada07517b5",
-  "implementationSha": "0869821e47524fc19896148736077441be113e7a",
-  "documentationSha": "8dd339ed1b271bad04f28671882fbd55f54bbd6b",
+  "implementationSha": "1a723e1",
+  "testedImplementationSha": "1a723e1",
+  "documentationSha": "a6d5dd0",
   "hostedCI": "PENDING_CURRENT_CANDIDATE",
   "ownerAcceptance": "PENDING",
   "commercialJourney": "FULL_REACT_JOURNEY_VERIFIED",
@@ -58,9 +59,9 @@
       "exitCode": 0
     }
   },
-  "evidenceSha": "d5203d79a9a68d64a033173151fcec470ab4187d",
+  "evidenceSha": "a6d5dd0",
   "authorizationRegression": "PASS_ORIGIN_AND_EFFECTIVE_REQUIRED",
-  "finalLocalHead": "6c801a3cbcf940f8ed3c0e8074f079c5ffb18a12",
+  "finalLocalHead": "1a723e1",
   "rootCause": "CC-08 commercial entry owner presentation mismatch plus CC-09 dialog submission harness defect",
   "minimalRecipientAcceptance": {
     "runs": 3,
@@ -68,7 +69,7 @@
     "test": "commercial-continuity.browser.spec.ts",
     "evidence": "clean disposable PostgreSQL databases"
   },
-  "candidateLocalHead": "d5203d79a9a68d64a033173151fcec470ab4187d",
+  "candidateLocalHead": "1a723e1",
   "cc13": "PASS_PERSISTED_OWNER_WORKITEM_VERSION_AUDIT",
   "cc14": "PASS_NATIVE_INBOX_ASSOCIATED_LEAD_LINK",
   "cc15": "PASS_SPECIFIC_SOURCE_UTTERANCE_AND_EVIDENCE",
@@ -78,5 +79,5 @@
     "eachRunPassedPrimaryAndAssociation": true,
     "retries": 0
   },
-  "negativeAuthorization": "HTTP_POSTGRESQL_CONTRACTS_PASS_BROWSER_NEGATIVE_UI_NOT_SEPARATE"
+  "negativeAuthorization": "HTTP_POSTGRESQL_CONTRACTS_PASS_BROWSER_VIEWER_FOREIGN_PASS"
 }
