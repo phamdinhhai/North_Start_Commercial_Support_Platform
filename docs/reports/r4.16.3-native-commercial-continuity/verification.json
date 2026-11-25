@@ -2,7 +2,7 @@
   "release": "R4.16.3",
   "branch": "feat/r4163-native-commercial-continuity",
   "baselineSha": "c29823065182587218771cd51969bfada07517b5",
-  "implementationSha": "beee18f746ea31beeda2cb983cbe97c0da419e35",
+  "implementationSha": "f749d66e29049eda25b61316741e9395d8064179",
   "documentationSha": "8dd339ed1b271bad04f28671882fbd55f54bbd6b",
   "hostedCI": "PENDING",
   "ownerAcceptance": "PENDING",
@@ -59,7 +59,7 @@
       "exitCode": 0
     }
   },
-  "evidenceSha": "ab34df517563bcb115b899ebe5610423f5ea89f5",
+  "evidenceSha": "f749d66e29049eda25b61316741e9395d8064179",
   "authorizationRegression": "PASS_ORIGIN_AND_EFFECTIVE_REQUIRED",
   "finalLocalHead": "6c801a3cbcf940f8ed3c0e8074f079c5ffb18a12",
   "rootCause": "CC-08 commercial entry owner presentation mismatch plus CC-09 dialog submission harness defect",
@@ -69,7 +69,7 @@
     "test": "commercial-continuity.browser.spec.ts",
     "evidence": "clean disposable PostgreSQL databases"
   },
-  "candidateLocalHead": null,
+  "candidateLocalHead": "f749d66e29049eda25b61316741e9395d8064179",
   "cc13": "PASS_PERSISTED_OWNER_WORKITEM_VERSION_AUDIT",
   "cc14": "PASS_NATIVE_INBOX_ASSOCIATED_LEAD_LINK",
   "cc15": "PASS_SPECIFIC_SOURCE_UTTERANCE_AND_EVIDENCE"
