@@ -4,10 +4,10 @@
   "baselineSha": "c29823065182587218771cd51969bfada07517b5",
   "implementationSha": "1a723e1",
   "testedImplementationSha": "1a723e1",
-  "documentationSha": "9d6e548",
+  "documentationSha": "85b45f3",
   "hostedCI": {
-    "run": "45580433911",
-    "sha": "9d6e548ce9fb277db92d81fd34477d83fee5a29d",
+    "run": "45582583027",
+    "sha": "85b45f307f6eeab301256df9d074f07e869a664d",
     "conclusion": "success"
   },
   "ownerAcceptance": "PENDING",
