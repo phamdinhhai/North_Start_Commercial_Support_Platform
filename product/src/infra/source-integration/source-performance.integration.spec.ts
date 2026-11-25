@@ -113,6 +113,24 @@ suite('source bounded reads and locking',()=>{
     expect(bounded.items[0].messageHistoryLimit).toBe(100);
     expect(bounded.items[0].messageHistoryTruncated).toBe(true);
   }, 120000);
+  it('fails closed when an explicit effective link crosses an inaccessible origin Lead', async()=>{
+    const c=await connectWithPage('origin-effective-page');
+    const origin=await store.intake(ctx,c.id,conversationObservation('origin-effective-auth','origin-effective-page','meta'));
+    const effective=await store.intake(ctx,c.id,conversationObservation('effective-seed','origin-effective-page','meta'));
+    await db.query('UPDATE lead SET owner_user_id=$1 WHERE id=$2',['origin-reader',origin.leadId]);
+    await db.query('UPDATE lead SET owner_user_id=$1 WHERE id=$2',['effective-reader',effective.leadId]);
+    await db.query(`INSERT INTO source_episode_link(id,workspace_id,connection_id,receipt_id,lead_id,origin_lead_id,effective_lead_id,envelope_id,version,action,reason,actor_id,idempotency_key,command_digest)
+      VALUES($1,$2,$3,$4,$5,$6,$7,$8,1,'link','authorization matrix',$9,$10,'{}')`,
+      [randomUUID(),ctx.workspaceId,c.id,origin.receiptId,effective.leadId,origin.leadId,effective.leadId,origin.envelopeId,'fabricated-admin',randomUUID()]);
+    const originOnly=await store.conversationPage(ctx.workspaceId,'origin-reader',{actorRole:'sales',conversationId:'origin-effective-auth',limit:20});
+    const effectiveOnly=await store.conversationPage(ctx.workspaceId,'effective-reader',{actorRole:'sales',conversationId:'origin-effective-auth',limit:20});
+    expect(originOnly.items).toHaveLength(0);
+    expect(effectiveOnly.items).toHaveLength(0);
+    const both=await store.conversationPage(ctx.workspaceId,'origin-reader',{actorRole:'admin',conversationId:'origin-effective-auth',limit:20});
+    expect(both.items).toHaveLength(1);
+    expect(both.items[0].associatedLeads?.map(lead=>lead.leadId)).toContain(effective.leadId);
+    expect(both.items[0].messages).toHaveLength(1);
+  });
   it('holds revoke behind an accepted intake lock, then denies every subsequent append',async()=>{
     const c=await connect(),base=observation();
     let entered!:()=>void,release!:()=>void;
