@@ -5,8 +5,9 @@
 - [x] Synthetic intake ? PostgreSQL ? React Inbox
 - [x] Admin-owned synthetic Lead commercial-entry commands visible to current owner
 - [x] React Handoff ? recipient Acceptance, 3 consecutive clean runs
-- [ ] Contact attempt ? follow-up ? next action ? reschedule ? complete ? reopen
-- [ ] Outcome claim ? correction ? Manager/audit browser journey
+- [x] Cross-Lead source association Link ? Unlink ? Reject browser acceptance
+- [x] Contact attempt ? follow-up ? next action ? reschedule ? complete ? reopen
+- [x] Outcome claim ? correction ? Manager/audit browser journey
 - [ ] Hosted CI exact SHA
 - [ ] Owner acceptance
 

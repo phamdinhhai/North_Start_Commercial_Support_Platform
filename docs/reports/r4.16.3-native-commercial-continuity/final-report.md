@@ -1,7 +1,7 @@
 # R4.16.3 final engineering report
 
-The complete React commercial journey now passes against clean disposable PostgreSQL: Native Inbox navigation uses the associated Lead link, source evidence is asserted for the same fabricated utterance, and the operator journey executes context, handoff, recipient acceptance, contact, follow-up, next action, reschedule, completion, reopen, outcome claim, correction, manager review and audit. Persisted owner, accepted Work Item, version and audit history are asserted after acceptance.
+The complete React commercial journey and the residual cross-Lead source association lifecycle are locally verified. The primary journey covers Native Inbox navigation, exact source evidence, context, handoff, recipient acceptance, contact, follow-up, next action, reschedule, completion, reopen, outcome claim, correction, manager review and audit.
 
-The recipient timeout root cause was CC-08/CC-09: Admin-owned synthetic Leads were hidden by Sales-only UI gating, and the test failed to submit the acceptance dialog. Both are corrected without weakening backend owner authorization.
+The focused association scenario creates distinct origin and target Leads and verifies Link, Unlink and Reject through the Admin Source Association Panel using canonical SourceContinuity commands, HTTP responses and persisted history.
 
-Local technical and regression gates pass. Hosted CI for the current local candidate and Owner acceptance remain pending.
+Local gates pass. Current verdict is `LOCAL_COMMERCIAL_JOURNEY_VERIFIED_CI_PENDING`; Hosted CI for the final candidate and Owner acceptance remain pending.
