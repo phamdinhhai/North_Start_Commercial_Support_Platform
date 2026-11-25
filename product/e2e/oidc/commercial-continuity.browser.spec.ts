@@ -110,12 +110,46 @@ test("React commercial continuity opens persisted Conversation and authorized Le
 
   // The Lead route is opened directly to prove refresh/deep-link authorization is server enforced.
   await page.goto(`app/#/leads/${leadId}/show`);
-  await expect(page.getByText(new RegExp(`Lead ID.*${leadId}`))).toBeVisible();
+  await expect(page.getByText(new RegExp(`Lead ID.*${leadId}`)).last()).toBeVisible();
   await expect(
     page.getByText(/Doanh thu: UNKNOWN|Revenue: UNKNOWN/),
   ).toBeVisible();
   await page.getByRole("tab", { name: /Lịch sử|History/ }).click();
-  await expect(page.getByText(/UNVERIFIED|UNKNOWN/).first()).toBeVisible();
+  await expect(page.getByText(/UNVERIFIED|UNKNOWN/).first().last()).toBeVisible();
+
+  // The source intake is Admin-owned by the canonical synthetic claim. Admin
+  // may mutate only while remaining the persisted owner; recipient identity is
+  // resolved from its signed session, never guessed from fixture ordering.
+  const recipientContext = await browser.newContext();
+  const recipient = await recipientContext.newPage();
+  await signIn(recipient, "recipient");
+  const recipientSession = await recipient.evaluate(async () => (await (await fetch("/v1/auth/session")).json()));
+  const recipientId = recipientSession.context.userId as string;
+  await page.getByRole("tab", { name: /Ngữ cảnh|Context/ }).click();
+  await page.getByRole("button", { name: /Bổ sung|context/i }).click();
+  await page.locator("#text").fill("Nhu cầu cần xác minh qua bằng chứng nguồn.");
+  await page.locator("#reason").fill("Ghi nhận bối cảnh từ receipt.");
+  await page.getByRole("button", { name: /Ghi nhận|Record/i }).click();
+  await expect(page.getByRole("status")).toContainText(/ghi nhận|PostgreSQL/i);
+  await page.getByRole("button", { name: /Bàn giao Sales|handoff/i }).click();
+  await page.locator("#recipient").selectOption(recipientId);
+  await page.locator("#context").fill("Bàn giao cùng bằng chứng nguồn đã lưu.");
+  await page.locator("#action").fill("Gọi lại và xác minh nhu cầu");
+  await page.locator("#reason").fill("Chuyển trách nhiệm cho Sales.");
+  await page.getByRole("button", { name: /Ghi nhận|Record/i }).click();
+  await expect(page.getByRole("status")).toContainText(/ghi nhận|PostgreSQL/i);
+  await recipient.goto(`app/#/leads/${leadId}/show`);
+  await recipient.getByRole("tab", { name: /Công việc|Work/ }).click();
+  await expect(recipient.getByRole("button", { name: /Nhận bàn giao|Accept/i })).toBeVisible();
+  await recipient.getByRole("button", { name: /Nhận bàn giao|Accept/i }).click();
+  await recipient.locator("#reason").fill("Recipient accepts responsibility.");
+  const acceptResponse = recipient.waitForResponse(response => response.url().includes(`/v1/pilot/leads/${leadId}/commands/accept`) && response.request().method() === "POST");
+  await recipient.getByRole("button", { name: /Ghi nhận|Record/i }).click();
+  const accepted = await acceptResponse;
+  expect(accepted.status(), await accepted.text()).toBe(201);
+  await expect(recipient.getByRole("button", { name: /Nhận bàn giao|Accept/i })).toHaveCount(0);
+
+  await recipientContext.close();
 
   const viewerContext = await browser.newContext();
   try {

@@ -6,7 +6,7 @@
   "documentationSha": "8dd339ed1b271bad04f28671882fbd55f54bbd6b",
   "hostedCI": "PENDING",
   "ownerAcceptance": "PENDING",
-  "commercialJourney": "PARTIAL_REACT_VERIFIED",
+  "commercialJourney": "MINIMAL_RECIPIENT_ACCEPTANCE_VERIFIED",
   "p3": "SEND_UNRESOLVED",
   "p4": "NOT_TESTED",
   "p5": "NOT_VERIFIED",
@@ -15,7 +15,7 @@
   "productionAuthorization": "NO",
   "status": "IMPLEMENTED_WITH_ACCEPTANCE_BLOCKERS",
   "blockers": [
-    "full browser handoff-to-audit journey (extended attempt timed out)",
+    "full React Stage B-E journey",
     "exact-SHA Hosted CI",
     "Owner acceptance"
   ],
@@ -60,5 +60,12 @@
   },
   "evidenceSha": "ab34df517563bcb115b899ebe5610423f5ea89f5",
   "authorizationRegression": "PASS_ORIGIN_AND_EFFECTIVE_REQUIRED",
-  "finalLocalHead": "2e38b8f3c60dc1bf986d91d146c1ddb7e44a48b2"
+  "finalLocalHead": "2e38b8f3c60dc1bf986d91d146c1ddb7e44a48b2",
+  "rootCause": "CC-08 commercial entry owner presentation mismatch plus CC-09 dialog submission harness defect",
+  "minimalRecipientAcceptance": {
+    "runs": 3,
+    "result": "PASS",
+    "test": "commercial-continuity.browser.spec.ts",
+    "evidence": "clean disposable PostgreSQL databases"
+  }
 }
