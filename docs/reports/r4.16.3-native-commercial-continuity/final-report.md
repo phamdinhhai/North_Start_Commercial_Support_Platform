@@ -6,4 +6,6 @@ The full commercial continuity suite (both browser tests) passed three consecuti
 
 Current release status is `LOCAL_COMMERCIAL_JOURNEY_VERIFIED_CI_PENDING`. Hosted CI for the current candidate and Owner acceptance remain pending. The dedicated CI config discovers both commercial browser tests; there is no separate association-only CI lane. No provider calls or mutations were made.
 
-Candidate implementation SHA: `1a723e1`. Historical evidence SHA: `a6d5dd0`. The final documentation commit is recorded separately after this report update; Hosted CI is not yet run for the candidate.
+Candidate implementation SHA: `1a723e1`. Published candidate SHA: `9d6e548ce9fb277db92d81fd34477d83fee5a29d`. Hosted CI run `45580433911` passed for that exact SHA across Product, React frontend build/contract, and Browser operator workflow jobs.
+
+Final release verdict: `COMMERCIAL_JOURNEY_CI_VERIFIED_OWNER_ACCEPTANCE_PENDING`.

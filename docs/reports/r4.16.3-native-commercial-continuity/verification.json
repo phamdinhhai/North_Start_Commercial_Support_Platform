@@ -4,8 +4,12 @@
   "baselineSha": "c29823065182587218771cd51969bfada07517b5",
   "implementationSha": "1a723e1",
   "testedImplementationSha": "1a723e1",
-  "documentationSha": "a6d5dd0",
-  "hostedCI": "PENDING_CURRENT_CANDIDATE",
+  "documentationSha": "9d6e548",
+  "hostedCI": {
+    "run": "45580433911",
+    "sha": "9d6e548ce9fb277db92d81fd34477d83fee5a29d",
+    "conclusion": "success"
+  },
   "ownerAcceptance": "PENDING",
   "commercialJourney": "FULL_REACT_JOURNEY_VERIFIED",
   "p3": "SEND_UNRESOLVED",
@@ -14,7 +18,7 @@
   "providerCalls": 0,
   "providerMutations": 0,
   "productionAuthorization": "NO",
-  "status": "LOCAL_COMMERCIAL_JOURNEY_VERIFIED_CI_PENDING",
+  "status": "COMMERCIAL_JOURNEY_CI_VERIFIED_OWNER_ACCEPTANCE_PENDING",
   "blockers": [
     "Hosted CI for current candidate SHA",
     "Owner acceptance"
