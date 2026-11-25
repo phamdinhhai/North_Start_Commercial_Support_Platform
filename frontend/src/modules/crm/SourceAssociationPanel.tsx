@@ -42,10 +42,39 @@ export function SourceAssociationPanel({ leadId }: { leadId: string }) {
     } catch (e: any) { setError(e?.message ?? 'Lệnh liên kết nguồn bị từ chối.'); }
     finally { setBusy(false); }
   }
+  async function linkToTarget(item: Evidence) {
+    if (!targetLeadId) return;
+    setBusy(true); setError(''); setNotice('');
+    try {
+      // The command version is receipt scoped. Read the target's complete
+      // authorized history immediately before posting instead of deriving it
+      // from this origin panel (or assuming an empty target is version 0).
+      const current = await northStart.request<{ items: LinkRow[] }>(`/v1/source-integrations/leads/${targetLeadId}/source-links`);
+      const latest = current.items
+        .filter(link => link.connectionId === item.receipt.connectionId && link.receiptId === item.receipt.receiptId)
+        .reduce((version, link) => Math.max(version, link.version), 0);
+      await northStart.request(`/v1/source-integrations/leads/${targetLeadId}/source-links`, {
+        method: 'POST',
+        body: JSON.stringify({
+          connectionId: item.receipt.connectionId,
+          receiptId: item.receipt.receiptId,
+          evidenceEnvelopeId: item.receipt.envelopeId ?? '',
+          expectedVersion: latest,
+          action: 'link',
+          reason: 'React source association: link',
+          idempotencyKey: crypto.randomUUID(),
+        }),
+      });
+      await northStart.request(`/v1/source-integrations/leads/${targetLeadId}/source-links`);
+      setNotice('Đã ghi nhận liên kết nguồn vào audit.');
+      await reload();
+    } catch (e: any) { setError(e?.message ?? 'Lệnh liên kết nguồn bị từ chối.'); }
+    finally { setBusy(false); }
+  }
   return <Card className="mt-5" data-testid="source-associations"><CardHeader><CardTitle className="text-base">Liên kết source episode</CardTitle></CardHeader><CardContent className="space-y-3">
     <p className="text-xs leading-5 text-muted-foreground">Origin receipt và effective Lead là các khái niệm riêng. Liên kết vẫn UNVERIFIED, append-only và không merge Customer.</p>
     {error && <p role="alert" className="rounded bg-red-50 p-2 text-sm text-red-800">{error}</p>}{notice && <p role="status" className="rounded bg-teal-50 p-2 text-sm text-teal-900">{notice}</p>}
     {links.length ? links.map(link => <div key={link.id} className="flex flex-wrap items-center justify-between gap-2 rounded border p-2 text-xs" data-testid={`source-link-${link.receiptId}`}><span className="min-w-0 break-all">{link.action} · receipt {link.receiptId} · v{link.version}</span><div className="flex gap-1"><Badge variant="outline">{link.verification}</Badge>{admin && (link.action === 'link' || link.action === 'unlink') && <>{link.action === 'link' && <Button size="sm" variant="outline" disabled={busy} onClick={() => void command('unlink', { connectionId: link.connectionId, receiptId: link.receiptId, evidenceEnvelopeId: link.evidenceEnvelopeId, expectedVersion: link.version })}>Unlink</Button>}<Button size="sm" variant="outline" disabled={busy} onClick={() => void command('reject', { connectionId: link.connectionId, receiptId: link.receiptId, evidenceEnvelopeId: link.evidenceEnvelopeId, expectedVersion: link.version })}>Reject</Button></>}</div></div>) : <p className="text-sm text-muted-foreground">Chưa có liên kết explicit trong phạm vi được phép.</p>}
-    {admin && evidence.length > 0 && <div className="border-t pt-3"><p className="mb-2 text-xs font-medium">Link receipt từ origin tới Lead đích</p><select aria-label="Lead đích cho source association" className="mb-2 h-9 w-full rounded border px-2 text-sm" value={targetLeadId} onChange={event => setTargetLeadId(event.target.value)}><option value="">Chọn Lead đích…</option>{leads.map(item => <option key={item.leadId ?? item.id} value={item.leadId ?? item.id}>{item.displayName ?? item.leadId ?? item.id}</option>)}</select><div className="space-y-2">{evidence.slice(0, 5).map(item => <div key={item.receipt.receiptId} className="flex flex-wrap items-center justify-between gap-2 text-xs"><span>{item.observation.displayName ?? item.receipt.receiptId} · {item.observation.provider ?? 'UNKNOWN'}</span><Button size="sm" variant="outline" disabled={busy || !targetLeadId} onClick={() => void northStart.request(`/v1/source-integrations/leads/${targetLeadId}/source-links`, { method: 'POST', body: JSON.stringify({ connectionId: item.receipt.connectionId, receiptId: item.receipt.receiptId, evidenceEnvelopeId: item.receipt.envelopeId ?? '', expectedVersion: 0, action: 'link', reason: 'React source association: link', idempotencyKey: crypto.randomUUID() }) }).then(() => { setNotice('Đã ghi nhận liên kết nguồn vào audit.'); }).catch((e: any) => setError(e?.message ?? 'Lệnh liên kết nguồn bị từ chối.'))}>Link</Button></div>)}</div></div>}
+    {admin && evidence.length > 0 && <div className="border-t pt-3"><p className="mb-2 text-xs font-medium">Link receipt từ origin tới Lead đích</p><select aria-label="Lead đích cho source association" className="mb-2 h-9 w-full rounded border px-2 text-sm" value={targetLeadId} onChange={event => setTargetLeadId(event.target.value)}><option value="">Chọn Lead đích…</option>{leads.map(item => <option key={item.leadId ?? item.id} value={item.leadId ?? item.id}>{item.displayName ?? item.leadId ?? item.id}</option>)}</select><div className="space-y-2">{evidence.slice(0, 5).map(item => <div key={item.receipt.receiptId} className="flex flex-wrap items-center justify-between gap-2 text-xs"><span>{item.observation.displayName ?? item.receipt.receiptId} · {item.observation.provider ?? 'UNKNOWN'}</span><Button size="sm" variant="outline" disabled={busy || !targetLeadId} onClick={() => void linkToTarget(item)}>Link</Button></div>)}</div></div>}
   </CardContent></Card>;
 }

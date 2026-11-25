@@ -257,7 +257,7 @@ test("React commercial continuity opens persisted Conversation and authorized Le
   }
 });
 
-test("React admin cross-Lead source association Link Unlink Reject", async ({ page }) => {
+test("React admin cross-Lead source association Link Unlink Reject", async ({ page, browser }) => {
   await signIn(page, "admin");
   const connection = await api(page, "/v1/source-integrations/connections", { method: "POST", body: JSON.stringify({ provider: "pancake", route: "pancake-synthetic", pageId: "association-page" }) });
   expect(connection.status).toBe(201);
@@ -301,4 +301,16 @@ test("React admin cross-Lead source association Link Unlink Reject", async ({ pa
   expect(rejected.body.items.at(-1)).toMatchObject({ originLeadId: origin.leadId, effectiveLeadId: null, version: 3, linkage: "rejected" });
   const originEvidence = await api(page, `/v1/source-integrations/leads/${origin.leadId}/evidence?limit=25`);
   expect(originEvidence.status).toBe(200); expect(originEvidence.body.items.length).toBeGreaterThan(0);
+  const viewerContext = await browser.newContext();
+  const viewer = await viewerContext.newPage();
+  await signIn(viewer, "viewer"); await viewer.goto(`app/#/leads/${target.leadId}/show`);
+  await expect(viewer.getByText(/không có quyền|quyền truy cập|forbidden/i)).toBeVisible();
+  await expect(viewer.getByTestId("source-associations")).toHaveCount(0);
+  await viewerContext.close();
+  const foreignContext = await browser.newContext();
+  const foreign = await foreignContext.newPage();
+  await signIn(foreign, "foreign"); await foreign.goto(`app/#/leads/${target.leadId}/show`);
+  await expect(foreign.getByText(new RegExp(`Lead ID.*${target.leadId}`))).toHaveCount(0);
+  await expect(foreign.getByTestId("source-associations")).toHaveCount(0);
+  await foreignContext.close();
 });
