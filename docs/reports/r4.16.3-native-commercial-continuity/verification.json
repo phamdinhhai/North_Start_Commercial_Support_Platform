@@ -58,7 +58,7 @@
       "exitCode": 0
     }
   },
-  "evidenceSha": "41f16b190aac21e4ae0cac531e5b3f3b137d3d2e",
+  "evidenceSha": "5334564447a6aa41abfae5f9a491efece18c40df",
   "authorizationRegression": "PASS_ORIGIN_AND_EFFECTIVE_REQUIRED",
   "finalLocalHead": "6c801a3cbcf940f8ed3c0e8074f079c5ffb18a12",
   "rootCause": "CC-08 commercial entry owner presentation mismatch plus CC-09 dialog submission harness defect",
@@ -68,7 +68,7 @@
     "test": "commercial-continuity.browser.spec.ts",
     "evidence": "clean disposable PostgreSQL databases"
   },
-  "candidateLocalHead": "0869821e47524fc19896148736077441be113e7a",
+  "candidateLocalHead": "5334564447a6aa41abfae5f9a491efece18c40df",
   "cc13": "PASS_PERSISTED_OWNER_WORKITEM_VERSION_AUDIT",
   "cc14": "PASS_NATIVE_INBOX_ASSOCIATED_LEAD_LINK",
   "cc15": "PASS_SPECIFIC_SOURCE_UTTERANCE_AND_EVIDENCE",
