@@ -1,7 +1,7 @@
 # R4.16.3 final engineering report
 
-The recipient timeout root cause was confirmed. Synthetic intake creates an Admin-owned Lead, while Lead Detail previously exposed owner mutations only to Sales. The acceptance test also clicked the recipient Accept button without submitting its required command dialog.
+The complete React commercial journey now passes against clean disposable PostgreSQL: Native Inbox navigation uses the associated Lead link, source evidence is asserted for the same fabricated utterance, and the operator journey executes context, handoff, recipient acceptance, contact, follow-up, next action, reschedule, completion, reopen, outcome claim, correction, manager review and audit. Persisted owner, accepted Work Item, version and audit history are asserted after acceptance.
 
-The smallest legitimate correction enables existing owner-only commands for current Admin/Manager/Sales owners and resolves recipient identity from the signed session. Backend authorization remains owner-only. The minimal React flow now passes three consecutive clean disposable PostgreSQL executions through Context ? Handoff ? Recipient Acceptance with HTTP 201 and persisted owner transfer.
+The recipient timeout root cause was CC-08/CC-09: Admin-owned synthetic Leads were hidden by Sales-only UI gating, and the test failed to submit the acceptance dialog. Both are corrected without weakening backend owner authorization.
 
-The complete Stage B?E browser journey remains unverified and is still a release blocker.
+Local technical and regression gates pass. Hosted CI for the current local candidate and Owner acceptance remain pending.

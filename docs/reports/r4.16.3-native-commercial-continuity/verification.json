@@ -2,22 +2,22 @@
   "release": "R4.16.3",
   "branch": "feat/r4163-native-commercial-continuity",
   "baselineSha": "c29823065182587218771cd51969bfada07517b5",
-  "implementationSha": "6c801a3cbcf940f8ed3c0e8074f079c5ffb18a12",
+  "implementationSha": "beee18f746ea31beeda2cb983cbe97c0da419e35",
   "documentationSha": "8dd339ed1b271bad04f28671882fbd55f54bbd6b",
   "hostedCI": "PENDING",
   "ownerAcceptance": "PENDING",
-  "commercialJourney": "MINIMAL_RECIPIENT_ACCEPTANCE_VERIFIED",
+  "commercialJourney": "FULL_REACT_JOURNEY_VERIFIED",
   "p3": "SEND_UNRESOLVED",
   "p4": "NOT_TESTED",
   "p5": "NOT_VERIFIED",
   "providerCalls": 0,
   "providerMutations": 0,
   "productionAuthorization": "NO",
-  "status": "IMPLEMENTED_WITH_ACCEPTANCE_BLOCKERS",
+  "status": "LOCAL_COMMERCIAL_JOURNEY_VERIFIED_CI_PENDING",
   "blockers": [
-    "full React Stage B-E journey",
-    "exact-SHA Hosted CI",
-    "Owner acceptance"
+    "Hosted CI for current candidate SHA",
+    "Owner acceptance",
+    "React source association link/unlink/reject controls not exercised in this journey"
   ],
   "testEvidence": {
     "productTypecheck": {
@@ -49,10 +49,10 @@
       "exitCode": 0
     },
     "commercialBrowser": {
-      "command": "npx playwright test --config playwright.commercial-continuity.config.ts",
+      "command": "npx playwright test --config playwright.commercial-continuity.config.ts --reporter=line",
       "passed": 1,
       "exitCode": 0,
-      "notes": "Includes minimal React handoff and recipient acceptance; three clean DB runs passed"
+      "scope": "Conversation ? Lead ? evidence ? context ? handoff ? recipient acceptance ? contact ? follow-up ? next action ? reschedule ? complete ? reopen ? outcome ? correction ? manager review ? audit"
     },
     "architectureSecurity": {
       "command": "npm run architecture:check:strict; npm run security:audit",
@@ -68,5 +68,9 @@
     "result": "PASS",
     "test": "commercial-continuity.browser.spec.ts",
     "evidence": "clean disposable PostgreSQL databases"
-  }
+  },
+  "candidateLocalHead": null,
+  "cc13": "PASS_PERSISTED_OWNER_WORKITEM_VERSION_AUDIT",
+  "cc14": "PASS_NATIVE_INBOX_ASSOCIATED_LEAD_LINK",
+  "cc15": "PASS_SPECIFIC_SOURCE_UTTERANCE_AND_EVIDENCE"
 }
