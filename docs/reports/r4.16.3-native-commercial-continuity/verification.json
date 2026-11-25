@@ -2,7 +2,7 @@
   "release": "R4.16.3",
   "branch": "feat/r4163-native-commercial-continuity",
   "baselineSha": "c29823065182587218771cd51969bfada07517b5",
-  "implementationSha": "8874bfc8d571584d8ce90a150624f4d6495f3ffa",
+  "implementationSha": "6c801a3cbcf940f8ed3c0e8074f079c5ffb18a12",
   "documentationSha": "8dd339ed1b271bad04f28671882fbd55f54bbd6b",
   "hostedCI": "PENDING",
   "ownerAcceptance": "PENDING",
@@ -51,7 +51,8 @@
     "commercialBrowser": {
       "command": "npx playwright test --config playwright.commercial-continuity.config.ts",
       "passed": 1,
-      "exitCode": 0
+      "exitCode": 0,
+      "notes": "Includes minimal React handoff and recipient acceptance; three clean DB runs passed"
     },
     "architectureSecurity": {
       "command": "npm run architecture:check:strict; npm run security:audit",
@@ -60,7 +61,7 @@
   },
   "evidenceSha": "ab34df517563bcb115b899ebe5610423f5ea89f5",
   "authorizationRegression": "PASS_ORIGIN_AND_EFFECTIVE_REQUIRED",
-  "finalLocalHead": "2e38b8f3c60dc1bf986d91d146c1ddb7e44a48b2",
+  "finalLocalHead": "6c801a3cbcf940f8ed3c0e8074f079c5ffb18a12",
   "rootCause": "CC-08 commercial entry owner presentation mismatch plus CC-09 dialog submission harness defect",
   "minimalRecipientAcceptance": {
     "runs": 3,

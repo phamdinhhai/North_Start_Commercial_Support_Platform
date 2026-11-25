@@ -1,5 +1,7 @@
 # R4.16.3 final engineering report
 
-The origin/effective Lead authorization review found and fixed a real disclosure defect: explicit links previously authorized only the effective Lead. The projection now requires both immutable origin and effective Lead access for explicit links, while unlink/reject/no-link use origin authorization. PostgreSQL regression coverage passes 6/6.
+The recipient timeout root cause was confirmed. Synthetic intake creates an Admin-owned Lead, while Lead Detail previously exposed owner mutations only to Sales. The acceptance test also clicked the recipient Accept button without submitting its required command dialog.
 
-The short React acceptance slice passes 1/1. A full browser journey extension was attempted and timed out during recipient-flow execution, so R4.16.3 remains `IMPLEMENTED_WITH_ACCEPTANCE_BLOCKERS`.
+The smallest legitimate correction enables existing owner-only commands for current Admin/Manager/Sales owners and resolves recipient identity from the signed session. Backend authorization remains owner-only. The minimal React flow now passes three consecutive clean disposable PostgreSQL executions through Context ? Handoff ? Recipient Acceptance with HTTP 201 and persisted owner transfer.
+
+The complete Stage B?E browser journey remains unverified and is still a release blocker.
