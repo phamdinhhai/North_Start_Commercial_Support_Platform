@@ -2,7 +2,7 @@
   "release": "R4.16.3",
   "branch": "feat/r4163-native-commercial-continuity",
   "baselineSha": "c29823065182587218771cd51969bfada07517b5",
-  "implementationSha": "f749d66e29049eda25b61316741e9395d8064179",
+  "implementationSha": "0869821e47524fc19896148736077441be113e7a",
   "documentationSha": "8dd339ed1b271bad04f28671882fbd55f54bbd6b",
   "hostedCI": "PENDING",
   "ownerAcceptance": "PENDING",
@@ -15,9 +15,9 @@
   "productionAuthorization": "NO",
   "status": "LOCAL_COMMERCIAL_JOURNEY_VERIFIED_CI_PENDING",
   "blockers": [
+    "source association browser acceptance and conflict/negative UI verification",
     "Hosted CI for current candidate SHA",
-    "Owner acceptance",
-    "React source association link/unlink/reject controls not exercised in this journey"
+    "Owner acceptance"
   ],
   "testEvidence": {
     "productTypecheck": {
@@ -69,8 +69,9 @@
     "test": "commercial-continuity.browser.spec.ts",
     "evidence": "clean disposable PostgreSQL databases"
   },
-  "candidateLocalHead": "f749d66e29049eda25b61316741e9395d8064179",
+  "candidateLocalHead": "0869821e47524fc19896148736077441be113e7a",
   "cc13": "PASS_PERSISTED_OWNER_WORKITEM_VERSION_AUDIT",
   "cc14": "PASS_NATIVE_INBOX_ASSOCIATED_LEAD_LINK",
-  "cc15": "PASS_SPECIFIC_SOURCE_UTTERANCE_AND_EVIDENCE"
+  "cc15": "PASS_SPECIFIC_SOURCE_UTTERANCE_AND_EVIDENCE",
+  "sourceAssociationManagement": "IMPLEMENTED_UI_NOT_BROWSER_VERIFIED"
 }
