@@ -1,3 +1,4 @@
+import type { ContentDigester } from '../content-digest/content-digester';
 import { contentDigester } from '../content-digest/content-digester-runtime';
 import { decodeDigest, digestAsContent, encodeDigest, versionedDigest } from '../content-digest/versioned-content-digest';
 import { createHash } from 'node:crypto';
@@ -76,20 +77,47 @@ export function deepFreeze<T>(value: T): T {
 }
 
 /** Canonicalize + digest; also returns a frozen copy detached from caller references. */
-export function freezeArguments(value: unknown, workspaceId?: string): { arguments: JsonValue; canonical: string; digest: string } {
+export function freezeArguments(
+  value: unknown,
+  workspaceId?: string,
+  digester?: ContentDigester,
+): { arguments: JsonValue; canonical: string; digest: string } {
   const canonical = canonicalJson(value);
-  return { arguments: parseCanonical(canonical), canonical, digest: workspaceId ? encodeDigest(versionedDigest(contentDigester(), workspaceId, 'action-arguments', canonical)) : sha256Hex(canonical) };
+  return {
+    arguments: parseCanonical(canonical),
+    canonical,
+    digest: workspaceId
+      ? encodeDigest(versionedDigest(digester ?? contentDigester(), workspaceId, 'action-arguments', canonical))
+      : sha256Hex(canonical),
+  };
+}
+
+/**
+ * Integrity check returns `'UNKNOWN'` when a keyed digest's historical `kid` is unavailable
+ * (ADR-009 / I-08), distinguishing missing/foreign keys from tampered content (`false`).
+ */
+export function verifyArgumentsDigest(
+  input: { arguments: JsonValue; canonicalArguments: string; argumentDigest: string; workspaceId?: string },
+  digester?: ContentDigester,
+): boolean | 'UNKNOWN' {
+  try {
+    if (canonicalJson(input.arguments) !== input.canonicalArguments) return false;
+    const decoded = decodeDigest(input.argumentDigest);
+    if (!decoded) return sha256Hex(input.canonicalArguments) === input.argumentDigest;
+    if (!input.workspaceId) return false;
+    return (digester ?? contentDigester()).matches(input.workspaceId, 'action-arguments', input.canonicalArguments, digestAsContent(decoded));
+  } catch {
+    return false;
+  }
 }
 
 /**
  * Integrity check used at authorize and execute time: the stored arguments must still
  * serialize to the stored canonical form, and that form must still hash to the frozen digest.
  */
-export function argumentsIntact(input: { arguments: JsonValue; canonicalArguments: string; argumentDigest: string; workspaceId?: string }): boolean {
-  try {
-    return canonicalJson(input.arguments) === input.canonicalArguments &&
-      (decodeDigest(input.argumentDigest) ? !!input.workspaceId && contentDigester().matches(input.workspaceId, 'action-arguments', input.canonicalArguments, digestAsContent(decodeDigest(input.argumentDigest)!)) === true : sha256Hex(input.canonicalArguments) === input.argumentDigest);
-  } catch {
-    return false;
-  }
+export function argumentsIntact(
+  input: { arguments: JsonValue; canonicalArguments: string; argumentDigest: string; workspaceId?: string },
+  digester?: ContentDigester,
+): boolean {
+  return verifyArgumentsDigest(input, digester) === true;
 }

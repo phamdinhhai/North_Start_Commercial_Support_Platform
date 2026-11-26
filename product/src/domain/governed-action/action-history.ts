@@ -1,3 +1,4 @@
+import type { ContentDigester } from '../content-digest/content-digester';
 import { previewDigestOf } from './action-lifecycle';
 import {
   GovernedActionError, type ActionApproval, type ActionEvent, type ActionExecution, type ActionOutcome, type ActionPreview,
@@ -39,7 +40,7 @@ const corrupt = (e: ActionEvent, why: string): never => {
   throw new GovernedActionError('INVALID_INPUT', `history event ${e.sequence} (${e.type}) is not reconstructable: ${why}`);
 };
 
-export function replayLifecycle(events: readonly ActionEvent[]): LifecycleProjection {
+export function replayLifecycle(events: readonly ActionEvent[], digester?: ContentDigester): LifecycleProjection {
   if (events.length === 0 || events[0].type !== 'PROPOSED') throw new GovernedActionError('INVALID_INPUT', 'history must start with PROPOSED');
   let s: { -readonly [K in keyof LifecycleProjection]: LifecycleProjection[K] } = { state: 'PROPOSED', version: 0, attempts: 0 };
   for (const [index, e] of events.entries()) {
@@ -52,7 +53,7 @@ export function replayLifecycle(events: readonly ActionEvent[]): LifecycleProjec
         const changes = d.changes as unknown as PreviewChange[];
         if (!beforeState || !Array.isArray(changes)) corrupt(e, 'preview content missing');
         const evidence = evidenceOf(d);
-        if (previewDigestOf(str(d, 'argumentDigest'), beforeState, changes, evidence, e.workspaceId, str(d, 'previewDigest')) !== str(d, 'previewDigest')) corrupt(e, 'preview digest mismatch');
+        if (previewDigestOf(str(d, 'argumentDigest'), beforeState, changes, evidence, e.workspaceId, str(d, 'previewDigest'), digester) !== str(d, 'previewDigest')) corrupt(e, 'preview digest mismatch');
         s = { ...s, approval: undefined,
           preview: { beforeState, changes, previewDigest: str(d, 'previewDigest'), previewedAt: e.at, previewedBy: e.actor,
             ...(evidence ? { evidence } : {}) } };

@@ -5,14 +5,14 @@ import {
   authorize, beginExecution, cancel, expire, markStaleExecution, normalizeLeadId, preview, propose, recordExecutionResult,
   recordProposalRefusal, recordRefusal, recordVerification, reject, requireRunAuthority, type ExecutionFacts, type PolicyFacts,
 } from '../../domain/governed-action/action-lifecycle';
-import { observedOutcomeAssertion } from '../../domain/governed-action/action-outcome-assertion';
-import {
-  PRODUCTION_CAPABILITY_CATALOG, type CapabilityCatalog, type CapabilityDefinition,
-} from '../../domain/governed-action/capability-catalog';
+import { digestReadbackEvidence, observedOutcomeAssertion, verifiedOutcomeEvidence } from '../../domain/governed-action/action-outcome-assertion';
+import { PRODUCTION_CAPABILITY_CATALOG, type CapabilityCatalog, type CapabilityDefinition } from '../../domain/governed-action/capability-catalog';
 import {
   GovernedActionError, isGovernedActionError, type ActionActor, type ActionEvent, type ActionPrincipal, type ActionProposal,
   type ActionRefusal, type JsonValue, type ObservedState, type TargetResource, type Transition, type Verification,
 } from '../../domain/governed-action/governed-action.types';
+import type { ContentDigester } from '../../ports/content-digester';
+import { contentDigester } from '../../ports/content-digester-runtime';
 import type {
   ActionExecutionResult, ActionExecutor, ActionHousekeepingCommand, ActionKillSwitch, ActionKillSwitchControl, ActionPolicy,
   ActionPolicyContext, ActionReadCommand, ActionRequest, ActionStore, ActionVerifier, ActorResolver, AssertionSink,
@@ -35,6 +35,8 @@ export interface GovernedActionDeps {
   readonly assertions: AssertionSink;
   /** ADR-006: kill-switch control (admin only). Absent => operateKillSwitch is refused. */
   readonly killSwitchControl?: ActionKillSwitchControl;
+  /** ADR-009 (A-02): server-held workspace/purpose-keyed HMAC digester; defaults to the composition-root runtime binding. */
+  readonly digester?: ContentDigester;
   /** Defaults to the production catalog, which is empty (deny-all; ADR-007). */
   readonly catalog?: CapabilityCatalog;
   readonly clock?: GovernedActionClock;
@@ -97,6 +99,8 @@ export class GovernedActionService {
     this.executionLeaseMs = deps.executionLeaseMs ?? 5 * 60_000;
   }
 
+  private digesterOf(): ContentDigester { return this.deps.digester ?? contentDigester(); }
+
   async propose(principal: ActionPrincipal, command: ProposeCommand): Promise<ActionProposal> {
     const actor = await this.resolveActor(principal);
     try {
@@ -134,6 +138,7 @@ export class GovernedActionService {
       target: command.target, arguments: command.arguments, proposer: actor, rationale: command.rationale,
       constraints, ttlMs: command.ttlMs ?? DEFAULT_TTL_MS, ...(leadId ? { leadId } : {}),
       ...(commercialEventRef ? { commercialEventRef } : {}), evidenceRefs: command.evidenceRefs, commercialEvent,
+      digester: this.digesterOf(),
       constraintViolations: evaluateConstraints({
         capability, target: command.target, arguments: command.arguments as JsonValue, constraints, stage: 'propose',
       }),
@@ -157,7 +162,7 @@ export class GovernedActionService {
       const decision = await this.decide(() => this.deps.policy.mayPropose(actor, this.ctx(p)));
       if (!decision.allowed) throw new GovernedActionError('ACTOR_NOT_AUTHORIZED', decision.reason);
       const beforeState = await this.readCurrentState(p);
-      return preview(p, { actor, beforeState }, this.clock.now());
+      return preview(p, { actor, beforeState, digester: this.digesterOf() }, this.clock.now());
     });
   }
 
@@ -165,7 +170,7 @@ export class GovernedActionService {
     const { actor, p } = await this.load(principal, proposalId, 'authorize');
     return this.guard(p, actor, 'authorize', async () => {
       const facts = await this.policyFacts(p, 'authorize', () => this.deps.policy.mayApprove(actor, this.ctx(p)));
-      return authorize(p, { approver: actor, ...command, facts }, this.clock.now());
+      return authorize(p, { approver: actor, ...command, facts, digester: this.digesterOf() }, this.clock.now());
     });
   }
 
@@ -203,7 +208,7 @@ export class GovernedActionService {
         : p.preview?.beforeState ?? { status: 'UNKNOWN', reason: 'NOT_READ' };
       const policyFacts = await this.policyFacts(p, 'execute', () => this.deps.policy.mayTriggerExecution(actor, this.ctx(p)), currentState);
       const facts: ExecutionFacts = { ...policyFacts, executorEnabled: this.deps.executor.mode === 'synthetic', currentState };
-      begun = beginExecution(p, { actor, facts }, this.clock.now());
+      begun = beginExecution(p, { actor, facts, digester: this.digesterOf() }, this.clock.now());
     } catch (error) {
       if (isGovernedActionError(error) && error.code === 'APPROVAL_EXPIRED') {
         // Reached only after execution authority was established; the caller is the recorded trigger (A-m3).
@@ -379,27 +384,28 @@ export class GovernedActionService {
 
   /** ADR-005 R2-P-01: facts for a cited CE; a lookup failure is reported, never guessed. */
   private async lookupCommercialEvent(workspaceId: string, ref: string): Promise<CommercialEventLookupResult> {
-    try {
-      return await this.deps.commercialEvents.find(workspaceId, ref);
-    } catch {
-      return 'UNAVAILABLE';
-    }
+    try { return await this.deps.commercialEvents.find(workspaceId, ref); } catch { return 'UNAVAILABLE'; }
   }
 
   /**
-   * ADR-005 R2-P-02: a provider-observed verified outcome becomes an `observed` AssertionEnvelope.
-   * OPEN: CE-1 — evidence only; no Commercial State / Outcome transition is ever invoked here.
-   * Test-only memory delivery is best effort after the outcome is durable: a sink failure never undoes it, and the assertion id
-   * is derived from the outcome event, so a later re-emission from history is idempotent.
+   * ADR-005 R2-P-02 + ADR-009 (A-02): a provider-observed verified outcome becomes an `observed` AssertionEnvelope
+   * with a server-derived workspace/purpose-keyed HMAC digest. OPEN: CE-1 — evidence only; never moves Commercial State.
    */
+  private buildObservedOutcomeAssertion(t: Transition) {
+    const verification = verifiedOutcomeEvidence(t.proposal, t.event);
+    if (!verification) return undefined;
+    const evidenceDigest = digestReadbackEvidence(t.proposal.workspaceId, verification.evidence, this.digesterOf());
+    return observedOutcomeAssertion(t.proposal, t.event, this.clock.now(), { evidenceDigest });
+  }
+
   private async persistTransition(version: number, t: Transition): Promise<void> {
-    const assertion = this.deps.store.durableAssertions ? observedOutcomeAssertion(t.proposal, t.event, this.clock.now()) : undefined;
+    const assertion = this.deps.store.durableAssertions ? this.buildObservedOutcomeAssertion(t) : undefined;
     await this.deps.store.transition(version, t, assertion);
   }
 
   private async emitObservedOutcome(t: Transition): Promise<void> {
     if (this.deps.store.durableAssertions) return; // PostgreSQL worker owns durable delivery.
-    const envelope = observedOutcomeAssertion(t.proposal, t.event, this.clock.now());
+    const envelope = this.buildObservedOutcomeAssertion(t);
     if (envelope) await this.deps.assertions.emit(envelope).catch(() => undefined);
   }
 
@@ -423,28 +429,19 @@ export class GovernedActionService {
   }
 
   private async constraints(ctx: ActionPolicyContext) {
-    try {
-      return await this.deps.policy.constraintsFor(ctx);
-    } catch {
-      throw new GovernedActionError('POLICY_UNAVAILABLE', 'constraint policy unavailable');
-    }
+    try { return await this.deps.policy.constraintsFor(ctx); }
+    catch { throw new GovernedActionError('POLICY_UNAVAILABLE', 'constraint policy unavailable'); }
   }
 
   private async killStatus(p: ActionProposal): Promise<KillSwitchStatus> {
     try {
       const s = await this.deps.killSwitch.status({ workspaceId: p.workspaceId, capabilityId: p.capabilityId });
       return s && s.engaged === false ? s : { engaged: true, reason: s?.reason ?? 'kill switch engaged' };
-    } catch {
-      return { engaged: true, reason: 'kill switch unavailable (fail closed)' };
-    }
+    } catch { return { engaged: true, reason: 'kill switch unavailable (fail closed)' }; }
   }
 
   private async enabled(p: ActionProposal): Promise<boolean> {
-    try {
-      return (await this.deps.enablement.isEnabled(p.workspaceId, p.capabilityId)) === true;
-    } catch {
-      return false;
-    }
+    try { return (await this.deps.enablement.isEnabled(p.workspaceId, p.capabilityId)) === true; } catch { return false; }
   }
 
   private async policyFacts(p: ActionProposal, stage: ConstraintStage,

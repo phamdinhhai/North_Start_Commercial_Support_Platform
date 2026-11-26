@@ -1,4 +1,5 @@
 import { randomUUID } from 'node:crypto';
+import type { VersionedContentDigest } from '../content-digest/versioned-content-digest';
 import type { LeadId } from '../lead/lead';
 
 // ADR-005 (resolves CE-2) — Commercial Assertion umbrella: CommercialEvent = the `inferred`
@@ -129,6 +130,8 @@ export interface AssertionEnvelope {
   readonly ingestedAt: string;
   readonly rawEvidencePointer?: string;
   readonly rawPayloadHash?: string;
+  /** ADR-009: algorithm/kid/value metadata when `rawPayloadHash` is derived from potentially content-bearing evidence. */
+  readonly rawPayloadDigest?: VersionedContentDigest;
   readonly schemaVersion: 1;
   readonly createdBy: string;
   readonly supersedesAssertionId?: AssertionId;
@@ -175,6 +178,7 @@ export interface CreateAssertionInput {
   /** When the platform captured it; defaults to now. */
   readonly ingestedAt?: string;
   readonly rawPayloadHash?: string;
+  readonly rawPayloadDigest?: VersionedContentDigest;
   readonly evidenceSummary?: AssertionEvidenceSummary;
 }
 
@@ -256,6 +260,9 @@ export function createAssertion(input: CreateAssertionInput): AssertionEnvelope 
     ingestedAt: now,
     ...(input.rawEvidencePointer !== undefined && { rawEvidencePointer: input.rawEvidencePointer }),
     ...(input.rawPayloadHash !== undefined && { rawPayloadHash: input.rawPayloadHash }),
+    ...(input.rawPayloadDigest !== undefined && {
+      rawPayloadDigest: Object.freeze({ ...input.rawPayloadDigest }),
+    }),
     schemaVersion: 1,
     createdBy: input.createdBy,
     ...(input.supersedesAssertionId !== undefined && {

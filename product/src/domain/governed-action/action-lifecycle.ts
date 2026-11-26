@@ -1,7 +1,8 @@
+import type { ContentDigester } from '../content-digest/content-digester';
 import { contentDigester } from '../content-digest/content-digester-runtime';
 import { decodeDigest, digestAsContent, encodeDigest, versionedDigest } from '../content-digest/versioned-content-digest';
 import { hasEvidence, resolveProposalEvidence, type CommercialEventLookupResult } from './action-evidence';
-import { argumentsIntact, canonicalJson, deepFreeze, freezeArguments, sha256Hex } from './canonical-json';
+import { canonicalJson, deepFreeze, freezeArguments, sha256Hex, verifyArgumentsDigest } from './canonical-json';
 import { validateArguments, type CapabilityDefinition } from './capability-catalog';
 import {
   GovernedActionError, type ActionConstraints, type ActionEvent, type ActionEventType, type ActionProposal,
@@ -55,6 +56,7 @@ export interface ProposeInput {
   readonly evidenceRefs?: readonly unknown[];
   /** Facts about `commercialEventRef` gathered through the CommercialEventLookup port. */
   readonly commercialEvent?: CommercialEventLookupResult;
+  readonly digester?: ContentDigester;
 }
 
 const fail = (code: ConstructorParameters<typeof GovernedActionError>[0], message: string, details: readonly string[] = []): never => {
@@ -102,15 +104,22 @@ function requireNotExpired(p: ActionProposal, now: Date): void {
   if (now.getTime() >= Date.parse(p.expiresAt)) fail('PROPOSAL_EXPIRED', 'proposal has expired');
 }
 
-function requireIntact(p: ActionProposal): void {
-  if (!argumentsIntact(p)) fail('DIGEST_MISMATCH', 'stored arguments no longer match the frozen digest');
+function requireIntact(p: ActionProposal, digester?: ContentDigester): void {
+  const argsCheck = verifyArgumentsDigest(p, digester);
+  if (argsCheck !== true) {
+    fail('DIGEST_MISMATCH', 'stored arguments no longer match the frozen digest',
+      argsCheck === 'UNKNOWN' ? ['DIGEST_KEY_UNKNOWN'] : []);
+  }
   if (p.preview) {
-    try {
-      const expected = previewDigestOf(p.argumentDigest, p.preview.beforeState, p.preview.changes,
-        p.preview.evidence, p.workspaceId, p.preview.previewDigest);
-      if (expected !== p.preview.previewDigest || canonicalJson(p.preview.changes) !== canonicalJson(deriveChanges(p.arguments, p.preview.beforeState)) ||
-          canonicalJson(p.preview.evidence ?? null) !== canonicalJson(proposalEvidence(p) ?? null)) throw new Error('preview changed');
-    } catch { fail('DIGEST_MISMATCH', 'stored preview no longer matches reviewed content'); }
+    const pvCheck = verifyPreviewDigest(
+      p.argumentDigest, p.preview.beforeState, p.preview.changes, p.preview.evidence,
+      p.workspaceId, p.preview.previewDigest, digester,
+    );
+    if (pvCheck !== true || canonicalJson(p.preview.changes) !== canonicalJson(deriveChanges(p.arguments, p.preview.beforeState)) ||
+        canonicalJson(p.preview.evidence ?? null) !== canonicalJson(proposalEvidence(p) ?? null)) {
+      fail('DIGEST_MISMATCH', 'stored preview no longer matches reviewed content',
+        pvCheck === 'UNKNOWN' ? ['DIGEST_KEY_UNKNOWN'] : []);
+    }
   }
 }
 
@@ -160,7 +169,7 @@ export function propose(input: ProposeInput, now: Date): Transition {
     ...(input.commercialEventRef !== undefined ? { commercialEventRef: input.commercialEventRef } : {}),
     evidenceRefs: input.evidenceRefs, commercialEvent: input.commercialEvent,
   });
-  const frozen = freezeArguments(input.arguments, input.workspaceId);
+  const frozen = freezeArguments(input.arguments, input.workspaceId, input.digester);
   const violations = validateArguments(input.capability, frozen.arguments);
   if (violations.length > 0) fail('INVALID_ARGUMENTS', 'arguments do not match capability schema', violations);
   if (input.constraintViolations.length > 0) fail('CONSTRAINT_VIOLATION', 'constraints violated', input.constraintViolations);
@@ -201,22 +210,35 @@ export function deriveChanges(args: JsonValue, before: ObservedState): PreviewCh
   });
 }
 
+export function verifyPreviewDigest(
+  argumentDigest: string, beforeState: ObservedState, changes: readonly PreviewChange[],
+  evidence: ProposalEvidence | undefined, workspaceId: string | undefined, storedDigest: string, digester?: ContentDigester,
+): boolean | 'UNKNOWN' {
+  const canonical = canonicalJson({ argumentDigest, beforeState, changes, ...(hasEvidence(evidence) ? { evidence: evidenceJson(evidence!) } : {}) });
+  if (!decodeDigest(argumentDigest)) return sha256Hex(canonical) === storedDigest;
+  if (!workspaceId) return false;
+  const decoded = decodeDigest(storedDigest);
+  if (!decoded) return false;
+  return (digester ?? contentDigester()).matches(workspaceId, 'action-preview', canonical, digestAsContent(decoded));
+}
+
 /**
  * The preview digest binds the frozen argument digest, the observed baseline, the change list
  * and — when the proposal cites any — the evidence shown to the approver (ADR-005).
  */
 export function previewDigestOf(
-  argumentDigest: string, beforeState: ObservedState, changes: readonly PreviewChange[], evidence?: ProposalEvidence, workspaceId?: string, storedDigest?: string,
+  argumentDigest: string, beforeState: ObservedState, changes: readonly PreviewChange[], evidence?: ProposalEvidence,
+  workspaceId?: string, storedDigest?: string, digester?: ContentDigester,
 ): string {
   const canonical = canonicalJson({ argumentDigest, beforeState, changes, ...(hasEvidence(evidence) ? { evidence: evidenceJson(evidence!) } : {}) });
   if (!decodeDigest(argumentDigest)) return sha256Hex(canonical);
   if (!workspaceId) throw new Error('preview_workspace_required');
   if (storedDigest) {
-    const decoded = decodeDigest(storedDigest);
-    if (decoded && contentDigester().matches(workspaceId, 'action-preview', canonical, digestAsContent(decoded)) === true) return storedDigest;
-    throw new GovernedActionError('INVALID_INPUT', 'preview digest mismatch');
+    const check = verifyPreviewDigest(argumentDigest, beforeState, changes, evidence, workspaceId, storedDigest, digester);
+    if (check === true) return storedDigest;
+    throw new GovernedActionError('INVALID_INPUT', 'preview digest mismatch', check === 'UNKNOWN' ? ['DIGEST_KEY_UNKNOWN'] : []);
   }
-  return encodeDigest(versionedDigest(contentDigester(), workspaceId, 'action-preview', canonical));
+  return encodeDigest(versionedDigest(digester ?? contentDigester(), workspaceId, 'action-preview', canonical));
 }
 
 /** Evidence as plain JSON (stable shape for digests and event data). */
@@ -230,13 +252,13 @@ const proposalEvidence = (p: ActionProposal): ProposalEvidence | undefined => {
 };
 
 /** PREVIEW — read-only; re-preview is how a FAILED_VERIFIED action becomes re-authorizable. */
-export function preview(p: ActionProposal, input: { actor: ActorRef; beforeState: ObservedState }, now: Date): Transition {
+export function preview(p: ActionProposal, input: { actor: ActorRef; beforeState: ObservedState; digester?: ContentDigester }, now: Date): Transition {
   requireState(p, ['PROPOSED', 'PREVIEWED', 'FAILED_VERIFIED'], 'preview');
   requireNotExpired(p, now);
-  requireIntact(p);
+  requireIntact(p, input.digester);
   const changes = deriveChanges(p.arguments, input.beforeState);
   const evidence = proposalEvidence(p);
-  const previewDigest = previewDigestOf(p.argumentDigest, input.beforeState, changes, evidence, p.workspaceId);
+  const previewDigest = previewDigestOf(p.argumentDigest, input.beforeState, changes, evidence, p.workspaceId, undefined, input.digester);
   // A-M1: the event carries the full reviewed content, so the digest can be re-derived from history.
   // ADR-005: cited evidence is part of what the approver reviews.
   return transition(p, {
@@ -256,6 +278,7 @@ export interface AuthorizeInput {
   readonly reviewedPreviewDigest: string;
   readonly reason: string;
   readonly facts: PolicyFacts;
+  readonly digester?: ContentDigester;
 }
 
 /**
@@ -271,7 +294,7 @@ export function authorize(p: ActionProposal, input: AuthorizeInput, now: Date): 
   requireNotExpired(p, now);
   nonEmpty(input.reason, 'reason', 2000);
   if (!input.facts.authority.allowed) fail('ACTOR_NOT_AUTHORIZED', input.facts.authority.reason ?? 'approver lacks authority');
-  requireIntact(p);
+  requireIntact(p, input.digester);
   if (input.reviewedArgumentDigest !== p.argumentDigest) fail('DIGEST_MISMATCH', 'reviewed arguments differ from the proposal');
   if (!p.preview || input.reviewedPreviewDigest !== p.preview.previewDigest) fail('PREVIEW_STALE', 'reviewed preview is not the current preview');
   requireGates(input.facts);
@@ -334,7 +357,7 @@ export function expire(p: ActionProposal, input: HousekeepingInput, now: Date): 
  * EXECUTE (start) — refuses UNKNOWN outcomes outright: a consequential action whose effect is
  * unknown is never retried until readback proves it did not execute. Consumes the approval.
  */
-export function beginExecution(p: ActionProposal, input: { actor: ActorRef; facts: ExecutionFacts }, now: Date): Transition {
+export function beginExecution(p: ActionProposal, input: { actor: ActorRef; facts: ExecutionFacts; digester?: ContentDigester }, now: Date): Transition {
   if (p.state === 'UNKNOWN') fail('OUTCOME_UNKNOWN_RETRY_REFUSED', 'previous outcome is UNKNOWN; verify by readback before any retry');
   if (p.state === 'EXECUTING') fail('EXECUTION_IN_FLIGHT', 'an execution attempt is already in flight');
   if (p.state === 'SUCCEEDED_VERIFIED') fail('ALREADY_EXECUTED', 'action already executed and verified');
@@ -345,7 +368,7 @@ export function beginExecution(p: ActionProposal, input: { actor: ActorRef; fact
   if (!approval || approval.consumed) fail('REAUTHORIZATION_REQUIRED', 'no unused approval');
   if (now.getTime() >= Date.parse(approval!.expiresAt)) fail('APPROVAL_EXPIRED', 'approval has expired');
   requireNotExpired(p, now);
-  requireIntact(p);
+  requireIntact(p, input.digester);
   if (approval!.argumentDigest !== p.argumentDigest || approval!.previewDigest !== p.preview?.previewDigest) {
     fail('DIGEST_MISMATCH', 'approval is not bound to the current arguments/preview');
   }

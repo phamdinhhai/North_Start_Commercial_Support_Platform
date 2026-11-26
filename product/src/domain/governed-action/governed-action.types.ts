@@ -187,7 +187,7 @@ export interface ActionProposal {
   /** Deep-frozen JSON arguments; authoritative serialized form is `canonicalArguments`. */
   readonly arguments: JsonValue;
   readonly canonicalArguments: string;
-  /** SHA-256 hex of `canonicalArguments`, frozen at proposal time. */
+  /** Versioned workspace-keyed HMAC token (`hmac-sha256-v1:<kid>:<hex>`) of `canonicalArguments`, frozen at proposal time (legacy SHA-256 hex readable). */
   readonly argumentDigest: string;
   readonly proposer: ActorRef;
   readonly rationale: string;

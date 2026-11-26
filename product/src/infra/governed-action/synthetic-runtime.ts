@@ -1,6 +1,7 @@
 import type { CapabilityCatalog } from '../../domain/governed-action/capability-catalog';
 import type { ActionActor, ActionPrincipal, CommercialEventFacts } from '../../domain/governed-action/governed-action.types';
 import { SYNTHETIC_CAPABILITY_CATALOG } from '../../domain/governed-action/testing/synthetic-capabilities.fixture';
+import type { ContentDigester } from '../../ports/content-digester';
 import type { ActionStore, ActorResolver } from '../../ports/governed-action';
 import {
   StaticActionPolicy, StaticActorResolver, StaticCapabilityEnablement, StaticKillSwitch, type StaticActionPolicyConfig,
@@ -25,6 +26,7 @@ export interface SyntheticRuntimeOptions {
   readonly catalog?: CapabilityCatalog;
   /** CommercialEvent facts an AI proposal may cite (ADR-005 R2-P-01). Default: none. */
   readonly commercialEvents?: readonly CommercialEventFacts[];
+  readonly digester?: ContentDigester;
 }
 
 /**
@@ -46,6 +48,7 @@ export function createSyntheticActionPorts(options: SyntheticRuntimeOptions) {
     catalog: options.catalog ?? SYNTHETIC_CAPABILITY_CATALOG,
     commercialEvents: new StaticCommercialEventLookup(options.commercialEvents ?? []),
     assertions: new InMemoryAssertionSink(),
+    ...(options.digester ? { digester: options.digester } : {}),
   };
 }
 
