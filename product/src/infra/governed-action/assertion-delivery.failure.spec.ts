@@ -22,7 +22,9 @@ const opts = { batchSize: 2, maxAttempts: 2, leaseMs: 1_000, timeoutMs: 5, backo
 const envelope = (over: Partial<Parameters<typeof createAssertion>[0]> = {}) => createAssertion({
   workspaceId: 'ws', subjectType: 'lead', subjectId: 'l', eventType: 'ACTION_OUTCOME_OBSERVED', value: 'EXECUTED',
   acquisitionMode: 'observed', sourceSystem: 'synthetic-ads', sourceActor: 'governed-action-readback', createdBy: 'governed-action-runtime',
-  capturedAt: '2026-11-26T00:00:00.000Z', ingestedAt: '2026-11-26T00:00:01.000Z', ...over,
+  capturedAt: '2026-11-26T00:00:00.000Z', ingestedAt: '2026-11-26T00:00:01.000Z',
+  rawPayloadHash: 'hmac-sha256-v1:test-kid:' + 'a'.repeat(64),
+  rawPayloadDigest: { algorithm_version: 'hmac-sha256-v1', kid: 'test-kid', value: 'a'.repeat(64) }, ...over,
 });
 
 function fixture(value: unknown = envelope(), attempts = 1, leaseToken = 'token-1') {
