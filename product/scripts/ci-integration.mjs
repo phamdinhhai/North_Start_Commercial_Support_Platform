@@ -39,6 +39,7 @@ const requiredSuites = [
   'src/infra/governed-action/governed-action.review-fixes.integration.spec.ts',
   'src/infra/governed-action/governed-action.adr005.integration.spec.ts',
   'src/infra/governed-action/assertion-delivery.integration.spec.ts',
+  'src/infra/research-capture/research-receipt.integration.spec.ts',
 ];
 
 /** Every PostgreSQL suite on disk must be required, so a new suite can never be silently skipped. */

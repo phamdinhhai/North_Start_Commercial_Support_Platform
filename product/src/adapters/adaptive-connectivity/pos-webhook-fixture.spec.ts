@@ -23,13 +23,25 @@ describe('synthetic POS intake assurance', () => {
     confirm('stored');
     expect(await pending).toEqual({ status: 202, result: 'stored' });
     const saved: ResearchReceipt = append.mock.calls[0][0];
-    expect(saved).toMatchObject({ evidenceType: 'synthetic', schemaStatus: 'uninterpreted', workspaceId: scope.workspaceId });
-    expect(Buffer.from(saved.rawBodyBase64, 'base64')).toEqual(delivery.rawBody);
+    expect(saved).toMatchObject({
+      evidenceType: 'synthetic',
+      schemaStatus: 'uninterpreted',
+      workspaceId: scope.workspaceId,
+      retentionDays: 7,
+      payloadDigest: { alg: 'HMAC-SHA256' },
+    });
+    expect(Buffer.from(saved.rawBodyBase64!, 'base64')).toEqual(delivery.rawBody);
+    expect(Buffer.from(saved.rawBody!)).toEqual(delivery.rawBody);
   });
 
-  it.each(['duplicate', 'conflict'] as const)('maps atomic sink result %s', async (result) => {
+  it.each(['duplicate', 'conflict', 'UNKNOWN'] as const)('maps atomic sink result %s', async (result) => {
     const receiver = new PosWebhookFixtureReceiver(scope, secret, { append: async () => result }, options);
-    expect((await receiver.receive(delivery)).status).toBe(result === 'duplicate' ? 202 : 409);
+    const expected = result === 'duplicate'
+      ? { status: 202, result: 'duplicate' }
+      : result === 'conflict'
+        ? { status: 409, result: 'conflict' }
+        : { status: 503, result: 'UNKNOWN' };
+    expect(await receiver.receive(delivery)).toEqual(expected);
   });
 
   it('returns retryable failure without exposing storage errors or credentials', async () => {

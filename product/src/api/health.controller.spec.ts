@@ -33,6 +33,7 @@ const db = {
       { version: '021_source_link_receipt_guard' },
       { version: '022_sync_stream' },
       { version: '023_fabricated_delivery' },
+      { version: '024_research_capture_receipts' },
   ] })),
 };
 const controller = new HealthController(new PostgresReadinessProbe(db as never));
@@ -84,7 +85,7 @@ describe('HealthController', () => {
         '008_integration_receipts', '009_work_completion_provenance', '010_workspace_membership',
         '011_governed_actions', '012_content_digest', '013_pilot_closure', '014_assertion_delivery', '015_data_lifecycle', '016_contact_attempt', '017_assertion_ops',
         '018_source_integration', '019_source_receipt_lookup_indexes', '020_source_episode_link',
-        '021_source_link_receipt_guard', '022_sync_stream', '023_fabricated_delivery',
+        '021_source_link_receipt_guard', '022_sync_stream', '023_fabricated_delivery', '024_research_capture_receipts',
       ]],
     );
   });
@@ -99,7 +100,7 @@ describe('HealthController', () => {
   });
 
   it.each(['018_source_integration', '019_source_receipt_lookup_indexes', '020_source_episode_link',
-    '021_source_link_receipt_guard', '022_sync_stream', '023_fabricated_delivery'])('refuses readiness when consolidated integration migration %s is absent', async missing => {
+    '021_source_link_receipt_guard', '022_sync_stream', '023_fabricated_delivery', '024_research_capture_receipts'])('refuses readiness when consolidated integration migration %s is absent', async missing => {
     process.env = { DEPLOYMENT_MODE: 'pilot', DATABASE_URL: 'postgres://local/db' };
     const complete=await db.query();
     db.query.mockResolvedValueOnce({rows:complete.rows.filter(row=>row.version!==missing)});

@@ -73,6 +73,7 @@ describe('Migrator — PH3 T3-08', () => {
       '021_source_link_receipt_guard',
       '022_sync_stream',
       '023_fabricated_delivery',
+      '024_research_capture_receipts',
     ]);
     expect(files.every((m) => m.up.length > 0 && m.down.length > 0)).toBe(true);
 
