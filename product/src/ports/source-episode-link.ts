@@ -19,6 +19,8 @@ export type SourceLinkAuthorization = (ctx:AuthContext,leadId:string,locked?:Sou
 export interface SourceEpisodeLinkStore {
  command(ctx:AuthContext,leadId:string,input:SourceEpisodeLinkInput,content:string,digester:import('./content-digester').ContentDigester,authorize:SourceLinkAuthorization):Promise<SourceEpisodeLink>;
  list(workspaceId:string,leadId:string,actorId?:string):Promise<readonly SourceEpisodeLink[]>;
+ /** Read the authoritative receipt-scoped state for command preconditions. */
+ current(workspaceId:string,connectionId:string,receiptId:string):Promise<SourceEpisodeLink|null>;
  /** Current effective links only; historical origin receipts remain separately inspectable. */
  linkedReceipts(workspaceId:string,leadId:string):Promise<readonly {connectionId:string;receiptId:string;envelopeId:string;originLeadId:string}[]>;
 }

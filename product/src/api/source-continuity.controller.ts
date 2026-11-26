@@ -1,4 +1,4 @@
-import {Body,Controller,Get,Header,Headers,HttpException,Inject,Param,Post} from '@nestjs/common';
+import {Body,Controller,Get,Header,Headers,HttpException,Inject,Param,Post,Query} from '@nestjs/common';
 import {AUTH_CONTEXT_RESOLVER,type AuthContextResolver} from '../ports/auth';
 import {SOURCE_SYNTHETIC_MODE} from '../ports/source-fixture-decoder';
 import {SourceIntegrationError} from '../ports/source-observation';
@@ -21,6 +21,7 @@ export class SourceContinuityController{
       throw new HttpException({code:'SOURCE_UNAVAILABLE'},503);}
   }
   @Get(':id/source-links') @Header('Cache-Control','no-store') list(@Headers()h:Record<string,string|undefined>,@Param('id')id:string){return this.run(h,id,ctx=>this.continuity.list(ctx,id));}
+  @Get(':id/source-links/current') @Header('Cache-Control','no-store') current(@Headers()h:Record<string,string|undefined>,@Param('id')id:string,@Query('connectionId')connectionId:string,@Query('receiptId')receiptId:string){return this.run(h,id,ctx=>this.continuity.current(ctx,id,connectionId,receiptId));}
   @Post(':id/source-links') @Header('Cache-Control','no-store') command(@Headers()h:Record<string,string|undefined>,@Param('id')id:string,@Body()body:unknown){return this.run(h,id,ctx=>this.continuity.command(ctx,id,body));}
   @Get(':id/linked-evidence') @Header('Cache-Control','no-store') evidence(@Headers()h:Record<string,string|undefined>,@Param('id')id:string){return this.run(h,id,ctx=>this.linked.evidence(ctx,id));}
 }

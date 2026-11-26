@@ -6,7 +6,7 @@ import type {AuthContext} from '../../ports/auth';
 import {configuredContentDigester} from '../../infra/crypto/configured-content-digester';
 const ctx:AuthContext={workspaceId:'w',userId:'owner',role:'admin',isDemo:false};
 const input=()=>({connectionId:randomUUID(),receiptId:'receipt',evidenceEnvelopeId:randomUUID(),expectedVersion:0,idempotencyKey:'key',action:'link',reason:'Human selected evidence'});
-function setup(enabled=true){const store={command:vi.fn(),list:vi.fn().mockResolvedValue([]),linkedReceipts:vi.fn().mockResolvedValue([])} satisfies SourceEpisodeLinkStore;const owner=vi.fn().mockResolvedValue(undefined),read=vi.fn().mockResolvedValue(undefined);return {store,owner,read,service:new SourceContinuityService(store,owner,read,configuredContentDigester({NODE_ENV:'test'}),enabled)};}
+function setup(enabled=true){const store={command:vi.fn(),list:vi.fn().mockResolvedValue([]),current:vi.fn().mockResolvedValue(null),linkedReceipts:vi.fn().mockResolvedValue([])} satisfies SourceEpisodeLinkStore;const owner=vi.fn().mockResolvedValue(undefined),read=vi.fn().mockResolvedValue(undefined);return {store,owner,read,service:new SourceContinuityService(store,owner,read,configuredContentDigester({NODE_ENV:'test'}),enabled)};}
 describe('explicit source continuity boundary',()=>{
  it('defaults gated off and rejects demo/viewer/manager/sales without store access',async()=>{
   const a=setup(false);await expect(a.service.command(ctx,randomUUID(),input())).rejects.toMatchObject({code:'SOURCE_INTEGRATION_DISABLED'});
@@ -29,4 +29,5 @@ describe('explicit source continuity boundary',()=>{
   expect(await s.service.list({...ctx,role:'sales'},lead)).toMatchObject({items:[],completeness:'UNKNOWN'});
  });
  it('authorizes bounded reads separately' ,async()=>{const s=setup(),lead=randomUUID();expect(await s.service.list(ctx,lead)).toMatchObject({items:[],limit:100,verification:'UNVERIFIED'});await s.service.linkedReceipts(ctx,lead);expect(s.read).toHaveBeenCalledTimes(2);});
+ it('reads the authoritative receipt-scoped state before a relink command',async()=>{const s=setup(),connectionId=randomUUID(),receiptId='receipt-1',current={version:2,originLeadId:randomUUID(),effectiveLeadId:randomUUID()};s.store.current.mockResolvedValue(current as never);s.read.mockResolvedValue(undefined);expect(await s.service.current(ctx,current.effectiveLeadId,connectionId,receiptId)).toMatchObject({version:2,state:current,completeness:'UNKNOWN'});expect(s.store.current).toHaveBeenCalledWith(ctx.workspaceId,connectionId,receiptId);expect(s.read).toHaveBeenCalledTimes(3);});
 });

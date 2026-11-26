@@ -32,6 +32,14 @@ export class SourceContinuityService {
   }
   return {items,limit:100,possiblyTruncated:items.length===100,completeness:'UNKNOWN' as const,verification:'UNVERIFIED' as const};
  }
+ async current(ctx:AuthContext,leadId:string,connectionId:string,receiptId:string){
+  this.gate(ctx);
+  if(!uuid(leadId)||!text(connectionId,256)||!text(receiptId,256))throw new SourceIntegrationError('INPUT_INVALID',400);
+  await this.authorizeRead(ctx,leadId);
+  const row=await this.store.current(ctx.workspaceId,connectionId,receiptId);
+  if(row)for(const id of new Set([row.originLeadId,row.effectiveLeadId]))if(id)await this.authorizeRead(ctx,id);
+  return {version:row?.version??0,state:row,completeness:'UNKNOWN' as const,verification:'UNVERIFIED' as const};
+ }
  async linkedReceipts(ctx:AuthContext,leadId:string){
   this.gate(ctx);await this.authorizeRead(ctx,leadId);
   const rows=await this.store.linkedReceipts(ctx.workspaceId,leadId),items=[];

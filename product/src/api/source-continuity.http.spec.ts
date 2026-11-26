@@ -13,7 +13,7 @@ describe('R4.11 continuity HTTP boundary',()=>{
  const id='00000000-0000-4000-8000-000000000001';
  const admin:AuthContext={workspaceId:'qa',userId:'admin',role:'admin',isDemo:false};
  async function setup(ctx:AuthContext|null=admin,enabled=true){
-  const store={command:vi.fn(),list:vi.fn().mockResolvedValue([]),linkedReceipts:vi.fn().mockResolvedValue([])};
+  const store={command:vi.fn(),list:vi.fn().mockResolvedValue([]),current:vi.fn().mockResolvedValue(null),linkedReceipts:vi.fn().mockResolvedValue([])};
   const read=vi.fn().mockResolvedValue(undefined),mutate=vi.fn().mockResolvedValue(undefined);
   const continuity=new SourceContinuityService(store,mutate,read,{} as never,enabled);
   const reader={read:vi.fn()};
@@ -32,6 +32,11 @@ describe('R4.11 continuity HTTP boundary',()=>{
    expect(r.json()).toHaveProperty('code');
   }
   expect(store.list).not.toHaveBeenCalled();expect(store.linkedReceipts).not.toHaveBeenCalled();
+ });
+ it('exposes receipt-scoped current state without reading target history',async()=>{
+  const {store}=await setup();
+  const r=await app.inject({url:`/source-integrations/leads/${id}/source-links/current?connectionId=connection-1&receiptId=receipt-1`});
+  expect(r.statusCode).toBe(200);expect(r.json()).toMatchObject({version:0,completeness:'UNKNOWN',verification:'UNVERIFIED'});expect(store.current).toHaveBeenCalledWith('qa','connection-1','receipt-1');expect(store.list).not.toHaveBeenCalled();
  });
  it('returns no-store honest projections and rejects malformed identifiers',async()=>{
   await setup();

@@ -46,13 +46,11 @@ export function SourceAssociationPanel({ leadId }: { leadId: string }) {
     if (!targetLeadId) return;
     setBusy(true); setError(''); setNotice('');
     try {
-      // The command version is receipt scoped. Read the target's complete
-      // authorized history immediately before posting instead of deriving it
-      // from this origin panel (or assuming an empty target is version 0).
-      const current = await northStart.request<{ items: LinkRow[] }>(`/v1/source-integrations/leads/${targetLeadId}/source-links`);
-      const latest = current.items
-        .filter(link => link.connectionId === item.receipt.connectionId && link.receiptId === item.receipt.receiptId)
-        .reduce((version, link) => Math.max(version, link.version), 0);
+      // The command version is receipt scoped. Read the server-authoritative
+      // current state immediately before posting; target history may be bounded
+      // or incomplete and is not a valid concurrency source.
+      const current = await northStart.request<{ version: number }>(`/v1/source-integrations/leads/${targetLeadId}/source-links/current?connectionId=${encodeURIComponent(item.receipt.connectionId)}&receiptId=${encodeURIComponent(item.receipt.receiptId)}`);
+      const latest = current.version;
       await northStart.request(`/v1/source-integrations/leads/${targetLeadId}/source-links`, {
         method: 'POST',
         body: JSON.stringify({

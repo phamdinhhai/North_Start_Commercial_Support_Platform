@@ -45,6 +45,10 @@ export class PgSourceEpisodeLinkStore implements SourceEpisodeLinkStore {
    return rows.rows.map(project);
   });
  }
+ async current(workspaceId:string,connectionId:string,receiptId:string){
+  const rows=await this.db.query<Row>(`SELECT * FROM source_episode_link WHERE workspace_id=$1 AND connection_id=$2 AND receipt_id=$3 ORDER BY version DESC LIMIT 1`,[workspaceId,connectionId,receiptId]);
+  return rows.rows[0]?project(rows.rows[0]):null;
+ }
  async linkedReceipts(workspaceId:string,leadId:string){
   const rows=await this.db.query<{connection_id:string;receipt_id:string;envelope_id:string;origin_lead_id:string}>(`SELECT l.connection_id,l.receipt_id,l.envelope_id,l.origin_lead_id FROM source_episode_link l WHERE l.workspace_id=$1 AND l.effective_lead_id=$2::uuid AND NOT EXISTS(SELECT 1 FROM source_episode_link newer WHERE newer.workspace_id=l.workspace_id AND newer.connection_id=l.connection_id AND newer.receipt_id=l.receipt_id AND newer.version>l.version) ORDER BY l.recorded_at,l.id LIMIT 100`,[workspaceId,leadId]);
   return rows.rows.map(r=>({connectionId:r.connection_id,receiptId:r.receipt_id,envelopeId:r.envelope_id,originLeadId:r.origin_lead_id}));
