@@ -1,5 +1,6 @@
 import type { AssertionEnvelope } from '../../domain/commercial-event/commercial-event';
 import { deepFreeze, parseCanonical } from '../../domain/governed-action/canonical-json';
+import { validDeliveryEnvelope } from './assertion-envelope.validation';
 import {
   GovernedActionError, type ActionConstraints, type ActionEvent, type ActionProposal, type ActionRefusal, type ActorKind,
   type ActionState, type GovernedActionErrorCode, type ProposalRefusal, type RiskClass, type TargetResource, type Transition,
@@ -99,6 +100,7 @@ export class PgActionStore implements ActionStore {
       await insertEvent(tx, t.event);
       if (assertion) {
         if (assertion.workspaceId !== p.workspaceId) throw new Error('ASSERTION_WORKSPACE_MISMATCH');
+        if (!validDeliveryEnvelope(assertion, p.workspaceId, assertion.assertionId)) throw new Error('INVALID_ENVELOPE');
         await tx.query(`INSERT INTO assertion_outbox (workspace_id, assertion_id, proposal_id, event_sequence, envelope)
           VALUES ($1,$2,$3,$4,$5::jsonb)`,
         [p.workspaceId, assertion.assertionId, p.id, t.event.sequence, JSON.stringify(assertion)]);

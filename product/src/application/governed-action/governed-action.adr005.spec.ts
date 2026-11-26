@@ -195,6 +195,13 @@ describe('ADR-005 R2-P-02 — a verified outcome emits an observed AssertionEnve
     expect(a?.assertionId).toBe(b?.assertionId);
     expect(a?.assertionId).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/);
     expect(observedOutcomeAssertion(done, events[0], new Date())).toBeUndefined();
+
+    // Exact duplicate replay is idempotent; conflicting payload under the same assertionId is rejected.
+    const sink = h.ports.assertions;
+    await sink.emit(a!);
+    await sink.emit(structuredClone(a!));
+    expect(sink.envelopes).toHaveLength(1);
+    await expect(sink.emit({ ...a!, value: 'NOT_EXECUTED' })).rejects.toThrow('ENVELOPE_CONFLICT');
   });
 
   it('no Commercial State port is reachable: only governed-action ports are called, and the code imports no state module', async () => {

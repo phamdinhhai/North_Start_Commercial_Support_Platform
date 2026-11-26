@@ -1,5 +1,5 @@
 import type { AssertionEnvelope } from '../../domain/commercial-event/commercial-event';
-import { deepFreeze } from '../../domain/governed-action/canonical-json';
+import { canonicalJson, deepFreeze } from '../../domain/governed-action/canonical-json';
 import type { CommercialEventFacts } from '../../domain/governed-action/governed-action.types';
 import type { AssertionSink, CommercialEventLookup } from '../../ports/governed-action';
 
@@ -25,16 +25,24 @@ export class StaticCommercialEventLookup implements CommercialEventLookup {
 }
 
 /**
- * Records observed assertions in memory, idempotent on `assertionId`. Tests and synthetic runs
- * only; a durable sink belongs to the assertion store (see report limitations).
+ * Records observed assertions in memory, idempotent on `(workspaceId, assertionId)` and
+ * rejecting conflicting payloads under the same key (`ENVELOPE_CONFLICT`). Tests and synthetic
+ * runs only; durable delivery uses `PgAssertionDelivery` + `PgAssertionInbox`.
  */
 export class InMemoryAssertionSink implements AssertionSink {
-  private readonly byId = new Map<string, AssertionEnvelope>();
+  private readonly byKey = new Map<string, { readonly canonical: string; readonly envelope: AssertionEnvelope }>();
   async emit(envelope: AssertionEnvelope): Promise<void> {
     if (envelope.acquisitionMode === ('inferred' as string)) throw new Error('an AssertionSink accepts non-inferred assertions only (ADR-005)');
-    if (!this.byId.has(envelope.assertionId)) this.byId.set(envelope.assertionId, deepFreeze(structuredClone(envelope)));
+    const k = `${envelope.workspaceId}\u0000${envelope.assertionId}`;
+    const canonical = canonicalJson(envelope as unknown as Record<string, unknown>);
+    const existing = this.byKey.get(k);
+    if (existing) {
+      if (existing.canonical !== canonical) throw new Error('ENVELOPE_CONFLICT');
+      return;
+    }
+    this.byKey.set(k, { canonical, envelope: deepFreeze(structuredClone(envelope)) });
   }
   get envelopes(): AssertionEnvelope[] {
-    return [...this.byId.values()];
+    return [...this.byKey.values()].map((entry) => entry.envelope);
   }
 }

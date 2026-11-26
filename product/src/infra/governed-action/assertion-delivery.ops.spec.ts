@@ -22,9 +22,13 @@ describe('assertion operations authorization and atomic audit',()=>{
   expect(db.withTransaction).toHaveBeenCalledTimes(1);expect(query.mock.calls[0][0]).toContain('FOR UPDATE');
   expect(query.mock.calls[0][1]).toEqual(['ws',id]);expect(query.mock.calls[2][1]).toEqual(['ws',id,actor.userId,'replay','FAILED',2]);
  });
- it('refuses poison replay, delivered replay, live-lease stop and malformed ids',async()=>{
+ it('refuses poison replay, conflict replay, delivered replay, live-lease stop and malformed ids',async()=>{
   enable();
-  for(const row of [{status:'FAILED',attempts:1,last_error:'INVALID_ENVELOPE'},{status:'DELIVERED',attempts:1,last_error:''}])await expect(setup(row).ops.change(actor,randomUUID(),'replay')).rejects.toThrow('CONFLICT');
+  for(const row of [
+   {status:'FAILED',attempts:1,last_error:'INVALID_ENVELOPE'},
+   {status:'FAILED',attempts:1,last_error:'ENVELOPE_CONFLICT'},
+   {status:'DELIVERED',attempts:1,last_error:''},
+  ])await expect(setup(row).ops.change(actor,randomUUID(),'replay')).rejects.toThrow('CONFLICT');
   await expect(setup({status:'LEASED',attempts:1,last_error:''}).ops.change(actor,randomUUID(),'stop')).rejects.toThrow('CONFLICT');
   await expect(setup().ops.change(actor,'bad','stop')).rejects.toThrow('INPUT_INVALID');
  });

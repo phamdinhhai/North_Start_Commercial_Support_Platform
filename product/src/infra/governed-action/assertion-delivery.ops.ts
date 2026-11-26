@@ -30,7 +30,7 @@ export class AssertionDeliveryOps implements AssertionDeliveryOperations {
       // Poison is immutable. Stop refuses live leases; disable scheduler and wait for expiry first.
       if (!row || (operation==='replay' ? row.status!=='FAILED' || ['INVALID_ENVELOPE','ENVELOPE_CONFLICT'].includes(row.last_error??'') : row.status!=='PENDING')) throw new AssertionOpsError('DELIVERY_CONFLICT',409);
       await tx.query(`UPDATE assertion_outbox SET status=$3,attempts=CASE WHEN $3='PENDING' THEN 0 ELSE attempts END,
-        next_attempt_at=now(),last_error=$4,lease_token=NULL,lease_until=NULL WHERE workspace_id=$1 AND assertion_id=$2`,
+        next_attempt_at=clock_timestamp(),last_error=$4,lease_token=NULL,lease_until=NULL WHERE workspace_id=$1 AND assertion_id=$2`,
       [actor.workspaceId,assertionId,operation==='replay'?'PENDING':'FAILED',operation==='replay'?null:'OPERATOR_STOP']);
       await tx.query(`INSERT INTO assertion_delivery_audit(workspace_id,assertion_id,actor,operation,previous_status,previous_attempts)
         VALUES($1,$2,$3,$4,$5,$6)`,[actor.workspaceId,assertionId,actor.userId,operation,row.status,row.attempts]);
