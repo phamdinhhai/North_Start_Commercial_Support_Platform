@@ -1,0 +1,60 @@
+{
+  "run_id": 44496978136,
+  "url": "https://github.com/phamdinhhai/North_Start_Commercial_Support_Platform/actions/runs/44496978136",
+  "sha": "eaca10c7f0b81b8641d69ddf0c6cca01884e5155",
+  "status": "completed",
+  "conclusion": "failure",
+  "jobs": [
+    {
+      "name": "product",
+      "job_id": 135466586306,
+      "conclusion": "failure",
+      "steps": [
+        {
+          "name": "Coverage (80% line threshold, including PostgreSQL)",
+          "conclusion": "failure"
+        },
+        {
+          "name": "Build",
+          "conclusion": "skipped"
+        },
+        {
+          "name": "Disposable PostgreSQL backup and restore rehearsal",
+          "conclusion": "skipped"
+        },
+        {
+          "name": "E2E HTTP smoke",
+          "conclusion": "skipped"
+        },
+        {
+          "name": "Post Run actions/setup-node@v4",
+          "conclusion": "skipped"
+        }
+      ],
+      "summary": [
+        "product\tDependency audit (high and critical; production never waived)\t2026-11-19T09:30:53.4194842Z Dependency audit: PASS (production clean; 0 dev-only waiver(s) applied)",
+        "product\tStrict architecture check\t2026-11-19T09:38:09.2268628Z Architecture check: PASS (0 findings)",
+        "product\tPostgreSQL integration (fail on missing/skipped suites)\t2026-11-19T09:38:33.5706378Z Integration gate: 20 suites, 95 tests passed without skips"
+      ],
+      "log": "C:\\Users\\admin\\AppData\\Local\\Temp\\north-r46-hosted-fed8mk75\\135466586306.log",
+      "log_sha256": "57f3d63e4a70d790eab38a51e565e3d42cadc21650a21a033ef3e05f5b9a15bf"
+    },
+    {
+      "name": "Browser operator workflow",
+      "job_id": 135466586557,
+      "conclusion": "success",
+      "steps": [],
+      "summary": [
+        "Browser operator workflow\tRun Playwright operator workflow\t2026-11-19T09:40:11.7312225Z   4 passed (12.7s)",
+        "Browser operator workflow\tOperator component regressions\t2026-11-19T09:40:13.6165296Z   3 passed (1.3s)",
+        "Browser operator workflow\tLifecycle refuses non-durable storage\t2026-11-19T09:40:21.4690173Z   1 passed (7.3s)",
+        "Browser operator workflow\tOIDC and PostgreSQL UI-only LVP journey\t2026-11-19T09:40:33.9840621Z   3 passed (11.9s)",
+        "Browser operator workflow\tChromium MV3 synthetic capture and restart\t2026-11-19T09:40:37.1409615Z {\"result\":\"PASS\",\"realChromiumMV3\":true,\"syntheticWebsocketCaptured\":true,\"rawMessageExcluded\":true,\"noBodyDigest\":true,\"browserRestartPersistence\":true,\"providerContacted\":false,\"packagedArtifact\":\"b8c4b27f3cc1ed369c4eb9129d7ce2bad8bdb09c8778c1df5e7cd64af531511b\",\"workerRestarted\":true,\"workerLostDebuggerDetected\":true,\"captureAfterExplicitRestart\":true,\"sequenceReservationSurvivedTermination\":true,\"driftFingerprintOnly\":true,\"popupA11y\":true,\"tabCloseStop\":\"tab-closed\"}"
+      ],
+      "log": "C:\\Users\\admin\\AppData\\Local\\Temp\\north-r46-hosted-fed8mk75\\135466586557.log",
+      "log_sha256": "1d7a5e1be47e9d453133d8a6cf6a32a1ac508a926ab8dc8be03b87f7bc6f0a23"
+    }
+  ],
+  "source_relation": "eaca10c differs from locally tested659ca46 only in docs/reports/r4.6-pre-pilot-hardening; hosted tests execute exact pushed SHA.",
+  "note": "Failed hosted attempt retained; browser success does not override product coverage failure. Corrective membership test isolation is in progress."
+}

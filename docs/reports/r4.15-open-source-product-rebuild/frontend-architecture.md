@@ -1,0 +1,1 @@
+﻿React/Vite shell is served from Nest at /v1/app/ on same OIDC/CSRF origin. NorthStartDataProvider/AuthProvider map registered APIs; memory-only generation-keyed cache clears on logout, 401, 403 and workspace changes. /v1/operator remains fallback.

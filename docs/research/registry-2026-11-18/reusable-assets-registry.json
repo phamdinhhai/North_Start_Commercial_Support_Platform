@@ -1,0 +1,500 @@
+{
+  "schema": "north-star.reusable-assets-registry.v1",
+  "registry_status": "working_non_canonical",
+  "as_of": "2026-11-18",
+  "retrieval_date": "2026-11-18",
+  "authority": "Research consolidation only. docs/canonical/** remains the normative source; this file cannot resolve open decisions or approve production use.",
+  "evidence_levels": [
+    "README_CLAIM",
+    "SOURCE_INSPECTED",
+    "DOCUMENTED_API",
+    "SYNTHETIC_TESTED",
+    "CONTRACT_TESTED",
+    "LIVE_VERIFIED",
+    "RELEASE_APPROVED"
+  ],
+  "decision_vocabulary": [
+    "ADOPT",
+    "ADAPT",
+    "REFERENCE",
+    "REJECT",
+    "DEFER"
+  ],
+  "rules": [
+    "adoption_decision is a research recommendation; approved_dependency=true only when npm_package is in product/package.json.",
+    "Kafka, Redis-backed queues and Temporal are not introduced without an approved measured need; PostgreSQL remains the ingestion/idempotency authority.",
+    "No asset may own canonical commercial semantics (I-10/I-11) or widen lead-scoped access (I-09)."
+  ],
+  "assets": [
+    {
+      "id": "asset.nango",
+      "name": "Nango",
+      "category": "integration-platform",
+      "url": "https://github.com/NangoHQ/nango",
+      "github_matrix_ref": "gh.nango",
+      "license": "Elastic License 2.0 (root LICENSE)",
+      "adoption_decision": "REFERENCE",
+      "approved_dependency": false,
+      "rationale": "OAuth connection lifecycle and credential isolation patterns are useful, but ELv2 hosted-service limits, a second runtime and token custody outside our PostgreSQL boundary outweigh benefit for one provider. Keep a narrow ConnectionPort.",
+      "architecture_fit": "Modular monolith (NestJS + Fastify) with PostgreSQL as the single durable store; no Kafka/Redis/Temporal unless a measured need is approved.",
+      "revisit_trigger": "Second concrete OAuth provider in PH4+ with refresh/revocation races that the narrow port cannot cover.",
+      "evidence_level": "SOURCE_INSPECTED",
+      "artifact_refs": [
+        "docs/reports/unified-execution-2026-11-16/reusable-assets.md"
+      ]
+    },
+    {
+      "id": "asset.airbyte",
+      "name": "Airbyte",
+      "category": "elt-framework",
+      "url": "https://github.com/airbytehq/airbyte",
+      "github_matrix_ref": "gh.airbyte",
+      "license": "ELv2 (core); connector licenses vary",
+      "adoption_decision": "REFERENCE",
+      "approved_dependency": false,
+      "rationale": "Analytical replication is not the LVP need; interactive handoff semantics and lead-scoped access are. Reference cursor/state/backfill design for ads reporting sync.",
+      "architecture_fit": "Modular monolith (NestJS + Fastify) with PostgreSQL as the single durable store; no Kafka/Redis/Temporal unless a measured need is approved.",
+      "revisit_trigger": "Validated need for bulk analytical replication of ads/CRM data.",
+      "evidence_level": "README_CLAIM",
+      "artifact_refs": [
+        "docs/research/registries/reusable-engineering-assets.json"
+      ]
+    },
+    {
+      "id": "asset.n8n",
+      "name": "n8n",
+      "category": "workflow-automation",
+      "url": "https://github.com/n8n-io/n8n",
+      "github_matrix_ref": "gh.n8n",
+      "license": "Sustainable Use License (fair-code; UNVERIFIED file read)",
+      "adoption_decision": "REFERENCE",
+      "approved_dependency": false,
+      "rationale": "Operator automations may call guarded application commands only; never mutate canonical tables. License restricts embedding in a commercial SaaS.",
+      "architecture_fit": "Modular monolith (NestJS + Fastify) with PostgreSQL as the single durable store; no Kafka/Redis/Temporal unless a measured need is approved.",
+      "revisit_trigger": "Operator-requested automations after PM-1 capability matrix.",
+      "evidence_level": "README_CLAIM",
+      "artifact_refs": [
+        "docs/reports/unified-execution-2026-11-16/reusable-assets.md"
+      ]
+    },
+    {
+      "id": "asset.activepieces",
+      "name": "Activepieces",
+      "category": "workflow-automation",
+      "url": "https://github.com/activepieces/activepieces",
+      "github_matrix_ref": "gh.activepieces",
+      "license": "MIT core + commercial EE (UNVERIFIED file read)",
+      "adoption_decision": "REFERENCE",
+      "approved_dependency": false,
+      "rationale": "Same boundary as n8n; MIT core is more embeddable but adds a second runtime and DB.",
+      "architecture_fit": "Modular monolith (NestJS + Fastify) with PostgreSQL as the single durable store; no Kafka/Redis/Temporal unless a measured need is approved.",
+      "revisit_trigger": "Same as n8n.",
+      "evidence_level": "README_CLAIM",
+      "artifact_refs": [
+        "docs/reports/unified-execution-2026-11-16/reusable-assets.md"
+      ]
+    },
+    {
+      "id": "asset.bullmq",
+      "name": "BullMQ",
+      "category": "job-queue",
+      "url": "https://github.com/taskforcesh/bullmq",
+      "github_matrix_ref": "gh.bullmq",
+      "license": "MIT",
+      "adoption_decision": "ADAPT",
+      "approved_dependency": false,
+      "rationale": "ADAPT idempotent job id, deduplication, rate-limit and backoff patterns into a PostgreSQL-backed job/outbox table first. Redis adds a second durable store; BullMQ dedup is not exactly-once commercial ingestion.",
+      "architecture_fit": "Modular monolith (NestJS + Fastify) with PostgreSQL as the single durable store; no Kafka/Redis/Temporal unless a measured need is approved.",
+      "revisit_trigger": "Measured job throughput/latency the PostgreSQL queue cannot sustain.",
+      "evidence_level": "SOURCE_INSPECTED",
+      "artifact_refs": [
+        "docs/reports/unified-execution-2026-11-16/reusable-assets.md"
+      ]
+    },
+    {
+      "id": "asset.temporal",
+      "name": "Temporal",
+      "category": "durable-workflow",
+      "url": "https://github.com/temporalio/temporal",
+      "github_matrix_ref": "gh.temporal",
+      "license": "MIT",
+      "adoption_decision": "REJECT",
+      "approved_dependency": false,
+      "rationale": "Premature: cluster operations, determinism constraints and a second persistence layer for a pilot-scale monolith. Revisit only for proven long-running cross-system compensation.",
+      "architecture_fit": "Modular monolith (NestJS + Fastify) with PostgreSQL as the single durable store; no Kafka/Redis/Temporal unless a measured need is approved.",
+      "revisit_trigger": "Multi-step provider compensations spanning hours/days with human approvals that simple jobs cannot model safely.",
+      "evidence_level": "README_CLAIM",
+      "artifact_refs": [
+        "docs/reports/unified-execution-2026-11-16/reusable-assets.md"
+      ]
+    },
+    {
+      "id": "asset.opentelemetry-js",
+      "name": "OpenTelemetry JS",
+      "category": "observability",
+      "url": "https://github.com/open-telemetry/opentelemetry-js",
+      "github_matrix_ref": "gh.opentelemetry-js",
+      "license": "Apache-2.0",
+      "adoption_decision": "ADAPT",
+      "approved_dependency": false,
+      "rationale": "Instrument API/adapter/job failures behind existing telemetry port with allowlisted attributes, URL query/auth stripping and no message text. Not a commercial audit log.",
+      "architecture_fit": "Modular monolith (NestJS + Fastify) with PostgreSQL as the single durable store; no Kafka/Redis/Temporal unless a measured need is approved.",
+      "revisit_trigger": "Collector/backend/data-residency decision.",
+      "evidence_level": "SOURCE_INSPECTED",
+      "artifact_refs": [
+        "docs/reports/unified-execution-2026-11-16/reusable-assets.md"
+      ]
+    },
+    {
+      "id": "asset.testcontainers-node",
+      "name": "Testcontainers Node",
+      "category": "testing",
+      "url": "https://github.com/testcontainers/testcontainers-node",
+      "github_matrix_ref": "gh.testcontainers-node",
+      "license": "MIT",
+      "adoption_decision": "DEFER",
+      "approved_dependency": false,
+      "rationale": "Integration suites currently run against docker-compose PostgreSQL via scripts/ci-integration.mjs; adopt only if per-suite isolation becomes necessary.",
+      "architecture_fit": "Modular monolith (NestJS + Fastify) with PostgreSQL as the single durable store; no Kafka/Redis/Temporal unless a measured need is approved.",
+      "revisit_trigger": "Flaky shared-database integration tests or parallel suite isolation need.",
+      "evidence_level": "README_CLAIM",
+      "artifact_refs": [
+        "docs/research/registries/reusable-engineering-assets.json",
+        "product/scripts/ci-integration.mjs"
+      ]
+    },
+    {
+      "id": "asset.pact-js",
+      "name": "Pact JS",
+      "category": "contract-testing",
+      "url": "https://github.com/pact-foundation/pact-js",
+      "github_matrix_ref": "gh.pact-js",
+      "license": "MIT (per project; UNVERIFIED file read)",
+      "adoption_decision": "REFERENCE",
+      "approved_dependency": false,
+      "rationale": "Third-party providers (Pancake/Meta/TikTok/Google) will not run provider verification; use recorded sanitized fixture contract tests instead. Pact may fit the browser-companion <-> API contract.",
+      "architecture_fit": "Modular monolith (NestJS + Fastify) with PostgreSQL as the single durable store; no Kafka/Redis/Temporal unless a measured need is approved.",
+      "revisit_trigger": "Companion and API released independently.",
+      "evidence_level": "README_CLAIM",
+      "artifact_refs": [
+        "https://docs.pact.io/"
+      ]
+    },
+    {
+      "id": "asset.pgbackrest",
+      "name": "pgBackRest",
+      "category": "operations-backup",
+      "url": "https://github.com/pgbackrest/pgbackrest",
+      "github_matrix_ref": "gh.pgbackrest",
+      "license": "MIT",
+      "adoption_decision": "REFERENCE",
+      "approved_dependency": false,
+      "rationale": "Production PITR/WAL archiving candidate fitting PostgreSQL-only persistence; current backup-verify is a dry-run helper.",
+      "architecture_fit": "Modular monolith (NestJS + Fastify) with PostgreSQL as the single durable store; no Kafka/Redis/Temporal unless a measured need is approved.",
+      "revisit_trigger": "Pilot with real data (PM-1 real-data controls gate).",
+      "evidence_level": "README_CLAIM",
+      "artifact_refs": [
+        "docs/research/registries/reusable-engineering-assets.json",
+        "product/scripts/backup-verify.mjs"
+      ]
+    },
+    {
+      "id": "asset.playwright",
+      "name": "Playwright",
+      "category": "testing",
+      "url": "https://github.com/microsoft/playwright",
+      "github_matrix_ref": "gh.playwright",
+      "license": "Apache-2.0",
+      "adoption_decision": "ADOPT",
+      "approved_dependency": true,
+      "rationale": "Already approved devDependency (@playwright/test) used by test:browser and companion smoke.",
+      "architecture_fit": "Modular monolith (NestJS + Fastify) with PostgreSQL as the single durable store; no Kafka/Redis/Temporal unless a measured need is approved.",
+      "revisit_trigger": "n/a (approved).",
+      "evidence_level": "README_CLAIM",
+      "artifact_refs": [
+        "product/package.json"
+      ],
+      "npm_package": "@playwright/test"
+    },
+    {
+      "id": "asset.wxt",
+      "name": "WXT",
+      "category": "browser-extension-framework",
+      "url": "https://github.com/wxt-dev/wxt",
+      "github_matrix_ref": "gh.wxt",
+      "license": "MIT",
+      "adoption_decision": "DEFER",
+      "approved_dependency": false,
+      "rationale": "Companion is a small hand-written MV3 extension; a framework adds build complexity without current need.",
+      "architecture_fit": "Modular monolith (NestJS + Fastify) with PostgreSQL as the single durable store; no Kafka/Redis/Temporal unless a measured need is approved.",
+      "revisit_trigger": "Companion scope grows beyond research (LG-1 promotion).",
+      "evidence_level": "README_CLAIM",
+      "artifact_refs": [
+        "docs/reports/unified-execution-2026-11-16/browser-companion.md"
+      ]
+    },
+    {
+      "id": "asset.plasmo",
+      "name": "Plasmo",
+      "category": "browser-extension-framework",
+      "url": "https://github.com/PlasmoHQ/plasmo",
+      "github_matrix_ref": "gh.plasmo",
+      "license": "MIT",
+      "adoption_decision": "DEFER",
+      "approved_dependency": false,
+      "rationale": "Alternative to WXT; same trigger.",
+      "architecture_fit": "Modular monolith (NestJS + Fastify) with PostgreSQL as the single durable store; no Kafka/Redis/Temporal unless a measured need is approved.",
+      "revisit_trigger": "Same as WXT.",
+      "evidence_level": "README_CLAIM",
+      "artifact_refs": [
+        "docs/reports/unified-execution-2026-11-16/browser-companion.md"
+      ]
+    },
+    {
+      "id": "asset.jose",
+      "name": "jose",
+      "category": "security-library",
+      "url": "https://github.com/panva/jose",
+      "github_matrix_ref": "gh.jose",
+      "license": "MIT",
+      "adoption_decision": "ADOPT",
+      "approved_dependency": true,
+      "rationale": "Zero-dependency JWT/JWKS verification for OIDC access tokens behind AuthContextResolver (issuer, audience, alg allowlist, exp, key rotation). jose@6.2.17 is an approved runtime dependency on the integration branch (D1 OIDC work); present in product/package.json after integration (2026-11-18).",
+      "architecture_fit": "Modular monolith (NestJS + Fastify) with PostgreSQL as the single durable store; no Kafka/Redis/Temporal unless a measured need is approved.",
+      "revisit_trigger": "n/a (approved on integration branch).",
+      "evidence_level": "README_CLAIM",
+      "artifact_refs": [
+        "docs/reports/unified-execution-2026-11-16/reusable-assets.md",
+        "product/package.json"
+      ],
+      "npm_package": "jose",
+      "approved_on_integration_branch": {
+        "version": "6.2.17",
+        "license": "MIT",
+        "source": "coordinator notice 2026-11-18 (D1 OIDC work)"
+      }
+    },
+    {
+      "id": "asset.keycloak",
+      "name": "Keycloak",
+      "category": "identity-provider",
+      "url": "https://github.com/keycloak/keycloak",
+      "github_matrix_ref": "gh.keycloak",
+      "license": "Apache-2.0",
+      "adoption_decision": "REFERENCE",
+      "approved_dependency": false,
+      "rationale": "OIDC provider candidate (external service). Provider roles/groups must not grant workspace membership or lead access.",
+      "architecture_fit": "Modular monolith (NestJS + Fastify) with PostgreSQL as the single durable store; no Kafka/Redis/Temporal unless a measured need is approved.",
+      "revisit_trigger": "PM-1 + provider choice decision.",
+      "evidence_level": "SOURCE_INSPECTED",
+      "artifact_refs": [
+        "docs/reports/unified-execution-2026-11-16/reusable-assets.md"
+      ]
+    },
+    {
+      "id": "asset.zitadel",
+      "name": "ZITADEL",
+      "category": "identity-provider",
+      "url": "https://github.com/zitadel/zitadel",
+      "github_matrix_ref": "gh.zitadel",
+      "license": "AGPL-3.0",
+      "adoption_decision": "REFERENCE",
+      "approved_dependency": false,
+      "rationale": "Alternative OIDC provider; AGPL server license and managed-vs-self-host custody must be compared.",
+      "architecture_fit": "Modular monolith (NestJS + Fastify) with PostgreSQL as the single durable store; no Kafka/Redis/Temporal unless a measured need is approved.",
+      "revisit_trigger": "Same as Keycloak.",
+      "evidence_level": "README_CLAIM",
+      "artifact_refs": [
+        "docs/reports/unified-execution-2026-11-16/reusable-assets.md"
+      ]
+    },
+    {
+      "id": "asset.ory",
+      "name": "Ory (Kratos/Hydra)",
+      "category": "identity-provider",
+      "url": "https://github.com/ory/kratos",
+      "github_matrix_ref": "gh.ory-kratos",
+      "license": "Apache-2.0",
+      "adoption_decision": "REFERENCE",
+      "approved_dependency": false,
+      "rationale": "Alternative identity stack; more components to operate.",
+      "architecture_fit": "Modular monolith (NestJS + Fastify) with PostgreSQL as the single durable store; no Kafka/Redis/Temporal unless a measured need is approved.",
+      "revisit_trigger": "Same as Keycloak.",
+      "evidence_level": "README_CLAIM",
+      "artifact_refs": [
+        "docs/reports/unified-execution-2026-11-16/reusable-assets.md"
+      ]
+    },
+    {
+      "id": "asset.openfga",
+      "name": "OpenFGA",
+      "category": "authorization-service",
+      "url": "https://github.com/openfga/openfga",
+      "github_matrix_ref": "gh.openfga",
+      "license": "Apache-2.0",
+      "adoption_decision": "DEFER",
+      "approved_dependency": false,
+      "rationale": "Relationship model fits assigned-lead access but adds tuple replication, stale-grant and outage risk. Keep in-process policy port; fail closed.",
+      "architecture_fit": "Modular monolith (NestJS + Fastify) with PostgreSQL as the single durable store; no Kafka/Redis/Temporal unless a measured need is approved.",
+      "revisit_trigger": "Policy complexity exceeds in-process port after PM-1 approval.",
+      "evidence_level": "SOURCE_INSPECTED",
+      "artifact_refs": [
+        "docs/reports/unified-execution-2026-11-16/reusable-assets.md"
+      ]
+    },
+    {
+      "id": "asset.cerbos",
+      "name": "Cerbos",
+      "category": "authorization-service",
+      "url": "https://github.com/cerbos/cerbos",
+      "github_matrix_ref": "gh.cerbos",
+      "license": "Apache-2.0",
+      "adoption_decision": "REFERENCE",
+      "approved_dependency": false,
+      "rationale": "Attribute policy alternative; same deferral.",
+      "architecture_fit": "Modular monolith (NestJS + Fastify) with PostgreSQL as the single durable store; no Kafka/Redis/Temporal unless a measured need is approved.",
+      "revisit_trigger": "Same as OpenFGA.",
+      "evidence_level": "README_CLAIM",
+      "artifact_refs": [
+        "docs/reports/unified-execution-2026-11-16/reusable-assets.md"
+      ]
+    },
+    {
+      "id": "asset.casbin",
+      "name": "Casbin (node-casbin)",
+      "category": "authorization-library",
+      "url": "https://github.com/apache/casbin-node-casbin",
+      "github_matrix_ref": "gh.node-casbin",
+      "license": "Apache-2.0",
+      "adoption_decision": "REFERENCE",
+      "approved_dependency": false,
+      "rationale": "Embedded option without extra service; model explainability vs. relationship needs to compare after PM-1.",
+      "architecture_fit": "Modular monolith (NestJS + Fastify) with PostgreSQL as the single durable store; no Kafka/Redis/Temporal unless a measured need is approved.",
+      "revisit_trigger": "Same as OpenFGA.",
+      "evidence_level": "README_CLAIM",
+      "artifact_refs": [
+        "docs/reports/unified-execution-2026-11-16/reusable-assets.md"
+      ]
+    },
+    {
+      "id": "asset.mcp-servers",
+      "name": "MCP reference servers",
+      "category": "agent-tooling",
+      "url": "https://github.com/modelcontextprotocol/servers",
+      "github_matrix_ref": "gh.mcp-servers",
+      "license": "Mixed (GitHub NOASSERTION)",
+      "adoption_decision": "REFERENCE",
+      "approved_dependency": false,
+      "rationale": "Reject token passthrough and arbitrary filesystem/URL/SQL tools. A future North Star MCP surface exposes narrow read/propose tools, audience-bound auth and server-side lead policy (I-03 draft-only AI).",
+      "architecture_fit": "Modular monolith (NestJS + Fastify) with PostgreSQL as the single durable store; no Kafka/Redis/Temporal unless a measured need is approved.",
+      "revisit_trigger": "Approved agent-assist use case.",
+      "evidence_level": "README_CLAIM",
+      "artifact_refs": [
+        "docs/reports/unified-execution-2026-11-16/reusable-assets.md"
+      ]
+    },
+    {
+      "id": "asset.mcp-typescript-sdk",
+      "name": "MCP TypeScript SDK",
+      "category": "agent-tooling",
+      "url": "https://github.com/modelcontextprotocol/typescript-sdk",
+      "github_matrix_ref": "gh.mcp-ts-sdk",
+      "license": "GitHub NOASSERTION (UNVERIFIED)",
+      "adoption_decision": "DEFER",
+      "approved_dependency": false,
+      "rationale": "Would be the implementation SDK for a narrow read-only MCP surface; not needed for LVP.",
+      "architecture_fit": "Modular monolith (NestJS + Fastify) with PostgreSQL as the single durable store; no Kafka/Redis/Temporal unless a measured need is approved.",
+      "revisit_trigger": "Same as MCP servers.",
+      "evidence_level": "README_CLAIM",
+      "artifact_refs": [
+        "https://modelcontextprotocol.io/specification/2026-07-28/basic/authorization"
+      ]
+    },
+    {
+      "id": "asset.google-ads-mcp",
+      "name": "Google Ads MCP (official)",
+      "category": "agent-tooling",
+      "url": "https://github.com/googleads/google-ads-mcp",
+      "github_matrix_ref": "gh.googleads.google-ads-mcp",
+      "license": "Apache-2.0",
+      "adoption_decision": "ADAPT",
+      "approved_dependency": false,
+      "rationale": "ADAPT propose_and_confirm checksum + audit redaction pattern; add server-owned expiring single-use proposals bound to tenant/actor/account. Do not run.",
+      "architecture_fit": "Modular monolith (NestJS + Fastify) with PostgreSQL as the single durable store; no Kafka/Redis/Temporal unless a measured need is approved.",
+      "revisit_trigger": "Ads write capability RFC (deferred).",
+      "evidence_level": "SOURCE_INSPECTED",
+      "artifact_refs": [
+        "docs/reports/unified-execution-2026-11-16/ads-capabilities.md"
+      ]
+    },
+    {
+      "id": "asset.anthropics-skills",
+      "name": "anthropics/skills",
+      "category": "agent-skills",
+      "url": "https://github.com/anthropics/skills",
+      "github_matrix_ref": "gh.anthropics.skills",
+      "license": "No root LICENSE; per-skill terms",
+      "adoption_decision": "REFERENCE",
+      "approved_dependency": false,
+      "rationale": "Skill authoring/format reference for agent tooling; contains no provider integration skills; imported skills cannot override canonical constraints.",
+      "architecture_fit": "Modular monolith (NestJS + Fastify) with PostgreSQL as the single durable store; no Kafka/Redis/Temporal unless a measured need is approved.",
+      "revisit_trigger": "Internal agent-skill packaging work.",
+      "evidence_level": "SOURCE_INSPECTED",
+      "artifact_refs": [
+        "https://github.com/anthropics/skills/tree/e4bb5d960d87126ff3b3a8af1a104b7db67560ba/skills"
+      ]
+    },
+    {
+      "id": "asset.google-skills",
+      "name": "google/skills",
+      "category": "agent-skills",
+      "url": "https://github.com/google/skills",
+      "github_matrix_ref": "gh.google.skills",
+      "license": "Apache-2.0",
+      "adoption_decision": "REFERENCE",
+      "approved_dependency": false,
+      "rationale": "Official Google skills for Google Data Manager API setup/event/audience ingestion and Google Ads API; documentation reference, never executed.",
+      "architecture_fit": "Modular monolith (NestJS + Fastify) with PostgreSQL as the single durable store; no Kafka/Redis/Temporal unless a measured need is approved.",
+      "revisit_trigger": "Google Data Manager spike (proposal P-004).",
+      "evidence_level": "SOURCE_INSPECTED",
+      "artifact_refs": [
+        "docs/research/registries/evidence-capability-register.json"
+      ]
+    },
+    {
+      "id": "asset.rea",
+      "name": "REA (morluto/rea)",
+      "category": "research-instrument",
+      "url": "https://github.com/morluto/rea",
+      "github_matrix_ref": "gh.morluto.rea",
+      "license": "MIT",
+      "adoption_decision": "REFERENCE",
+      "approved_dependency": false,
+      "rationale": "Workstation evidence-capture instrument for authorized research only; not product runtime, connector or authorization layer.",
+      "architecture_fit": "Modular monolith (NestJS + Fastify) with PostgreSQL as the single durable store; no Kafka/Redis/Temporal unless a measured need is approved.",
+      "revisit_trigger": "Authorized capture task with explicit scope and private storage.",
+      "evidence_level": "SOURCE_INSPECTED",
+      "artifact_refs": [
+        "docs/reports/unified-execution-2026-11-16/protocol-intelligence.md"
+      ]
+    },
+    {
+      "id": "asset.node-postgres",
+      "name": "node-postgres (pg)",
+      "category": "database-driver",
+      "url": "https://github.com/brianc/node-postgres",
+      "github_matrix_ref": null,
+      "license": "MIT",
+      "adoption_decision": "ADOPT",
+      "approved_dependency": true,
+      "rationale": "Approved runtime dependency; PostgreSQL is the single durable store (receipts, checkpoints, envelopes, job/outbox).",
+      "architecture_fit": "Modular monolith (NestJS + Fastify) with PostgreSQL as the single durable store; no Kafka/Redis/Temporal unless a measured need is approved.",
+      "revisit_trigger": "n/a (approved).",
+      "evidence_level": "README_CLAIM",
+      "artifact_refs": [
+        "product/package.json"
+      ],
+      "npm_package": "pg"
+    }
+  ]
+}

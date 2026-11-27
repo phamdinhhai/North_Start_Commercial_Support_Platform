@@ -1,0 +1,197 @@
+﻿[
+  {
+    "url": "https://developer.pancake.biz/openapi/openapi.yaml",
+    "http": 200,
+    "bytes": 180475,
+    "sha256": "1340453bf7ff92979e875d99577fc1948d10b2ede1d0da58c9df009258aef39f",
+    "openapi": "3.0.0",
+    "infoVersion": "1.0.0",
+    "paths": 28,
+    "webhooks": 0,
+    "references": 21,
+    "unresolved": [],
+    "validationErrors": [
+      {
+        "path": [
+          "paths",
+          "/pages/{page_id}/page_customers/{page_customer_id}",
+          "put",
+          "parameters",
+          1
+        ],
+        "validator": "oneOf",
+        "message": "{'name': 'page_customer_id', 'in': 'path', 'required': True, 'schema': {'type': 'UUID'}, 'description': 'The ID of the customer to update.'} is not valid under any of the given schemas"
+      },
+      {
+        "path": [
+          "components",
+          "schemas",
+          "WhatsappTemplateBodyParams"
+        ],
+        "validator": "oneOf",
+        "message": "{'type': 'object', 'description': 'Variables used in template body `Example: { \"order_id\": \"A12345\", \"customer_name\": \"John Doe\", \"product_name\": \"Product Name\" }`\\n', 'properties': {'type': 'object'}} is not valid under any of the given schemas"
+      },
+      {
+        "path": [
+          "components",
+          "schemas",
+          "WhatsappTemplateButtonParams"
+        ],
+        "validator": "oneOf",
+        "message": "{'type': 'object', 'description': '[Index] is the index of the button `Example: { \"BUTTONS_0_PARAMS\": { \"{{order_id}}\": \"A12345\", \"{{customer_name}}\": \"John Doe\", \"{{product_name}}\": \"Product Name\" } }`\\n', 'properties': {'type': 'object'}} is not valid under any of the given schemas"
+      },
+      {
+        "path": [
+          "components",
+          "schemas",
+          "WhatsappTemplateHeaderText"
+        ],
+        "validator": "oneOf",
+        "message": "{'type': 'object', 'description': 'Header parameters when header type is text `Example: { \"order_id\": \"A12345\" }`\\n', 'properties': {'type': 'object'}} is not valid under any of the given schemas"
+      },
+      {
+        "path": [
+          "components",
+          "schemas",
+          "WhatsappTemplateHeaderImage"
+        ],
+        "validator": "oneOf",
+        "message": "{'type': 'object', 'description': 'Header parameters when header type is image `Example: { \"IMAGE\": { \"url\": \"https://example.com/image.jpg\" } }`\\n', 'properties': {'type': 'object'}} is not valid under any of the given schemas"
+      },
+      {
+        "path": [
+          "components",
+          "schemas",
+          "WhatsappTemplateHeaderVideo"
+        ],
+        "validator": "oneOf",
+        "message": "{'type': 'object', 'description': 'Header parameters when header type is video `Example: { \"VIDEO\": { \"url\": \"https://example.com/video.mp4\" } }`\\n', 'properties': {'type': 'object'}} is not valid under any of the given schemas"
+      },
+      {
+        "path": [
+          "components",
+          "schemas",
+          "WhatsappTemplateHeaderDocument"
+        ],
+        "validator": "oneOf",
+        "message": "{'type': 'object', 'description': 'Header parameters when header type is document `Example: { \"DOCUMENT\": { \"url\": \"https://example.com/document.pdf\", \"name\": \"document.pdf\" } }`\\n', 'properties': {'type': 'object'}} is not valid under any of the given schemas"
+      },
+      {
+        "path": [],
+        "validator": "<unset>",
+        "message": "Path parameter 'page_id' for 'post' operation in '/pages/{page_id}/generate_page_access_token' was not resolved"
+      },
+      {
+        "path": [
+          "type"
+        ],
+        "validator": "anyOf",
+        "message": "'UUID' is not valid under any of the given schemas"
+      },
+      {
+        "path": [],
+        "validator": "<unset>",
+        "message": "'object' is not of type 'object', 'boolean'"
+      },
+      {
+        "path": [],
+        "validator": "<unset>",
+        "message": "'object' is not of type 'object', 'boolean'"
+      },
+      {
+        "path": [],
+        "validator": "<unset>",
+        "message": "'object' is not of type 'object', 'boolean'"
+      },
+      {
+        "path": [],
+        "validator": "<unset>",
+        "message": "'object' is not of type 'object', 'boolean'"
+      },
+      {
+        "path": [],
+        "validator": "<unset>",
+        "message": "'object' is not of type 'object', 'boolean'"
+      },
+      {
+        "path": [],
+        "validator": "<unset>",
+        "message": "'object' is not of type 'object', 'boolean'"
+      },
+      {
+        "path": [
+          "properties",
+          "type"
+        ],
+        "validator": "type",
+        "message": "'object' is not of type 'object'"
+      },
+      {
+        "path": [
+          "properties",
+          "type"
+        ],
+        "validator": "type",
+        "message": "'object' is not of type 'object'"
+      },
+      {
+        "path": [
+          "properties",
+          "type"
+        ],
+        "validator": "type",
+        "message": "'object' is not of type 'object'"
+      },
+      {
+        "path": [
+          "properties",
+          "type"
+        ],
+        "validator": "type",
+        "message": "'object' is not of type 'object'"
+      },
+      {
+        "path": [
+          "properties",
+          "type"
+        ],
+        "validator": "type",
+        "message": "'object' is not of type 'object'"
+      },
+      {
+        "path": [
+          "properties",
+          "type"
+        ],
+        "validator": "type",
+        "message": "'object' is not of type 'object'"
+      }
+    ],
+    "unmodified": true
+  },
+  {
+    "url": "https://developer.pancake.biz/openapi/webhook.yaml",
+    "http": 200,
+    "bytes": 38933,
+    "sha256": "ab327fea1a398553351edde68a992f96c66dbc6fc4a93045d1d23e03f8d0e09d",
+    "openapi": "3.0.0",
+    "infoVersion": "1.0.0",
+    "paths": 0,
+    "webhooks": 5,
+    "references": 11,
+    "unresolved": [],
+    "validationErrors": [
+      {
+        "path": [],
+        "validator": "required",
+        "message": "'paths' is a required property"
+      },
+      {
+        "path": [],
+        "validator": "additionalProperties",
+        "message": "'webhooks' does not match any of the regexes: '^x-'"
+      }
+    ],
+    "unmodified": true
+  }
+]

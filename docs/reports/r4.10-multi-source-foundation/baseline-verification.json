@@ -1,0 +1,251 @@
+{
+  "artifact_directory": "C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r410-baseline-isolated-tVOewM",
+  "source_sha": "9ffae600447950c9edcec2d823153aa6fe202684",
+  "mode": "r410-baseline-isolated",
+  "results": [
+    {
+      "name": "pilot-research-safety",
+      "command": [
+        "C:\\Program Files\\nodejs\\node.exe",
+        "--test",
+        "scripts/pilot/safety.test.mjs",
+        "scripts/research/validate-observation.test.mjs"
+      ],
+      "exit_code": 0,
+      "seconds": 0,
+      "log": "C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r410-baseline-isolated-tVOewM\\pilot-research-safety.log",
+      "logSha256": "05ba52ee3228d60801fb03e90333bae039779a92603f579ddb3d052533fee666"
+    },
+    {
+      "name": "typecheck",
+      "command": [
+        "C:\\Program Files\\nodejs\\node.exe",
+        "C:/Program Files/nodejs/node_modules/npm/bin/npm-cli.js",
+        "run",
+        "typecheck"
+      ],
+      "exit_code": 0,
+      "seconds": 6,
+      "log": "C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r410-baseline-isolated-tVOewM\\typecheck.log",
+      "logSha256": "09b9a49f6769e2371ae5cfedc320845c173fe8c1356b69e516cecf3df4a23c7a"
+    },
+    {
+      "name": "lint",
+      "command": [
+        "C:\\Program Files\\nodejs\\node.exe",
+        "C:/Program Files/nodejs/node_modules/npm/bin/npm-cli.js",
+        "run",
+        "lint"
+      ],
+      "exit_code": 0,
+      "seconds": 5,
+      "log": "C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r410-baseline-isolated-tVOewM\\lint.log",
+      "logSha256": "ad43281dbc673e71b219a3b5f8bb1351cdbf31f778553f420b51e951f5ce0a46"
+    },
+    {
+      "name": "architecture",
+      "command": [
+        "C:\\Program Files\\nodejs\\node.exe",
+        "C:/Program Files/nodejs/node_modules/npm/bin/npm-cli.js",
+        "run",
+        "architecture:check:strict"
+      ],
+      "exit_code": 0,
+      "seconds": 1,
+      "log": "C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r410-baseline-isolated-tVOewM\\architecture.log",
+      "logSha256": "d77621a86ab9943075df85f3191a1cb7bb1df838338d769fe581a2ff13a87c50"
+    },
+    {
+      "name": "registry",
+      "command": [
+        "C:\\Program Files\\nodejs\\node.exe",
+        "C:/Program Files/nodejs/node_modules/npm/bin/npm-cli.js",
+        "run",
+        "registry:validate"
+      ],
+      "exit_code": 0,
+      "seconds": 0,
+      "log": "C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r410-baseline-isolated-tVOewM\\registry.log",
+      "logSha256": "9ba0b062f4ecd65b28129862b0b83b76af3684de213382c0d20ffa086be3ab85"
+    },
+    {
+      "name": "integration-ci",
+      "command": [
+        "C:\\Program Files\\nodejs\\node.exe",
+        "C:/Program Files/nodejs/node_modules/npm/bin/npm-cli.js",
+        "run",
+        "test:integration:ci"
+      ],
+      "exit_code": 0,
+      "seconds": 57,
+      "log": "C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r410-baseline-isolated-tVOewM\\integration-ci.log",
+      "logSha256": "684c66813866803a00f0e30349023b3f2c2b7fecc0397334f2153389fdbf7f46"
+    },
+    {
+      "name": "coverage",
+      "command": [
+        "C:\\Program Files\\nodejs\\node.exe",
+        "C:/Program Files/nodejs/node_modules/npm/bin/npm-cli.js",
+        "run",
+        "test:cov",
+        "--",
+        "--no-file-parallelism"
+      ],
+      "exit_code": 0,
+      "seconds": 108,
+      "log": "C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r410-baseline-isolated-tVOewM\\coverage.log",
+      "logSha256": "c06d231c251dbb1de30add2356b2c82d7cdb8295120e01ad193752b95f8d40a9"
+    },
+    {
+      "name": "build",
+      "command": [
+        "C:\\Program Files\\nodejs\\node.exe",
+        "C:/Program Files/nodejs/node_modules/npm/bin/npm-cli.js",
+        "run",
+        "build"
+      ],
+      "exit_code": 0,
+      "seconds": 10,
+      "log": "C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r410-baseline-isolated-tVOewM\\build.log",
+      "logSha256": "4bc24afec50c327cef250b332ffda2df07d6c6766d549f4ee6b27ea4aaaebc3a"
+    },
+    {
+      "name": "http-e2e",
+      "command": [
+        "C:\\Program Files\\nodejs\\node.exe",
+        "C:/Program Files/nodejs/node_modules/npm/bin/npm-cli.js",
+        "run",
+        "test:e2e"
+      ],
+      "exit_code": 0,
+      "seconds": 8,
+      "log": "C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r410-baseline-isolated-tVOewM\\http-e2e.log",
+      "logSha256": "4957f14290e3cdc43d8510e68e2e89c971b57432d48b512f08a3517e61f93ba6"
+    },
+    {
+      "name": "browser",
+      "command": [
+        "C:\\Program Files\\nodejs\\node.exe",
+        "C:/Program Files/nodejs/node_modules/npm/bin/npm-cli.js",
+        "run",
+        "test:browser"
+      ],
+      "exit_code": 0,
+      "seconds": 20,
+      "log": "C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r410-baseline-isolated-tVOewM\\browser.log",
+      "logSha256": "d29b3e9caec2934680b922518a7489d18712299c456a90037c4cd33a8f3d14f6"
+    },
+    {
+      "name": "component",
+      "command": [
+        "C:\\Program Files\\nodejs\\node.exe",
+        "node_modules/@playwright/test/cli.js",
+        "test",
+        "--config",
+        "playwright.operator-recovery.config.ts"
+      ],
+      "exit_code": 0,
+      "seconds": 6,
+      "log": "C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r410-baseline-isolated-tVOewM\\component.log",
+      "logSha256": "52bc0f039730e7ac05887e01b79f9a4e20ea2fcdc6b75d5fdd567b02f6eb12d4"
+    },
+    {
+      "name": "lifecycle-memory",
+      "command": [
+        "C:\\Program Files\\nodejs\\node.exe",
+        "node_modules/@playwright/test/cli.js",
+        "test",
+        "--config",
+        "playwright.lifecycle.config.ts"
+      ],
+      "exit_code": 0,
+      "seconds": 15,
+      "log": "C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r410-baseline-isolated-tVOewM\\lifecycle-memory.log",
+      "logSha256": "bd16c0a29cb953484c75ab87c3273f5fc56a8af2f65fa436ff0a41095a1f9c2a"
+    },
+    {
+      "name": "oidc-ui",
+      "command": [
+        "C:\\Program Files\\nodejs\\node.exe",
+        "node_modules/@playwright/test/cli.js",
+        "test",
+        "--config",
+        "playwright.oidc.config.ts"
+      ],
+      "exit_code": 0,
+      "seconds": 35,
+      "log": "C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r410-baseline-isolated-tVOewM\\oidc-ui.log",
+      "logSha256": "55635248c1becf3ef692fcce26c728b0dda010d64b88ebf1360408ed927a0dc3"
+    },
+    {
+      "name": "companion",
+      "command": [
+        "C:\\Program Files\\nodejs\\node.exe",
+        "C:/Program Files/nodejs/node_modules/npm/bin/npm-cli.js",
+        "run",
+        "test:companion"
+      ],
+      "exit_code": 0,
+      "seconds": 6,
+      "log": "C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r410-baseline-isolated-tVOewM\\companion.log",
+      "logSha256": "e641f14df592ca1b949a99ffec918a83d6130ece576a436bc83181c84c44696a"
+    },
+    {
+      "name": "guardrails",
+      "command": [
+        "C:\\Program Files\\nodejs\\node.exe",
+        "--test",
+        "scripts/check-architecture.test.mjs",
+        "scripts/registry-validation.test.mjs",
+        "scripts/security-audit.test.mjs",
+        "scripts/backup-verify.test.mjs"
+      ],
+      "exit_code": 0,
+      "seconds": 1,
+      "log": "C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r410-baseline-isolated-tVOewM\\guardrails.log",
+      "logSha256": "ca758a8476c0f98a003004b2dc502ad58659834ac3178225586d94266ed5376d"
+    },
+    {
+      "name": "ail-research",
+      "command": [
+        "C:\\Program Files\\nodejs\\node.exe",
+        "C:/Program Files/nodejs/node_modules/npm/bin/npm-cli.js",
+        "run",
+        "test:ail:research"
+      ],
+      "exit_code": 0,
+      "seconds": 2,
+      "log": "C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r410-baseline-isolated-tVOewM\\ail-research.log",
+      "logSha256": "bc13d199581a99d357cc6302f11e744a6b99a656af29519bbd1f82748f6e1ef7"
+    },
+    {
+      "name": "restore",
+      "command": [
+        "C:\\Program Files\\nodejs\\node.exe",
+        "scripts/restore-rehearsal.mjs"
+      ],
+      "exit_code": 0,
+      "seconds": 6,
+      "log": "C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r410-baseline-isolated-tVOewM\\restore.log",
+      "logSha256": "6a56c14bb9298f8a4d7475e26c09d15c8cd43b01ce6ed6df8ca56dae81e330b4"
+    },
+    {
+      "name": "audit",
+      "command": [
+        "C:\\Program Files\\nodejs\\node.exe",
+        "C:/Program Files/nodejs/node_modules/npm/bin/npm-cli.js",
+        "run",
+        "security:audit"
+      ],
+      "exit_code": 0,
+      "seconds": 7,
+      "log": "C:\\Users\\admin\\AppData\\Local\\Temp\\north-r47-r410-baseline-isolated-tVOewM\\audit.log",
+      "logSha256": "57e8b10012c380383e853728fe570a8746171dc602003a7af2be5786773033e3"
+    }
+  ],
+  "gitTreeUnchangedDuringRun": true,
+  "workingTree": "D:/AI-for-Enterprise/ns-r410-baseline-verification detached9ffae60",
+  "vitestTests": 1209,
+  "postgresTests": 112,
+  "lines": 91.98
+}

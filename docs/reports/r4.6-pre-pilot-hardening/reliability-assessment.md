@@ -1,0 +1,26 @@
+# REL-01 reliability assessment — 2026-11-19
+
+Scope: internal assertion outbox/inbox foundation only. ADR-005/006/007/009 apply. Delivery remains opt-in and restricted to local/test PostgreSQL; no external sink, Commercial State mutation, staging/pilot/production enablement or new commercial authority.
+
+Confirmed gaps and changes:
+- Stored JSON previously reached sinks without runtime validation. Validation now checks tenant/assertion identity, required provenance, non-inferred acquisition/status/subject contracts, schema version, timestamps, optional evidence shape and forbidden inferred metadata. Invalid envelopes fail permanently without invoking the sink; immutable evidence is never repaired in place.
+- Sink timeout and immutable inbox collision now retain fixed categories. Same-id/same-envelope duplicates deduplicate; same-id/different-envelope is rejected. No raw errors/bodies enter health or audit output.
+- Unauthenticated internal replay method was replaced by an admin-only service/controller. Row lock, delivery change and append-only operator audit share one transaction. Workspace comes from verified context. AUTH_MODE=oidc is mandatory; demo/legacy identities are denied. Stop accepts PENDING only and never claims to cancel a live sink or undo evidence. Poison replay is refused.
+- Migration 017 adds categories and an append-only scoped audit with actor FK. Down refuses when audit/category evidence would be lost. Module and readiness integration belongs to the root workstream.
+- Baseline shared-suite failure was global backlog starvation of batch10. Delivery integration now owns a random private schema (including its failure trigger); production worker still claims globally. No customer data is deleted or filtered by worker tests.
+
+Validation: typecheck and targeted ESLint pass; five suites / 20 tests (including 8 PostgreSQL tests) pass. Targeted five suites cover runtime poison/tenant mismatch, timeout, retry exhaustion, redaction, lease-token fencing, duplicate/collision, row-lock concurrent workers, immutable evidence, atomic outbox rollback, admin denials, scoped replay, audit failure rollback, stop/replay and audit immutability. Crash before outcome commit is represented by injected transaction failure; crash after inbox commit/before acknowledgement is a labeled state simulation, not a killed-process claim. Fresh worker/pool recovery is exercised.
+
+Actual database restart also exercised using PostgreSQL 17 initdb/pg_ctl from C:/Program Files/PostgreSQL/17/bin, an agent-owned temp cluster C:/Users/admin/AppData/Local/Temp/north-r46-rel-fcc8c0a09980459f9c88b7829f97e37f/data, localhost port 55467, database north_rel_test. An opt-in REL_PRIVATE_PG_DATA test strictly checks the owned temp-name pattern and exact private URL before pg_ctl restart. Tests default to no process control. The DB restart occurred between durable outcome/outbox commit and a fresh worker delivery. No arbitrary service/database was restarted. OS worker process termination and power-loss/WAL recovery were not tested.
+
+Delivery guarantee is at-least-once with consumer deduplication, not exactly-once. A timed-out sink promise cannot be forcibly canceled; a late effect is possible and sinks must retain idempotency. Stale worker acknowledgements are fenced by lease token. No production SLO/readiness claim follows from these local tests.
+
+## DATA lifecycle read-only reliability review
+
+Reviewed DATA worktree commit f276715 source/store/service/synthetic vault and assessment (root integrated b1841d0). No additional P0/P1 reliability defect identified within its explicitly planning-only scope. PostgreSQL policy revision CAS is serialized with transaction advisory locks; preview uses repeatable-read server transaction time and count-only results. Both operations append audit in their mutation transaction, so audit failure cannot return partial successful durable state. Canonical evidence is not rewritten. Root identified and is separately closing migration015/016 TRUNCATE bypass with statement guards; row-only immutable triggers are insufficient.
+
+Synthetic vault operations serialize through a promise queue that recovers after rejection. Expired reads are blocked before decryption; an audit failure retains ciphertext for retry, and successful purge zeroes its stored buffer. These are process-local fixture properties only. There is no durable purge worker/checkpoint, scheduler, post-restart recovery, backup expiry or production key lifecycle to review. DATA-01 remains OPEN for real-data admission; policy/preview plus a synthetic buffer deletion do not establish production retention or erasure. No speculative schedule or job was added by this review.
+
+## Root integration closure
+
+Delivery API now consumes a typed port rather than importing infra; composition/readiness and017 are registered. Global enablement also rejects NODE_ENV=production despite conflicting test/local selection. Full local17-lane run at659ca46 PASS including20PGsuites/95tests and119coveragefiles/1177tests, no skips. Baseline starvation did not recur. Root did not repeat the worker's physical PG restart; it remains separately attributed worker evidence. Hosted R4.6 remains unverified.

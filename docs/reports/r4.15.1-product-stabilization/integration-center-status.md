@@ -1,0 +1,1 @@
+﻿Integration Center continues to distinguish fixture-tested, not-configured and live-not-verified. Source/sync health uses existing role-scoped endpoints. Hybrid receipts remain synthetic and completeness UNKNOWN.

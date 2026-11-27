@@ -1,0 +1,203 @@
+{
+  "artifact_directory": "C:\\Users\\admin\\AppData\\Local\\Temp\\north-r46-baseline-lzNPAP",
+  "source_sha": "cd842c4851c7ec10792f9d05c39d62392b871f8c",
+  "mode": "baseline",
+  "results": [
+    {
+      "name": "typecheck",
+      "command": [
+        "C:\\Program Files\\nodejs\\node.exe",
+        "C:/Program Files/nodejs/node_modules/npm/bin/npm-cli.js",
+        "run",
+        "typecheck"
+      ],
+      "exit_code": 0,
+      "seconds": 5,
+      "log": "C:\\Users\\admin\\AppData\\Local\\Temp\\north-r46-baseline-lzNPAP\\typecheck.log"
+    },
+    {
+      "name": "lint",
+      "command": [
+        "C:\\Program Files\\nodejs\\node.exe",
+        "C:/Program Files/nodejs/node_modules/npm/bin/npm-cli.js",
+        "run",
+        "lint"
+      ],
+      "exit_code": 0,
+      "seconds": 3,
+      "log": "C:\\Users\\admin\\AppData\\Local\\Temp\\north-r46-baseline-lzNPAP\\lint.log"
+    },
+    {
+      "name": "architecture",
+      "command": [
+        "C:\\Program Files\\nodejs\\node.exe",
+        "C:/Program Files/nodejs/node_modules/npm/bin/npm-cli.js",
+        "run",
+        "architecture:check:strict"
+      ],
+      "exit_code": 0,
+      "seconds": 1,
+      "log": "C:\\Users\\admin\\AppData\\Local\\Temp\\north-r46-baseline-lzNPAP\\architecture.log"
+    },
+    {
+      "name": "registry",
+      "command": [
+        "C:\\Program Files\\nodejs\\node.exe",
+        "C:/Program Files/nodejs/node_modules/npm/bin/npm-cli.js",
+        "run",
+        "registry:validate"
+      ],
+      "exit_code": 0,
+      "seconds": 0,
+      "log": "C:\\Users\\admin\\AppData\\Local\\Temp\\north-r46-baseline-lzNPAP\\registry.log"
+    },
+    {
+      "name": "integration-ci",
+      "command": [
+        "C:\\Program Files\\nodejs\\node.exe",
+        "C:/Program Files/nodejs/node_modules/npm/bin/npm-cli.js",
+        "run",
+        "test:integration:ci"
+      ],
+      "exit_code": 0,
+      "seconds": 44,
+      "log": "C:\\Users\\admin\\AppData\\Local\\Temp\\north-r46-baseline-lzNPAP\\integration-ci.log"
+    },
+    {
+      "name": "coverage",
+      "command": [
+        "C:\\Program Files\\nodejs\\node.exe",
+        "C:/Program Files/nodejs/node_modules/npm/bin/npm-cli.js",
+        "run",
+        "test:cov",
+        "--",
+        "--no-file-parallelism"
+      ],
+      "exit_code": 1,
+      "seconds": 86,
+      "log": "C:\\Users\\admin\\AppData\\Local\\Temp\\north-r46-baseline-lzNPAP\\coverage.log"
+    },
+    {
+      "name": "build",
+      "command": [
+        "C:\\Program Files\\nodejs\\node.exe",
+        "C:/Program Files/nodejs/node_modules/npm/bin/npm-cli.js",
+        "run",
+        "build"
+      ],
+      "exit_code": 0,
+      "seconds": 9,
+      "log": "C:\\Users\\admin\\AppData\\Local\\Temp\\north-r46-baseline-lzNPAP\\build.log"
+    },
+    {
+      "name": "http-e2e",
+      "command": [
+        "C:\\Program Files\\nodejs\\node.exe",
+        "C:/Program Files/nodejs/node_modules/npm/bin/npm-cli.js",
+        "run",
+        "test:e2e"
+      ],
+      "exit_code": 0,
+      "seconds": 6,
+      "log": "C:\\Users\\admin\\AppData\\Local\\Temp\\north-r46-baseline-lzNPAP\\http-e2e.log"
+    },
+    {
+      "name": "browser",
+      "command": [
+        "C:\\Program Files\\nodejs\\node.exe",
+        "C:/Program Files/nodejs/node_modules/npm/bin/npm-cli.js",
+        "run",
+        "test:browser"
+      ],
+      "exit_code": 0,
+      "seconds": 17,
+      "log": "C:\\Users\\admin\\AppData\\Local\\Temp\\north-r46-baseline-lzNPAP\\browser.log"
+    },
+    {
+      "name": "component",
+      "command": [
+        "C:\\Program Files\\nodejs\\node.exe",
+        "node_modules/@playwright/test/cli.js",
+        "test",
+        "--config",
+        "playwright.operator-component.config.ts"
+      ],
+      "exit_code": 0,
+      "seconds": 3,
+      "log": "C:\\Users\\admin\\AppData\\Local\\Temp\\north-r46-baseline-lzNPAP\\component.log"
+    },
+    {
+      "name": "oidc-ui",
+      "command": [
+        "C:\\Program Files\\nodejs\\node.exe",
+        "node_modules/@playwright/test/cli.js",
+        "test",
+        "--config",
+        "playwright.oidc.config.ts"
+      ],
+      "exit_code": 0,
+      "seconds": 22,
+      "log": "C:\\Users\\admin\\AppData\\Local\\Temp\\north-r46-baseline-lzNPAP\\oidc-ui.log"
+    },
+    {
+      "name": "companion",
+      "command": [
+        "C:\\Program Files\\nodejs\\node.exe",
+        "C:/Program Files/nodejs/node_modules/npm/bin/npm-cli.js",
+        "run",
+        "test:companion"
+      ],
+      "exit_code": 0,
+      "seconds": 4,
+      "log": "C:\\Users\\admin\\AppData\\Local\\Temp\\north-r46-baseline-lzNPAP\\companion.log"
+    },
+    {
+      "name": "guardrails",
+      "command": [
+        "C:\\Program Files\\nodejs\\node.exe",
+        "--test",
+        "scripts/check-architecture.test.mjs",
+        "scripts/registry-validation.test.mjs",
+        "scripts/security-audit.test.mjs",
+        "scripts/backup-verify.test.mjs"
+      ],
+      "exit_code": 0,
+      "seconds": 1,
+      "log": "C:\\Users\\admin\\AppData\\Local\\Temp\\north-r46-baseline-lzNPAP\\guardrails.log"
+    },
+    {
+      "name": "ail-research",
+      "command": [
+        "C:\\Program Files\\nodejs\\node.exe",
+        "C:/Program Files/nodejs/node_modules/npm/bin/npm-cli.js",
+        "run",
+        "test:ail:research"
+      ],
+      "exit_code": 0,
+      "seconds": 1,
+      "log": "C:\\Users\\admin\\AppData\\Local\\Temp\\north-r46-baseline-lzNPAP\\ail-research.log"
+    },
+    {
+      "name": "restore",
+      "command": [
+        "C:\\Program Files\\nodejs\\node.exe",
+        "scripts/restore-rehearsal.mjs"
+      ],
+      "exit_code": 0,
+      "seconds": 2,
+      "log": "C:\\Users\\admin\\AppData\\Local\\Temp\\north-r46-baseline-lzNPAP\\restore.log"
+    },
+    {
+      "name": "audit",
+      "command": [
+        "C:\\Program Files\\nodejs\\node.exe",
+        "C:/Program Files/nodejs/node_modules/npm/bin/npm-cli.js",
+        "run",
+        "security:audit"
+      ],
+      "exit_code": 0,
+      "seconds": 3,
+      "log": "C:\\Users\\admin\\AppData\\Local\\Temp\\north-r46-baseline-lzNPAP\\audit.log"
+    }
+  ]
+}

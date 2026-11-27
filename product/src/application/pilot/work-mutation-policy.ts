@@ -27,7 +27,7 @@ export function activeWorkRecipients(state: PilotLoopState): readonly string[] {
 }
 
 /** Owner-only mutation authority. View and accept rights do not imply mutation. */
-export function requireOwner(state: PilotLoopState, actor: string, action: string): void {
+export function requireOwner(state: Pick<PilotLoopState,'ownerUserId'>, actor: string, action: string): void {
   if (!state.ownerUserId || state.ownerUserId !== actor) {
     throw new PilotDomainError(
       'NOT_OWNER',

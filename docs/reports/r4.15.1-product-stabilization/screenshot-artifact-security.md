@@ -1,0 +1,1 @@
+﻿Added product/scripts/ui-evidence-packager.mjs with PNG/HTML/JSON/MD allowlist, profile/cookie/HAR/database rejection, separate-output enforcement and SHA-256 manifest. Negative test injects a fake browser profile and expects refusal.

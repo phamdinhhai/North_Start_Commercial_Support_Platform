@@ -1,0 +1,63 @@
+{
+  "run_id": 44500378572,
+  "url": "https://github.com/phamdinhhai/North_Start_Commercial_Support_Platform/actions/runs/44500378572",
+  "sha": "754ebdd018dcf9e00840dd0fe62c128872dc572a",
+  "status": "completed",
+  "conclusion": "failure",
+  "jobs": [
+    {
+      "name": "Browser operator workflow",
+      "job_id": 135478266044,
+      "conclusion": "success",
+      "steps": [],
+      "summary": [
+        "Browser operator workflow\tRun Playwright operator workflow\t2026-11-19T09:53:25.1763141Z   4 passed (13.9s)",
+        "Browser operator workflow\tOperator component regressions\t2026-11-19T09:53:27.7566206Z   3 passed (1.7s)",
+        "Browser operator workflow\tLifecycle refuses non-durable storage\t2026-11-19T09:53:39.0799349Z   1 passed (10.4s)",
+        "Browser operator workflow\tOIDC and PostgreSQL UI-only LVP journey\t2026-11-19T09:53:56.0617330Z   3 passed (16.1s)",
+        "Browser operator workflow\tChromium MV3 synthetic capture and restart\t2026-11-19T09:53:59.8454145Z {\"result\":\"PASS\",\"realChromiumMV3\":true,\"syntheticWebsocketCaptured\":true,\"rawMessageExcluded\":true,\"noBodyDigest\":true,\"browserRestartPersistence\":true,\"providerContacted\":false,\"packagedArtifact\":\"b8c4b27f3cc1ed369c4eb9129d7ce2bad8bdb09c8778c1df5e7cd64af531511b\",\"workerRestarted\":true,\"workerLostDebuggerDetected\":true,\"captureAfterExplicitRestart\":true,\"sequenceReservationSurvivedTermination\":true,\"driftFingerprintOnly\":true,\"popupA11y\":true,\"tabCloseStop\":\"tab-closed\"}"
+      ],
+      "log": "C:\\Users\\admin\\AppData\\Local\\Temp\\north-r46-hosted-ddcjfzgi\\135478266044.log",
+      "log_sha256": "365513f12f3e16481dec4dad7d3ea713b15f7c3fd168f01411416b38559ed8ee"
+    },
+    {
+      "name": "product",
+      "job_id": 135478266431,
+      "conclusion": "failure",
+      "steps": [
+        {
+          "name": "PostgreSQL integration (fail on missing/skipped suites)",
+          "conclusion": "failure"
+        },
+        {
+          "name": "Coverage (80% line threshold, including PostgreSQL)",
+          "conclusion": "skipped"
+        },
+        {
+          "name": "Build",
+          "conclusion": "skipped"
+        },
+        {
+          "name": "Disposable PostgreSQL backup and restore rehearsal",
+          "conclusion": "skipped"
+        },
+        {
+          "name": "E2E HTTP smoke",
+          "conclusion": "skipped"
+        },
+        {
+          "name": "Post Run actions/setup-node@v4",
+          "conclusion": "skipped"
+        }
+      ],
+      "summary": [
+        "product\tDependency audit (high and critical; production never waived)\t2026-11-19T09:53:05.9136198Z Dependency audit: PASS (production clean; 0 dev-only waiver(s) applied)",
+        "product\tStrict architecture check\t2026-11-19T09:53:42.7192303Z Architecture check: PASS (0 findings)"
+      ],
+      "log": "C:\\Users\\admin\\AppData\\Local\\Temp\\north-r46-hosted-ddcjfzgi\\135478266431.log",
+      "log_sha256": "433fbf6106087ac10450f1b4e5fc4c88177001fcbef6dc7b78901b490a176fdd"
+    }
+  ],
+  "source_relation": "Hosted tests execute exact pushed SHA; local revision and dependency relation recorded separately in test-verification.json.",
+  "note": "Run72 failed migration lifecycle5s test/10s cleanup timeouts. BrowserSUCCESS. Prior ce01a59/run71 SUCCESS remains historical, not proof HEAD stable."
+}

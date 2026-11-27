@@ -1,0 +1,88 @@
+{
+  "release": "R4.16.2",
+  "branch": "feat/r4162-native-conversation-hardening",
+  "implementationHead": "0d19942e7ebd9aaac2cdeded7c87aec87e98836b",
+  "previousRemoteHead": "ff89212af3219a1ed689ce5b209ee884eb82d960",
+  "findings": {
+    "A01": "FIXED_LEAD_SCOPED_CONVERSATION_READ",
+    "B01": "FIXED_SEARCH_BEFORE_LIMIT_SCOPED_CURSOR",
+    "N01": "FIXED_CURSOR_BOUNDARY_AND_TIMESTAMP_PRECISION",
+    "N02": "PARTIAL_PAGE_MEMBERSHIP_NOT_CANONICAL",
+    "N03": "FIXED_CONVERSATION_LEVEL_CURSOR",
+    "N04": "FIXED_SESSION_AWARE_FRONTEND_PAGINATION",
+    "N05": "PRESERVED_UNVERIFIED_UNKNOWN_AND_BOUNDED_HISTORY_DISCLOSURE",
+    "N06": "REGRESSION_CHECKED",
+    "N07": "PRESERVED",
+    "N08": "RECONCILED_FOR_THIS_IMPLEMENTATION"
+  },
+  "tests": [
+    {
+      "command": "npm run typecheck && npm run build",
+      "workspace": "product",
+      "exitCode": 0
+    },
+    {
+      "command": "npm test -- --run src/api/source-integration.http.spec.ts src/application/source-integration/source-integration.service.spec.ts",
+      "workspace": "product",
+      "exitCode": 0,
+      "result": "17 passed / 0 skipped"
+    },
+    {
+      "command": "npm test -- --run src/infra/postgres/pilot-closure.integration.spec.ts",
+      "workspace": "product",
+      "exitCode": 0,
+      "result": "8 passed / 0 skipped with disposable PostgreSQL"
+    },
+    {
+      "command": "npm test -- --run src/infra/source-integration/source-performance.integration.spec.ts",
+      "workspace": "product",
+      "exitCode": 0,
+      "result": "5 passed / 0 skipped with disposable PostgreSQL"
+    },
+    {
+      "command": "npm run typecheck && npm run build && npm run test:contract",
+      "workspace": "frontend",
+      "exitCode": 0,
+      "result": "typecheck/build/2 contract tests passed"
+    },
+    {
+      "command": "npx playwright test --config playwright.native-inbox.config.ts",
+      "workspace": "product",
+      "exitCode": 0,
+      "result": "1 passed; 55+ conversations, 101-message history, real React route, Nest backend, PostgreSQL and fixture OIDC"
+    },
+    {
+      "command": "npx playwright test --config playwright.oidc.config.ts",
+      "workspace": "product",
+      "exitCode": 0,
+      "result": "6 passed / 0 skipped; Native Inbox is isolated into dedicated config"
+    },
+    {
+      "command": "npm run architecture:check:strict",
+      "workspace": "product",
+      "exitCode": 0,
+      "result": "0 findings"
+    },
+    {
+      "command": "npm run security:audit",
+      "workspace": "product",
+      "exitCode": 0,
+      "result": "production clean"
+    }
+  ],
+  "nativeInboxBrowserE2E": "PASS",
+  "fullIntakeToNativeInboxE2E": "PASS_55_PLUS_CONVERSATIONS_AND_101_MESSAGE_HISTORY",
+  "crmSearchPostgresE2E": "PASS_8_OF_8",
+  "commercialContinuityReactJourney": "PARTIAL_NATIVE_INBOX_ONLY",
+  "hostedCI": "PASS",
+  "providerCalls": 0,
+  "providerMutations": 0,
+  "p3": "SEND_UNRESOLVED",
+  "p4": "NOT_TESTED",
+  "p5": "NOT_VERIFIED",
+  "ownerAcceptance": "PENDING",
+  "status": "TECHNICAL_CLOSURE_CI_VERIFIED_COMMERCIAL_ACCEPTANCE_PENDING",
+  "ciRunId": 45402301220,
+  "ciUrl": "https://github.com/phamdinhhai/North_Start_Commercial_Support_Platform/actions/runs/45402301220",
+  "ciSha": "ba69a4dda5b04f6368558887032a81830b8c8bfe"
+}

@@ -1,0 +1,1 @@
+﻿CRM UI and backend are CODE_IMPLEMENTED and LOCAL_TESTED; frontend hosted verification is pending this branch. Inbox and Ads remain synthetic fixture views. Pancake P3 remains SEND_UNRESOLVED, P4 NOT_TESTED and P5 NOT_VERIFIED. Human and business validation remain pending.

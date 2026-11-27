@@ -1,8 +1,11 @@
-import { EnvelopeIdempotencyConflictError, idempotencyKey, type CommercialEnvelope } from '../domain/envelope/envelope';
+import type { PilotLeadQuery, PilotLeadPage } from './pilot-closure';
+import { EnvelopeIdempotencyConflictError, idempotencyKey, canonicalizePayload, type CommercialEnvelope } from '../domain/envelope/envelope';
 import type { AuditRecord } from './audit';
-import type { AuditHistoryEntry, PilotLoopState } from './pilot-loop.types';
+import type { AuditHistoryEntry, PilotLoopState, PilotQueuePage, PilotQueueQuery } from './pilot-loop.types';
 
 export interface EvidenceRefRecord {
+  readonly isSynthetic?: boolean;
+  readonly rawPayloadDigest?: CommercialEnvelope['rawPayloadDigest'];
   readonly envelopeId: string;
   readonly workspaceId: string;
   readonly rawPayloadHash: string;
@@ -13,11 +16,14 @@ export interface EvidenceRefRecord {
 }
 
 export interface PilotLoopStore {
+  leads(query: PilotLeadQuery): Promise<PilotLeadPage>;
+  appendAccess(leadId: string, actor: string): Promise<void>;
   load(leadId: string): Promise<PilotLoopState | undefined>;
   loadIngest(key: Pick<CommercialEnvelope, 'workspaceId' | 'connection' | 'externalRecordId'>): Promise<PilotLoopState | undefined>;
   save(state: PilotLoopState, audits: readonly Omit<AuditRecord, 'id' | 'timestamp'>[], options?: { readonly checkSourceCapturedAt?: boolean }): Promise<PilotLoopState>;
   history(leadId: string): Promise<readonly AuditHistoryEntry[]>;
   loadEvidence(envelopeId: string): Promise<EvidenceRefRecord | undefined>;
+  queue(query: PilotQueueQuery): Promise<PilotQueuePage>;
 }
 
 export function assertSameEnvelope(
@@ -26,7 +32,8 @@ export function assertSameEnvelope(
   options: { readonly checkSourceCapturedAt?: boolean } = {},
 ): void {
   const conflicts = [
-    ...(existing.rawPayloadHash !== incoming.rawPayloadHash ? ['rawPayloadHash' as const] : []),
+    ...(canonicalizePayload(existing.rawPayload) !== canonicalizePayload(incoming.rawPayload) ? ['rawPayloadHash' as const] : []),
+    ...(existing.isSynthetic !== incoming.isSynthetic ? ['isSynthetic' as const] : []),
     ...(existing.externalEventType !== incoming.externalEventType ? ['externalEventType' as const] : []),
     ...(options.checkSourceCapturedAt !== false && existing.sourceCapturedAt !== incoming.sourceCapturedAt ? ['sourceCapturedAt' as const] : []),
   ];

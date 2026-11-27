@@ -1,0 +1,1 @@
+﻿Independent review scope includes CI workflow, role labels, cache boundaries, Reports/Intelligence semantics and evidence-packager negative tests. Final exact-source and hosted review remain release gates.

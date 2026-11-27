@@ -1,0 +1,28 @@
+{
+  "fixtureVersion": "w2-2026-11-13",
+  "isSynthetic": true,
+  "source": {
+    "system": "synthetic-meta",
+    "workspaceId": "ws-synthetic-001",
+    "providerAccountId": "act_synthetic_001",
+    "externalRecordId": "ad_0001",
+    "occurredAt": "2026-11-13T09:00:00Z",
+    "capturedAt": "2026-11-13T09:00:01Z",
+    "payloadSha256": "fixture-only-not-a-provider-payload"
+  },
+  "normalizedObservation": {
+    "kind": "acquisition-observation",
+    "campaignId": "campaign_synthetic_001",
+    "adId": "ad_0001",
+    "leadId": null,
+    "revenue": null,
+    "unknownFields": ["leadId", "revenue"],
+    "provenance": "provider-payload-hash-only"
+  },
+  "mappingAssertions": {
+    "providerIdentityIsNotLeadIdentity": true,
+    "unknownIsPreserved": true,
+    "syntheticCannotProveCustomerOutcome": true,
+    "adapterCannotMutateLeadState": true
+  }
+}

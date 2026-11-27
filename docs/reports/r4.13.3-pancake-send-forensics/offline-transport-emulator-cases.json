@@ -1,0 +1,13 @@
+﻿{
+  "network": "loopback-only",
+  "credentials": false,
+  "scenarios": [
+    {"id":"connect-timeout","node":"UND_ERR_CONNECT_TIMEOUT","python":"socket.timeout(connect)","evidence":"transport_failure/provider_result_UNKNOWN"},
+    {"id":"write-timeout","node":"abort/write timeout","python":"socket.timeout(send)","evidence":"delivery_UNKNOWN"},
+    {"id":"response-timeout","node":"headers/read timeout","python":"socket.timeout(read)","evidence":"delivery_UNKNOWN"},
+    {"id":"reset-before-body","node":"ECONNRESET","python":"ConnectionResetError","evidence":"response_partial"},
+    {"id":"reset-after-partial-body","node":"ECONNRESET","python":"ConnectionResetError","evidence":"response_partial/parse_not_attempted"},
+    {"id":"partial-json","node":"SyntaxError(JSON.parse)","python":"JSONDecodeError","evidence":"parse_failure/business_unverified"}
+  ],
+  "assertions": ["no scenario claims sent", "no scenario confirms mutation", "owner=NOT_OBSERVED"]
+}

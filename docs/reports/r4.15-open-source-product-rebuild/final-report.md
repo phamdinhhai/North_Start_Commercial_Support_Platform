@@ -1,0 +1,1 @@
+﻿One North Start React product now uses pinned MIT CRM, inbox and Ads UI modules on existing Nest/OIDC/PostgreSQL. CRM creation and handoff were manually smoke-tested; Inbox and Ads are bounded synthetic views. Final status remains local Owner review with provider safety gates preserved.

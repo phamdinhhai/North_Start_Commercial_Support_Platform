@@ -57,6 +57,23 @@ describe('Migrator — PH3 T3-08', () => {
       '005_workspace_consistency',
       '006_pilot_ingest_command',
       '007_evidence_acquisition',
+      '008_integration_receipts',
+      '009_work_completion_provenance',
+      '010_workspace_membership',
+      '011_governed_actions',
+      '012_content_digest',
+      '013_pilot_closure',
+      '014_assertion_delivery',
+      '015_data_lifecycle',
+      '016_contact_attempt',
+      '017_assertion_ops',
+      '018_source_integration',
+      '019_source_receipt_lookup_indexes',
+      '020_source_episode_link',
+      '021_source_link_receipt_guard',
+      '022_sync_stream',
+      '023_fabricated_delivery',
+      '024_research_capture_receipts',
     ]);
     expect(files.every((m) => m.up.length > 0 && m.down.length > 0)).toBe(true);
 

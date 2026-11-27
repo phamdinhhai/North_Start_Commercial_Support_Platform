@@ -1,0 +1,30 @@
+{
+  "schema": "north-star.synthetic-phoenix-contracts.v1",
+  "data": "Synthetic identifiers and text only; no copied customer payloads",
+  "cases": [
+    {
+      "name": "message-update",
+      "provenance": "source-derived; HAR asset 42 handler; not live message-verified",
+      "frame": [null, "fixture-ref", "pages:page-test", "pages:update_messages", {"page_id": "page-test", "conversation_id": "conversation-test", "messages": [{"id": "message-test", "message": "synthetic-private-content"}]}],
+      "objectId": "conversation-test"
+    },
+    {
+      "name": "conversation-update",
+      "provenance": "source-derived; HAR asset 42 handler; not live message-verified",
+      "frame": [null, "fixture-ref", "pages:page-test", "pages:update_conversation", {"conversation": {"id": "conversation-test", "page_id": "page-test", "snippet": "synthetic-private-content"}}],
+      "objectId": "conversation-test"
+    },
+    {
+      "name": "message-deletion",
+      "provenance": "source-derived; nested message.conversation_id; no live deletion performed",
+      "frame": [null, "fixture-ref", "pages:page-test", "messages:mark_as_deleted", {"message": {"id": "message-test", "conversation_id": "conversation-test", "page_id": "page-test"}}],
+      "objectId": "conversation-test"
+    },
+    {
+      "name": "conversation-tags-batch",
+      "provenance": "shape live-observed in attach/detach experiment ev_e9cbcd5ef6367291bb38df4ec5524a3579619f8f5af75190b6c480632967339e; every value synthetic",
+      "frame": [null, "fixture-ref", "pages:page-test", "pages:tag_conversations", {"timestamp": 1800000000, "unread_first": true, "conversations": {"conversation-test": [7]}, "conversations_updated": [{"id": "conversation-test", "page_id": "page-test", "tags": [7], "snippet": "synthetic-private-content"}]}],
+      "objectId": null
+    }
+  ]
+}

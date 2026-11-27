@@ -1,0 +1,15 @@
+﻿import {Link} from 'react-router';
+import {BarChart3,ArrowUpRight} from 'lucide-react';
+import {Card,CardHeader,CardContent,CardTitle} from '@/components/ui/card';
+import {Button} from '@/components/ui/button';
+import {Badge} from '@/components/ui/badge';
+import {PageTitle,useRemote,ErrorNotice,EmptyState} from '@/app/shared';
+import {useSession,NorthStartPermissionProvider} from '@/providers/north-start';
+export function ReportsPage({intelligence=false}:{intelligence?:boolean}){
+ const {session}=useSession();const allowed=NorthStartPermissionProvider.canManage(session);
+ const {data,error,loading}=useRemote<any>(allowed?'/v1/pilot/manager-exceptions?classification=synthetic&limit=50':null);
+ const title=intelligence?'Commercial Intelligence':'Báo cáo vận hành';
+ const description=intelligence?'Tập trung vào độ đầy đủ bằng chứng, ownership và bước tiếp theo cần con người xem xét. Không suy diễn doanh thu hoặc attribution.':'Tóm tắt workload, quá hạn và ngoại lệ manager trong phạm vi dữ liệu được cấp quyền. Không phải báo cáo doanh thu.';
+ const cards=intelligence?[['Độ đầy đủ ngữ cảnh','UNKNOWN'],['Outcome chưa xác minh','UNKNOWN'],['Phạm vi bằng chứng','BOUNDED_PAGE']]:[['Lead có ngoại lệ',data?.items?.length??'…'],['Lead đã quét',data?.scannedLeads??'…'],['Phạm vi vận hành',data?.scope??'BOUNDED_PAGE']];
+ return <><PageTitle eyebrow={intelligence?'Commercial Intelligence / Evidence':'Management / Workload'} title={title} description={description}/><div className="mb-6 grid gap-4 md:grid-cols-3">{cards.map(([label,value])=><Card key={label}><CardContent className="p-5"><p className="text-xs text-muted-foreground">{label}</p><p className="mt-3 text-xl font-semibold">{value}</p></CardContent></Card>)}</div><Card><CardHeader><CardTitle className="flex items-center gap-2 text-base"><BarChart3 className="size-4"/>{intelligence?'Bằng chứng cần xem xét':'Ngoại lệ và workload hiện tại'}</CardTitle></CardHeader><CardContent><ErrorNotice message={error}/>{!allowed?<EmptyState title="Cần quyền Manager hoặc Admin">Tài khoản hiện tại không được xem dữ liệu quản lý.</EmptyState>:loading?<p>Đang tải…</p>:data?.items?.length?<div className="space-y-3">{data.items.map((row:any)=><div key={row.leadId} className="flex flex-wrap items-center justify-between gap-4 rounded-lg border p-4"><div><p className="text-sm font-semibold">{row.displayName}</p><div className="mt-2 flex flex-wrap gap-2">{row.observations.map((o:string)=><Badge key={o} variant="outline">{o}</Badge>)}</div></div><Button size="sm" variant="outline" render={<Link to={'/leads/'+row.leadId+'/show'}/>}>Xem hồ sơ <ArrowUpRight/></Button></div>)}</div>:<EmptyState title={intelligence?'Chưa có thiếu hụt bằng chứng trong trang':'Không có ngoại lệ trong trang hiện tại'}>Không suy ra toàn bộ workspace đã hoàn thiện.</EmptyState>}<p className="mt-5 text-xs text-muted-foreground">{data?`Đã quét ${data.scannedLeads} Lead · ${data.scope} · ${data.asOf}`:'UNKNOWN'}{data?.hasMore?' · Còn trang chưa tải.':''}</p></CardContent></Card></>;
+}

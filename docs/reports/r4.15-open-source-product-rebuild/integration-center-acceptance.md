@@ -1,0 +1,1 @@
+﻿Provider cards distinguish FIXTURE_TESTED, NOT_CONFIGURED and LIVE NOT_VERIFIED. Source/sync health is role-scoped. Hardened Hybrid Preview supports fabricated enrollment and receipts; no provider traffic.

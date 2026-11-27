@@ -1,0 +1,173 @@
+{
+  "schema": "north-star.pancake-conversation-recovery-experiment.v1",
+  "status": "working_non_canonical",
+  "as_of": "2026-11-15",
+  "scope": "Authorized Facebook page only; TikTok read-only; no authored message send/delete or POS configuration",
+  "method": "REA declared actions plus separately labeled local CDP listeners and fault bridge; all full capture bodies private",
+  "runs": [
+    {"runId":"fresh-scope-pos","evidenceId":"ev_faffcbc1884c0068764f1a716146b25fe597553e295fc9c65044c4a04f3c7588","result":"completed","steps":[{"id":"scenario_start","status":"completed"},{"id":"settle","status":"completed"},{"id":"settings","status":"completed"},{"id":"conversations","status":"completed"},{"id":"pos_shop","status":"completed"},{"id":"pos_automation","status":"completed"}],"scopeAudit":{"allowed":0,"blocked":0,"reasons":[],"blockedTikTokWrites":0},"transport":{"receivedFrames":3,"settingsEvents":[],"connections":[{"ordinal":1,"openedAt":"2026-11-15T09:34:01.403Z","phase":"baseline","closedAt":null,"facebookJoinSentAt":"2026-11-15T09:34:01.442Z","facebookJoinAckAt":"2026-11-15T09:34:01.610Z"}]},"droppedEvents":0,"completeness":"incomplete"},
+    {"runId":"inspect-read-conversation","evidenceId":"ev_afe60fe63932138a9251d69015e326d460ad91eb94ccebbcd613e0fa1d977fac","result":"completed","steps":[{"id":"scenario_start","status":"completed"},{"id":"settle","status":"completed"},{"id":"open_read_conversation","status":"completed"},{"id":"settle_messages","status":"completed"}],"scopeAudit":{"allowed":0,"blocked":0,"reasons":[],"blockedTikTokWrites":0},"transport":{"receivedFrames":5,"settingsEvents":[],"connections":[{"ordinal":1,"openedAt":"2026-11-15T09:37:43.643Z","phase":"baseline","closedAt":null,"facebookJoinSentAt":"2026-11-15T09:37:43.709Z","facebookJoinAckAt":"2026-11-15T09:37:43.990Z"}]},"droppedEvents":0,"completeness":"incomplete"},
+    {"runId":"create-conversation-tag","evidenceId":"ev_b8c9fb94567a4636bde4715619d5c6f1de8525e19772e86f225e3e80403eb61d","result":"completed","steps":[{"id":"scenario_start","status":"completed"},{"id":"tags_ready","status":"completed"},{"id":"open_new_tag","status":"completed"},{"id":"name_synthetic_tag","status":"completed"},{"id":"dispatch_name_input","status":"completed"},{"id":"finish_name_input","status":"completed"},{"id":"wait_for_react_state","status":"completed"},{"id":"save_synthetic_tag","status":"completed"},{"id":"settle","status":"completed"},{"id":"readback","status":"completed"}],"scopeAudit":{"allowed":1,"blocked":0,"reasons":[],"blockedTikTokWrites":0},"transport":{"receivedFrames":4,"settingsEvents":[{"observedAt":"2026-11-15T09:40:18.706Z","event":"pages:update_settings","topicFamily":"pages","facebookReference":true,"containsSyntheticMarker":true,"frameSha256":"3e56ae08ee6cc9f8cf5c51c3f7e4f253dc7ea867d857f61cd65d816780943e91","knownPayloadKeys":["page_id","settings","tags"]}],"conversationEvents":[],"connections":[{"ordinal":1,"openedAt":"2026-11-15T09:40:16.890Z","phase":"baseline","closedAt":null,"facebookJoinSentAt":"2026-11-15T09:40:17.050Z","facebookJoinAckAt":"2026-11-15T09:40:17.228Z"}]},"droppedEvents":0,"completeness":"incomplete"},
+    {"runId":"attach-conversation-tag","evidenceId":"ev_e9cbcd5ef6367291bb38df4ec5524a3579619f8f5af75190b6c480632967339e","result":"completed","steps":[{"id":"scenario_start","status":"completed"},{"id":"settle","status":"completed"},{"id":"open_read_conversation","status":"completed"},{"id":"settle_messages","status":"completed"},{"id":"current_conversations","status":"completed"},{"id":"current_shop","status":"completed"},{"id":"current_automations","status":"completed"},{"id":"toggle_synthetic_conversation_tag","status":"completed"},{"id":"settle_tag","status":"completed"},{"id":"readback","status":"completed"}],"scopeAudit":{"allowed":1,"blocked":0,"reasons":[],"blockedTikTokWrites":0},"conversationTagVerification":{"operation":"attach","readbackAvailable":true,"syntheticTagPresent":true,"tagCount":1},"transport":{"receivedFrames":6,"settingsEvents":[],"conversationEvents":[{"observedAt":"2026-11-15T09:40:36.624Z","event":"pages:tag_conversations","frameSha256":"699f0ec97e717f81e8524704108871edcb965c6f29b749a5bd3ec2c849b288c0","knownPayloadKeys":["timestamp","unread_first","conversations","conversations_updated"],"matchesSelectedConversation":false}],"connections":[{"ordinal":1,"openedAt":"2026-11-15T09:40:31.740Z","phase":"baseline","closedAt":null,"facebookJoinSentAt":"2026-11-15T09:40:31.825Z","facebookJoinAckAt":"2026-11-15T09:40:32.056Z"}]},"droppedEvents":0,"completeness":"incomplete"},
+    {"runId":"detach-conversation-tag","evidenceId":"ev_1065fd527946cf060e78602d945d86a3e298c40bb8771b82fd08047aac942035","result":"completed","steps":[{"id":"scenario_start","status":"completed"},{"id":"settle","status":"completed"},{"id":"open_read_conversation","status":"completed"},{"id":"settle_messages","status":"completed"},{"id":"current_conversations","status":"completed"},{"id":"current_shop","status":"completed"},{"id":"current_automations","status":"completed"},{"id":"toggle_synthetic_conversation_tag","status":"completed"},{"id":"settle_tag","status":"completed"},{"id":"readback","status":"completed"}],"scopeAudit":{"allowed":1,"blocked":0,"reasons":[],"blockedTikTokWrites":0},"conversationTagVerification":{"operation":"detach","readbackAvailable":true,"syntheticTagPresent":false,"tagCount":0},"transport":{"receivedFrames":6,"settingsEvents":[],"conversationEvents":[{"observedAt":"2026-11-15T09:41:03.257Z","event":"pages:tag_conversations","frameSha256":"806f0c216cde0239720abb8abe682bb4f4a420474192536c1437b2e9f887e694","knownPayloadKeys":["timestamp","unread_first","conversations","conversations_updated"],"matchesSelectedConversation":false}],"connections":[{"ordinal":1,"openedAt":"2026-11-15T09:40:58.310Z","phase":"baseline","closedAt":null,"facebookJoinSentAt":"2026-11-15T09:40:58.393Z","facebookJoinAckAt":"2026-11-15T09:40:58.466Z"}]},"droppedEvents":0,"completeness":"incomplete"},
+    {"runId":"gap-with-tag","evidenceId":"ev_4a7447fc55dabe846779d2b73aba4fd7b503992f6b0ccdd775d871cec91276ca","result":"completed","steps":[{"id":"scenario_start","status":"completed"},{"id":"initial_settle","status":"completed"},{"id":"baseline_conversations","status":"completed"},{"id":"observe_fault_window","status":"completed"},{"id":"observe_recovery_window","status":"completed"},{"id":"recovery_conversations","status":"completed"},{"id":"recovery_settings","status":"completed"}],"scopeAudit":{"allowed":0,"blocked":0,"reasons":[],"blockedTikTokWrites":0},"transport":{"receivedFrames":6,"settingsEvents":[],"conversationEvents":[],"connections":[{"ordinal":1,"openedAt":"2026-11-15T09:42:08.790Z","phase":"baseline","closedAt":"2026-11-15T09:42:14.289Z","facebookJoinSentAt":"2026-11-15T09:42:08.881Z","facebookJoinAckAt":"2026-11-15T09:42:09.074Z"},{"ordinal":2,"openedAt":"2026-11-15T09:42:33.634Z","phase":"restored","closedAt":null,"facebookJoinSentAt":"2026-11-15T09:42:33.705Z","facebookJoinAckAt":"2026-11-15T09:42:34.003Z"}]},"droppedEvents":0,"completeness":"incomplete","probe":{"faults":[{"offline":true,"appliedAt":"2026-11-15T09:42:14.233Z","mechanism":"disposable-tab WebSocket closure and retry rejection"},{"offline":false,"appliedAt":"2026-11-15T09:42:29.237Z","mechanism":"disposable-tab WebSocket closure and retry rejection"}],"snapshots":[{"phase":"baseline","observedAt":"2026-11-15T09:42:09.218Z","count":2,"canonicalSha256":"24cb7729d98ce5300b8b0b7b7260ba55dc965db2a17e062fc8d9a8dfbc17131a"},{"phase":"baseline","observedAt":"2026-11-15T09:42:10.611Z","count":2,"canonicalSha256":"24cb7729d98ce5300b8b0b7b7260ba55dc965db2a17e062fc8d9a8dfbc17131a"},{"phase":"restored","observedAt":"2026-11-15T09:42:40.661Z","count":2,"canonicalSha256":"32248b2f38c4df0c03e98b9ac3b6ca8a442f4e71dc9c69da9402674f6ac4964a"}],"actorEvidence":"ev_2d8c96ed2d34404b25bd2d72a9db0fcb43e35211ec678be212377acba620a8f3","actorResult":"completed"},"bridge":{"forwardedConnections":2,"refusedConnections":11,"cutConnections":1,"closeFailures":0}},
+    {"runId":"gap-tag-rollback","evidenceId":"ev_7355e5cf6030a44a8e86acf921f45bc09f62e0ecd38973e960ebc4c6f9d13b9c","result":"completed","steps":[{"id":"scenario_start","status":"completed"},{"id":"settle","status":"completed"},{"id":"open_read_conversation","status":"completed"},{"id":"settle_messages","status":"completed"},{"id":"current_conversations","status":"completed"},{"id":"current_shop","status":"completed"},{"id":"current_automations","status":"completed"},{"id":"toggle_synthetic_conversation_tag","status":"completed"},{"id":"settle_tag","status":"completed"},{"id":"readback","status":"completed"}],"scopeAudit":{"allowed":1,"blocked":0,"reasons":[],"blockedTikTokWrites":0},"conversationTagVerification":{"operation":"detach","readbackAvailable":true,"syntheticTagPresent":false,"tagCount":0},"transport":{"receivedFrames":6,"settingsEvents":[],"conversationEvents":[{"observedAt":"2026-11-15T09:43:11.736Z","phase":"baseline","event":"pages:tag_conversations","frameSha256":"5c85fcc65742f9ed843df3171da547b2759a59e043fdb627d36d4e4304d873aa","knownPayloadKeys":["timestamp","unread_first","conversations","conversations_updated"],"matchesSelectedConversation":true}],"connections":[{"ordinal":1,"openedAt":"2026-11-15T09:43:06.886Z","phase":"baseline","closedAt":null,"facebookJoinSentAt":"2026-11-15T09:43:06.945Z","facebookJoinAckAt":"2026-11-15T09:43:07.075Z"}]},"droppedEvents":0,"completeness":"incomplete"},
+    {"runId":"contract-reads","evidenceId":"ev_ef19c079e7eb7b72cd30642af103c1d12ba4e11dbef0e6be0bf130c2f2c9b655","result":"completed","steps":[{"id":"scenario_start","status":"completed"},{"id":"settle","status":"completed"},{"id":"initial_cursor_list","status":"completed"},{"id":"list_next_page","status":"completed"},{"id":"read_selected_snapshot","status":"completed"},{"id":"read_single_conversation","status":"completed"},{"id":"read_tag_history","status":"completed"},{"id":"read_message_next_page","status":"completed"}],"scopeAudit":{"allowed":0,"blocked":0,"reasons":[],"blockedTikTokWrites":0},"transport":{"receivedFrames":0,"settingsEvents":[],"conversationEvents":[],"connections":[]},"droppedEvents":0,"completeness":"incomplete"},
+    {"runId":"message-tail","evidenceId":"ev_073ae8f74df7ef662b46bfbce33ed45d1efd7ae1b570f36d8d69b3e56cb4e592","result":"failed","steps":[{"id":"scenario_start","status":"completed"},{"id":"message_tail","status":"completed"},{"id":"repeat_first_message_page","status":"failed"}],"scopeAudit":{"allowed":0,"blocked":0,"reasons":[],"blockedTikTokWrites":0},"transport":{"receivedFrames":0,"settingsEvents":[],"conversationEvents":[],"connections":[]},"droppedEvents":0,"completeness":"incomplete"},
+    {"runId":"message-tail-settled","evidenceId":"ev_0b34e8a01c49729fd4514fc10c0eae560b21f71221bf23da2f4798fa02abef68","result":"completed","steps":[{"id":"scenario_start","status":"completed"},{"id":"settle","status":"completed"},{"id":"message_tail","status":"completed"},{"id":"repeat_first_message_page","status":"completed"}],"scopeAudit":{"allowed":0,"blocked":0,"reasons":[],"blockedTikTokWrites":0},"transport":{"receivedFrames":0,"settingsEvents":[],"conversationEvents":[],"connections":[]},"droppedEvents":0,"completeness":"incomplete"},
+    {"runId":"gap-fifteen-minutes","evidenceId":"ev_5686644b1323e5e85faaad191ff9b8494888c854227169568847690fe38291df","result":"completed","steps":[{"id":"scenario_start","status":"completed"},{"id":"initial_settle","status":"completed"},{"id":"baseline_conversations","status":"completed"},{"id":"observe_fault_window","status":"completed"},{"id":"observe_recovery_window","status":"completed"},{"id":"recovery_conversations","status":"completed"},{"id":"recovery_settings","status":"completed"}],"scopeAudit":{"allowed":0,"blocked":0,"reasons":[],"blockedTikTokWrites":0},"transport":{"receivedFrames":6,"settingsEvents":[],"conversationEvents":[],"connections":[{"ordinal":1,"openedAt":"2026-11-15T09:44:06.106Z","phase":"baseline","closedAt":"2026-11-15T09:44:11.410Z","facebookJoinSentAt":"2026-11-15T09:44:06.207Z","facebookJoinAckAt":"2026-11-15T09:44:06.396Z"},{"ordinal":2,"openedAt":"2026-11-15T09:59:12.702Z","phase":"restored","closedAt":null,"facebookJoinSentAt":"2026-11-15T09:59:13.384Z","facebookJoinAckAt":"2026-11-15T09:59:13.893Z"}]},"droppedEvents":0,"completeness":"incomplete"},
+    {"runId":"long-gap-tag-rollback","evidenceId":"ev_13ae7725f6670a00ea59c0bf4bb449a4c4cc0e35cedd1ee3a6d4ab679ba13d19","result":"completed","steps":[{"id":"scenario_start","status":"completed"},{"id":"settle","status":"completed"},{"id":"open_read_conversation","status":"completed"},{"id":"settle_messages","status":"completed"},{"id":"current_conversations","status":"completed"},{"id":"current_shop","status":"completed"},{"id":"current_automations","status":"completed"},{"id":"toggle_synthetic_conversation_tag","status":"completed"},{"id":"settle_tag","status":"completed"},{"id":"readback","status":"completed"}],"scopeAudit":{"allowed":1,"blocked":0,"reasons":[],"blockedTikTokWrites":0},"conversationTagVerification":{"operation":"detach","readbackAvailable":true,"syntheticTagPresent":false,"tagCount":0},"transport":{"receivedFrames":6,"settingsEvents":[],"conversationEvents":[{"observedAt":"2026-11-15T10:00:12.980Z","phase":"baseline","event":"pages:tag_conversations","frameSha256":"42e50c57b3f7d1eeed4be4c01b750ff4ed131086714279ec4585b5e863290281","knownPayloadKeys":["timestamp","unread_first","conversations","conversations_updated"],"matchesSelectedConversation":true}],"connections":[{"ordinal":1,"openedAt":"2026-11-15T10:00:08.086Z","phase":"baseline","closedAt":null,"facebookJoinSentAt":"2026-11-15T10:00:08.112Z","facebookJoinAckAt":"2026-11-15T10:00:08.283Z"}]},"droppedEvents":0,"completeness":"incomplete"},
+    {"runId":"delete-conversation-tag","evidenceId":"ev_f25d384f772fb4af416cd7ea7840f819f4db0d978012d7779f2105db38f16ee9","result":"completed","steps":[{"id":"scenario_start","status":"completed"},{"id":"tags_ready","status":"completed"},{"id":"find_synthetic_tag","status":"completed"},{"id":"wait_for_search_state","status":"completed"},{"id":"enable_selection","status":"completed"},{"id":"select_only_synthetic_tag","status":"completed"},{"id":"preview_delete","status":"completed"},{"id":"confirm_synthetic_delete","status":"completed"},{"id":"delete_synthetic_tag","status":"completed"},{"id":"settle","status":"completed"},{"id":"readback","status":"completed"}],"scopeAudit":{"allowed":1,"blocked":0,"reasons":[],"blockedTikTokWrites":0},"transport":{"receivedFrames":4,"settingsEvents":[{"observedAt":"2026-11-15T10:00:46.945Z","event":"pages:update_settings","topicFamily":"pages","facebookReference":true,"containsSyntheticMarker":false,"frameSha256":"8fb911e201e2e39ce4cacf3ce673041c3b8381f9beb717fc714a84653f60a1a4","knownPayloadKeys":["page_id","settings","tags"]}],"conversationEvents":[],"connections":[{"ordinal":1,"openedAt":"2026-11-15T10:00:45.337Z","phase":"baseline","closedAt":null,"facebookJoinSentAt":"2026-11-15T10:00:45.366Z","facebookJoinAckAt":"2026-11-15T10:00:45.640Z"}]},"droppedEvents":0,"completeness":"incomplete"},
+    {"runId":"post-research-cleanup","evidenceId":"ev_fb225f6f94d84b527318e19d3616bd5bcbcd6d779dfea64599f8294f0086ead4","result":"completed","steps":[{"id":"scenario_start","status":"completed"},{"id":"settle","status":"completed"},{"id":"settings","status":"completed"},{"id":"conversations","status":"completed"}],"scopeAudit":{"allowed":0,"blocked":0,"reasons":[],"blockedTikTokWrites":0},"transport":{"receivedFrames":3,"settingsEvents":[],"conversationEvents":[],"connections":[{"ordinal":1,"openedAt":"2026-11-15T10:01:32.690Z","phase":"baseline","closedAt":null,"facebookJoinSentAt":"2026-11-15T10:01:32.754Z","facebookJoinAckAt":"2026-11-15T10:01:32.814Z"}]},"droppedEvents":0,"completeness":"incomplete"}
+  ],
+  "long_interruption": {
+    "status": "bounded-live-verified-with-instrumentation-limit",
+    "evidenceId": "ev_5686644b1323e5e85faaad191ff9b8494888c854227169568847690fe38291df",
+    "actorEvidenceId": "ev_6cbcb4d1201f8d77629ade0cbb3e9e3dfdab8c366e8e548d9a688ef4915a7fba",
+    "faults": [
+      {
+        "offline": true,
+        "appliedAt": "2026-11-15T09:44:11.387Z",
+        "mechanism": "disposable-tab WebSocket closure and retry rejection"
+      },
+      {
+        "offline": false,
+        "appliedAt": "2026-11-15T09:59:11.391Z",
+        "mechanism": "disposable-tab WebSocket closure and retry rejection"
+      }
+    ],
+    "transport": {
+      "receivedFrames": 6,
+      "settingsEvents": [],
+      "conversationEvents": [],
+      "connections": [
+        {
+          "ordinal": 1,
+          "openedAt": "2026-11-15T09:44:06.106Z",
+          "phase": "baseline",
+          "closedAt": "2026-11-15T09:44:11.410Z",
+          "facebookJoinSentAt": "2026-11-15T09:44:06.207Z",
+          "facebookJoinAckAt": "2026-11-15T09:44:06.396Z"
+        },
+        {
+          "ordinal": 2,
+          "openedAt": "2026-11-15T09:59:12.702Z",
+          "phase": "restored",
+          "closedAt": null,
+          "facebookJoinSentAt": "2026-11-15T09:59:13.384Z",
+          "facebookJoinAckAt": "2026-11-15T09:59:13.893Z"
+        }
+      ]
+    },
+    "bridge": {
+      "forwardedConnections": 2,
+      "refusedConnections": 187,
+      "cutConnections": 1,
+      "closeFailures": 0
+    },
+    "snapshots": [
+      {
+        "phase": "baseline",
+        "observedAt": "2026-11-15T09:44:06.369Z",
+        "count": 2,
+        "canonicalSha256": "24cb7729d98ce5300b8b0b7b7260ba55dc965db2a17e062fc8d9a8dfbc17131a"
+      },
+      {
+        "phase": "baseline",
+        "observedAt": "2026-11-15T09:44:07.942Z",
+        "count": 2,
+        "canonicalSha256": "24cb7729d98ce5300b8b0b7b7260ba55dc965db2a17e062fc8d9a8dfbc17131a"
+      },
+      {
+        "phase": "restored",
+        "observedAt": "2026-11-15T09:59:23.062Z",
+        "count": 2,
+        "canonicalSha256": "32248b2f38c4df0c03e98b9ac3b6ca8a442f4e71dc9c69da9402674f6ac4964a"
+      }
+    ],
+    "faultDurationMs": 900004,
+    "restoreToJoinAckMs": 2502,
+    "socketCloseToJoinAckMs": 902483,
+    "actorEventInsideGap": true,
+    "observedTagReplayCount": 0,
+    "documentNavigationsInGap": 0,
+    "pancakeConversationRequestsInGap": 0,
+    "backgroundAnalyticsRequestsInLongWaitStep": 2,
+    "stateChangeAfterGap": {
+      "changedConversationCount": 1,
+      "changedFields": [
+        "tags"
+      ],
+      "messageCountChanged": false,
+      "seenChanged": false
+    },
+    "restoredInFinally": true,
+    "reaCleanup": "disconnected-external",
+    "droppedEvents": 0,
+    "completeness": "incomplete",
+    "limitation": "Two failed same-target REA attempts occurred during the gap; no additional document load, conversation read or early socket recovery appears in the retained capture. This is a local bridge fault, not a full infrastructure outage. Absence of observed replay is bounded to this experiment."
+  },
+  "cleanup": {
+    "originalTagsRestored": true,
+    "originalTagCount": 6,
+    "syntheticTagsRemaining": 0,
+    "conversations": [
+      {
+        "tagRestored": true,
+        "changedFields": []
+      },
+      {
+        "tagRestored": true,
+        "changedFields": []
+      }
+    ],
+    "settingsChangedFields": [
+      "current_tag_index",
+      "current_settings_key"
+    ],
+    "pageTargets": 1,
+    "onlyOriginal": true,
+    "verificationEvidenceId": "ev_fb225f6f94d84b527318e19d3616bd5bcbcd6d779dfea64599f8294f0086ead4",
+    "providerHistoryRetained": true,
+    "priorSettingsExperimentCaveat": "Earlier settings delete persisted two absent call-tag fields as empty arrays; version/index counters advanced"
+  },
+  "production_approved": false,
+  "scan": {
+    "files": 45,
+    "currentAndHistoricalCredentialMatches": 0,
+    "customerIdentityMatches": 0,
+    "recordedAt": "2026-11-15T10:02:51.018Z",
+    "limit": "Literal values and selected identities only; not a comprehensive secret/PII scanner"
+  },
+  "verification": {
+    "fullVitest": {
+      "passed": 397,
+      "postgresSkipped": 21
+    },
+    "ailSubsetPassed": 59,
+    "applicationE2EPassed": 7,
+    "nodeResearchTestsPassed": 12,
+    "architectureFixtureTestsPassed": 8,
+    "backupGuardTestsPassed": 6,
+    "selectedDecoderCoverage": {
+      "line": 100,
+      "branch": 95.26,
+      "statements": 92.3,
+      "files": [
+        "phoenix-observer.ts",
+        "protocol.mjs"
+      ],
+      "revision": "0.1.2"
+    },
+    "typecheck": true,
+    "typescriptLint": true,
+    "build": true,
+    "strictArchitecture": true,
+    "companionLocalChromiumSmoke": true,
+    "coreRegistryValidator": true,
+    "ailDeepSchemaValidator": false,
+    "dockerEngineAvailable": false,
+    "hostedCI": "not run",
+    "independentAgentReview": "unavailable: spawn model error"
+  }
+}

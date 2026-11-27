@@ -1,0 +1,18 @@
+﻿{
+  "release":"R4.15 UI rebuild",
+  "branch":"feat/r415-open-source-product-ui",
+  "head":"1df722104a006c10a849b893ed4f91f706aa650a",
+  "productTree":"ca6c325f9d059af4cebc861456193e133619bd79",
+  "frontendBuild":"PASS (npm ci; npm run build)",
+  "frontendAudit":"PASS (0 high findings)",
+  "uiTests":"19 passed, 0 skipped",
+  "backendExactRunner":"31/31 lanes PASS on exact implementation source 0d07bf9 before documentation-only final commit; 1643 coverage tests; 31 PostgreSQL suites / 166 tests; 0 skips",
+  "hybridDurableE2E":"PASS; 13 receipts; 0 commercial Leads; providerContacted=false",
+  "crmBrowser":"PASS; OIDC, synthetic Lead create, detail and handoff",
+  "inboxMobile":"PASS; 390px no horizontal overflow",
+  "providerCalls":0,
+  "providerMutations":0,
+  "gates":{"P3":"SEND_UNRESOLVED","P4":"NOT_TESTED","P5":"NOT_VERIFIED","B":"CONDITIONAL","C":"NOT_READY"},
+  "hostedCI":"NOT_RUN_FOR_THIS_UI_BRANCH",
+  "ownerAcceptance":"PENDING"
+}

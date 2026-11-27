@@ -1,0 +1,1 @@
+﻿Lead list/detail use /v1/pilot/leads. Create uses /v1/pilot/scenarios. Handoff/accept/advance/outcome use versioned pilot commands. Work/contact/evidence/audit/manager/source health use registered controllers. Missing Contacts/Companies/Deals, generic inbox listing and global Ads reporting remain unavailable.

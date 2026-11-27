@@ -1,0 +1,1 @@
+﻿Exact-source checks cover OIDC, ten routes, Lead creation, detail, handoff persistence, inbox/ads filters, mobile layout, auth boundaries and same-origin network. Hybrid acceptance covers installed MV3, three fixtures, six receipts, replay dedupe and restart history.

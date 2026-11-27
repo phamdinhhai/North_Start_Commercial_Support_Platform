@@ -1,0 +1,1193 @@
+{
+  "schema": "north-star.protocol-evidence-registry.v1",
+  "registry_status": "working_non_canonical",
+  "as_of": "2026-11-18",
+  "retrieval_date": "2026-11-18",
+  "authority": "Research consolidation only. docs/canonical/** remains the normative source; this file cannot resolve open decisions or approve production use.",
+  "evidence_levels": [
+    "README_CLAIM",
+    "SOURCE_INSPECTED",
+    "DOCUMENTED_API",
+    "SYNTHETIC_TESTED",
+    "CONTRACT_TESTED",
+    "LIVE_VERIFIED",
+    "RELEASE_APPROVED"
+  ],
+  "kinds": [
+    "CAPTURE",
+    "FINGERPRINT",
+    "SOURCE_REVISION",
+    "DOCUMENT_SNAPSHOT"
+  ],
+  "rules": [
+    "private_capture=true entries are NOT_INDEPENDENTLY_AUDITED: raw bytes are outside Git and reviewers can only check sanitized summaries.",
+    "Fingerprints derived from private captures inherit NOT_INDEPENDENTLY_AUDITED.",
+    "git_sha values are 40-hex; sha256 values are 64-hex. Digest basis for public files is the raw git blob served by raw.githubusercontent.com.",
+    "Failures and drops are preserved; a later success never erases an earlier failure."
+  ],
+  "committed_sanitized_artifact_digests": {
+    "basis": "sha256 of git blob bytes at 8673ca8 (LF). The 2026-11-17 protocol-evidence.json recorded afc96093... for protocol-capability-registry.json, which is the Windows autocrlf working-tree digest, not the blob digest.",
+    "files": {
+      "docs/research/adaptive-integration-2026-11-14/har-review.json": "976eded6c25e074f34d0ad866183b69bed538528aaae8d239964844abbdc2455",
+      "docs/research/adaptive-integration-2026-11-14/har-derivation.json": "4e659b5dbf28db3a41e3f278733ceea2b7e165a89c51461d66a7d2d84bd91c8a",
+      "docs/research/adaptive-integration-2026-11-14/live-summary.json": "fc2eed3aea0f246e051bda27ad668562e76074a0a04728bdd943811e218b0b5f",
+      "docs/research/adaptive-integration-2026-11-14/authorized-browser-summary.json": "11f407fd98107a56f0b70497090d990d8265a0f0d668db1d7d9c3aa82d8a549d",
+      "docs/research/adaptive-integration-2026-11-14/facebook-live-settings-experiment.json": "d732c6cba2f7646d23ee706da26e072c263e94718d5a1d48c5f8df9fe189a357",
+      "docs/research/adaptive-integration-2026-11-14/facebook-settings-static-evidence.json": "9bab550e6baf8609f113d6f08ae73a6aae0d1a9bb98dd1ec8c47490a89a3a37b",
+      "docs/research/adaptive-integration-2026-11-14/conversation-protocol-static-evidence.json": "818b2561c2a44461f0d390045f78ad2a732eeffdf9fe4f9f2cd9ce2063e8b0b9",
+      "docs/research/adaptive-integration-2026-11-14/continuity-experiment.json": "1af177c32ad9ffdac6ce72e3a312ad09523a51c06346cfdf1e3b4b1211bc06c7",
+      "docs/research/adaptive-integration-2026-11-14/pancake-conversation-recovery-experiment.json": "fb13eff2b126041e8e31358eb4347b68cb79b048f270898725a09492269d5281",
+      "docs/research/adaptive-integration-2026-11-14/pancake-read-contracts.json": "4c6601894049e1242ecbd5f160fce16d81c7d0e2f42ebbb9d149263446d138ec",
+      "docs/research/adaptive-integration-2026-11-14/protocol-capability-registry.json": "ac2c0339a6930e8bc6a739ace966c21ce758c7d554f163a44886ea2ae34b67b4",
+      "docs/research/adaptive-integration-2026-11-14/source-ledger.json": "d93961dd13e486b229dfd7a6313490be062378b721166a70e62df1cc7c6abe53"
+    }
+  },
+  "entries": [
+    {
+      "kind": "CAPTURE",
+      "private_capture": true,
+      "audit_status": "NOT_INDEPENDENTLY_AUDITED",
+      "evidence_level": "SOURCE_INSPECTED",
+      "id": "cap.pancake.user-har-download-devtools",
+      "subject": "Pancake Conversations web client (pancake.vn / pages.fm)",
+      "source_ref": "user-supplied historical HAR (private, ignored local credential directory)",
+      "revision_or_digest": {
+        "type": "sha256",
+        "value": "bcb58184278c4407cc8e2a117461e74dc41dea6c2247fc296cdaf30c23932640"
+      },
+      "observed_on": "before 2026-11-14",
+      "bytes": 53386113,
+      "artifact_refs": [
+        "docs/research/adaptive-integration-2026-11-14/source-ledger.json",
+        "docs/research/adaptive-integration-2026-11-14/har-review.json"
+      ],
+      "limitations": [
+        "Raw bytes not in Git; digest cannot be re-checked by reviewers",
+        "No original response bodies or credential values published",
+        "Historical client version; drift since capture UNKNOWN",
+        "589 HTTP records, 5 WebSocket records, 104 Phoenix tuples; none of the three message business-event labels present"
+      ]
+    },
+    {
+      "kind": "CAPTURE",
+      "private_capture": true,
+      "audit_status": "NOT_INDEPENDENTLY_AUDITED",
+      "evidence_level": "SOURCE_INSPECTED",
+      "id": "cap.pancake.har-websocket-derivative",
+      "subject": "Selected WebSocket handshake metadata from the private HAR",
+      "source_ref": "REA derivative (bodies/frames omitted)",
+      "revision_or_digest": {
+        "type": "sha256",
+        "value": "4a3bb259a45e1e406f1bf6f621ba0955af9ed1ec935ae6de107550eca60f1073"
+      },
+      "observed_on": "2026-11-14",
+      "artifact_refs": [
+        "docs/research/adaptive-integration-2026-11-14/har-derivation.json"
+      ],
+      "limitations": [
+        "Derivative itself not published; only its digest and ordinals 82, 97, 197, 243, 429"
+      ]
+    },
+    {
+      "kind": "CAPTURE",
+      "private_capture": true,
+      "audit_status": "NOT_INDEPENDENTLY_AUDITED",
+      "evidence_level": "SOURCE_INSPECTED",
+      "id": "cap.pancake.shipped-bundle-handlers",
+      "subject": "Shipped Pancake client JS bundle (HAR ordinal 42)",
+      "source_ref": "Static inspection of bundle inside private HAR",
+      "revision_or_digest": {
+        "type": "sha256",
+        "value": "32e282685b4f6ea1e302827c23e12c9ebff25ebe3c865c48ff83c289a21c25af"
+      },
+      "observed_on": "2026-11-15",
+      "artifact_refs": [
+        "docs/research/adaptive-integration-2026-11-14/conversation-protocol-static-evidence.json",
+        "docs/research/adaptive-integration-2026-11-14/facebook-settings-static-evidence.json"
+      ],
+      "limitations": [
+        "Byte offsets for the three handler registrations and reconnect/rejoin backoff are recorded but the bundle is private",
+        "Handler presence is not live delivery"
+      ]
+    },
+    {
+      "kind": "CAPTURE",
+      "private_capture": true,
+      "audit_status": "NOT_INDEPENDENTLY_AUDITED",
+      "evidence_level": "SOURCE_INSPECTED",
+      "id": "cap.pancake.rea-live-summary-2026-11-14",
+      "subject": "REA controlled browser scenario (GET/HEAD/OPTIONS only)",
+      "source_ref": "REA evidence bundle (private)",
+      "revision_or_digest": {
+        "type": "rea_evidence_id",
+        "value": "ev_56365417caaafae0d06e896e62673dd53afdba9d95951f34750796970b896474"
+      },
+      "observed_on": "2026-11-14T12:19:28.886Z",
+      "artifact_refs": [
+        "docs/research/adaptive-integration-2026-11-14/live-summary.json"
+      ],
+      "limitations": [
+        "10,301 events dropped; 921 request-failed under HTTP guard",
+        "authenticated=UNKNOWN; businessEvents=UNKNOWN",
+        "WebSocket origins not extracted; empty list is not absence"
+      ]
+    },
+    {
+      "kind": "CAPTURE",
+      "private_capture": true,
+      "audit_status": "NOT_INDEPENDENTLY_AUDITED",
+      "evidence_level": "SOURCE_INSPECTED",
+      "id": "cap.pancake.authorized-browser-summary-2026-11-14",
+      "subject": "Authorized browser research session summary",
+      "source_ref": "REA evidence bundles (private)",
+      "revision_or_digest": {
+        "type": "rea_evidence_id",
+        "value": "ev_c0b5a0cc99e7b595c176e2005008f36903f825029a1c671d45be152f68342871"
+      },
+      "observed_on": "2026-11-14",
+      "artifact_refs": [
+        "docs/research/adaptive-integration-2026-11-14/authorized-browser-summary.json"
+      ],
+      "limitations": [
+        "eventsDropped 0 but REA status incomplete; zero drops do not establish completeness"
+      ]
+    },
+    {
+      "kind": "CAPTURE",
+      "private_capture": true,
+      "audit_status": "NOT_INDEPENDENTLY_AUDITED",
+      "evidence_level": "SOURCE_INSPECTED",
+      "id": "cap.pancake.facebook-settings-experiment-2026-11-15",
+      "subject": "Facebook page settings tag create/delete + pages:update_settings",
+      "source_ref": "REA evidence bundles (private)",
+      "revision_or_digest": {
+        "type": "rea_evidence_id",
+        "value": "ev_39c769099b666dd713f5f021af63c1a36e4a800edf42440c8269d192a9cb5287"
+      },
+      "observed_on": "2026-11-15T08:50Z",
+      "artifact_refs": [
+        "docs/research/adaptive-integration-2026-11-14/facebook-live-settings-experiment.json"
+      ],
+      "limitations": [
+        "Single bounded experiment; one event per mutation",
+        "Initial settings capture dropped 160/161 events; later zero-drop capture still incomplete",
+        "Includes one failed REA run (preserved)"
+      ]
+    },
+    {
+      "kind": "CAPTURE",
+      "private_capture": true,
+      "audit_status": "NOT_INDEPENDENTLY_AUDITED",
+      "evidence_level": "SOURCE_INSPECTED",
+      "id": "cap.pancake.continuity-experiment-2026-11-15",
+      "subject": "15-second local WebSocket fault and page-channel rejoin",
+      "source_ref": "REA evidence bundles (private)",
+      "revision_or_digest": {
+        "type": "rea_evidence_id",
+        "value": "ev_529b9caca67e42c2f7fa8d9d9ea02089d31b87eac9d828aa8b29ff1982fe9868"
+      },
+      "observed_on": "2026-11-15T09:14Z",
+      "artifact_refs": [
+        "docs/research/adaptive-integration-2026-11-14/continuity-experiment.json"
+      ],
+      "limitations": [
+        "First HTTP-offline trial did not close socket",
+        "No business change during first reconnect run",
+        "Rejoin ACK proves bounded observation only"
+      ]
+    },
+    {
+      "kind": "CAPTURE",
+      "private_capture": true,
+      "audit_status": "NOT_INDEPENDENTLY_AUDITED",
+      "evidence_level": "SOURCE_INSPECTED",
+      "id": "cap.pancake.conversation-recovery-experiment-2026-11-15",
+      "subject": "Tag toggle batch event, 15 s and 15 min recovery windows, bounded reads",
+      "source_ref": "REA evidence bundles (private)",
+      "revision_or_digest": {
+        "type": "rea_evidence_id",
+        "value": "ev_5686644b1323e5e85faaad191ff9b8494888c854227169568847690fe38291df"
+      },
+      "observed_on": "2026-11-15",
+      "artifact_refs": [
+        "docs/research/adaptive-integration-2026-11-14/pancake-conversation-recovery-experiment.json",
+        "docs/research/adaptive-integration-2026-11-14/pancake-read-contracts.json"
+      ],
+      "limitations": [
+        "Two contract-read attempts execution_failure/cleanup_incomplete with wrong target selection (preserved)",
+        "Message-tail repeat-page timeout despite HTTP 200; root cause UNKNOWN",
+        "Two failed same-target REA attempts during long run",
+        "No batch replay observed on observer; replay UNKNOWN"
+      ]
+    },
+    {
+      "id": "fp.pancake.phoenix-v2-tuple",
+      "kind": "FINGERPRINT",
+      "subject": "Pancake Conversations socket framing",
+      "fingerprint": {
+        "transport": "WebSocket",
+        "framing": "Phoenix v2 JSON tuple [join_ref, ref, topic, event, payload]",
+        "topics": [
+          "users",
+          "pages",
+          "phoenix"
+        ],
+        "hosts": {
+          "pancake.vn": "users/pages/phoenix",
+          "pages.fm": "pke_chat_plugin/phoenix"
+        }
+      },
+      "revision_or_digest": {
+        "type": "derived_from",
+        "value": "cap.pancake.user-har-download-devtools"
+      },
+      "private_capture": false,
+      "derived_from_private_capture": true,
+      "audit_status": "NOT_INDEPENDENTLY_AUDITED",
+      "evidence_level": "SOURCE_INSPECTED",
+      "observed_on": "2026-11-15",
+      "artifact_refs": [
+        "docs/research/adaptive-integration-2026-11-14/protocol-capability-registry.json",
+        "untracked-primary-worktree:docs/research/rea-protocol-intelligence-2026-11-17/pancake-phoenix-observations.md"
+      ],
+      "limitations": [
+        "Fingerprint tied to historical client; re-fingerprint on any client change",
+        "users topic semantics not pinned; not business intake"
+      ]
+    },
+    {
+      "id": "fp.pancake.message-lifecycle-labels",
+      "kind": "FINGERPRINT",
+      "subject": "Pancake message lifecycle event labels",
+      "fingerprint": {
+        "bundle_labels": [
+          "pages:update_messages",
+          "pages:update_conversation",
+          "messages:mark_as_deleted"
+        ],
+        "community_relay_handler_names": [
+          "messages",
+          "updates",
+          "deletions"
+        ]
+      },
+      "revision_or_digest": {
+        "type": "derived_from",
+        "value": "cap.pancake.shipped-bundle-handlers"
+      },
+      "private_capture": false,
+      "derived_from_private_capture": true,
+      "audit_status": "NOT_INDEPENDENTLY_AUDITED",
+      "evidence_level": "SOURCE_INSPECTED",
+      "observed_on": "2026-11-15",
+      "artifact_refs": [
+        "docs/research/adaptive-integration-2026-11-14/conversation-protocol-static-evidence.json",
+        "https://github.com/trananhhh/pancake-webhook-relay/blob/23e2409f6c80e910de6f652b4c9d0a878ba2291b/src/event-handler.ts"
+      ],
+      "limitations": [
+        "The 2026-11-17 untracked pancake-phoenix-observations.md lists relay handler names (messages/updates/deletions) as event types; the wire labels from the bundle are the pages:/messages: names",
+        "No live correlation"
+      ]
+    },
+    {
+      "id": "fp.pancake.settings-post",
+      "kind": "FINGERPRINT",
+      "subject": "Pancake page settings mutation",
+      "fingerprint": {
+        "request": "POST /api/v1/pages/:page/settings FormData changes/current_settings_key",
+        "event": "pages:update_settings",
+        "readback": "GET settings"
+      },
+      "revision_or_digest": {
+        "type": "derived_from",
+        "value": "cap.pancake.facebook-settings-experiment-2026-11-15"
+      },
+      "private_capture": false,
+      "derived_from_private_capture": true,
+      "audit_status": "NOT_INDEPENDENTLY_AUDITED",
+      "evidence_level": "SOURCE_INSPECTED",
+      "observed_on": "2026-11-15",
+      "artifact_refs": [
+        "docs/research/adaptive-integration-2026-11-14/facebook-settings-static-evidence.json"
+      ],
+      "limitations": [
+        "UI-driven only; no standalone write right"
+      ]
+    },
+    {
+      "id": "fp.pancake.tag-toggle",
+      "kind": "FINGERPRINT",
+      "subject": "Pancake conversation tag toggle",
+      "fingerprint": {
+        "request": "POST toggle_tag FormData",
+        "event": "pages:tag_conversations (batch: conversation id map + optional conversations_updated)",
+        "readback": "GET conversations"
+      },
+      "revision_or_digest": {
+        "type": "derived_from",
+        "value": "cap.pancake.conversation-recovery-experiment-2026-11-15"
+      },
+      "private_capture": false,
+      "derived_from_private_capture": true,
+      "audit_status": "NOT_INDEPENDENTLY_AUDITED",
+      "evidence_level": "SOURCE_INSPECTED",
+      "observed_on": "2026-11-15",
+      "artifact_refs": [
+        "docs/research/adaptive-integration-2026-11-14/pancake-conversation-recovery-experiment.json"
+      ],
+      "limitations": [
+        "Actor-only observation"
+      ]
+    },
+    {
+      "id": "fp.meta.mqtt-v0.5.3",
+      "kind": "FINGERPRINT",
+      "subject": "Meta personal Messenger historical transport",
+      "fingerprint": {
+        "transport": "MQTT",
+        "topics": [
+          "/ls_req",
+          "/ls_resp"
+        ],
+        "ready": "app settings publish + EnsureSyncedSocket"
+      },
+      "revision_or_digest": {
+        "type": "git_sha",
+        "value": "d32c6dcf9cec27edb2bdbb525a7b04abfc264737"
+      },
+      "private_capture": false,
+      "audit_status": "PUBLIC_SOURCE_PIN_REVERIFIED_2026-11-18",
+      "evidence_level": "SOURCE_INSPECTED",
+      "observed_on": "2026-11-17",
+      "artifact_refs": [
+        "docs/reports/unified-execution-2026-11-16/protocol-evidence.json"
+      ],
+      "limitations": [
+        "Historical; do not label current implementation MQTT"
+      ]
+    },
+    {
+      "id": "fp.meta.dgw-lightspeed",
+      "kind": "FINGERPRINT",
+      "subject": "Meta personal Messenger current transport",
+      "fingerprint": {
+        "transport": "WebSocket gateway.<host>/ws/lightspeed + /api/graphql/",
+        "request_fields": [
+          "app_id",
+          "payload",
+          "request_id",
+          "type"
+        ],
+        "response_fields": [
+          "request_id",
+          "payload",
+          "sp",
+          "target"
+        ],
+        "sync_groups": [
+          1,
+          2,
+          95,
+          104
+        ]
+      },
+      "revision_or_digest": {
+        "type": "git_sha",
+        "value": "f806b8053b2dbf212ae6622e730441c499f767bd"
+      },
+      "private_capture": false,
+      "audit_status": "PUBLIC_SOURCE_PIN_REVERIFIED_2026-11-18",
+      "evidence_level": "SOURCE_INSPECTED",
+      "observed_on": "2026-11-17",
+      "artifact_refs": [
+        "docs/reports/unified-execution-2026-11-16/protocol-evidence.json",
+        "docs/reports/unified-execution-2026-11-16/protocol-intelligence.md"
+      ],
+      "limitations": [
+        "Community bridge source, not provider documentation",
+        "GraphQL doc IDs snapshot-specific"
+      ]
+    },
+    {
+      "id": "fp.tiktok.webcast",
+      "kind": "FINGERPRINT",
+      "subject": "TikTok LIVE Webcast",
+      "fingerprint": {
+        "transport": "signed WebSocket (external signer)",
+        "framing": "protobuf push/fetch",
+        "ack": "needAck with log id + internal extension"
+      },
+      "revision_or_digest": {
+        "type": "git_sha",
+        "value": "58c8d5a5806dc4fc6633458cf820be324fc527c6"
+      },
+      "private_capture": false,
+      "audit_status": "PUBLIC_SOURCE_PIN_REVERIFIED_2026-11-18",
+      "evidence_level": "SOURCE_INSPECTED",
+      "observed_on": "2026-11-17",
+      "artifact_refs": [
+        "docs/reports/unified-execution-2026-11-16/protocol-evidence.json"
+      ],
+      "limitations": [
+        "Also corroborated by TikTokLive 4158e6a0",
+        "No signer called; LIVE only"
+      ]
+    },
+    {
+      "id": "src.rea",
+      "kind": "SOURCE_REVISION",
+      "subject": "https://github.com/morluto/rea",
+      "source_ref": "https://github.com/morluto/rea",
+      "revision_or_digest": {
+        "type": "git_sha",
+        "value": "54e3918d1c09991970aadf8f0eb1ab6bcf6f83fb"
+      },
+      "private_capture": false,
+      "audit_status": "PUBLIC_SOURCE_PIN_REVERIFIED_2026-11-18",
+      "evidence_level": "SOURCE_INSPECTED",
+      "observed_on": "2026-11-18",
+      "file_digest_reverification": [
+        {
+          "path": "LICENSE",
+          "url": "https://github.com/morluto/rea/blob/54e3918d1c09991970aadf8f0eb1ab6bcf6f83fb/LICENSE",
+          "recorded_sha256": "798f9e4d18e49b30bf2f12696c8ced73dc4e1413da375a333d01281543a1ea8b",
+          "raw_blob_sha256_2026_11_18": "798f9e4d18e49b30bf2f12696c8ced73dc4e1413da375a333d01281543a1ea8b",
+          "result": "MATCH_RAW_BLOB"
+        },
+        {
+          "path": "package.json",
+          "url": "https://github.com/morluto/rea/blob/54e3918d1c09991970aadf8f0eb1ab6bcf6f83fb/package.json",
+          "recorded_sha256": "5d6835e8cc5d1fd022ca7878cec80d470f244450007fa52b1ffa13a61de30355",
+          "raw_blob_sha256_2026_11_18": "5d6835e8cc5d1fd022ca7878cec80d470f244450007fa52b1ffa13a61de30355",
+          "result": "MATCH_RAW_BLOB"
+        },
+        {
+          "path": ".github/workflows/ci.yml",
+          "url": "https://github.com/morluto/rea/blob/54e3918d1c09991970aadf8f0eb1ab6bcf6f83fb/.github/workflows/ci.yml",
+          "recorded_sha256": "3987e09aac67ca2fac5e7408d5dd33213503da819bf458e1af5e0d9a7803781d",
+          "raw_blob_sha256_2026_11_18": "3987e09aac67ca2fac5e7408d5dd33213503da819bf458e1af5e0d9a7803781d",
+          "result": "MATCH_RAW_BLOB"
+        },
+        {
+          "path": "src/composition/webNetworkCaptures.ts",
+          "url": "https://github.com/morluto/rea/blob/54e3918d1c09991970aadf8f0eb1ab6bcf6f83fb/src/composition/webNetworkCaptures.ts",
+          "recorded_sha256": "46254542f873621e5983fc712d54a1fa88ac7b7f5e2ab411041a3cfd3da24f74",
+          "raw_blob_sha256_2026_11_18": "46254542f873621e5983fc712d54a1fa88ac7b7f5e2ab411041a3cfd3da24f74",
+          "result": "MATCH_RAW_BLOB"
+        },
+        {
+          "path": "src/composition/browserScenario.ts",
+          "url": "https://github.com/morluto/rea/blob/54e3918d1c09991970aadf8f0eb1ab6bcf6f83fb/src/composition/browserScenario.ts",
+          "recorded_sha256": "436c17464e4f59c87022205b27a6bce3996193624982600cfc0cb6fec72306c0",
+          "raw_blob_sha256_2026_11_18": "436c17464e4f59c87022205b27a6bce3996193624982600cfc0cb6fec72306c0",
+          "result": "MATCH_RAW_BLOB"
+        },
+        {
+          "path": "src/domain/javascript/javascriptApplicationAnalysis.ts",
+          "url": "https://github.com/morluto/rea/blob/54e3918d1c09991970aadf8f0eb1ab6bcf6f83fb/src/domain/javascript/javascriptApplicationAnalysis.ts",
+          "recorded_sha256": "38224db0797145a0f2cdff074799e6e840d3abcce3ee9ff61e02244425628d81",
+          "raw_blob_sha256_2026_11_18": "38224db0797145a0f2cdff074799e6e840d3abcce3ee9ff61e02244425628d81",
+          "result": "MATCH_RAW_BLOB"
+        },
+        {
+          "path": "src/domain/webNetworkCapture.ts",
+          "url": "https://github.com/morluto/rea/blob/54e3918d1c09991970aadf8f0eb1ab6bcf6f83fb/src/domain/webNetworkCapture.ts",
+          "recorded_sha256": "863f8541c89c5cb9803231199482240df102d193bd6c0c70d21dae621aa1a6e6",
+          "raw_blob_sha256_2026_11_18": "863f8541c89c5cb9803231199482240df102d193bd6c0c70d21dae621aa1a6e6",
+          "result": "MATCH_RAW_BLOB"
+        }
+      ],
+      "artifact_refs": [
+        "docs/reports/unified-execution-2026-11-16/protocol-evidence.json"
+      ],
+      "limitations": [
+        "Raw blob digests match inherited values.",
+        "Source inspection establishes neither provider rights nor live behaviour"
+      ]
+    },
+    {
+      "id": "src.mautrix-meta.current",
+      "kind": "SOURCE_REVISION",
+      "subject": "https://github.com/mautrix/meta",
+      "source_ref": "https://github.com/mautrix/meta",
+      "revision_or_digest": {
+        "type": "git_sha",
+        "value": "f806b8053b2dbf212ae6622e730441c499f767bd"
+      },
+      "private_capture": false,
+      "audit_status": "PUBLIC_SOURCE_PIN_REVERIFIED_2026-11-18",
+      "evidence_level": "SOURCE_INSPECTED",
+      "observed_on": "2026-11-18",
+      "file_digest_reverification": [
+        {
+          "path": "LICENSE",
+          "url": "https://github.com/mautrix/meta/blob/f806b8053b2dbf212ae6622e730441c499f767bd/LICENSE",
+          "recorded_sha256": "0d96a4ff68ad6d4b6f1f30f713b18d5184912ba8dd389f86aa7710db079abcb0",
+          "raw_blob_sha256_2026_11_18": "0d96a4ff68ad6d4b6f1f30f713b18d5184912ba8dd389f86aa7710db079abcb0",
+          "result": "MATCH_RAW_BLOB"
+        },
+        {
+          "path": "LICENSE.exceptions",
+          "url": "https://github.com/mautrix/meta/blob/f806b8053b2dbf212ae6622e730441c499f767bd/LICENSE.exceptions",
+          "recorded_sha256": "a56bcda19734125bbe29a47d1db61f662c8c3c02ce64ebaee911817faa4743de",
+          "raw_blob_sha256_2026_11_18": "a56bcda19734125bbe29a47d1db61f662c8c3c02ce64ebaee911817faa4743de",
+          "result": "MATCH_RAW_BLOB"
+        },
+        {
+          "path": "pkg/messagix/client.go",
+          "url": "https://github.com/mautrix/meta/blob/f806b8053b2dbf212ae6622e730441c499f767bd/pkg/messagix/client.go",
+          "recorded_sha256": "19f4a737035d56da726345a3fe4162c684326a0e7dbd540c0a62c9475cf7456a",
+          "raw_blob_sha256_2026_11_18": "19f4a737035d56da726345a3fe4162c684326a0e7dbd540c0a62c9475cf7456a",
+          "result": "MATCH_RAW_BLOB"
+        },
+        {
+          "path": "pkg/messagix/socket.go",
+          "url": "https://github.com/mautrix/meta/blob/f806b8053b2dbf212ae6622e730441c499f767bd/pkg/messagix/socket.go",
+          "recorded_sha256": "673d6671479a067d28c037ccf1a987ed2943ccca0707e604f63f9f9769a6dd7d",
+          "raw_blob_sha256_2026_11_18": "673d6671479a067d28c037ccf1a987ed2943ccca0707e604f63f9f9769a6dd7d",
+          "result": "MATCH_RAW_BLOB"
+        },
+        {
+          "path": "pkg/messagix/endpoints/facebook.go",
+          "url": "https://github.com/mautrix/meta/blob/f806b8053b2dbf212ae6622e730441c499f767bd/pkg/messagix/endpoints/facebook.go",
+          "recorded_sha256": "0e6dfae4b3fb5d7500bfa0209cb55d666fce704fe3d695a3d549dad9f3249e75",
+          "raw_blob_sha256_2026_11_18": "0e6dfae4b3fb5d7500bfa0209cb55d666fce704fe3d695a3d549dad9f3249e75",
+          "result": "MATCH_RAW_BLOB"
+        },
+        {
+          "path": "pkg/messagix/httpclient/graphql.go",
+          "url": "https://github.com/mautrix/meta/blob/f806b8053b2dbf212ae6622e730441c499f767bd/pkg/messagix/httpclient/graphql.go",
+          "recorded_sha256": "d0eaa0e096315a1807f98efdf819e2964ce5ec1adac5edeee8e95f844607ce19",
+          "raw_blob_sha256_2026_11_18": "d0eaa0e096315a1807f98efdf819e2964ce5ec1adac5edeee8e95f844607ce19",
+          "result": "MATCH_RAW_BLOB"
+        },
+        {
+          "path": "pkg/messagix/graphql/docs.go",
+          "url": "https://github.com/mautrix/meta/blob/f806b8053b2dbf212ae6622e730441c499f767bd/pkg/messagix/graphql/docs.go",
+          "recorded_sha256": "a09a7affa36304dc27ef1f4c108e06107a88f5b12af37fc33ba012ca19535926",
+          "raw_blob_sha256_2026_11_18": "a09a7affa36304dc27ef1f4c108e06107a88f5b12af37fc33ba012ca19535926",
+          "result": "MATCH_RAW_BLOB"
+        }
+      ],
+      "artifact_refs": [
+        "docs/reports/unified-execution-2026-11-16/protocol-evidence.json"
+      ],
+      "limitations": [
+        "Raw blob digests match inherited values.",
+        "Source inspection establishes neither provider rights nor live behaviour"
+      ]
+    },
+    {
+      "id": "src.mautrix-meta.v0.5.3",
+      "kind": "SOURCE_REVISION",
+      "subject": "https://github.com/mautrix/meta",
+      "source_ref": "https://github.com/mautrix/meta",
+      "revision_or_digest": {
+        "type": "git_sha",
+        "value": "d32c6dcf9cec27edb2bdbb525a7b04abfc264737"
+      },
+      "private_capture": false,
+      "audit_status": "PUBLIC_SOURCE_PIN_REVERIFIED_2026-11-18",
+      "evidence_level": "SOURCE_INSPECTED",
+      "observed_on": "2026-11-18",
+      "file_digest_reverification": [
+        {
+          "path": "pkg/messagix/topics.go",
+          "url": "https://github.com/mautrix/meta/blob/d32c6dcf9cec27edb2bdbb525a7b04abfc264737/pkg/messagix/topics.go",
+          "recorded_sha256": "d8289823d1a5ff891a1c82b0325686c5f77a4cf8f32f6faa5cf8397fc7a74fc4",
+          "raw_blob_sha256_2026_11_18": "d8289823d1a5ff891a1c82b0325686c5f77a4cf8f32f6faa5cf8397fc7a74fc4",
+          "result": "MATCH_RAW_BLOB"
+        },
+        {
+          "path": "pkg/messagix/events.go",
+          "url": "https://github.com/mautrix/meta/blob/d32c6dcf9cec27edb2bdbb525a7b04abfc264737/pkg/messagix/events.go",
+          "recorded_sha256": "757686f12ed17c172b2e64c575d0d859a3177ad5b155b6318c633bd1e62213ed",
+          "raw_blob_sha256_2026_11_18": "757686f12ed17c172b2e64c575d0d859a3177ad5b155b6318c633bd1e62213ed",
+          "result": "MATCH_RAW_BLOB"
+        },
+        {
+          "path": "pkg/messagix/client.go",
+          "url": "https://github.com/mautrix/meta/blob/d32c6dcf9cec27edb2bdbb525a7b04abfc264737/pkg/messagix/client.go",
+          "recorded_sha256": "4b28ae71647a6147086963ecf3ce394161b869c2bf8b8961000f518d7d754619",
+          "raw_blob_sha256_2026_11_18": "4b28ae71647a6147086963ecf3ce394161b869c2bf8b8961000f518d7d754619",
+          "result": "MATCH_RAW_BLOB"
+        }
+      ],
+      "artifact_refs": [
+        "docs/reports/unified-execution-2026-11-16/protocol-evidence.json"
+      ],
+      "limitations": [
+        "Raw blob digests match inherited values.",
+        "Source inspection establishes neither provider rights nor live behaviour"
+      ]
+    },
+    {
+      "id": "src.tiktoklive",
+      "kind": "SOURCE_REVISION",
+      "subject": "https://github.com/isaackogan/TikTokLive",
+      "source_ref": "https://github.com/isaackogan/TikTokLive",
+      "revision_or_digest": {
+        "type": "git_sha",
+        "value": "4158e6a0a55ee1dabb9a8495ae86ec9e4116c42e"
+      },
+      "private_capture": false,
+      "audit_status": "PUBLIC_SOURCE_PIN_REVERIFIED_2026-11-18",
+      "evidence_level": "SOURCE_INSPECTED",
+      "observed_on": "2026-11-18",
+      "file_digest_reverification": [
+        {
+          "path": "LICENSE",
+          "url": "https://github.com/isaackogan/TikTokLive/blob/4158e6a0a55ee1dabb9a8495ae86ec9e4116c42e/LICENSE",
+          "recorded_sha256": "dcf7980cd048cf1d9ec1177cdf73d5c3e363150653f43b8ef8eafd28c83928e2",
+          "raw_blob_sha256_2026_11_18": "dcf7980cd048cf1d9ec1177cdf73d5c3e363150653f43b8ef8eafd28c83928e2",
+          "result": "MATCH_RAW_BLOB"
+        },
+        {
+          "path": "TikTokLive/client/client.py",
+          "url": "https://github.com/isaackogan/TikTokLive/blob/4158e6a0a55ee1dabb9a8495ae86ec9e4116c42e/TikTokLive/client/client.py",
+          "recorded_sha256": "68a0593a0261f7a03edb3a2e1c33b239436b565922bdc00074715d8a744a6a1a",
+          "raw_blob_sha256_2026_11_18": "68a0593a0261f7a03edb3a2e1c33b239436b565922bdc00074715d8a744a6a1a",
+          "result": "MATCH_RAW_BLOB"
+        },
+        {
+          "path": "TikTokLive/client/ws/ws_client.py",
+          "url": "https://github.com/isaackogan/TikTokLive/blob/4158e6a0a55ee1dabb9a8495ae86ec9e4116c42e/TikTokLive/client/ws/ws_client.py",
+          "recorded_sha256": "430c3637bf9f36813f65c20a29c81eab4bc8917fec3f73c923b7bb4d79714dd4",
+          "raw_blob_sha256_2026_11_18": "430c3637bf9f36813f65c20a29c81eab4bc8917fec3f73c923b7bb4d79714dd4",
+          "result": "MATCH_RAW_BLOB"
+        },
+        {
+          "path": "TikTokLive/client/web/routes/fetch_signed_websocket.py",
+          "url": "https://github.com/isaackogan/TikTokLive/blob/4158e6a0a55ee1dabb9a8495ae86ec9e4116c42e/TikTokLive/client/web/routes/fetch_signed_websocket.py",
+          "recorded_sha256": "a946caeffa65f35e3467f0bedbda45567ac324e9f6e16ed406ac4e051b5b557f",
+          "raw_blob_sha256_2026_11_18": "a946caeffa65f35e3467f0bedbda45567ac324e9f6e16ed406ac4e051b5b557f",
+          "result": "MATCH_RAW_BLOB"
+        }
+      ],
+      "artifact_refs": [
+        "docs/reports/unified-execution-2026-11-16/protocol-evidence.json"
+      ],
+      "limitations": [
+        "Raw blob digests match inherited values.",
+        "Source inspection establishes neither provider rights nor live behaviour"
+      ]
+    },
+    {
+      "id": "src.tiktok-live-connector",
+      "kind": "SOURCE_REVISION",
+      "subject": "https://github.com/zerodytrash/TikTok-Live-Connector",
+      "source_ref": "https://github.com/zerodytrash/TikTok-Live-Connector",
+      "revision_or_digest": {
+        "type": "git_sha",
+        "value": "58c8d5a5806dc4fc6633458cf820be324fc527c6"
+      },
+      "private_capture": false,
+      "audit_status": "PUBLIC_SOURCE_PIN_REVERIFIED_2026-11-18",
+      "evidence_level": "SOURCE_INSPECTED",
+      "observed_on": "2026-11-18",
+      "file_digest_reverification": [
+        {
+          "path": "LICENSE",
+          "url": "https://github.com/zerodytrash/TikTok-Live-Connector/blob/58c8d5a5806dc4fc6633458cf820be324fc527c6/LICENSE",
+          "recorded_sha256": "dcf7980cd048cf1d9ec1177cdf73d5c3e363150653f43b8ef8eafd28c83928e2",
+          "raw_blob_sha256_2026_11_18": "dcf7980cd048cf1d9ec1177cdf73d5c3e363150653f43b8ef8eafd28c83928e2",
+          "result": "MATCH_RAW_BLOB"
+        },
+        {
+          "path": "src/lib/client/index.ts",
+          "url": "https://github.com/zerodytrash/TikTok-Live-Connector/blob/58c8d5a5806dc4fc6633458cf820be324fc527c6/src/lib/client/index.ts",
+          "recorded_sha256": "7f06e3a173df3dd03c0c53ed2fd2b68999ea23b2eb24c769c70a2f1409ba05f6",
+          "raw_blob_sha256_2026_11_18": "7f06e3a173df3dd03c0c53ed2fd2b68999ea23b2eb24c769c70a2f1409ba05f6",
+          "result": "MATCH_RAW_BLOB"
+        },
+        {
+          "path": "src/lib/ws/lib/ws-client.ts",
+          "url": "https://github.com/zerodytrash/TikTok-Live-Connector/blob/58c8d5a5806dc4fc6633458cf820be324fc527c6/src/lib/ws/lib/ws-client.ts",
+          "recorded_sha256": "046a78fd097d32a01a7d7b46a359319f66261fcea403316fbc1c744f94cd9ec7",
+          "raw_blob_sha256_2026_11_18": "046a78fd097d32a01a7d7b46a359319f66261fcea403316fbc1c744f94cd9ec7",
+          "result": "MATCH_RAW_BLOB"
+        },
+        {
+          "path": "src/lib/ws/lib/proto-utils.ts",
+          "url": "https://github.com/zerodytrash/TikTok-Live-Connector/blob/58c8d5a5806dc4fc6633458cf820be324fc527c6/src/lib/ws/lib/proto-utils.ts",
+          "recorded_sha256": "ea3a20424535215fd4798078e22c1f8b99367b2c6227596e983a27bfde66759d",
+          "raw_blob_sha256_2026_11_18": "ea3a20424535215fd4798078e22c1f8b99367b2c6227596e983a27bfde66759d",
+          "result": "MATCH_RAW_BLOB"
+        },
+        {
+          "path": "src/lib/web/routes/euler/fetch-signed-websocket-euler.ts",
+          "url": "https://github.com/zerodytrash/TikTok-Live-Connector/blob/58c8d5a5806dc4fc6633458cf820be324fc527c6/src/lib/web/routes/euler/fetch-signed-websocket-euler.ts",
+          "recorded_sha256": "0da257ad30ffb08a3a6841ec9cb4ba43ac29eb6581e9e0e2cb3a2e232633268e",
+          "raw_blob_sha256_2026_11_18": "0da257ad30ffb08a3a6841ec9cb4ba43ac29eb6581e9e0e2cb3a2e232633268e",
+          "result": "MATCH_RAW_BLOB"
+        }
+      ],
+      "artifact_refs": [
+        "docs/reports/unified-execution-2026-11-16/protocol-evidence.json"
+      ],
+      "limitations": [
+        "Raw blob digests match inherited values.",
+        "Source inspection establishes neither provider rights nor live behaviour"
+      ]
+    },
+    {
+      "id": "src.meta-node-business-sdk",
+      "kind": "SOURCE_REVISION",
+      "subject": "https://github.com/facebook/facebook-nodejs-business-sdk",
+      "source_ref": "https://github.com/facebook/facebook-nodejs-business-sdk",
+      "revision_or_digest": {
+        "type": "git_sha",
+        "value": "246c937eb5c1272ed743db41a944900bee449be9"
+      },
+      "private_capture": false,
+      "audit_status": "PUBLIC_SOURCE_PIN_REVERIFIED_2026-11-18",
+      "evidence_level": "SOURCE_INSPECTED",
+      "observed_on": "2026-11-18",
+      "file_digest_reverification": [
+        {
+          "path": "LICENSE",
+          "url": "https://github.com/facebook/facebook-nodejs-business-sdk/blob/246c937eb5c1272ed743db41a944900bee449be9/LICENSE",
+          "recorded_sha256": "48d97b3c936203a750a3288c2b924327769d62327383a1060244b3d3c05ad01f",
+          "raw_blob_sha256_2026_11_18": "48d97b3c936203a750a3288c2b924327769d62327383a1060244b3d3c05ad01f",
+          "result": "MATCH_RAW_BLOB"
+        },
+        {
+          "path": "src/api.js",
+          "url": "https://github.com/facebook/facebook-nodejs-business-sdk/blob/246c937eb5c1272ed743db41a944900bee449be9/src/api.js",
+          "recorded_sha256": "2ec2ce9544b20a72f16b97d565fe26914a6d6ca8121a47dc9676b0bff88934f0",
+          "raw_blob_sha256_2026_11_18": "2ec2ce9544b20a72f16b97d565fe26914a6d6ca8121a47dc9676b0bff88934f0",
+          "result": "MATCH_RAW_BLOB"
+        }
+      ],
+      "artifact_refs": [
+        "docs/reports/unified-execution-2026-11-16/protocol-evidence.json"
+      ],
+      "limitations": [
+        "Raw blob digests match inherited values.",
+        "Source inspection establishes neither provider rights nor live behaviour"
+      ]
+    },
+    {
+      "id": "src.tiktok-business-api-sdk",
+      "kind": "SOURCE_REVISION",
+      "subject": "https://github.com/tiktok/tiktok-business-api-sdk",
+      "source_ref": "https://github.com/tiktok/tiktok-business-api-sdk",
+      "revision_or_digest": {
+        "type": "git_sha",
+        "value": "f809c396520df2d7b201a9ccc5378d822b728ed3"
+      },
+      "private_capture": false,
+      "audit_status": "PUBLIC_SOURCE_PIN_REVERIFIED_2026-11-18",
+      "evidence_level": "SOURCE_INSPECTED",
+      "observed_on": "2026-11-18",
+      "file_digest_reverification": [
+        {
+          "path": "LICENSE.md",
+          "url": "https://github.com/tiktok/tiktok-business-api-sdk/blob/f809c396520df2d7b201a9ccc5378d822b728ed3/LICENSE.md",
+          "recorded_sha256": "991c218ea2332d85698a9f2bae9e15a035492db91e7b4b2ffba18c8c8863ca03",
+          "raw_blob_sha256_2026_11_18": "991c218ea2332d85698a9f2bae9e15a035492db91e7b4b2ffba18c8c8863ca03",
+          "result": "MATCH_RAW_BLOB"
+        },
+        {
+          "path": "js_sdk/src/ApiClient.js",
+          "url": "https://github.com/tiktok/tiktok-business-api-sdk/blob/f809c396520df2d7b201a9ccc5378d822b728ed3/js_sdk/src/ApiClient.js",
+          "recorded_sha256": "1e8dbed842d076964846334c84a893267131dbf3bc002b6f4b8dc0542ddb54f1",
+          "raw_blob_sha256_2026_11_18": "1e8dbed842d076964846334c84a893267131dbf3bc002b6f4b8dc0542ddb54f1",
+          "result": "MATCH_RAW_BLOB"
+        }
+      ],
+      "artifact_refs": [
+        "docs/reports/unified-execution-2026-11-16/protocol-evidence.json"
+      ],
+      "limitations": [
+        "Raw blob digests match inherited values.",
+        "Source inspection establishes neither provider rights nor live behaviour"
+      ]
+    },
+    {
+      "id": "src.pancake-webhook-relay",
+      "kind": "SOURCE_REVISION",
+      "subject": "https://github.com/trananhhh/pancake-webhook-relay",
+      "source_ref": "https://github.com/trananhhh/pancake-webhook-relay",
+      "revision_or_digest": {
+        "type": "git_sha",
+        "value": "23e2409f6c80e910de6f652b4c9d0a878ba2291b"
+      },
+      "private_capture": false,
+      "audit_status": "PUBLIC_SOURCE_PIN_REVERIFIED_2026-11-18",
+      "evidence_level": "SOURCE_INSPECTED",
+      "observed_on": "2026-11-18",
+      "file_digest_reverification": [
+        {
+          "path": "src/phoenix-client.ts",
+          "url": "https://github.com/trananhhh/pancake-webhook-relay/blob/23e2409f6c80e910de6f652b4c9d0a878ba2291b/src/phoenix-client.ts",
+          "recorded_sha256": "2435bac379bfb31ac78872460097736ab97bea8faaa453fafc66390faf8eed33",
+          "raw_blob_sha256_2026_11_18": "21e2b61039ad4ec0e8bf88e298f99379d2df3100095ee6ddcffdf352756e4cdf",
+          "result": "MATCH_AFTER_LF_TO_CRLF_ONLY"
+        },
+        {
+          "path": "src/event-handler.ts",
+          "url": "https://github.com/trananhhh/pancake-webhook-relay/blob/23e2409f6c80e910de6f652b4c9d0a878ba2291b/src/event-handler.ts",
+          "recorded_sha256": "b3cf4dcb6b6e8f15bcd64269e45be0476817cbc2b5b974295737e512b66a3053",
+          "raw_blob_sha256_2026_11_18": "92d7394622f82b38152b19e3f9d451cda3d61e39182a10f52dddb8c7ebdbb1d1",
+          "result": "MATCH_AFTER_LF_TO_CRLF_ONLY"
+        },
+        {
+          "path": "src/config.ts",
+          "url": "https://github.com/trananhhh/pancake-webhook-relay/blob/23e2409f6c80e910de6f652b4c9d0a878ba2291b/src/config.ts",
+          "recorded_sha256": "da48c40692a90d129d99a4db4dbb43548791ed81ce8f78df2140a648d1972fa8",
+          "raw_blob_sha256_2026_11_18": "b869ae26c35f1c7d2afe0a7c473f7c4bc67d33f47a9cd1962e2dc6f300ff1b1a",
+          "result": "MATCH_AFTER_LF_TO_CRLF_ONLY"
+        }
+      ],
+      "artifact_refs": [
+        "docs/research/adaptive-integration-2026-11-14/source-ledger.json"
+      ],
+      "limitations": [
+        "Inherited 2026-11-14 digests were computed over Windows LF->CRLF working-tree bytes; raw blob digests recorded here; content unchanged.",
+        "Source inspection establishes neither provider rights nor live behaviour"
+      ]
+    },
+    {
+      "id": "src.pancake-streaming-ingestion",
+      "kind": "SOURCE_REVISION",
+      "subject": "https://github.com/trongvan722000/pancake-streaming-ingestion",
+      "source_ref": "https://github.com/trongvan722000/pancake-streaming-ingestion",
+      "revision_or_digest": {
+        "type": "git_sha",
+        "value": "3dd868612dc73d2be4ada01c249fc673553b0a9c"
+      },
+      "private_capture": false,
+      "audit_status": "PUBLIC_SOURCE_PIN_REVERIFIED_2026-11-18",
+      "evidence_level": "SOURCE_INSPECTED",
+      "observed_on": "2026-11-18",
+      "file_digest_reverification": [
+        {
+          "path": "gateway/main.py",
+          "url": "https://github.com/trongvan722000/pancake-streaming-ingestion/blob/3dd868612dc73d2be4ada01c249fc673553b0a9c/gateway/main.py",
+          "recorded_sha256": "c9b761ecf414b02949320d42ad84cb08ae190d899dd246d0342b7047ca6676b7",
+          "raw_blob_sha256_2026_11_18": "16f58ea183061e841eb7c2726ebd6726a06282ea038f105263f917ddd682f2b6",
+          "result": "MATCH_AFTER_LF_TO_CRLF_ONLY"
+        },
+        {
+          "path": "gateway/producer.py",
+          "url": "https://github.com/trongvan722000/pancake-streaming-ingestion/blob/3dd868612dc73d2be4ada01c249fc673553b0a9c/gateway/producer.py",
+          "recorded_sha256": "3590b419a7fbc4191453e6be5435c55fca2a36d3bf62218adf88fb0cfbf29138",
+          "raw_blob_sha256_2026_11_18": "5d8d960fcc1601f5d2a24d313f645cdbbfdfee043be2ba74c8befa5ea0c669ad",
+          "result": "MATCH_AFTER_LF_TO_CRLF_ONLY"
+        },
+        {
+          "path": "consumer/consumer.py",
+          "url": "https://github.com/trongvan722000/pancake-streaming-ingestion/blob/3dd868612dc73d2be4ada01c249fc673553b0a9c/consumer/consumer.py",
+          "recorded_sha256": "9abf61aa3e76f2a9398dfefdc92a4cc36205902414d9707f4d29ecded28c000c",
+          "raw_blob_sha256_2026_11_18": "ba0487ed2fcbe4c8e7222114f4c7e7efc9af51212b2a446943668f33f4e25319",
+          "result": "MATCH_AFTER_LF_TO_CRLF_ONLY"
+        },
+        {
+          "path": "README.md",
+          "url": "https://github.com/trongvan722000/pancake-streaming-ingestion/blob/3dd868612dc73d2be4ada01c249fc673553b0a9c/README.md",
+          "recorded_sha256": "5bdf92ee7b44925ace3e580463077f33f86855d2797ba7e6bbebd2850bfa208b",
+          "raw_blob_sha256_2026_11_18": "5564db39a01e6f09eaf666b0142f54244de533b4b88a7917c2706554d3b02149",
+          "result": "MATCH_AFTER_LF_TO_CRLF_ONLY"
+        }
+      ],
+      "artifact_refs": [
+        "docs/research/adaptive-integration-2026-11-14/source-ledger.json"
+      ],
+      "limitations": [
+        "Inherited 2026-11-14 digests were computed over Windows LF->CRLF working-tree bytes; raw blob digests recorded here; content unchanged.",
+        "Source inspection establishes neither provider rights nor live behaviour"
+      ]
+    },
+    {
+      "id": "src.aiecos-social-crm",
+      "kind": "SOURCE_REVISION",
+      "subject": "https://github.com/aiecosvietnam/aiecos-social-crm",
+      "source_ref": "https://github.com/aiecosvietnam/aiecos-social-crm",
+      "revision_or_digest": {
+        "type": "git_sha",
+        "value": "dba1bdb09dd8b65618fe1ce86153b371075099bb"
+      },
+      "private_capture": false,
+      "audit_status": "PUBLIC_SOURCE_PIN_REVERIFIED_2026-11-18",
+      "evidence_level": "SOURCE_INSPECTED",
+      "observed_on": "2026-11-18",
+      "file_digest_reverification": [
+        {
+          "path": "chrome-extension/manifest.json",
+          "url": "https://github.com/aiecosvietnam/aiecos-social-crm/blob/dba1bdb09dd8b65618fe1ce86153b371075099bb/chrome-extension/manifest.json",
+          "recorded_sha256": "65596988253542d1f26abbdbeaad122c14b8194404f3d2a49f35b7104f2f5210",
+          "raw_blob_sha256_2026_11_18": "0d63f6c7d4dbf1bbaad1fd56fd610d5ad3f754c990985671ea2589ae3cf92173",
+          "result": "MATCH_AFTER_LF_TO_CRLF_ONLY"
+        },
+        {
+          "path": "chrome-extension/content.js",
+          "url": "https://github.com/aiecosvietnam/aiecos-social-crm/blob/dba1bdb09dd8b65618fe1ce86153b371075099bb/chrome-extension/content.js",
+          "recorded_sha256": "7552117adec36d1ac32b31b0a541801330b9bc7ea1376628c16e4067de14bb0e",
+          "raw_blob_sha256_2026_11_18": "b007472a7c4616046d0e577c26cae54682570e813fccb8a4cbec6d5731fc57d8",
+          "result": "MATCH_AFTER_LF_TO_CRLF_ONLY"
+        },
+        {
+          "path": "LICENSE",
+          "url": "https://github.com/aiecosvietnam/aiecos-social-crm/blob/dba1bdb09dd8b65618fe1ce86153b371075099bb/LICENSE",
+          "recorded_sha256": "f8328dd7658407187bf9f001eaeb628ea11818e2e135ed23b0fdf5a016c2e70a",
+          "raw_blob_sha256_2026_11_18": "33c6dac93becd36ae4926338b051fc447e85c5de65007859b3497a112b02a56c",
+          "result": "MATCH_AFTER_LF_TO_CRLF_ONLY"
+        }
+      ],
+      "artifact_refs": [
+        "docs/research/adaptive-integration-2026-11-14/source-ledger.json"
+      ],
+      "limitations": [
+        "Inherited 2026-11-14 digests were computed over Windows LF->CRLF working-tree bytes; raw blob digests recorded here; content unchanged.",
+        "Source inspection establishes neither provider rights nor live behaviour"
+      ]
+    },
+    {
+      "id": "src.pancake-pos-mcp",
+      "kind": "SOURCE_REVISION",
+      "subject": "https://github.com/nguyennguyenit/pancake-pos-mcp",
+      "source_ref": "https://github.com/nguyennguyenit/pancake-pos-mcp",
+      "revision_or_digest": {
+        "type": "git_sha",
+        "value": "c9a67faf0a58f48aaf24ef702455ddaac84054a5"
+      },
+      "private_capture": false,
+      "audit_status": "PUBLIC_SOURCE_PIN_REVERIFIED_2026-11-18",
+      "evidence_level": "SOURCE_INSPECTED",
+      "observed_on": "2026-11-18",
+      "file_digest_reverification": [
+        {
+          "path": "src/tools/webhooks-tool.ts",
+          "url": "https://github.com/nguyennguyenit/pancake-pos-mcp/blob/c9a67faf0a58f48aaf24ef702455ddaac84054a5/src/tools/webhooks-tool.ts",
+          "recorded_sha256": "42d38f38fe6e058877dd9da3c7f5e5eb3dc1c65ea7a2904ff294d574dae91ec0",
+          "raw_blob_sha256_2026_11_18": "25c91024a6cfc9247bfa2097929e2a2f43de2a901f9dba550d94b3827cc67e31",
+          "result": "MATCH_AFTER_LF_TO_CRLF_ONLY"
+        },
+        {
+          "path": "LICENSE",
+          "url": "https://github.com/nguyennguyenit/pancake-pos-mcp/blob/c9a67faf0a58f48aaf24ef702455ddaac84054a5/LICENSE",
+          "recorded_sha256": "d3c78a2ad0411832a5a2a4d73a2704a332446f7f2f8769195f0d73bbb1bcaebc",
+          "raw_blob_sha256_2026_11_18": "3ae103bd596b82a771c7a8c71c4e026831cdfc76cb2a73503cef44810bbbe459",
+          "result": "MATCH_AFTER_LF_TO_CRLF_ONLY"
+        }
+      ],
+      "artifact_refs": [
+        "docs/research/adaptive-integration-2026-11-14/source-ledger.json"
+      ],
+      "limitations": [
+        "Inherited 2026-11-14 digests were computed over Windows LF->CRLF working-tree bytes; raw blob digests recorded here; content unchanged.",
+        "Source inspection establishes neither provider rights nor live behaviour"
+      ]
+    },
+    {
+      "id": "src.pancake-mcp-server",
+      "kind": "SOURCE_REVISION",
+      "subject": "https://github.com/lynguyenvu/pancake-mcp-server",
+      "source_ref": "https://github.com/lynguyenvu/pancake-mcp-server",
+      "revision_or_digest": {
+        "type": "git_sha",
+        "value": "1e6678bad5b8602339751b523875c9d161f2db38"
+      },
+      "private_capture": false,
+      "audit_status": "PUBLIC_SOURCE_PIN_REVERIFIED_2026-11-18",
+      "evidence_level": "SOURCE_INSPECTED",
+      "observed_on": "2026-11-18",
+      "file_digest_reverification": [],
+      "artifact_refs": [
+        "docs/research/adaptive-integration-2026-11-14/source-ledger.json"
+      ],
+      "limitations": [
+        "Raw blob digests match inherited values.",
+        "Source inspection establishes neither provider rights nor live behaviour"
+      ]
+    },
+    {
+      "id": "doc.pancake-pos.webhooks-vi",
+      "kind": "DOCUMENT_SNAPSHOT",
+      "subject": "Pancake POS official developer documentation",
+      "source_ref": "https://pos.pancake.vn/developers/api/vi/webhooks.md",
+      "revision_or_digest": {
+        "type": "sha256",
+        "value": "939a6d920fdf134ef1b4d44d783b1fd1ffefc5e2e9c21548a753424bcb90be46"
+      },
+      "private_capture": false,
+      "audit_status": "DOCUMENT_DIGEST_NOT_RECHECKED_2026-11-18",
+      "evidence_level": "DOCUMENTED_API",
+      "observed_on": "2026-11-14",
+      "artifact_refs": [
+        "docs/research/adaptive-integration-2026-11-14/source-ledger.json"
+      ],
+      "limitations": [
+        "Mutable documentation; digest identifies the 2026-11-14 snapshot only",
+        "Not re-fetched in this round"
+      ]
+    },
+    {
+      "id": "doc.pancake-pos.authentication-vi",
+      "kind": "DOCUMENT_SNAPSHOT",
+      "subject": "Pancake POS official developer documentation",
+      "source_ref": "https://pos.pancake.vn/developers/api/vi/authentication.md",
+      "revision_or_digest": {
+        "type": "sha256",
+        "value": "85f97cb7c1f1a13472d0ce3b36a04bd2122894ee762cc6ad67e5d9fc7476884d"
+      },
+      "private_capture": false,
+      "audit_status": "DOCUMENT_DIGEST_NOT_RECHECKED_2026-11-18",
+      "evidence_level": "DOCUMENTED_API",
+      "observed_on": "2026-11-14",
+      "artifact_refs": [
+        "docs/research/adaptive-integration-2026-11-14/source-ledger.json"
+      ],
+      "limitations": [
+        "Mutable documentation; digest identifies the 2026-11-14 snapshot only",
+        "Not re-fetched in this round"
+      ]
+    },
+    {
+      "id": "doc.pancake-pos.webhook",
+      "kind": "DOCUMENT_SNAPSHOT",
+      "subject": "Pancake POS official developer documentation",
+      "source_ref": "https://pos.pancake.vn/developers/api/webhook.md",
+      "revision_or_digest": {
+        "type": "sha256",
+        "value": "8ad91152ae10c127a75b259240a536f47bc6e4b81105bff9a09463255e90782d"
+      },
+      "private_capture": false,
+      "audit_status": "DOCUMENT_DIGEST_NOT_RECHECKED_2026-11-18",
+      "evidence_level": "DOCUMENTED_API",
+      "observed_on": "2026-11-14",
+      "artifact_refs": [
+        "docs/research/adaptive-integration-2026-11-14/source-ledger.json"
+      ],
+      "limitations": [
+        "Mutable documentation; digest identifies the 2026-11-14 snapshot only",
+        "Not re-fetched in this round"
+      ]
+    },
+    {
+      "id": "doc.pancake-pos.schemas",
+      "kind": "DOCUMENT_SNAPSHOT",
+      "subject": "Pancake POS official developer documentation",
+      "source_ref": "https://pos.pancake.vn/developers/api/schemas.md",
+      "revision_or_digest": {
+        "type": "sha256",
+        "value": "6a2ac661bcf9ec4ed03530ff550fa743218906e05f568af7cad7cbbf99940d18"
+      },
+      "private_capture": false,
+      "audit_status": "DOCUMENT_DIGEST_NOT_RECHECKED_2026-11-18",
+      "evidence_level": "DOCUMENTED_API",
+      "observed_on": "2026-11-14",
+      "artifact_refs": [
+        "docs/research/adaptive-integration-2026-11-14/source-ledger.json"
+      ],
+      "limitations": [
+        "Mutable documentation; digest identifies the 2026-11-14 snapshot only",
+        "Not re-fetched in this round"
+      ]
+    },
+    {
+      "id": "doc.pancake-pos.apps-runtime-api",
+      "kind": "DOCUMENT_SNAPSHOT",
+      "subject": "Pancake POS official developer documentation",
+      "source_ref": "https://pos.pancake.vn/developers/apps/runtime-api.md",
+      "revision_or_digest": {
+        "type": "sha256",
+        "value": "6f9a056d5f76b0353cbeefded3cb168ef34926e90339095e2a263f682276ea5a"
+      },
+      "private_capture": false,
+      "audit_status": "DOCUMENT_DIGEST_NOT_RECHECKED_2026-11-18",
+      "evidence_level": "DOCUMENTED_API",
+      "observed_on": "2026-11-14",
+      "artifact_refs": [
+        "docs/research/adaptive-integration-2026-11-14/source-ledger.json"
+      ],
+      "limitations": [
+        "Mutable documentation; digest identifies the 2026-11-14 snapshot only",
+        "Not re-fetched in this round"
+      ]
+    },
+    {
+      "id": "doc.pancake-pos.apps-data-access",
+      "kind": "DOCUMENT_SNAPSHOT",
+      "subject": "Pancake POS official developer documentation",
+      "source_ref": "https://pos.pancake.vn/developers/apps/data-access.md",
+      "revision_or_digest": {
+        "type": "sha256",
+        "value": "9079cd7e819c0da142139fcd3a61c34bbe40a6023fefc80d2c3d3a3c85b72913"
+      },
+      "private_capture": false,
+      "audit_status": "DOCUMENT_DIGEST_NOT_RECHECKED_2026-11-18",
+      "evidence_level": "DOCUMENTED_API",
+      "observed_on": "2026-11-14",
+      "artifact_refs": [
+        "docs/research/adaptive-integration-2026-11-14/source-ledger.json"
+      ],
+      "limitations": [
+        "Mutable documentation; digest identifies the 2026-11-14 snapshot only",
+        "Not re-fetched in this round"
+      ]
+    },
+    {
+      "id": "doc.pancake-pos.apps-overview",
+      "kind": "DOCUMENT_SNAPSHOT",
+      "subject": "Pancake POS official developer documentation",
+      "source_ref": "https://pos.pancake.vn/developers/apps/overview.md",
+      "revision_or_digest": {
+        "type": "sha256",
+        "value": "333536e1958c381f48108f616dbc8c925b02741cbff8f041c77835552619c47c"
+      },
+      "private_capture": false,
+      "audit_status": "DOCUMENT_DIGEST_NOT_RECHECKED_2026-11-18",
+      "evidence_level": "DOCUMENTED_API",
+      "observed_on": "2026-11-14",
+      "artifact_refs": [
+        "docs/research/adaptive-integration-2026-11-14/source-ledger.json"
+      ],
+      "limitations": [
+        "Mutable documentation; digest identifies the 2026-11-14 snapshot only",
+        "Not re-fetched in this round"
+      ]
+    },
+    {
+      "id": "doc.google.data-manager-reference",
+      "kind": "DOCUMENT_SNAPSHOT",
+      "subject": "Google Data Manager API reference v1.9 (2026-11-04)",
+      "source_ref": "https://developers.google.com/data-manager/api/reference",
+      "revision_or_digest": {
+        "type": "version",
+        "value": "v1.9 / 2026-11-04"
+      },
+      "private_capture": false,
+      "audit_status": "DOCUMENT_DIGEST_NOT_RECHECKED_2026-11-18",
+      "evidence_level": "DOCUMENTED_API",
+      "observed_on": "2026-11-14T05:49:51Z",
+      "artifact_refs": [
+        "docs/research/registries/evidence-capability-register.json"
+      ],
+      "limitations": [
+        "No content digest recorded"
+      ]
+    },
+    {
+      "id": "doc.google-ads.rest-mutate-examples",
+      "kind": "DOCUMENT_SNAPSHOT",
+      "subject": "Google Ads API REST examples (shows :mutate over REST, API v26)",
+      "source_ref": "https://developers.google.com/google-ads/api/rest/examples",
+      "revision_or_digest": {
+        "type": "version",
+        "value": "API v26 (page as retrieved 2026-11-18)"
+      },
+      "private_capture": false,
+      "audit_status": "RETRIEVED_2026-11-18",
+      "evidence_level": "DOCUMENTED_API",
+      "observed_on": "2026-11-18",
+      "artifact_refs": [
+        "https://developers.google.com/google-ads/api/rest/examples"
+      ],
+      "limitations": [
+        "Retrieved via summarising reader; no digest"
+      ]
+    }
+  ]
+}

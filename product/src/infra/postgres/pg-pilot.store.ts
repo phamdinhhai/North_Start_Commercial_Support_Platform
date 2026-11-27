@@ -1,3 +1,4 @@
+import { leadPage, type ContextRevision, type ClosureCommandRecord, type PilotLeadQuery } from '../../ports/pilot-closure';
 import { Inject, Injectable } from '@nestjs/common';
 import { PostgresService, type SqlExecutor } from '../../infra/postgres/postgres.service';
 import type { AuditRecord } from '../../ports/audit';
@@ -16,10 +17,20 @@ import {
   toOutcome,
   toWork,
 } from '../../infra/postgres/repositories/pilot-persistence.types';
-import { PilotStaleVersionError } from '../../ports/pilot-loop.types';
+import { decodePilotQueueCursor, encodePilotQueueCursor, PilotDomainError, PilotStaleVersionError } from '../../ports/pilot-loop.types';
 import { assertSameEnvelope } from '../../ports/pilot-loop.store';
-import type { PilotLoopState, AuditHistoryEntry } from '../../ports/pilot-loop.types';
+import type { PilotLoopState, AuditHistoryEntry, PilotQueueItem, PilotQueuePage, PilotQueueQuery } from '../../ports/pilot-loop.types';
 import type { EvidenceRefRecord, PilotLoopStore } from '../../ports/pilot-loop.store';
+
+type LeadCursor={v:1;workspaceId:string;actorId:string;actorRole:string;classification:string;search:string|null;id:string};
+const LEAD_UUID=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+function decodeLeadCursor(value:string|undefined,query:PilotLeadQuery):string|undefined{
+  if(!value)return undefined;
+  try{const c=JSON.parse(Buffer.from(value,'base64url').toString('utf8')) as Partial<LeadCursor>;
+    if(c.v!==1||c.workspaceId!==query.workspaceId||c.actorId!==query.actorId||c.actorRole!==query.actorRole||c.classification!==(query.classification??'real')||c.search!==(query.search?.trim().toLocaleLowerCase('vi')??null)||typeof c.id!=='string'||!LEAD_UUID.test(c.id))throw new Error('cursor_scope');return c.id;
+  }catch{throw new PilotDomainError('INPUT_INVALID',400,'invalid lead cursor');}
+}
+function encodeLeadCursor(query:PilotLeadQuery,id:string):string{return Buffer.from(JSON.stringify({v:1,workspaceId:query.workspaceId,actorId:query.actorId,actorRole:query.actorRole,classification:query.classification??'real',search:query.search?.trim().toLocaleLowerCase('vi')??null,id} satisfies LeadCursor)).toString('base64url');}
 
 /**
  * Durable pilot-loop store (C-03, C-06, R-18) — PostgreSQL-backed.
@@ -36,6 +47,32 @@ import type { EvidenceRefRecord, PilotLoopStore } from '../../ports/pilot-loop.s
 export class PgPilotStore implements PilotLoopStore {
   constructor(@Inject(PostgresService) private readonly db: PostgresService) {}
 
+  async leads(query: PilotLeadQuery) {
+    const afterId=decodeLeadCursor(query.after,query);
+    const params: unknown[]=[query.workspaceId,query.classification ?? 'real'];
+    const where=[`l.workspace_id=$1`,`($2='all' OR e.is_synthetic=($2='synthetic'))`];
+    if(afterId){params.push(afterId);where.push(`l.id>$${params.length}::uuid`);}
+    where.push(`($${params.length+1} IN ('admin','manager') OR l.owner_user_id=$${params.length+2} OR EXISTS(SELECT 1 FROM pilot_work_item w WHERE w.lead_id=l.id AND w.workspace_id=$1 AND w.actor=$${params.length+2} AND w.status IN ('proposed','accepted','open','awaiting-external')))`);
+    params.push(query.actorRole,query.actorId);
+    const search=query.search?.trim();
+    if(search){
+      params.push(search.toLocaleLowerCase('vi'));
+      const p=params.length;
+      // Search is deliberately applied in PostgreSQL before ORDER/LIMIT so a
+      // matching Lead beyond the first page cannot be hidden by pre-filtering.
+      where.push(`(lower(l.display_name) LIKE '%' || $${p} || '%' OR lower(coalesce(l.owner_user_id,'')) LIKE '%' || $${p} || '%' OR lower(l.status) LIKE '%' || $${p} || '%')`);
+    }
+    params.push((query.limit ?? 50)+1);
+    const ids = await this.db.query<{id:string}>(`SELECT l.id FROM lead l LEFT JOIN commercial_envelope e ON e.id=l.source_envelope_id
+      WHERE ${where.join(' AND ')} ORDER BY l.id LIMIT $${params.length}`,params);
+    const states = await Promise.all(ids.rows.map(r=>this.load(r.id)));
+    const page=leadPage(states.filter((s):s is PilotLoopState=>!!s),{...query,after:undefined,search:undefined});
+    return page.nextCursor ? {...page,nextCursor:encodeLeadCursor(query,page.items.at(-1)!.leadId)} : page;
+  }
+  async appendAccess(leadId: string, actor: string): Promise<void> {
+    await this.db.query(`INSERT INTO audit_record(entity_type,entity_id,workspace_id,actor,event_type,new_value)
+      SELECT 'lead',id::text,workspace_id,$2,'evidence_accessed','"accepted_source_evidence"'::jsonb FROM lead WHERE id=$1`,[leadId,actor]);
+  }
   async load(leadId: string): Promise<PilotLoopState | undefined> {
     const leadRes = await this.db.query<LeadDbRow>(
       `SELECT id, workspace_id, customer_id, conversation_source, acquisition_lineage,
@@ -59,13 +96,13 @@ export class PgPilotStore implements PilotLoopStore {
       ),
       this.db.query<WorkDbRow>(
         `SELECT id, lead_id, workspace_id, action, responsible_party, origin, status, completion_evidence,
-                occurred_at, due_at, evidence_ref, recorded_at, supersedes_work_id, actor, reason
+                occurred_at, due_at, evidence_ref, recorded_at, supersedes_work_id, actor, reason, declaration, confirmed
            FROM pilot_work_item WHERE lead_id = $1 ORDER BY recorded_at`,
         [leadId],
       ),
       leadRow.source_envelope_id
         ? this.db.query<EnvelopeDbRow>(
-            `SELECT id, workspace_id, raw_payload, raw_payload_hash, source_captured_at, ingested_at, connection,
+            `SELECT id, workspace_id, raw_payload, raw_payload_hash, raw_payload_digest, source_captured_at, ingested_at, connection,
                     external_record_id, external_event_type, mapping_status, mapping_error, canonical_projection, is_synthetic,
                     acquisition_mode, acquisition_source
                FROM commercial_envelope WHERE id = $1`,
@@ -74,8 +111,14 @@ export class PgPilotStore implements PilotLoopStore {
         : Promise.resolve({ rows: [] as EnvelopeDbRow[] }),
     ]);
 
+    const [contexts,commands] = await Promise.all([
+      this.db.query<{id:string;text:string;actor:string;recorded_at:Date|string;reason:string}>('SELECT id,text,actor,recorded_at,reason FROM pilot_context_revision WHERE lead_id=$1 ORDER BY recorded_at,id',[leadId]),
+      this.db.query<{idempotency_key:string;actor:string;operation:string;digest:ClosureCommandRecord['digest'];result:Record<string,unknown>}>('SELECT idempotency_key,actor,operation,digest,result FROM pilot_closure_command WHERE lead_id=$1',[leadId]),
+    ]);
     const latestHandoff = handoffs.rows.at(-1);
     return {
+      contextRevisions: contexts.rows.map(r=>({id:r.id,text:r.text,actor:r.actor,recordedAt:iso(r.recorded_at),reason:r.reason} satisfies ContextRevision)),
+      closureCommands: commands.rows.map(r=>({idempotencyKey:r.idempotency_key,actor:r.actor,operation:r.operation,digest:r.digest,result:r.result})),
       lead: toLead(leadRow),
       handoff: latestHandoff ? toHandoff(latestHandoff) : undefined,
       workItems: works.rows.map(toWork),
@@ -86,6 +129,53 @@ export class PgPilotStore implements PilotLoopStore {
       handoffRecipient: latestHandoff?.recipient_user_id ?? undefined,
       envelope: envelopes.rows[0] ? toEnvelope(envelopes.rows[0]) : undefined,
     };
+  }
+
+  async queue(query: PilotQueueQuery): Promise<PilotQueuePage> {
+    const limit = Math.min(Math.max(query.limit ?? 50, 1), 100);
+    const cursor = decodePilotQueueCursor(query, query.cursor);
+    const params: unknown[] = [query.workspaceId];
+    const where = ['w.workspace_id = $1'];
+    if (query.classification !== 'all') {params.push(query.classification === 'synthetic');where.push(`e.is_synthetic = $${params.length}`);}
+    if (query.actorRole !== 'admin' && query.actorRole !== 'manager') {
+      params.push(query.actorId);
+      // Same lead-wide active assignment rule as the memory store and read policy (I-09).
+      where.push(`(l.owner_user_id = $${params.length} OR EXISTS (
+        SELECT 1 FROM pilot_work_item accessible
+        WHERE accessible.lead_id = l.id AND accessible.workspace_id = $1
+          AND accessible.actor = $${params.length}
+          AND accessible.status IN ('proposed','accepted','open','awaiting-external')))`);
+    }
+    if (query.status) { params.push(query.status); where.push(`w.status = $${params.length}`); }
+    if (query.ownerUserId) { params.push(query.ownerUserId); where.push(`l.owner_user_id = $${params.length}`); }
+    if (query.recipientUserId) { params.push(query.recipientUserId); where.push(`w.actor = $${params.length}`); }
+    if (query.dueBefore) { params.push(query.dueBefore); where.push(`w.due_at < $${params.length}`); }
+    if (query.dueAfter) { params.push(query.dueAfter); where.push(`w.due_at > $${params.length}`); }
+    if (cursor) {
+      if (cursor.dueAt === null) {
+        params.push(cursor.recordedAt, cursor.id);
+        const cursorParam = params.length - 1;
+        where.push(`w.due_at IS NULL AND (w.recorded_at, w.id) > ($${cursorParam}, $${cursorParam + 1})`);
+      } else {
+        params.push(cursor.dueAt, cursor.recordedAt, cursor.id);
+        const cursorParam = params.length - 2;
+        where.push(`(w.due_at IS NULL OR w.due_at > $${cursorParam} OR (w.due_at = $${cursorParam} AND (w.recorded_at, w.id) > ($${cursorParam + 1}, $${cursorParam + 2})))`);
+      }
+    }
+    params.push(limit + 1);
+    const result = await this.db.query<WorkDbRow & { lead_status: string; display_name: string; handoff_recipient: string | null; is_synthetic?: boolean | null }>(
+      `SELECT w.id,w.lead_id,w.workspace_id,w.action,w.responsible_party,w.origin,w.status,w.completion_evidence,w.occurred_at,w.due_at,w.evidence_ref,w.recorded_at,w.supersedes_work_id,w.actor,w.reason,
+              l.status AS lead_status,l.display_name,e.is_synthetic AS is_synthetic,
+              (SELECT h.recipient_user_id FROM handoff h WHERE h.lead_id = l.id ORDER BY h.created_at DESC LIMIT 1) AS handoff_recipient
+         FROM pilot_work_item w JOIN lead l ON l.id = w.lead_id LEFT JOIN commercial_envelope e ON e.id=l.source_envelope_id
+        WHERE ${where.join(' AND ')}
+        ORDER BY w.due_at NULLS LAST,w.recorded_at,w.id LIMIT $${params.length}`,
+      params,
+    );
+    const rows = result.rows.map((row) => toQueueItem(row));
+    const items = rows.slice(0, limit);
+    const last = items.at(-1);
+    return { items, ...(rows.length > limit && last ? { nextCursor: encodePilotQueueCursor(query, last) } : {}) };
   }
 
   async loadIngest(key: Pick<CommercialEnvelope, 'workspaceId' | 'connection' | 'externalRecordId'>): Promise<PilotLoopState | undefined> {
@@ -104,13 +194,14 @@ export class PgPilotStore implements PilotLoopStore {
    */
   async loadEvidence(envelopeId: string): Promise<EvidenceRefRecord | undefined> {
     if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(envelopeId)) return undefined;
-    const res = await this.db.query<{ workspace_id: string; raw_payload_hash: string; source_captured_at: Date | string; acquisition_mode: string; acquisition_source: string; speaker: string | null }>(
-      "SELECT workspace_id, raw_payload_hash, source_captured_at, acquisition_mode, acquisition_source, raw_payload->>'speaker' AS speaker FROM commercial_envelope WHERE id = $1",
+    const res = await this.db.query<{ workspace_id: string; raw_payload_hash: string; source_captured_at: Date | string; acquisition_mode: string; acquisition_source: string; speaker: string | null; is_synthetic: boolean; raw_payload_digest?: CommercialEnvelope['rawPayloadDigest'] }>(
+      "SELECT workspace_id, raw_payload_hash, raw_payload_digest, source_captured_at, acquisition_mode, acquisition_source, is_synthetic, raw_payload->>'speaker' AS speaker FROM commercial_envelope WHERE id = $1",
       [envelopeId],
     );
     const row = res.rows[0];
     if (!row) return undefined;
     return {
+      isSynthetic: row.is_synthetic, rawPayloadDigest:row.raw_payload_digest,
       envelopeId,
       workspaceId: row.workspace_id,
       rawPayloadHash: row.raw_payload_hash,
@@ -162,6 +253,10 @@ export class PgPilotStore implements PilotLoopStore {
         `pilot-${state.lead.workspaceId}`,
       ]);
 
+      if(state.version !== undefined && state.envelope) {
+        const original=await tx.query<EnvelopeDbRow>('SELECT e.* FROM commercial_envelope e JOIN lead l ON l.source_envelope_id=e.id WHERE l.id=$1',[state.lead.id]);
+        if(original.rows[0]) assertSameEnvelope(toEnvelope(original.rows[0]),state.envelope);
+      }
       const persistedEnvelopeId = state.envelope && state.version === undefined
         ? await insertEnvelope(tx, state.envelope, options)
         : state.sourceEnvelopeId ?? null;
@@ -221,6 +316,12 @@ export class PgPilotStore implements PilotLoopStore {
           ? { envelope: { ...state.envelope, envelopeId: persistedEnvelopeId as CommercialEnvelope['envelopeId'] } }
           : {}), version: leadMutation.rows[0].version };
 
+      for (const r of state.contextRevisions ?? []) await tx.query(
+        `INSERT INTO pilot_context_revision(id,lead_id,workspace_id,text,actor,recorded_at,reason) VALUES($1,$2,$3,$4,$5,$6,$7) ON CONFLICT(id) DO NOTHING`,
+        [r.id,state.lead.id,state.lead.workspaceId,r.text,r.actor,r.recordedAt,r.reason]);
+      for (const c of state.closureCommands ?? []) await tx.query(
+        `INSERT INTO pilot_closure_command(workspace_id,lead_id,idempotency_key,actor,operation,digest,result) VALUES($1,$2,$3,$4,$5,$6::jsonb,$7::jsonb) ON CONFLICT DO NOTHING`,
+        [state.lead.workspaceId,state.lead.id,c.idempotencyKey,c.actor,c.operation,JSON.stringify(c.digest),JSON.stringify(c.result)]);
       if (state.handoff) {
         await tx.query(
           `INSERT INTO handoff (id, lead_id, workspace_id, context, evidence_refs, proposed_next_action, created_at, recipient_user_id)
@@ -246,8 +347,8 @@ export class PgPilotStore implements PilotLoopStore {
         await tx.query(
           `INSERT INTO pilot_work_item (id, lead_id, workspace_id, action, responsible_party, origin, status,
                                          completion_evidence, occurred_at, due_at, evidence_ref, recorded_at,
-                                         supersedes_work_id, actor, reason)
-           VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15)
+                                         supersedes_work_id, actor, reason, declaration, confirmed)
+           VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17)
            ON CONFLICT (id) DO UPDATE
               SET status = EXCLUDED.status,
                   completion_evidence = EXCLUDED.completion_evidence,
@@ -255,7 +356,9 @@ export class PgPilotStore implements PilotLoopStore {
                   due_at = EXCLUDED.due_at,
                   evidence_ref = EXCLUDED.evidence_ref,
                   actor = EXCLUDED.actor,
-                  reason = EXCLUDED.reason`,
+                  reason = EXCLUDED.reason,
+                  declaration = EXCLUDED.declaration,
+                  confirmed = EXCLUDED.confirmed`,
           [
             w.id,
             w.leadId,
@@ -272,6 +375,8 @@ export class PgPilotStore implements PilotLoopStore {
             w.supersedesWorkId ?? null,
             w.actor,
             w.reason ?? null,
+            w.declaration ?? null,
+            w.confirmed ?? null,
           ],
         );
       }
@@ -324,17 +429,34 @@ export class PgPilotStore implements PilotLoopStore {
   }
 }
 
+function toQueueItem(row: WorkDbRow & { lead_status: string; display_name: string; handoff_recipient: string | null; is_synthetic?: boolean | null }): PilotQueueItem {
+  return {
+    isSynthetic: row.is_synthetic ?? null, id: row.id, leadId: row.lead_id as PilotQueueItem['leadId'], workspaceId: row.workspace_id, action: row.action,
+    responsibleParty: row.responsible_party as PilotQueueItem['responsibleParty'], origin: row.origin as PilotQueueItem['origin'],
+    status: row.status as PilotQueueItem['status'], completionEvidence: row.completion_evidence as PilotQueueItem['completionEvidence'],
+    occurredAt: row.occurred_at, ...(row.due_at !== null && { dueAt: iso(row.due_at) }), recordedAt: iso(row.recorded_at),
+    ...(row.supersedes_work_id !== null && { supersedesWorkId: row.supersedes_work_id }), actor: row.actor,
+    lead: { status: row.lead_status as PilotQueueItem['lead']['status'], displayName: row.display_name },
+    ...(row.handoff_recipient ? { handoff: { recipientUserId: row.handoff_recipient } } : {}),
+  };
+}
+
 async function insertEnvelope(tx: SqlExecutor, env: CommercialEnvelope, options: { readonly checkSourceCapturedAt?: boolean }): Promise<string> {
+  // Shared adapters reuse the same envelope UUID. Serialize the scoped source key
+  // before INSERT so competing unique indexes cannot race on that UUID. Hash
+  // collisions only serialize unrelated requests; equality still uses full keys.
+  await tx.query('SELECT pg_advisory_xact_lock(hashtextextended($1, 0))', [
+    JSON.stringify([env.workspaceId, env.connection, env.externalRecordId]),
+  ]);
   // P1-1: idempotency scope = (workspace_id, connection, external_record_id) — R-06
-  // within I-09. DO UPDATE (no-op) makes PG RETURN the id of the winning row whether
-  // it was just inserted or already existed from a previous process — the lead FK must
-  // reference THAT id. Different workspaces NEVER share a row.
+  // within I-09. Read back and verify the winning immutable row when it already
+  // exists. The lead FK must reference THAT id; workspaces never share a row.
   const res = await tx.query<{ id: string }>(
     `INSERT INTO commercial_envelope (id, schema_version, workspace_id, connection, external_record_id, external_event_type,
                                       source_captured_at, ingested_at, raw_payload, raw_payload_hash,
                                       mapping_status, mapping_error, canonical_projection, is_synthetic,
-                                      acquisition_mode, acquisition_source)
-     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9::jsonb,$10,$11,$12,$13,$14,$15,$16)
+                                      acquisition_mode, acquisition_source, raw_payload_digest)
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9::jsonb,$10,$11,$12,$13,$14,$15,$16,$17::jsonb)
      ON CONFLICT (workspace_id, connection, external_record_id) DO NOTHING
      RETURNING id`,
     [
@@ -354,12 +476,13 @@ async function insertEnvelope(tx: SqlExecutor, env: CommercialEnvelope, options:
       env.isSynthetic,
       env.acquisitionMode,
       env.acquisitionSource,
+      env.rawPayloadDigest ? JSON.stringify(env.rawPayloadDigest) : null,
     ],
   );
   if (res.rows[0]) return res.rows[0].id;
 
   const existing = await tx.query<EnvelopeDbRow>(
-    `SELECT id, workspace_id, raw_payload, raw_payload_hash, source_captured_at, ingested_at, connection,
+    `SELECT id, workspace_id, raw_payload, raw_payload_hash, raw_payload_digest, source_captured_at, ingested_at, connection,
             external_record_id, external_event_type, mapping_status, mapping_error, canonical_projection, is_synthetic,
             acquisition_mode, acquisition_source
        FROM commercial_envelope

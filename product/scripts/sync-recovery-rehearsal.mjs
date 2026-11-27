@@ -1,0 +1,31 @@
+import{randomUUID,randomBytes}from'node:crypto';import{createRequire}from'node:module';import{spawnSync,execFileSync}from'node:child_process';import{resolve}from'node:path';import assert from'node:assert/strict';
+const target=new URL(process.env.TEST_DATABASE_URL??'invalid:');
+if(target.hostname!=='127.0.0.1'||!target.port||!/^\/(north_start_ci|r412_root)$/.test(target.pathname)||process.env.DATABASE_URL)throw Error('Explicit isolated loopback test target required');
+const require=createRequire(import.meta.url),{Client}=require('pg');
+const{PostgresService}=require('../dist/infra/postgres/postgres.service.js');
+const{Migrator,loadMigrations}=require('../dist/infra/postgres/migrator.js');
+const{PgSourceIntegrationStore}=require('../dist/infra/source-integration/pg-source-integration.store.js');
+const{PgSyncCheckpointStore}=require('../dist/infra/sync/pg-sync-checkpoint.store.js');
+const{admitSyncObservation}=require('../dist/application/durable-sync/admission.js');
+const{installContentDigester}=require('../dist/ports/content-digester-runtime.js');
+const{configuredContentDigester}=require('../dist/infra/crypto/configured-content-digester.js');
+const name='sync_recovery_'+randomUUID().replaceAll('-',''),url=n=>{const v=new URL(target);v.pathname='/'+n;return v.href;};
+const admin=new Client({connectionString:url('postgres')}),keys=JSON.stringify([{workspaceId:'recovery-synthetic',activeKid:'rehearsal',keys:[{kid:'rehearsal',secretBase64:randomBytes(32).toString('base64')}]}]);
+installContentDigester(configuredContentDigester({CONTENT_DIGEST_KEYS_JSON:keys}));
+let db,created=false;
+try{
+ await admin.connect();await admin.query('CREATE DATABASE '+name);created=true;db=new PostgresService({connectionString:url(name)});await new Migrator(db,loadMigrations()).up();
+ await db.query("INSERT INTO workspace(id,name)VALUES('recovery-synthetic','Fabricated recovery')");
+ const ctx={workspaceId:'recovery-synthetic',userId:'fixture-owner',role:'admin',isDemo:false},source=new PgSourceIntegrationStore(db);
+ const c=await source.createConnection(ctx,{provider:'pancake',route:'pancake-synthetic',pageId:'fabricated-page'}),store=new PgSyncCheckpointStore(db,admitSyncObservation,async()=>{}),stream=await store.createStream(ctx.workspaceId,c.id);
+ const childEnv={...process.env,TEST_DATABASE_URL:url(name),SYNC_REHEARSAL_CHILD:'FABRICATED_ONLY',SYNC_CONNECTION_ID:c.id,SYNC_STREAM_ID:stream.id,CONTENT_DIGEST_KEYS_JSON:keys,DEPLOYMENT_MODE:'test',NODE_ENV:'test'};
+ const run=phase=>spawnSync(process.execPath,[resolve('scripts/sync-worker-fixture.mjs'),phase],{env:childEnv,encoding:'utf8',timeout:20000,windowsHide:true});
+ const crashed=run('crash');assert.equal(crashed.status,73,'Expected intentional worker exit73');
+ assert.deepEqual((await db.query('SELECT cursor,cursor_version,page_count,completed FROM sync_stream WHERE id=$1',[stream.id])).rows,[{cursor:'cursor-b',cursor_version:2,page_count:2,completed:false}]);
+ const restarted=run('restart');assert.equal(restarted.status,0,'Restarted child must finish from durable cursor');
+ const state=await store.getStream(ctx.workspaceId,stream.id);assert.equal(state.completed,true);assert.equal(state.cursorVersion,3);
+ assert.equal((await db.query('SELECT count(*)::int n FROM source_receipt WHERE connection_id=$1',[c.id])).rows[0].n,3);
+ assert.equal((await db.query('SELECT count(*)::int n FROM lead WHERE workspace_id=$1',[ctx.workspaceId])).rows[0].n,3);
+ assert.equal((await db.query('SELECT count(*)::int n FROM lead WHERE workspace_id=$1 AND owner_user_id IS NOT NULL',[ctx.workspaceId])).rows[0].n,0);
+ console.log(JSON.stringify({result:'PASS',sourceSha:execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim(),syntheticOnly:true,actualWorkerExit:73,restartedFromPage:3,durablePages:state.pageCount,sourceReceipts:3,unassignedLeads:3,networkCalls:0,productionSla:'NOT_ESTABLISHED'}));
+}finally{await db?.onModuleDestroy();if(created&&/^sync_recovery_[a-f0-9]{32}$/.test(name))await admin.query('DROP DATABASE '+name+' WITH(FORCE)');await admin.end();}

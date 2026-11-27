@@ -1,0 +1,1 @@
+﻿Chatwoot community helper and interaction provenance remains MIT/community scoped; no Rails/Vue/Redis/Auth/database runtime copied. Atomic task/date ideas and Northstar existing message ledger remain native. No provider calls.

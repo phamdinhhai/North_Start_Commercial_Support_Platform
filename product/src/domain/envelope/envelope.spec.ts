@@ -70,7 +70,8 @@ describe('CommercialEnvelope v1 (R-05, R-06, I-11, I-12)', () => {
 
     it('hash matches rawPayload', () => {
       const env = createEnvelope(base);
-      expect(env.rawPayloadHash).toBe(hashRawPayload(base.rawPayload));
+      expect(env.rawPayloadHash).not.toBe(hashRawPayload(base.rawPayload));
+      expect(env.rawPayloadDigest).toMatchObject({ algorithm_version: 'hmac-sha256-v1', value: env.rawPayloadHash });
     });
 
     it('isSynthetic defaults to false', () => {

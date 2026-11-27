@@ -28,8 +28,15 @@ is restricted to inferred/AI-derived commercial meaning or is the generalized
 event/assertion primitive for observed, claimed, imported and inferred commercial
 facts.
 
-This is OPEN decision CE-2. Implementations MUST NOT silently choose either model.
-See `OPEN_DECISIONS.md`.
+~~This is OPEN decision CE-2.~~ **Resolved 2026-11-18 by ADR-005** (owner approval).
+A *Commercial Assertion* umbrella has two kinds. `CommercialEvent` is the **inferred**
+assertion and must pass the I-04 pipeline (draft, confidence, evidence). Observed,
+claimed, imported and user-confirmed facts are `AssertionEnvelope`s that share the
+assertion identity and provenance envelope. Technical/operational records (receipts,
+enrollments, telemetry, audit, action lifecycle) are not assertions. Provider data
+becomes an assertion only through explicit adapter mapping plus policy.
+See `OPEN_DECISIONS.md` (supersession log) and
+`docs/implementation-plan/decisions/ADR-005-ce2-commercial-assertion-scope.md`.
 
 ## 3. Required fields
 

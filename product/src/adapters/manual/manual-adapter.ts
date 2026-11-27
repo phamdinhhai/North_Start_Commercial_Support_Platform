@@ -1,7 +1,7 @@
 import {
   createEnvelope,
   EnvelopeIdempotencyConflictError,
-  hashRawPayload,
+  canonicalizePayload,
   idempotencyKey,
   type CommercialEnvelope,
 } from '../../domain/envelope/envelope';
@@ -30,10 +30,10 @@ export class ManualAdapter implements ManualIngestPort {
     const existing = this.store.get(key);
     const externalEventType = input.externalEventType ?? 'message';
     const sourceCapturedAt = input.sourceCapturedAt ?? existing?.sourceCapturedAt ?? new Date().toISOString();
-    const rawPayloadHash = hashRawPayload(input.rawPayload);
+    const rawPayloadHash = existing?.rawPayloadHash ?? 'not-yet-digested';
     if (existing) {
       const conflicts = [
-        ...(existing.rawPayloadHash !== rawPayloadHash ? ['rawPayloadHash' as const] : []),
+        ...(canonicalizePayload(existing.rawPayload) !== canonicalizePayload(input.rawPayload) ? ['rawPayloadHash' as const] : []),
         ...(existing.externalEventType !== externalEventType ? ['externalEventType' as const] : []),
         ...(existing.sourceCapturedAt !== sourceCapturedAt ? ['sourceCapturedAt' as const] : []),
       ];

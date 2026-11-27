@@ -1,0 +1,104 @@
+{
+  "artifact_directory": "C:\\Users\\admin\\AppData\\Local\\Temp\\north-r4-baseline-3OX1yi",
+  "results": [
+    {
+      "name": "typecheck",
+      "exit_code": 0,
+      "seconds": 5,
+      "summary": []
+    },
+    {
+      "name": "lint",
+      "exit_code": 0,
+      "seconds": 4,
+      "summary": []
+    },
+    {
+      "name": "architecture",
+      "exit_code": 0,
+      "seconds": 1,
+      "summary": [
+        "Architecture check: PASS (0 findings)"
+      ]
+    },
+    {
+      "name": "registry",
+      "exit_code": 0,
+      "seconds": 0,
+      "summary": [
+        "Registry validation: PASS (7 decisions, 6 capabilities, 13 assets)",
+        "Consolidated registry validation: PASS (39 provider capabilities, 36 protocol evidence, 53 GitHub repositories, 27 reusable assets, 7 canonical decisions (3 open, 4 resolved by ADR), 10 proposals)"
+      ]
+    },
+    {
+      "name": "integration-ci",
+      "exit_code": 0,
+      "seconds": 29,
+      "summary": [
+        "   Duration  1.38s (tests 43%, import 40%, transform 16%, worker 1%)",
+        " Test Files  1 passed (1)",
+        "      Tests  4 passed (4)",
+        "   Duration  1.40s (import 55%, tests 36%, transform 8%, worker 1%)",
+        " Test Files  1 passed (1)",
+        "      Tests  5 passed (5)",
+        "   Duration  1.66s (tests 56%, import 37%, transform 6%, worker 1%)",
+        "Integration gate: 14 suites, 64 tests passed without skips"
+      ]
+    },
+    {
+      "name": "coverage",
+      "exit_code": 0,
+      "seconds": 55,
+      "summary": [
+        "      Tests  1032 passed (1032)",
+        "   Duration  53.47s (import 58%, tests 32%, worker 6%, transform 3%)",
+        "     Import  223 modules were evaluated 471 times · 22.68s total, 58% of tracked time",
+        "All files          |   87.38 |    85.13 |   91.45 |   91.08 |                   ",
+        "Statements   : 87.38% ( 4469/5114 )",
+        "Branches     : 85.13% ( 4151/4876 )",
+        "Functions    : 91.45% ( 1027/1123 )",
+        "Lines        : 91.08% ( 3720/4084 )"
+      ]
+    },
+    {
+      "name": "build",
+      "exit_code": 0,
+      "seconds": 7,
+      "summary": []
+    },
+    {
+      "name": "http-e2e",
+      "exit_code": 0,
+      "seconds": 6,
+      "summary": [
+        " Test Files  3 passed (3)",
+        "      Tests  22 passed (22)",
+        "   Duration  5.33s (import 56%, tests 35%, transform 9%, worker 1%)"
+      ]
+    },
+    {
+      "name": "browser",
+      "exit_code": 0,
+      "seconds": 16,
+      "summary": [
+        "  4 passed (15.0s)"
+      ]
+    },
+    {
+      "name": "companion",
+      "exit_code": 0,
+      "seconds": 4,
+      "summary": [
+        "{\"result\":\"PASS\",\"realChromiumMV3\":true,\"syntheticWebsocketCaptured\":true,\"rawMessageExcluded\":true,\"noBodyDigest\":true,\"browserRestartPersistence\":true,\"providerContacted\":false,\"packagedArtifact\":\"b8c4b27f3cc1ed369c4eb9129d7ce2bad8bdb09c8778c1df5e7cd64af531511b\",\"workerRestarted\":true,\"workerLostDebuggerDetected\":true,\"captureAfterExplicitRestart\":true,\"sequenceReservationSurvivedTermination\":true,\"driftFingerprintOnly\":true,\"popupA11y\":true,\"tabCloseStop\":\"tab-closed\"}"
+      ]
+    },
+    {
+      "name": "audit",
+      "exit_code": 0,
+      "seconds": 3,
+      "summary": [
+        "Dependency audit: PASS (production clean; 0 dev-only waiver(s) applied)"
+      ]
+    }
+  ]
+}

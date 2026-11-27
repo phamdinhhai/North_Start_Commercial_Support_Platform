@@ -1,0 +1,1 @@
+﻿Atomic CRM 832b07a, Chatwoot 5d1afdf, Twenty UI b83122a, Ads Studio c500cc5 were cloned outside Git. Atomic original Vite demo and build passed on isolated Node 24. Chatwoot Rails was not run; its MIT helper was reused. Ads build passed; unsafe optimization code was excluded.

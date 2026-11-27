@@ -1,0 +1,22 @@
+{
+  "release": "R4.16.2",
+  "branch": "feat/r4162-native-conversation-hardening",
+  "baselineRemoteSha": "ff89212af3219a1ed689ce5b209ee884eb82d960",
+  "implementationSha": "0d19942e7ebd9aaac2cdeded7c87aec87e98836b",
+  "reportedFinalLocalHead": "698533182ea48f88bc2e24042f50bba6287d778f",
+  "currentLocalHeadAtManifestCreation": "698533182ea48f88bc2e24042f50bba6287d778f",
+  "remoteShaAtManifestCreation": "ff89212af3219a1ed689ce5b209ee884eb82d960",
+  "hostedCi": "PASS",
+  "publishedRemoteHead": "ba69a4dda5b04f6368558887032a81830b8c8bfe",
+  "ciRunId": 45402301220,
+  "ciUrl": "https://github.com/phamdinhhai/North_Start_Commercial_Support_Platform/actions/runs/45402301220",
+  "ciSha": "ba69a4dda5b04f6368558887032a81830b8c8bfe",
+  "pushAuthorized": true,
+  "ownerAcceptance": "PENDING",
+  "productionAuthorization": "NO",
+  "providerCalls": 0,
+  "providerMutations": 0,
+  "p3": "SEND_UNRESOLVED",
+  "p4": "NOT_TESTED",
+  "p5": "NOT_VERIFIED"
+}

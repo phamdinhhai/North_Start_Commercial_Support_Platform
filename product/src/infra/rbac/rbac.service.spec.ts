@@ -6,7 +6,7 @@ function ctx(overrides: Partial<AuthContext> = {}): AuthContext {
   return { workspaceId: 'ws-1', userId: 'sales-1', role: 'sales', isDemo: false, ...overrides };
 }
 
-describe('RbacService — PH3 T3-04 (I-09 lead-scoped, deny-by-default, OPEN: PM-1)', () => {
+describe('RbacService — PH3 T3-04 (I-09 lead-scoped, deny-by-default, ADR-006)', () => {
   const svc = new RbacService();
 
   it('same workspace + assigned → allow', () => {
@@ -23,6 +23,22 @@ describe('RbacService — PH3 T3-04 (I-09 lead-scoped, deny-by-default, OPEN: PM
 
   it('admin can access any lead in workspace', () => {
     expect(svc.canAccessLead(ctx({ role: 'admin' }), { workspaceId: 'ws-1', assignedTo: 'sales-99', id: 'l1' })).toBe(true);
+  });
+
+  it('ADR-006: manager lead read = whole workspace in the LVP; sales/viewer stay assignment/recipient-scoped (I-09)', () => {
+    const lead = { workspaceId: 'ws-1', assignedTo: 'sales-99', id: 'l1', recipients: ['sales-7'] };
+    expect(svc.canAccessLead(ctx({ role: 'manager' }), lead)).toBe(true);
+    expect(svc.canAccessLead(ctx({ role: 'manager' }), { ...lead, workspaceId: 'ws-2' })).toBe(false);
+    expect(svc.canAccessLead(ctx({ role: 'viewer' }), lead)).toBe(false);
+    expect(svc.canAccessLead(ctx({ role: 'sales', userId: 'sales-7' }), lead)).toBe(true);
+    expect(svc.canAccessLead(ctx({ role: 'viewer', userId: 'sales-7' }), lead)).toBe(true);
+  });
+
+  it('ADR-006: export/delete admin only — manager, sales and viewer denied', () => {
+    for (const role of ['manager', 'sales', 'viewer'] as const) {
+      expect(svc.canExport(ctx({ role }))).toBe(false);
+      expect(svc.canDelete(ctx({ role }))).toBe(false);
+    }
   });
 
   it('canExport/canDelete only admin (QA-31)', () => {
