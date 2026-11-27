@@ -4,7 +4,7 @@ import { LEAD_ACCESS_POLICY, type LeadAccessPolicy } from '../ports/rbac';
 import { PilotDomainError } from '../ports/pilot-loop.types';
 import type { LeadId } from '../domain/lead/lead';
 import {
-  BadRequestException, Body, Controller, Get, Headers, HttpException, Inject, Post, ServiceUnavailableException, UnauthorizedException,
+  BadRequestException, Body, Controller, ForbiddenException, Get, Headers, HttpException, Inject, Post, ServiceUnavailableException, UnauthorizedException,
 } from '@nestjs/common';
 import { AUTH_CONTEXT_RESOLVER, type AuthContext, type AuthContextResolver } from '../ports/auth';
 import { FEEDBACK_SERVICE, type FeedbackServicePort } from '../ports/feedback';
@@ -14,6 +14,8 @@ import { boundaryRejection } from './pilot-validation';
 import { validateFeedbackBody, validateTelemetryBody } from './feedback-telemetry.validation';
 
 type RequestHeaders = Record<string, string | undefined>;
+const MUTATION_ROLES = new Set<AuthContext['role']>(['admin', 'manager', 'sales']);
+const WORKSPACE_TELEMETRY_READ_ROLES = new Set<AuthContext['role']>(['admin', 'manager']);
 
 @Controller('pilot')
 export class FeedbackTelemetryController {
@@ -28,7 +30,7 @@ export class FeedbackTelemetryController {
 
   @Post('feedback')
   async submitFeedback(@Headers() headers: RequestHeaders, @Body() body: unknown) {
-    const ctx = this.authContext(headers);
+    const ctx = this.mutationContext(headers);
     this.requireDurable();
     const issues = validateFeedbackBody(body);
     if (issues.length) throw this.invalid(issues);
@@ -62,7 +64,7 @@ export class FeedbackTelemetryController {
         const state = await this.loop.get(item.leadId as LeadId);
         return !!state && canViewPilotLead(ctx, state, this.rbac);
       }
-      // I-09 conservative fallback; no cross-actor sales grant. OPEN: PM-1.
+      // ADR-006 / I-09 conservative fallback; no cross-actor sales grant.
       return item.actor === ctx.userId || this.rbac.canAccessLead(ctx, { id: item.id, workspaceId: item.workspaceId });
     }));
     return { items: items.filter((_, index) => visible[index]) };
@@ -70,7 +72,7 @@ export class FeedbackTelemetryController {
 
   @Post('telemetry')
   async recordTelemetry(@Headers() headers: RequestHeaders, @Body() body: unknown) {
-    const ctx = this.authContext(headers);
+    const ctx = this.mutationContext(headers);
     this.requireDurable();
     const issues = validateTelemetryBody(body);
     if (issues.length) throw this.invalid(issues);
@@ -86,7 +88,8 @@ export class FeedbackTelemetryController {
 
   @Get('telemetry')
   async listTelemetry(@Headers() headers: RequestHeaders) {
-    const ctx = this.authContext(headers);
+    // ADR-006: workspace-wide operational telemetry read is restricted to non-demo admin/manager.
+    const ctx = this.workspaceTelemetryReadContext(headers);
     this.requireDurable();
     return { items: await this.telemetry.listByWorkspace(ctx.workspaceId) };
   }
@@ -94,6 +97,24 @@ export class FeedbackTelemetryController {
   private authContext(headers: RequestHeaders): AuthContext {
     const ctx = this.auth.resolve({ headers });
     if (!ctx) throw new UnauthorizedException('unauthenticated');
+    return ctx;
+  }
+
+  /** ADR-006: viewer/demo principals are read-only and may not mutate feedback or telemetry. */
+  private mutationContext(headers: RequestHeaders): AuthContext {
+    const ctx = this.authContext(headers);
+    if (ctx.isDemo || !MUTATION_ROLES.has(ctx.role)) {
+      throw new ForbiddenException('forbidden');
+    }
+    return ctx;
+  }
+
+  /** ADR-006: workspace-wide telemetry listing is authorized only for non-demo admin/manager. */
+  private workspaceTelemetryReadContext(headers: RequestHeaders): AuthContext {
+    const ctx = this.authContext(headers);
+    if (ctx.isDemo || !WORKSPACE_TELEMETRY_READ_ROLES.has(ctx.role)) {
+      throw new ForbiddenException('forbidden');
+    }
     return ctx;
   }
 

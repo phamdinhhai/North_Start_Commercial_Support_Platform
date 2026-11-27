@@ -23,7 +23,10 @@ export interface BoundaryError {
     | 'OBJECT_REQUIRED'
     | 'EMPTY'
     | 'CONFIRMATION_REQUIRED'
-    | 'CONFIRMATION_INVALID';
+    | 'CONFIRMATION_INVALID'
+    | 'UNKNOWN_FIELD'
+    | 'UUID_INVALID'
+    | 'TOO_LARGE';
   readonly message: string;
 }
 

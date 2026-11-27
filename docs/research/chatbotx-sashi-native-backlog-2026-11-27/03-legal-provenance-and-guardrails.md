@@ -1,8 +1,8 @@
 # 03 — Legal, Provenance, and Implementation Guardrails
 
-**Date:** 2026-11-27  
-**Disclaimer:** Conservative engineering provenance and license disposition register — **not formal legal advice**.  
-**Pinned Donor Refs:** `ChatbotXIO/ChatbotX@fdd7ccf4f5a21186ff16d5aeb85d979e6f1559a1`, Sashi public docs (`doc.sashi.vn`, `76` URLs) + historical read-only REA (`ev_bdf64964183f4600a4cc8b1570a789a5bab5d49c8376e2d696897644ee7fe820`).  
+**Date:** 2026-11-27
+**Disclaimer:** Conservative engineering provenance and license disposition register — **not formal legal advice**.
+**Pinned Donor Refs:** `ChatbotXIO/ChatbotX@fdd7ccf4f5a21186ff16d5aeb85d979e6f1559a1`, Sashi public docs (`doc.sashi.vn`, `76` URLs) + historical read-only REA (`ev_bdf64964183f4600a4cc8b1570a789a5bab5d49c8376e2d696897644ee7fe820`).
 **Global Disposition:** **`ZERO_LEGALLY_CLEARED_CANDIDATES` (`0 / 11` ChatbotX candidates cleared; Sashi source/bundle reuse `PROHIBITED`; `0` donor lines in `product/`).**
 
 ---

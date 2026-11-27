@@ -1,8 +1,8 @@
 # 01 — Research-to-Product Traceability Matrix
 
-**Date:** 2026-11-27  
-**Handoff Anchor:** `7c4cefe9b282770bc389abf3b4be441aefa4cb9f` (`docs/research/chatbotx-sashi-consolidated-audit-2026-11-26/`)  
-**Research Baselines:** `research/chatbotx-sashi@060eb49367fd282288ce6121817a4fafdf17e94c`, `research/chatbotx-sashi-phase2@7285586d670762089fba2941954759d5c5572049`, `ChatbotX@fdd7ccf4f5a21186ff16d5aeb85d979e6f1559a1`, Sashi public docs (`76` URLs) + REA (`ev_bdf64964...`, `ev_daf7b304...`)  
+**Date:** 2026-11-27
+**Handoff Anchor:** `7c4cefe9b282770bc389abf3b4be441aefa4cb9f` (`docs/research/chatbotx-sashi-consolidated-audit-2026-11-26/`)
+**Research Baselines:** `research/chatbotx-sashi@060eb49367fd282288ce6121817a4fafdf17e94c`, `research/chatbotx-sashi-phase2@7285586d670762089fba2941954759d5c5572049`, `ChatbotX@fdd7ccf4f5a21186ff16d5aeb85d979e6f1559a1`, Sashi public docs (`76` URLs) + REA (`ev_bdf64964...`, `ev_daf7b304...`)
 **Product Baselines:** `main@5d6c20673218f02c0972263126e8654eadee18c9`, `feat/r4162-native-conversation-hardening@c29823065182587218771cd51969bfada07517b5`, `feat/r4163-native-commercial-continuity@77e86b9b381406a2c972826cf5a536b67dce10b8`, `exec/r4163-acceptance@6e98238de1f81b3ee87f2b37eb84cbcf15835171`
 
 ---

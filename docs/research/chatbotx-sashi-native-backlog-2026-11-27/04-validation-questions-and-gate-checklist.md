@@ -1,6 +1,6 @@
 # 04 — Remaining Validation Questions & Gate Checklist
 
-**Status:** Open questions are preserved; this document does not resolve canonical decisions or authorize implementation.  
+**Status:** Open questions are preserved; this document does not resolve canonical decisions or authorize implementation.
 **Evidence baseline:** consolidated handoff `7c4cefe9b282770bc389abf3b4be441aefa4cb9f`; post-handoff security/capture commits `c77482ee`, `b9b6155e`, `6e98238d`.
 
 ## 1. Release and evidence reconciliation before R4.16.4

@@ -1,7 +1,7 @@
 # 02 — Native Capability Backlog
 
-**Status:** `RESEARCH_HANDOFF_ONLY`; no item authorizes implementation.  
-**Method:** clean-room North Star implementation from behavioral contracts; no ChatbotX/Sashi source, bundles, tests, private APIs, or hidden formulas copied.  
+**Status:** `RESEARCH_HANDOFF_ONLY`; no item authorizes implementation.
+**Method:** clean-room North Star implementation from behavioral contracts; no ChatbotX/Sashi source, bundles, tests, private APIs, or hidden formulas copied.
 **Acceptance rule:** a design claim becomes a product claim only after the cited native tests/evidence pass at the exact target SHA and appropriate human gate.
 
 ## 1. Sequenced backlog
