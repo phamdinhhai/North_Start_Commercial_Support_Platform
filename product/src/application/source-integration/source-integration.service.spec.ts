@@ -51,4 +51,3 @@ describe('synthetic source application boundary',()=>{
     expect(s.conversationPage).toHaveBeenCalledWith('synthetic','admin',{limit:2,actorRole:'admin'});expect(result.items[0].messages[0].utterance).toBeNull();expect(result.items[0].verification).toBe('UNVERIFIED');
   });
 });
-
