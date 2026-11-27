@@ -6,6 +6,8 @@ The full commercial continuity suite (both browser tests) passed three consecuti
 
 Current release status is `LOCAL_COMMERCIAL_JOURNEY_VERIFIED_CI_PENDING`. Hosted CI for the current candidate and Owner acceptance remain pending. The dedicated CI config discovers both commercial browser tests; there is no separate association-only CI lane. No provider calls or mutations were made.
 
-Candidate implementation SHA: `1a723e1`. Final published candidate SHA: `85b45f307f6eeab301256df9d074f07e869a664d`. Hosted CI run `45582583027` passed for that exact SHA across Product, React frontend build/contract, and Browser operator workflow jobs.
+Candidate implementation SHA (feature branch): `1a723e1`. Prior feature-branch published SHA: `85b45f307f6eeab301256df9d074f07e869a664d` (Hosted CI run `45582583027`).
 
-Final release verdict: `COMMERCIAL_JOURNEY_CI_VERIFIED_OWNER_ACCEPTANCE_PENDING`.
+Consolidated acceptance candidate branch: `exec/r4163-acceptance` (PR `#5` -> `main`, state `OPEN`, no merge performed). Exact verified candidate SHA: `703cce7a4978cba8bb887da745d2532818590f9c`. Hosted CI runs `45932612513` and `45932607599` passed for that exact SHA across `product`, `React frontend build and contract`, and `Browser operator workflow`. Note: `main..exec/r4163-acceptance` includes owner-approved canonical supersession commit `bd4ee87` (ADR-005..008); no canonical files were modified in this remediation, and CE-1, ID-1, ID-2 remain OPEN.
+
+Final release verdict: `CANDIDATE_CI_VERIFIED_OWNER_CONSOLIDATION_SIGNOFF_PENDING` (production authorization: `NO`; R3 OAR-01..OAR-12 remain `OPEN`).

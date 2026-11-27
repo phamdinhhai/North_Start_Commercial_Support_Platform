@@ -1,16 +1,38 @@
 {
   "release": "R4.16.3",
-  "branch": "feat/r4163-native-commercial-continuity",
-  "baselineSha": "c29823065182587218771cd51969bfada07517b5",
-  "implementationSha": "1a723e1",
-  "testedImplementationSha": "1a723e1",
-  "documentationSha": "85b45f3",
-  "hostedCI": {
-    "run": "45582583027",
-    "sha": "85b45f307f6eeab301256df9d074f07e869a664d",
-    "conclusion": "success"
+  "branch": "exec/r4163-acceptance",
+  "featureBranch": "feat/r4163-native-commercial-continuity",
+  "pullRequest": {
+    "number": 5,
+    "base": "main",
+    "head": "exec/r4163-acceptance",
+    "headSha": "703cce7a4978cba8bb887da745d2532818590f9c",
+    "state": "OPEN"
   },
-  "ownerAcceptance": "PENDING",
+  "baselineSha": "c29823065182587218771cd51969bfada07517b5",
+  "implementationSha": "703cce7a4978cba8bb887da745d2532818590f9c",
+  "testedImplementationSha": "703cce7a4978cba8bb887da745d2532818590f9c",
+  "documentationSha": "703cce7a4978cba8bb887da745d2532818590f9c",
+  "priorFeatureBranchEvidence": {
+    "implementationSha": "1a723e1",
+    "documentationSha": "85b45f307f6eeab301256df9d074f07e869a664d",
+    "hostedCIRun": "45582583027"
+  },
+  "hostedCI": {
+    "run": "45932612513",
+    "runs": [
+      "45932612513",
+      "45932607599"
+    ],
+    "sha": "703cce7a4978cba8bb887da745d2532818590f9c",
+    "conclusion": "success",
+    "jobs": [
+      "product",
+      "React frontend build and contract",
+      "Browser operator workflow"
+    ]
+  },
+  "ownerAcceptance": "APPROVED_FOR_R4_16_3_ACCEPTANCE_CHECKPOINT_MERGE_SIGN_OFF_PENDING",
   "commercialJourney": "FULL_REACT_JOURNEY_VERIFIED",
   "p3": "SEND_UNRESOLVED",
   "p4": "NOT_TESTED",
@@ -18,10 +40,11 @@
   "providerCalls": 0,
   "providerMutations": 0,
   "productionAuthorization": "NO",
-  "status": "COMMERCIAL_JOURNEY_CI_VERIFIED_OWNER_ACCEPTANCE_PENDING",
+  "status": "CANDIDATE_CI_VERIFIED_OWNER_CONSOLIDATION_SIGNOFF_PENDING",
   "blockers": [
-    "Hosted CI for current candidate SHA",
-    "Owner acceptance"
+    "Owner consolidation and merge sign-off for PR #5 (including canonical supersession commit bd4ee87 on main diff and PR metadata)",
+    "Hosted CI re-verification after any release-consolidation remediation commit pushed to exec/r4163-acceptance",
+    "OAR-01..OAR-12 remain OPEN before real-data or production enablement"
   ],
   "testEvidence": {
     "productTypecheck": {
@@ -63,9 +86,9 @@
       "exitCode": 0
     }
   },
-  "evidenceSha": "a6d5dd0",
+  "evidenceSha": "703cce7a4978cba8bb887da745d2532818590f9c",
   "authorizationRegression": "PASS_ORIGIN_AND_EFFECTIVE_REQUIRED",
-  "finalLocalHead": "1a723e1",
+  "finalLocalHead": "703cce7a4978cba8bb887da745d2532818590f9c",
   "rootCause": "CC-08 commercial entry owner presentation mismatch plus CC-09 dialog submission harness defect",
   "minimalRecipientAcceptance": {
     "runs": 3,
@@ -73,7 +96,7 @@
     "test": "commercial-continuity.browser.spec.ts",
     "evidence": "clean disposable PostgreSQL databases"
   },
-  "candidateLocalHead": "1a723e1",
+  "candidateLocalHead": "703cce7a4978cba8bb887da745d2532818590f9c",
   "cc13": "PASS_PERSISTED_OWNER_WORKITEM_VERSION_AUDIT",
   "cc14": "PASS_NATIVE_INBOX_ASSOCIATED_LEAD_LINK",
   "cc15": "PASS_SPECIFIC_SOURCE_UTTERANCE_AND_EVIDENCE",
